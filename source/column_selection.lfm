@@ -15,13 +15,13 @@ object frmColumnSelection: TfrmColumnSelection
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnShow = FormShow
-  LCLVersion = '3.8.0.0'
   object btnCancel: TButton
     Left = 146
     Height = 31
     Top = 264
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
@@ -34,47 +34,58 @@ object frmColumnSelection: TfrmColumnSelection
     Top = 264
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'OK'
     Default = True
     TabOrder = 1
     OnClick = btnOKClick
   end
   object chkSort: TCheckBox
+    AnchorSideTop.Control = chklistColumns
+    AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 22
-    Top = 200
+    Height = 24
+    Top = 198
     Width = 230
     Anchors = [akLeft, akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Sort alphabetically'
     TabOrder = 2
     OnClick = PopulateList
   end
   object chkSelectAll: TCheckBox
+    AnchorSideTop.Control = Owner
     Left = 10
-    Height = 22
+    Height = 24
     Hint = 'Select / Deselect all'
-    Top = 8
-    Width = 34
+    Top = 6
+    Width = 39
+    BorderSpacing.Around = 6
     Caption = 'All'
     TabOrder = 3
     OnClick = chkSelectAllClick
   end
   object chklistColumns: TCheckListBox
+    AnchorSideTop.Control = editFilter
+    AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 153
-    Top = 39
+    Height = 152
+    Top = 40
     Width = 230
     Anchors = [akTop, akLeft, akRight, akBottom]
-    ItemHeight = 21
+    BorderSpacing.Around = 6
+    ItemHeight = 0
     TabOrder = 4
     OnClickCheck = chklistColumnsClickCheck
   end
   object editFilter: TEditButton
+    AnchorSideTop.Control = Owner
     Left = 79
-    Height = 26
-    Top = 5
+    Height = 28
+    Top = 6
     Width = 161
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     ButtonWidth = 29
     Images = MainForm.ImageListIcons8
     ImageIndex = 146
@@ -87,11 +98,14 @@ object frmColumnSelection: TfrmColumnSelection
     TextHint = 'Filter'
   end
   object chkShowRowId: TCheckBox
+    AnchorSideTop.Control = chkSort
+    AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 22
-    Top = 229
+    Height = 24
+    Top = 227
     Width = 230
     Anchors = [akLeft, akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Show static row id column'
     TabOrder = 6
   end

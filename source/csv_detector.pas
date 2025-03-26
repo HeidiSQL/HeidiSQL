@@ -160,7 +160,7 @@ begin
     ProgressCharsPerStep := ContentLen div FLoadDataFrm.ProgressBarSteps;
     ProgressChars := 0;
     MainForm.EnableProgress(FLoadDataFrm.ProgressBarSteps);
-    IgnoreLines := FLoadDataFrm.updownIgnoreLines.Position;
+    IgnoreLines := StrToIntDef(FLoadDataFrm.editIgnoreLines.Text, 0);
     NextChar;
 
     while P <= ContentLen do begin

@@ -19,20 +19,21 @@ object UserManagerForm: TUserManagerForm
   Position = poMainFormCenter
   object Splitter1: TSplitter
     Cursor = crSizeWE
-    Left = 280
-    Height = 408
+    Left = 292
+    Height = 396
     Top = 0
     Width = 10
     OnMoved = FormResize
   end
   object pnlLeft: TPanel
-    Left = 0
-    Height = 408
-    Top = 0
+    Left = 6
+    Height = 390
+    Top = 6
     Width = 280
     Align = alLeft
+    BorderSpacing.Around = 6
     BevelOuter = bvNone
-    ClientHeight = 408
+    ClientHeight = 390
     ClientWidth = 280
     Constraints.MinWidth = 25
     ParentBackground = False
@@ -48,7 +49,7 @@ object UserManagerForm: TUserManagerForm
     end
     object listUsers: TLazVirtualStringTree
       Left = 0
-      Height = 351
+      Height = 333
       Top = 57
       Width = 280
       Align = alClient
@@ -123,14 +124,15 @@ object UserManagerForm: TUserManagerForm
     end
   end
   object pnlRight: TPanel
-    Left = 290
-    Height = 408
-    Top = 0
-    Width = 494
+    Left = 308
+    Height = 390
+    Top = 6
+    Width = 470
     Align = alClient
+    BorderSpacing.Around = 6
     BevelOuter = bvNone
-    ClientHeight = 408
-    ClientWidth = 494
+    ClientHeight = 390
+    ClientWidth = 470
     Constraints.MinWidth = 25
     ParentBackground = False
     TabOrder = 1
@@ -138,7 +140,7 @@ object UserManagerForm: TUserManagerForm
       Left = 0
       Height = 37
       Top = 181
-      Width = 494
+      Width = 470
       AutoSize = True
       ButtonHeight = 35
       ButtonWidth = 99
@@ -170,10 +172,12 @@ object UserManagerForm: TUserManagerForm
       end
     end
     object treePrivs: TLazVirtualStringTree
+      AnchorSideTop.Control = tlbObjects
+      AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 190
+      Height = 172
       Top = 218
-      Width = 494
+      Width = 470
       Align = alClient
       Header.AutoSizeIndex = 0
       Header.Columns = <>
@@ -196,7 +200,7 @@ object UserManagerForm: TUserManagerForm
       Left = 0
       Height = 181
       Top = 0
-      Width = 494
+      Width = 470
       ActivePage = tabCredentials
       Align = alTop
       TabIndex = 0
@@ -204,55 +208,71 @@ object UserManagerForm: TUserManagerForm
       object tabCredentials: TTabSheet
         Caption = 'Credentials'
         ClientHeight = 148
-        ClientWidth = 486
+        ClientWidth = 462
         object lblUsername: TLabel
           Left = 4
           Height = 20
           Top = 12
           Width = 73
+          BorderSpacing.Around = 6
           Caption = 'User &name:'
         end
         object lblFromHost: TLabel
+          AnchorSideTop.Control = editUsername
+          AnchorSideTop.Side = asrBottom
           Left = 4
           Height = 20
-          Top = 46
+          Top = 43
           Width = 69
+          BorderSpacing.Around = 6
           Caption = 'From &host:'
           FocusControl = editFromHost
         end
         object lblPassword: TLabel
+          AnchorSideTop.Control = editFromHost
+          AnchorSideTop.Side = asrBottom
           Left = 4
           Height = 20
-          Top = 80
+          Top = 77
           Width = 64
+          BorderSpacing.Around = 6
           Caption = '&Password:'
           FocusControl = editPassword
         end
         object lblRepeatPassword: TLabel
+          AnchorSideTop.Control = editPassword
+          AnchorSideTop.Side = asrBottom
           Left = 4
           Height = 20
-          Top = 114
+          Top = 111
           Width = 117
+          BorderSpacing.Around = 6
           Caption = 'Repeat password:'
           FocusControl = editRepeatPassword
         end
         object editRepeatPassword: TEdit
+          AnchorSideTop.Control = editPassword
+          AnchorSideTop.Side = asrBottom
           Left = 220
           Height = 28
-          Top = 110
-          Width = 260
+          Top = 111
+          Width = 236
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 6
           EchoMode = emPassword
           PasswordChar = '*'
           TabOrder = 3
           OnChange = Modification
         end
         object editPassword: TEditButton
+          AnchorSideTop.Control = editFromHost
+          AnchorSideTop.Side = asrBottom
           Left = 220
           Height = 28
-          Top = 76
-          Width = 260
+          Top = 77
+          Width = 236
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 6
           ButtonWidth = 29
           EchoMode = emPassword
           Images = MainForm.ImageListIcons8
@@ -265,11 +285,14 @@ object UserManagerForm: TUserManagerForm
           TabOrder = 2
         end
         object editFromHost: TEditButton
+          AnchorSideTop.Control = editUsername
+          AnchorSideTop.Side = asrBottom
           Left = 220
           Height = 28
-          Top = 42
-          Width = 260
+          Top = 43
+          Width = 236
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 6
           ButtonWidth = 29
           Images = MainForm.ImageListIcons8
           ImageIndex = 75
@@ -284,8 +307,9 @@ object UserManagerForm: TUserManagerForm
           Left = 220
           Height = 28
           Top = 9
-          Width = 260
+          Width = 236
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 6
           TabOrder = 0
           OnChange = Modification
         end
@@ -293,160 +317,137 @@ object UserManagerForm: TUserManagerForm
       object tabLimitations: TTabSheet
         Caption = 'Limitations'
         ClientHeight = 148
-        ClientWidth = 486
+        ClientWidth = 462
         ImageIndex = 1
         object lblMaxQueries: TLabel
+          AnchorSideTop.Control = editMaxQueries
           Left = 4
           Height = 20
-          Top = 12
+          Top = 15
           Width = 113
+          BorderSpacing.Around = 6
           Caption = 'Queries per hour:'
         end
         object lblMaxUpdates: TLabel
+          AnchorSideTop.Control = editMaxQueries
+          AnchorSideTop.Side = asrBottom
           Left = 4
           Height = 20
-          Top = 46
+          Top = 43
           Width = 118
+          BorderSpacing.Around = 6
           Caption = 'Updates per hour:'
         end
         object lblMaxConnections: TLabel
+          AnchorSideTop.Control = editMaxUpdates
+          AnchorSideTop.Side = asrBottom
           Left = 4
           Height = 20
-          Top = 80
+          Top = 77
           Width = 144
+          BorderSpacing.Around = 6
           Caption = 'Connections per hour:'
         end
         object lblMaxUserConnections: TLabel
+          AnchorSideTop.Control = editMaxConnections
+          AnchorSideTop.Side = asrBottom
           Left = 4
           Height = 20
-          Top = 114
+          Top = 111
           Width = 175
+          BorderSpacing.Around = 6
           Caption = 'Simultaneous connections:'
         end
         object editMaxQueries: TEdit
-          Left = 240
+          Left = 220
           Height = 28
           Top = 9
-          Width = 220
+          Width = 236
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 6
           NumbersOnly = True
           TabOrder = 0
           Text = '0'
           OnChange = Modification
         end
         object editMaxUpdates: TEdit
-          Left = 240
+          AnchorSideTop.Control = editMaxQueries
+          AnchorSideTop.Side = asrBottom
+          Left = 220
           Height = 28
-          Top = 42
-          Width = 220
+          Top = 43
+          Width = 236
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 6
+          NumbersOnly = True
+          TabOrder = 1
+          Text = '0'
+          OnChange = Modification
+        end
+        object editMaxConnections: TEdit
+          AnchorSideTop.Control = editMaxUpdates
+          AnchorSideTop.Side = asrBottom
+          Left = 220
+          Height = 28
+          Top = 77
+          Width = 236
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 6
           NumbersOnly = True
           TabOrder = 2
           Text = '0'
           OnChange = Modification
         end
-        object editMaxConnections: TEdit
-          Left = 240
-          Height = 28
-          Top = 76
-          Width = 220
-          Anchors = [akTop, akLeft, akRight]
-          NumbersOnly = True
-          TabOrder = 4
-          Text = '0'
-          OnChange = Modification
-        end
         object editMaxUserConnections: TEdit
-          Left = 240
+          AnchorSideTop.Control = editMaxConnections
+          AnchorSideTop.Side = asrBottom
+          Left = 220
           Height = 28
-          Top = 110
-          Width = 220
+          Top = 111
+          Width = 236
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 6
           NumbersOnly = True
-          TabOrder = 6
+          TabOrder = 3
           Text = '0'
           OnChange = Modification
-        end
-        object udMaxQueries: TUpDown
-          Left = 460
-          Height = 28
-          Top = 9
-          Width = 21
-          Anchors = [akTop, akRight]
-          Associate = editMaxQueries
-          Max = -1
-          Min = 0
-          OnClick = udMaxQueriesClick
-          Position = 0
-          TabOrder = 1
-          Thousands = False
-        end
-        object udMaxUpdates: TUpDown
-          Left = 460
-          Height = 28
-          Top = 42
-          Width = 21
-          Anchors = [akTop, akRight]
-          Associate = editMaxUpdates
-          Max = -1
-          Min = 0
-          Position = 0
-          TabOrder = 3
-          Thousands = False
-        end
-        object udMaxConnections: TUpDown
-          Left = 460
-          Height = 28
-          Top = 76
-          Width = 21
-          Anchors = [akTop, akRight]
-          Associate = editMaxConnections
-          Max = -1
-          Min = 0
-          Position = 0
-          TabOrder = 5
-          Thousands = False
-        end
-        object udMaxUserConnections: TUpDown
-          Left = 460
-          Height = 28
-          Top = 110
-          Width = 21
-          Anchors = [akTop, akRight]
-          Associate = editMaxUserConnections
-          Max = -1
-          Min = 0
-          Position = 0
-          TabOrder = 7
-          Thousands = False
         end
       end
       object tabSSL: TTabSheet
         Caption = 'SSL options'
         ClientHeight = 148
-        ClientWidth = 486
+        ClientWidth = 462
         ImageIndex = 2
         object lblCipher: TLabel
+          AnchorSideTop.Control = comboSSL
+          AnchorSideTop.Side = asrBottom
           Left = 4
           Height = 20
-          Top = 45
+          Top = 42
           Width = 46
+          BorderSpacing.Around = 6
           Caption = '&Cipher:'
           FocusControl = editCipher
         end
         object lblIssuer: TLabel
+          AnchorSideTop.Control = editCipher
+          AnchorSideTop.Side = asrBottom
           Left = 4
           Height = 20
-          Top = 78
+          Top = 76
           Width = 40
+          BorderSpacing.Around = 6
           Caption = '&Issuer:'
           FocusControl = editIssuer
         end
         object lblSubject: TLabel
+          AnchorSideTop.Control = editIssuer
+          AnchorSideTop.Side = asrBottom
           Left = 4
           Height = 20
-          Top = 111
+          Top = 110
           Width = 52
+          BorderSpacing.Around = 6
           Caption = '&Subject:'
           FocusControl = editSubject
         end
@@ -455,34 +456,44 @@ object UserManagerForm: TUserManagerForm
           Height = 20
           Top = 11
           Width = 81
+          BorderSpacing.Around = 6
           Caption = '&Require SSL:'
         end
         object editCipher: TEdit
+          AnchorSideTop.Control = comboSSL
+          AnchorSideTop.Side = asrBottom
           Left = 220
           Height = 28
-          Top = 41
-          Width = 260
+          Top = 42
+          Width = 236
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 6
           TabOrder = 1
           Text = 'editCipher'
           OnChange = Modification
         end
         object editIssuer: TEdit
+          AnchorSideTop.Control = editCipher
+          AnchorSideTop.Side = asrBottom
           Left = 220
           Height = 28
-          Top = 74
-          Width = 260
+          Top = 76
+          Width = 236
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 6
           TabOrder = 2
           Text = 'editIssuer'
           OnChange = Modification
         end
         object editSubject: TEdit
+          AnchorSideTop.Control = editIssuer
+          AnchorSideTop.Side = asrBottom
           Left = 220
           Height = 28
-          Top = 108
-          Width = 260
+          Top = 110
+          Width = 236
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 6
           TabOrder = 3
           Text = 'editSubject'
           OnChange = Modification
@@ -491,8 +502,9 @@ object UserManagerForm: TUserManagerForm
           Left = 220
           Height = 28
           Top = 8
-          Width = 260
+          Width = 236
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 6
           ItemHeight = 20
           Items.Strings = (
             'No SSL or X509 requirements'
@@ -508,17 +520,18 @@ object UserManagerForm: TUserManagerForm
     end
   end
   object pnlBottom: TPanel
-    Left = 0
+    Left = 6
     Height = 47
-    Top = 408
-    Width = 784
+    Top = 402
+    Width = 772
     Align = alBottom
+    BorderSpacing.Around = 6
     ClientHeight = 47
-    ClientWidth = 784
+    ClientWidth = 772
     ParentBackground = False
     TabOrder = 3
     object btnDiscard: TSpeedButton
-      Left = 529
+      Left = 517
       Height = 31
       Top = 8
       Width = 119
@@ -529,7 +542,7 @@ object UserManagerForm: TUserManagerForm
       OnClick = btnDiscardClick
     end
     object btnSave: TSpeedButton
-      Left = 403
+      Left = 391
       Height = 31
       Top = 8
       Width = 119
@@ -540,7 +553,7 @@ object UserManagerForm: TUserManagerForm
       OnClick = btnSaveClick
     end
     object btnCancel: TSpeedButton
-      Left = 655
+      Left = 643
       Height = 31
       Top = 8
       Width = 119
@@ -554,7 +567,7 @@ object UserManagerForm: TUserManagerForm
       Left = 10
       Height = 30
       Top = 8
-      Width = 264
+      Width = 252
       Anchors = [akTop, akLeft, akRight]
       AutoSize = False
       Layout = tlCenter

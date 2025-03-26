@@ -120,9 +120,7 @@ begin
   Caption := f_('About %s', [APPNAME]);
   lblAppName.Caption := APPNAME;
   lblAppVersion.Caption := _('Version') + ' ' + Mainform.AppVersion;
-  lblAppCompiled.Caption := _('Compiled on:') + ' ' + {DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName)) +} ' with';
-  lnklblCompiler.Top := lblAppCompiled.Top;
-  lnklblCompiler.Left := lblAppCompiled.Left + lblAppCompiled.Width + Canvas.TextWidth(' ');
+  lblAppCompiled.Caption := _('Compiled on:') + ' ?' + {DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName)) +} ' with';
   lnklblCompiler.Caption := GetCompilerVersion;
   lnklblCompiler.Hint := 'https://www.lazarus-ide.org/?utm_source='+APPNAME;
   lnklblWebpage.Caption := APPDOMAIN;
@@ -133,11 +131,7 @@ begin
   lnklblCredits.Font.Style := lnklblCredits.Font.Style + [fsUnderline];
 
   ImageHeidisql.Hint := APPDOMAIN+'?place='+EncodeURLParam(ImageHeidisql.Name);
-  lblEnvironment.Caption := _('Environment:') + ' ' +
-    {$IFDEF WINDOWS}'Windows'{$EndIf}
-    {$IFDEF LINUX}'Linux'{$EndIf}
-    {$IFDEF MACOS}'MacOS'{$EndIf}
-    ;
+  lblEnvironment.Caption := _('Environment:') + ' ' + GetOS;
 
   Screen.Cursor := crDefault;
   btnClose.TrySetFocus;

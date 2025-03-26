@@ -40,7 +40,6 @@ type
     chkFieldsEnclosedOptionally: TCheckBox;
     grpOptions: TGroupBox;
     lblIgnoreLinesCount: TLabel;
-    updownIgnoreLines: TUpDown;
     editIgnoreLines: TEdit;
     editLineTerminator: TEdit;
     lblLineTerminator: TLabel;
@@ -104,7 +103,7 @@ begin
   editLineTerminator.Text := AppSettings.ReadString(asCSVImportTerminator);
   chkFieldsEnclosedOptionally.Checked :=  AppSettings.ReadBool(asCSVImportFieldsEnclosedOptionally);
   editFieldEscaper.Text := AppSettings.ReadString(asCSVImportFieldEscaper);
-  updownIgnoreLines.Position := AppSettings.ReadInt(asCSVImportIgnoreLines);
+  editIgnoreLines.Text := AppSettings.ReadInt(asCSVImportIgnoreLines).ToString;
   chkLowPriority.Checked := AppSettings.ReadBool(asCSVImportLowPriority);
   chkLocalNumbers.Checked := AppSettings.ReadBool(asCSVImportLocalNumbers);
   chkKeepDialogOpen.Checked := AppSettings.ReadBool(asCSVKeepDialogOpen);
@@ -173,7 +172,7 @@ begin
   AppSettings.WriteString(asCSVImportTerminator, editLineTerminator.Text);
   AppSettings.WriteBool(asCSVImportFieldsEnclosedOptionally, chkFieldsEnclosedOptionally.Checked);
   AppSettings.WriteString(asCSVImportFieldEscaper, editFieldEscaper.Text);
-  AppSettings.WriteInt(asCSVImportIgnoreLines, updownIgnoreLines.Position);
+  AppSettings.WriteInt(asCSVImportIgnoreLines, StrToIntDef(editIgnoreLines.Text, 0));
   AppSettings.WriteBool(asCSVImportLowPriority, chkLowPriority.Checked);
   AppSettings.WriteBool(asCSVImportLocalNumbers, chkLocalNumbers.Checked);
   AppSettings.WriteBool(asCSVKeepDialogOpen, chkKeepDialogOpen.Checked);
@@ -425,8 +424,8 @@ begin
   // Lines:
   if FLineTerm <> '' then
     SQL := SQL + 'LINES TERMINATED BY ' + FConnection.EscapeString(FLineTerm) + ' ';
-  if updownIgnoreLines.Position > 0 then
-    SQL := SQL + 'IGNORE ' + inttostr(updownIgnoreLines.Position) + ' LINES ';
+  if editIgnoreLines.Text <> '' then
+    SQL := SQL + 'IGNORE ' + editIgnoreLines.Text + ' LINES ';
 
   // Column listing
   SQL := SQL + '(';
@@ -613,7 +612,7 @@ begin
   FRowCount := 0;
   LineNum := 0;
   RowCountInChunk := 0;
-  IgnoreLines := UpDownIgnoreLines.Position;
+  IgnoreLines := StrToIntDef(editIgnoreLines.Text, 0);
   ValueCount := 0;
   PacketSize := SIZE_MB div 2;
   NextChar;

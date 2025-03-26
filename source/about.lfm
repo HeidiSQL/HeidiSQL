@@ -12,28 +12,35 @@ object AboutBox: TAboutBox
   FormStyle = fsStayOnTop
   OnShow = FormShow
   Position = poOwnerFormCenter
-  LCLVersion = '3.8.0.0'
   object lblAppName: TLabel
     Left = 146
     Height = 20
     Top = 10
     Width = 85
+    BorderSpacing.Around = 6
     Caption = 'lblAppName'
     PopupMenu = popupLabels
   end
   object lblAppVersion: TLabel
+    AnchorSideTop.Control = lblAppName
+    AnchorSideTop.Side = asrBottom
     Left = 146
     Height = 20
-    Top = 54
+    Top = 42
     Width = 93
+    BorderSpacing.Top = 6
+    BorderSpacing.Around = 6
     Caption = 'lblAppVersion'
     PopupMenu = popupLabels
   end
   object lblAppCompiled: TLabel
+    AnchorSideTop.Control = lblAppVersion
+    AnchorSideTop.Side = asrBottom
     Left = 146
     Height = 20
-    Top = 79
+    Top = 68
     Width = 110
+    BorderSpacing.Around = 6
     Caption = 'lblAppCompiled'
     PopupMenu = popupLabels
   end
@@ -44,6 +51,7 @@ object AboutBox: TAboutBox
     Top = 10
     Width = 90
     AutoSize = True
+    BorderSpacing.Around = 6
     OnClick = OpenURL
     Picture.Data = {
       1754506F727461626C654E6574776F726B477261706869637B19000089504E47
@@ -255,102 +263,134 @@ object AboutBox: TAboutBox
     Transparent = True
   end
   object lblDonated: TLabel
+    AnchorSideTop.Control = lnklblCredits
+    AnchorSideTop.Side = asrBottom
     Left = 146
     Height = 20
-    Top = 214
+    Top = 178
     Width = 291
+    BorderSpacing.Top = 6
+    BorderSpacing.Around = 6
     Caption = 'I have donated per following email address:'
   end
   object lblEnvironment: TLabel
+    AnchorSideTop.Control = lblAppCompiled
+    AnchorSideTop.Side = asrBottom
     Left = 146
     Height = 20
-    Top = 104
+    Top = 94
     Width = 100
+    BorderSpacing.Around = 6
     Caption = 'lblEnvironment'
     PopupMenu = popupLabels
   end
   object lnklblWebpage: TLabel
+    AnchorSideTop.Control = lblEnvironment
+    AnchorSideTop.Side = asrBottom
     Cursor = crHandPoint
     Left = 146
     Height = 20
-    Top = 129
+    Top = 120
     Width = 100
+    BorderSpacing.Around = 6
     Caption = 'lnklblWebpage'
     ParentShowHint = False
     ShowHint = True
     OnClick = lnklblWebpageClick
   end
   object lnklblCredits: TLabel
+    AnchorSideTop.Control = lnklblWebpage
+    AnchorSideTop.Side = asrBottom
     Cursor = crHandPoint
     Left = 146
     Height = 20
-    Top = 154
+    Top = 146
     Width = 46
+    BorderSpacing.Around = 6
     Caption = 'Credits'
     ParentShowHint = False
     ShowHint = True
     OnClick = lnklblCreditsClick
   end
   object btnClose: TButton
+    AnchorSideTop.Side = asrBottom
     Left = 437
     Height = 31
     Top = 345
     Width = 128
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Close'
     ModalResult = 1
     TabOrder = 0
   end
   object btnUpdateCheck: TButton
+    AnchorSideTop.Side = asrBottom
     Left = 146
     Height = 31
     Top = 345
     Width = 286
     Action = MainForm.actUpdateCheck
     Anchors = [akLeft, akRight, akBottom]
+    BorderSpacing.Around = 6
     TabOrder = 1
   end
   object editDonated: TEdit
+    AnchorSideTop.Control = lblDonated
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = btnDonatedOK
     Left = 146
     Height = 28
-    Top = 238
-    Width = 286
+    Top = 204
+    Width = 285
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     TabOrder = 2
     TextHint = 'Email address'
     OnEnter = editDonatedEnter
     OnExit = editDonatedExit
   end
   object btnDonatedOK: TButton
+    AnchorSideTop.Control = lblDonated
+    AnchorSideTop.Side = asrBottom
     Left = 437
     Height = 31
-    Top = 238
+    Top = 204
     Width = 128
     Anchors = [akTop, akRight]
+    BorderSpacing.Around = 6
     Caption = 'OK'
     TabOrder = 3
     OnClick = btnDonatedOKClick
   end
   object btnDonate: TButton
+    AnchorSideTop.Control = editDonated
+    AnchorSideTop.Side = asrBottom
     Left = 146
     Height = 30
     Hint = 'Send an arbitrary amount as donation to the author - per PayPal (also supports credit cards)'
-    Top = 272
+    Top = 238
     Width = 419
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
+    BorderSpacing.Around = 6
     Caption = 'Donate'
     ParentShowHint = False
     ShowHint = True
     TabOrder = 4
   end
   object lnklblCompiler: TLabel
+    AnchorSideLeft.Control = lblAppCompiled
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = lblAppVersion
+    AnchorSideTop.Side = asrBottom
     Cursor = crHandPoint
-    Left = 308
+    Left = 262
     Height = 20
-    Top = 79
+    Top = 68
     Width = 97
+    BorderSpacing.Around = 6
     Caption = 'lnklblCompiler'
     ParentShowHint = False
     ShowHint = True

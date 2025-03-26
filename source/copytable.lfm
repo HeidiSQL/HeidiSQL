@@ -14,32 +14,43 @@ object CopyTableForm: TCopyTableForm
   OnShow = FormShow
   Position = poMainFormCenter
   object lblNewTablename: TLabel
+    AnchorSideTop.Control = Owner
     Left = 10
-    Height = 18
-    Top = 10
-    Width = 183
+    Height = 20
+    Top = 6
+    Width = 179
+    BorderSpacing.Around = 6
     Caption = 'Copy "%s" to new db.table:'
   end
   object lblItems: TLabel
+    AnchorSideTop.Control = editNewTablename
+    AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 18
-    Top = 64
-    Width = 210
+    Height = 20
+    Top = 66
+    Width = 211
+    BorderSpacing.Around = 6
     Caption = 'Elements to create in new table:'
   end
   object lblWhere: TLabel
+    AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = MemoFilter
     Left = 10
-    Height = 18
-    Top = 207
-    Width = 210
+    Height = 20
+    Top = 216
+    Width = 212
     Anchors = [akLeft, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'WHERE clause for data copying:'
   end
   object editNewTablename: TEdit
+    AnchorSideTop.Control = lblNewTablename
+    AnchorSideTop.Side = asrBottom
     Left = 199
-    Height = 26
-    Top = 30
+    Height = 28
+    Top = 32
     Width = 246
+    BorderSpacing.Around = 6
     TabOrder = 1
     OnChange = editNewTablenameChange
   end
@@ -55,11 +66,14 @@ object CopyTableForm: TCopyTableForm
     TabOrder = 5
   end
   object comboDatabase: TComboBox
+    AnchorSideTop.Control = lblNewTablename
+    AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 26
-    Top = 30
+    Height = 28
+    Top = 32
     Width = 181
-    ItemHeight = 18
+    BorderSpacing.Around = 6
+    ItemHeight = 20
     Style = csDropDownList
     TabOrder = 0
   end
@@ -76,11 +90,14 @@ object CopyTableForm: TCopyTableForm
     OnClick = btnOKClick
   end
   object TreeElements: TLazVirtualStringTree
+    AnchorSideTop.Control = lblItems
+    AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 110
-    Top = 88
+    Height = 106
+    Top = 92
     Width = 435
     Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Around = 6
     Header.AutoSizeIndex = 0
     Header.Columns = <>
     Header.MainColumn = -1
@@ -96,10 +113,12 @@ object CopyTableForm: TCopyTableForm
     OnInitNode = TreeElementsInitNode
   end
   inline MemoFilter: TSynEdit
+    AnchorSideBottom.Control = btnOK
     Left = 10
     Height = 91
-    Top = 240
+    Top = 242
     Width = 435
+    BorderSpacing.Around = 6
     Anchors = [akLeft, akRight, akBottom]
     Font.Color = clGrayText
     Font.Height = -16
@@ -177,11 +196,14 @@ object CopyTableForm: TCopyTableForm
     end
   end
   object btnRecentFilters: TSpeedButton
+    AnchorSideTop.Side = asrBottom
+    AnchorSideBottom.Control = MemoFilter
     Left = 310
     Height = 28
-    Top = 204
+    Top = 208
     Width = 135
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Recent filters'
     Images = MainForm.ImageListIcons8
     ImageIndex = 108

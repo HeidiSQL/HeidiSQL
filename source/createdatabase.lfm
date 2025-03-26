@@ -14,87 +14,112 @@ object CreateDatabaseForm: TCreateDatabaseForm
   OnShow = FormShow
   Position = poOwnerFormCenter
   object lblDBName: TLabel
+    AnchorSideTop.Control = Owner
     Left = 10
-    Height = 18
-    Top = 24
-    Width = 44
+    Height = 20
+    Top = 6
+    Width = 43
+    BorderSpacing.Around = 6
     Caption = '&Name:'
     FocusControl = editDBName
   end
   object lblCollation: TLabel
+    AnchorSideTop.Control = editDBName
+    AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 18
-    Top = 56
-    Width = 57
+    Height = 20
+    Top = 40
+    Width = 63
+    BorderSpacing.Around = 6
     Caption = 'C&ollation:'
     FocusControl = comboCollation
   end
   object lblCreateCode: TLabel
+    AnchorSideTop.Control = btnOK
+    AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 18
-    Top = 166
+    Height = 20
+    Top = 137
     Width = 81
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     Caption = 'CREATE code'
   end
   object lblServerDefaultCollation: TLabel
+    AnchorSideTop.Control = comboCollation
+    AnchorSideTop.Side = asrBottom
     Left = 120
-    Height = 18
-    Top = 86
+    Height = 20
+    Top = 74
     Width = 103
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     Caption = 'Servers default:'
   end
   object editDBName: TEdit
+    AnchorSideTop.Control = Owner
     Left = 120
-    Height = 26
-    Top = 20
+    Height = 28
+    Top = 6
     Width = 266
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     TabOrder = 0
     TextHint = 'Enter database name'
     OnChange = Modified
   end
   object btnOK: TButton
+    AnchorSideTop.Control = lblServerDefaultCollation
+    AnchorSideTop.Side = asrBottom
     Left = 191
     Height = 31
-    Top = 116
+    Top = 100
     Width = 94
     Anchors = [akTop, akRight]
+    BorderSpacing.Around = 6
     Caption = 'OK'
     Default = True
     TabOrder = 2
     OnClick = btnOKClick
   end
   object btnCancel: TButton
+    AnchorSideTop.Control = lblServerDefaultCollation
+    AnchorSideTop.Side = asrBottom
     Left = 292
     Height = 31
-    Top = 116
+    Top = 100
     Width = 94
     Anchors = [akTop, akRight]
+    BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 3
   end
   object comboCollation: TComboBox
+    AnchorSideTop.Control = editDBName
+    AnchorSideTop.Side = asrBottom
     Left = 120
-    Height = 26
-    Top = 52
+    Height = 28
+    Top = 40
     Width = 266
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     DropDownCount = 16
-    ItemHeight = 18
+    ItemHeight = 20
     Sorted = True
     Style = csDropDownList
     TabOrder = 1
     OnChange = Modified
   end
   inline SynMemoCreateCode: TSynEdit
+    AnchorSideTop.Control = lblCreateCode
+    AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 84
-    Top = 190
+    Height = 111
+    Top = 163
     Width = 376
+    BorderSpacing.Around = 6
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.Color = clWindowText
     Font.Height = -16

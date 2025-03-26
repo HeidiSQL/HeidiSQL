@@ -23,7 +23,6 @@ type
     radioBooleanOff: TRadioButton;
     comboEnum: TComboBox;
     editNumber: TEdit;
-    UpDownNumber: TUpDown;
     editString: TEdit;
     lblString: TLabel;
     lblNumber: TLabel;
@@ -110,7 +109,6 @@ begin
   editString.Enabled := FVarType = vtString;
   lblNumber.Enabled := FVarType = vtNumeric;
   editNumber.Enabled := FVarType = vtNumeric;
-  UpDownNumber.Enabled := FVarType = vtNumeric;
   lblEnum.Enabled := FVarType = vtEnum;
   comboEnum.Enabled := FVarType = vtEnum;
   lblBoolean.Enabled := FVarType = vtBoolean;
@@ -124,7 +122,7 @@ begin
       editString.SetFocus;
     end;
     vtNumeric: begin
-      UpDownNumber.Position := MakeInt(FVarValue);
+      editNumber.Text := FVarValue;
       editNumber.SelectAll;
       editNumber.SetFocus;
     end;
@@ -173,7 +171,7 @@ begin
   Conn := MainForm.ActiveConnection;
 
   case FVarType of
-    vtNumeric: val := IntToStr(UpDownNumber.Position);
+    vtNumeric: val := editNumber.Text;
     vtString: begin
       // Various variables are int64 or float, for which we have no specific
       // editor other than the string editor. Do not quote these to avoid

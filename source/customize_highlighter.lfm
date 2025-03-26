@@ -17,31 +17,42 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
   OnShow = FormShow
   Position = poOwnerFormCenter
   object lblBackground: TLabel
+    AnchorSideTop.Control = comboHighlighter
+    AnchorSideTop.Side = asrBottom
     Left = 199
     Height = 20
-    Top = 46
+    Top = 40
     Width = 82
+    BorderSpacing.Around = 6
     Caption = 'Background:'
   end
   object lblForeground: TLabel
+    AnchorSideTop.Control = editBackground
+    AnchorSideTop.Side = asrBottom
     Left = 199
     Height = 20
-    Top = 81
+    Top = 74
     Width = 80
+    BorderSpacing.Around = 6
     Caption = 'Foreground:'
   end
   object lblStyle: TLabel
+    AnchorSideTop.Control = editForeground
+    AnchorSideTop.Side = asrBottom
     Left = 199
     Height = 20
-    Top = 112
+    Top = 108
     Width = 35
+    BorderSpacing.Around = 6
     Caption = 'Style:'
   end
   object comboHighlighter: TComboBox
+    AnchorSideTop.Control = Owner
     Left = 10
     Height = 28
-    Top = 10
+    Top = 6
     Width = 181
+    BorderSpacing.Around = 6
     ItemHeight = 20
     Sorted = True
     Style = csDropDownList
@@ -49,30 +60,39 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     OnSelect = comboHighlighterSelect
   end
   object listboxAttributes: TListBox
+    AnchorSideTop.Control = comboHighlighter
+    AnchorSideTop.Side = asrBottom
     Left = 10
     Height = 216
-    Top = 46
+    Top = 40
     Width = 181
+    BorderSpacing.Around = 6
     ItemHeight = 0
     TabOrder = 1
     OnClick = listboxAttributesClick
   end
   object chkBold: TCheckBox
+    AnchorSideTop.Control = editForeground
+    AnchorSideTop.Side = asrBottom
     Left = 346
     Height = 24
-    Top = 112
+    Top = 108
     Width = 195
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     Caption = 'Bold'
     TabOrder = 4
     OnClick = Modified
   end
   object chkItalic: TCheckBox
+    AnchorSideTop.Control = chkBold
+    AnchorSideTop.Side = asrBottom
     Left = 346
     Height = 24
-    Top = 141
+    Top = 138
     Width = 195
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     Caption = 'Italic'
     TabOrder = 5
     OnClick = Modified
@@ -83,6 +103,7 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     Top = 270
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
@@ -94,6 +115,7 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     Top = 270
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'OK'
     Default = True
     ModalResult = 1
@@ -101,11 +123,14 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     OnClick = SaveSettings
   end
   object editBackground: TEditButton
+    AnchorSideTop.Control = comboHighlighter
+    AnchorSideTop.Side = asrBottom
     Left = 346
     Height = 28
-    Top = 42
+    Top = 40
     Width = 195
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     ButtonHint = 'Color picker'
     ButtonWidth = 29
     Images = MainForm.ImageListIcons8
@@ -118,11 +143,14 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     TabOrder = 2
   end
   object editForeground: TEditButton
+    AnchorSideTop.Control = editBackground
+    AnchorSideTop.Side = asrBottom
     Left = 346
     Height = 28
-    Top = 78
+    Top = 74
     Width = 195
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     ButtonHint = 'Color picker'
     ButtonWidth = 29
     Images = MainForm.ImageListIcons8
@@ -140,6 +168,7 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     Top = 270
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Apply'
     TabOrder = 8
     OnClick = SaveSettings

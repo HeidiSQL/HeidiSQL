@@ -16,25 +16,31 @@ object frmSelectDBObject: TfrmSelectDBObject
   Position = poOwnerFormCenter
   object lblSelect: TLabel
     Left = 10
-    Height = 18
+    Height = 20
     Top = 10
-    Width = 218
+    Width = 220
+    BorderSpacing.Around = 6
     Caption = 'Select database, table or column:'
   end
   object lblCustom: TLabel
+    AnchorSideBottom.Control = editDb
     Left = 10
-    Height = 18
-    Top = 297
-    Width = 283
+    Height = 20
+    Top = 294
+    Width = 278
     Anchors = [akLeft, akBottom]
+    BorderSpacing.Around = 6
     Caption = '... or wildcard database (% and _ allowed):'
   end
   object TreeDBO: TLazVirtualStringTree
+    AnchorSideTop.Control = lblSelect
+    AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 257
-    Top = 34
+    Height = 255
+    Top = 36
     Width = 270
     Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Around = 6
     Header.AutoSizeIndex = 0
     Header.Columns = <    
       item
@@ -69,6 +75,7 @@ object frmSelectDBObject: TfrmSelectDBObject
     Top = 354
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'OK'
     Default = True
     Enabled = False
@@ -81,17 +88,20 @@ object frmSelectDBObject: TfrmSelectDBObject
     Top = 354
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 3
   end
   object editDb: TEdit
+    AnchorSideBottom.Control = btnOK
     Left = 10
-    Height = 26
-    Top = 319
+    Height = 28
+    Top = 320
     Width = 270
     Anchors = [akLeft, akRight, akBottom]
+    BorderSpacing.Around = 6
     TabOrder = 1
     Text = 'editDb'
     TextHint = 'database'

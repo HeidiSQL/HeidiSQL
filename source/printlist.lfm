@@ -13,18 +13,20 @@ object printlistForm: TprintlistForm
   Position = poMainFormCenter
   object lblSelect: TLabel
     Left = 10
-    Height = 18
+    Height = 20
     Top = 14
-    Width = 89
+    Width = 91
+    BorderSpacing.Around = 6
     Caption = '&Select printer:'
     FocusControl = comboPrinters
   end
   object comboPrinters: TComboBox
     Left = 102
-    Height = 26
+    Height = 28
     Top = 10
     Width = 258
-    ItemHeight = 18
+    BorderSpacing.Around = 6
+    ItemHeight = 20
     Style = csDropDownList
     TabOrder = 0
     OnChange = comboPrintersChange
@@ -34,6 +36,7 @@ object printlistForm: TprintlistForm
     Height = 31
     Top = 10
     Width = 94
+    BorderSpacing.Around = 6
     Caption = 'Configure'
     TabOrder = 1
     OnClick = btnConfigureClick
@@ -44,6 +47,7 @@ object printlistForm: TprintlistForm
     Top = 74
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
@@ -55,6 +59,7 @@ object printlistForm: TprintlistForm
     Top = 74
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Print'
     Default = True
     ModalResult = 1
@@ -62,11 +67,14 @@ object printlistForm: TprintlistForm
     OnClick = btnPrintClick
   end
   object chkPrintHeader: TCheckBox
+    AnchorSideTop.Control = comboPrinters
+    AnchorSideTop.Side = asrBottom
     Left = 102
-    Height = 22
-    Top = 45
+    Height = 24
+    Top = 44
     Width = 258
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     Caption = 'Print column headers'
     Checked = True
     State = cbChecked

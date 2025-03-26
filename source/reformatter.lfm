@@ -45,6 +45,7 @@ object frmReformatter: TfrmReformatter
     Top = 230
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
@@ -63,6 +64,8 @@ object frmReformatter: TfrmReformatter
     OnClick = btnOkClick
   end
   object lblFormatProviderLink: TLabel
+    AnchorSideTop.Control = grpReformatter
+    AnchorSideTop.Side = asrBottom
     Cursor = crHandPoint
     Left = 10
     Height = 20

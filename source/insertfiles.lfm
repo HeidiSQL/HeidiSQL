@@ -21,6 +21,7 @@ object frmInsertFiles: TfrmInsertFiles
     Top = 573
     Width = 162
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Import files'
     Default = True
     Enabled = False
@@ -34,6 +35,7 @@ object frmInsertFiles: TfrmInsertFiles
     Top = 573
     Width = 119
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
@@ -45,6 +47,7 @@ object frmInsertFiles: TfrmInsertFiles
     Top = 10
     Width = 619
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     Caption = 'Target table and columns'
     ClientHeight = 267
     ClientWidth = 615
@@ -55,13 +58,17 @@ object frmInsertFiles: TfrmInsertFiles
       Height = 20
       Top = 8
       Width = 107
+      BorderSpacing.Around = 6
       Caption = 'Database, table:'
     end
     object lblFilecontents: TLabel
+      AnchorSideTop.Control = comboDBs
+      AnchorSideTop.Side = asrBottom
       Left = 12
       Height = 20
-      Top = 42
+      Top = 39
       Width = 515
+      BorderSpacing.Around = 6
       Caption = 'Column values (Hint: Assign "%filecontent%" value to a BLOB or TEXT column)'
     end
     object comboDBs: TComboBox
@@ -69,6 +76,7 @@ object frmInsertFiles: TfrmInsertFiles
       Height = 28
       Top = 5
       Width = 189
+      BorderSpacing.Around = 6
       ItemHeight = 20
       Style = csDropDownList
       TabOrder = 0
@@ -80,17 +88,21 @@ object frmInsertFiles: TfrmInsertFiles
       Top = 5
       Width = 195
       Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Around = 6
       ItemHeight = 20
       Style = csDropDownList
       TabOrder = 1
       OnChange = comboTablesChange
     end
     object ListColumns: TLazVirtualStringTree
+      AnchorSideTop.Control = lblFilecontents
+      AnchorSideTop.Side = asrBottom
       Left = 12
       Height = 189
-      Top = 66
+      Top = 65
       Width = 592
       Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Around = 6
       EditDelay = 0
       Header.AutoSizeIndex = 2
       Header.Columns = <      
@@ -135,6 +147,7 @@ object frmInsertFiles: TfrmInsertFiles
     Top = 310
     Width = 619
     Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Files to import'
     ClientHeight = 230
     ClientWidth = 615
@@ -147,23 +160,31 @@ object frmInsertFiles: TfrmInsertFiles
       Width = 290
       Anchors = [akTop, akLeft, akRight]
       AutoSize = False
+      BorderSpacing.Around = 6
       Caption = 'Hint: You can drop files from your Windows Explorer onto the list.'
       Layout = tlCenter
     end
     object lblFileCount: TLabel
+      AnchorSideTop.Control = ListFiles
+      AnchorSideTop.Side = asrBottom
       Left = 12
       Height = 20
       Top = 195
       Width = 39
       Anchors = [akLeft, akBottom]
+      BorderSpacing.Around = 6
       Caption = '0 files'
     end
     object ListFiles: TLazVirtualStringTree
+      AnchorSideTop.Control = ToolBar1
+      AnchorSideTop.Side = asrBottom
+      AnchorSideBottom.Control = lblFileCount
       Left = 12
-      Height = 135
+      Height = 138
       Top = 51
       Width = 592
       Anchors = [akTop, akLeft, akRight, akBottom]
+      BorderSpacing.Around = 6
       Header.AutoSizeIndex = 0
       Header.Columns = <      
         item
@@ -213,6 +234,7 @@ object frmInsertFiles: TfrmInsertFiles
       Top = 17
       Width = 290
       Align = alNone
+      BorderSpacing.Around = 6
       ButtonHeight = 35
       ButtonWidth = 82
       Caption = 'ToolBarFiles'

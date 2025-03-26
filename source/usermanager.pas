@@ -101,10 +101,6 @@ type
     editMaxUpdates: TEdit;
     editMaxConnections: TEdit;
     editMaxUserConnections: TEdit;
-    udMaxQueries: TUpDown;
-    udMaxUpdates: TUpDown;
-    udMaxConnections: TUpDown;
-    udMaxUserConnections: TUpDown;
     tabSSL: TTabSheet;
     lblCipher: TLabel;
     editCipher: TEdit;
@@ -568,10 +564,10 @@ begin
   editPassword.Clear;
   editPassword.TextHint := '';
   editRepeatPassword.Clear;
-  udMaxQueries.Position := 0;
-  udMaxUpdates.Position := 0;
-  udMaxConnections.Position := 0;
-  udMaxUserConnections.Position := 0;
+  editMaxQueries.Text := '0';
+  editMaxUpdates.Text := '0';
+  editMaxConnections.Text := '0';
+  editMaxUserConnections.Text := '0';
   comboSSL.ItemIndex := 0;
   comboSSL.OnChange(Sender);
   editCipher.Clear;
@@ -748,10 +744,10 @@ begin
           rxTemp.Expression := '\bMAX_USER_CONNECTIONS\s+(\d+)\b';
           if rxTemp.Exec(WithClause) then
             User.MaxUserConnections := MakeInt(rxTemp.Match[1]);
-          udMaxQueries.Position := User.MaxQueries;
-          udMaxUpdates.Position := User.MaxUpdates;
-          udMaxConnections.Position := User.MaxConnections;
-          udMaxUserConnections.Position := User.MaxUserConnections;
+          editMaxQueries.Text := User.MaxQueries.ToString;
+          editMaxUpdates.Text := User.MaxUpdates.ToString;
+          editMaxConnections.Text := User.MaxConnections.ToString;
+          editMaxUserConnections.Text := User.MaxUserConnections.ToString;
         end;
 
         if (P.OrgPrivs.Count = 0) and (P.DBObj.NodeType = lntTable) then
@@ -818,16 +814,12 @@ begin
 
   tabLimitations.Enabled := UserSelected;
   editMaxQueries.Enabled := lblMaxQueries.Enabled;
-  udMaxQueries.Enabled := lblMaxQueries.Enabled;
   lblMaxUpdates.Enabled := lblMaxQueries.Enabled;
   editMaxUpdates.Enabled := lblMaxQueries.Enabled;
-  udMaxUpdates.Enabled := lblMaxQueries.Enabled;
   lblMaxConnections.Enabled := lblMaxQueries.Enabled;
   editMaxConnections.Enabled := lblMaxQueries.Enabled;
-  udMaxConnections.Enabled := lblMaxQueries.Enabled;
   lblMaxUserConnections.Enabled := UserSelected and (FConnection.ServerVersionInt >= 50003);
   editMaxUserConnections.Enabled := lblMaxUserConnections.Enabled;
-  udMaxUserConnections.Enabled := lblMaxUserConnections.Enabled;
 
   tabSSL.Enabled := UserSelected;
   comboSSL.Enabled := UserSelected;
@@ -1341,14 +1333,14 @@ begin
         WithClauses.Add('GRANT OPTION');
       if P.DBObj.NodeType = lntNone then begin
         // Apply resource limits only to global privilege
-        if udMaxQueries.Position <> FocusedUser.MaxQueries then
-          WithClauses.Add('MAX_QUERIES_PER_HOUR '+IntToStr(udMaxQueries.Position));
-        if udMaxUpdates.Position <> FocusedUser.MaxUpdates then
-          WithClauses.Add('MAX_UPDATES_PER_HOUR '+IntToStr(udMaxUpdates.Position));
-        if udMaxConnections.Position <> FocusedUser.MaxConnections then
-          WithClauses.Add('MAX_CONNECTIONS_PER_HOUR '+IntToStr(udMaxConnections.Position));
-        if udMaxUserConnections.Position <> FocusedUser.MaxUserConnections then
-          WithClauses.Add('MAX_USER_CONNECTIONS '+IntToStr(udMaxUserConnections.Position));
+        if editMaxQueries.Text <> FocusedUser.MaxQueries.ToString then
+          WithClauses.Add('MAX_QUERIES_PER_HOUR '+editMaxQueries.Text);
+        if editMaxUpdates.Text <> FocusedUser.MaxUpdates.ToString then
+          WithClauses.Add('MAX_UPDATES_PER_HOUR '+editMaxUpdates.Text);
+        if editMaxConnections.Text <> FocusedUser.MaxConnections.ToString then
+          WithClauses.Add('MAX_CONNECTIONS_PER_HOUR '+editMaxConnections.Text);
+        if editMaxUserConnections.Text <> FocusedUser.MaxUserConnections.ToString then
+          WithClauses.Add('MAX_USER_CONNECTIONS '+editMaxUserConnections.Text);
       end;
       if WithClauses.Count > 0 then
         Grant := Grant + ' WITH ' + Implode(' ', WithClauses);

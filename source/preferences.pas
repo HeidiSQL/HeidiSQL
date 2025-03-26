@@ -44,15 +44,12 @@ type
     lblDataFont: TLabel;
     comboDataFontName: TComboBox;
     editDataFontSize: TEdit;
-    updownDataFontSize: TUpDown;
     lblDataFontHint: TLabel;
     lblMaxColWidth: TLabel;
     editMaxColWidth: TEdit;
-    updownMaxColWidth: TUpDown;
     chkRestoreLastDB: TCheckBox;
     chkUpdatecheck: TCheckBox;
     editUpdatecheckInterval: TEdit;
-    updownUpdatecheckInterval: TUpDown;
     chkUpdateCheckBuilds: TCheckBox;
     SynSQLSynSQLSample: TSynSQLSyn;
     btnRestoreDefaults: TButton;
@@ -68,10 +65,8 @@ type
     tabLogging: TTabSheet;
     Label4: TLabel;
     editLogLines: TEdit;
-    updownLogLines: TUpDown;
     lblLogLinesHint: TLabel;
     lblLogSnipHint: TLabel;
-    updownLogSnip: TUpDown;
     editLogSnip: TEdit;
     lblLogSnip: TLabel;
     chkLogToFile: TCheckBox;
@@ -85,21 +80,17 @@ type
     editGridRowCountStep: TEdit;
     lblGridRowsLinecount: TLabel;
     editGridRowsLineCount: TEdit;
-    updownGridRowsLineCount: TUpDown;
     chkColorBars: TCheckBox;
     comboSQLFontName: TComboBox;
     lblFont: TLabel;
     editSQLFontSize: TEdit;
-    updownSQLFontSize: TUpDown;
     lblSQLFontSizeUnit: TLabel;
     chkCompletionProposal: TCheckBox;
     chkTabsToSpaces: TCheckBox;
     editSQLTabWidth: TEdit;
-    updownSQLTabWidth: TUpDown;
     Label1: TLabel;
     lblMaxQueryResults: TLabel;
     editMaxQueryResults: TEdit;
-    updownMaxQueryResults: TUpDown;
     lblGridTextColors: TLabel;
     comboGridTextColors: TComboBox;
     colorBoxGridTextColors: TColorBox;
@@ -139,11 +130,9 @@ type
     lblGUIFont: TLabel;
     comboGUIFont: TComboBox;
     editGUIFontSize: TEdit;
-    updownGUIFontSize: TUpDown;
     lblGUIFontSize: TLabel;
     chkHorizontalScrollbar: TCheckBox;
     editQueryHistoryKeepDays: TEdit;
-    updownQueryHistoryKeepDays: TUpDown;
     lblQueryHistoryKeepDays: TLabel;
     Label3: TLabel;
     cboxRowHighlightSameText: TColorBox;
@@ -170,17 +159,14 @@ type
     chkCompletionProposalSearchOnMid: TCheckBox;
     lblLongSortRowNum: TLabel;
     editLongSortRowNum: TEdit;
-    updownLongSortRowNum: TUpDown;
     chkLowercaseHex: TCheckBox;
     chkTabCloseOnDoubleClick: TCheckBox;
     lblRealTrailingZeros: TLabel;
     editRealTrailingZeros: TEdit;
-    updownRealTrailingZeros: TUpDown;
     lblRealTrailingZerosHint: TLabel;
     chkLogTimestamp: TCheckBox;
     lblCompletionProposal: TLabel;
     editCompletionProposalInterval: TEdit;
-    updownCompletionProposalInterval: TUpDown;
     lblCompletionProposalIntervalUnit: TLabel;
     chkColumnHeaderClick: TCheckBox;
     chkIncrementalSearch: TCheckBox;
@@ -313,10 +299,10 @@ begin
   AppSettings.WriteBool(asAllowMultipleInstances, chkAllowMultiInstances.Checked);
   AppSettings.WriteBool(asRestoreLastUsedDB, chkRestoreLastDB.Checked);
   AppSettings.WriteString(asFontName, comboSQLFontName.Text);
-  AppSettings.WriteInt(asFontSize, updownSQLFontSize.Position);
-  AppSettings.WriteInt(asTabWidth, updownSQLTabWidth.Position);
-  AppSettings.WriteInt(asLogsqlnum, updownLogLines.Position);
-  AppSettings.WriteInt(asLogsqlwidth, updownLogSnip.Position);
+  AppSettings.WriteInt(asFontSize, MakeInt(editSQLFontSize.Text));
+  AppSettings.WriteInt(asTabWidth, MakeInt(editSQLTabWidth.Text));
+  AppSettings.WriteInt(asLogsqlnum, MakeInt(editLogLines.Text));
+  AppSettings.WriteInt(asLogsqlwidth, MakeInt(editLogSnip.Text));
   AppSettings.WriteString(asSessionLogsDirectory, editLogDir.Text);
   AppSettings.WriteBool(asLogErrors, chkLogEventErrors.Checked);
   AppSettings.WriteBool(asLogUserSQL, chkLogEventUserGeneratedSQL.Checked);
@@ -325,7 +311,7 @@ begin
   AppSettings.WriteBool(asLogInfos, chkLogEventInfo.Checked);
   AppSettings.WriteBool(asLogDebug, chkLogEventDebug.Checked);
   AppSettings.WriteBool(asQueryHistoryEnabled, chkQueryHistory.Checked);
-  AppSettings.WriteInt(asQueryHistoryKeepDays, updownQueryHistoryKeepDays.Position);
+  AppSettings.WriteInt(asQueryHistoryKeepDays, MakeInt(editQueryHistoryKeepDays.Text));
   AppSettings.WriteBool(asLogHorizontalScrollbar, chkHorizontalScrollbar.Checked);
   AppSettings.WriteBool(asLogTimestamp, chkLogTimestamp.Checked);
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
@@ -338,16 +324,16 @@ begin
   AppSettings.WriteString(asSQLColMatchingBraceForeground, ColorToString(MainForm.MatchingBraceForegroundColor));
   AppSettings.WriteString(asSQLColMatchingBraceBackground, ColorToString(MainForm.MatchingBraceBackgroundColor));
 
-  AppSettings.WriteInt(asMaxColWidth, updownMaxColWidth.Position);
+  AppSettings.WriteInt(asMaxColWidth, MakeInt(editMaxColWidth.Text));
   AppSettings.WriteInt(asDatagridRowsPerStep, StrToIntDef(editGridRowCountStep.Text, -1));
   AppSettings.WriteInt(asDatagridMaximumRows, StrToIntDef(editGridRowCountMax.Text, -1));
-  AppSettings.WriteInt(asGridRowLineCount, updownGridRowsLineCount.Position);
+  AppSettings.WriteInt(asGridRowLineCount, MakeInt(editGridRowsLineCount.Text));
   AppSettings.WriteString(asDataFontName, comboDataFontName.Text);
-  AppSettings.WriteInt(asDataFontSize, updownDataFontSize.Position);
+  AppSettings.WriteInt(asDataFontSize, MakeInt(editDataFontSize.Text));
   AppSettings.WriteBool(asLogToFile, chkLogToFile.Checked);
   AppSettings.WriteBool(asUpdatecheck, chkUpdatecheck.Checked);
   AppSettings.WriteBool(asUpdatecheckBuilds, chkUpdatecheckBuilds.Checked);
-  AppSettings.WriteInt(asUpdatecheckInterval, updownUpdatecheckInterval.Position);
+  AppSettings.WriteInt(asUpdatecheckInterval, MakeInt(editUpdatecheckInterval.Text));
   AppSettings.WriteBool(asDoUsageStatistics, chkDoStatistics.Checked);
   AppSettings.WriteBool(asWheelZoom, chkWheelZoom.Checked);
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
@@ -366,12 +352,12 @@ begin
     AppSettings.WriteString(asGUIFontName, '')
   else
     AppSettings.WriteString(asGUIFontName, comboGUIFont.Text);
-  AppSettings.WriteInt(asGUIFontSize, updownGUIFontSize.Position);
+  AppSettings.WriteInt(asGUIFontSize, MakeInt(editGUIFontSize.Text));
   AppSettings.WriteString(asTheme, comboTheme.Text);
   AppSettings.WriteString(asIconPack, comboIconPack.Text);
   AppSettings.WriteString(asWebSearchBaseUrl, comboWebSearchBaseUrl.Text);
 
-  AppSettings.WriteInt(asMaxQueryResults, updownMaxQueryResults.Position);
+  AppSettings.WriteInt(asMaxQueryResults, MakeInt(editMaxQueryResults.Text));
   // Save color settings
   AppSettings.WriteInt(asFieldColorNumeric, FGridTextColors[dtcInteger]);
   AppSettings.WriteInt(asFieldColorReal, FGridTextColors[dtcReal]);
@@ -384,8 +370,8 @@ begin
   AppSettings.WriteInt(asRowBackgroundEven, cboxRowBackgroundEven.Selected);
   AppSettings.WriteInt(asRowBackgroundOdd, cboxRowBackgroundOdd.Selected);
   AppSettings.WriteInt(asHightlightSameTextBackground, cboxRowHighlightSameText.Selected);
-  AppSettings.WriteInt(asRealTrailingZeros, updownRealTrailingZeros.Position);
-  AppSettings.WriteInt(asQueryGridLongSortRowNum, updownLongSortRowNum.Position);
+  AppSettings.WriteInt(asRealTrailingZeros, MakeInt(editRealTrailingZeros.Text));
+  AppSettings.WriteInt(asQueryGridLongSortRowNum, MakeInt(editLongSortRowNum.Text));
   AppSettings.WriteBool(asDataLocalNumberFormat, chkLocalNumberFormat.Checked);
   AppSettings.WriteBool(asLowercaseHex, chkLowercaseHex.Checked);
   AppSettings.WriteBool(asHintsOnResultTabs, chkHintsOnResultTabs.Checked);
@@ -408,7 +394,7 @@ begin
   end;
 
   AppSettings.WriteBool(asCompletionProposal, chkCompletionProposal.Checked);
-  AppSettings.WriteInt(asCompletionProposalInterval, updownCompletionProposalInterval.Position);
+  AppSettings.WriteInt(asCompletionProposalInterval, MakeInt(editCompletionProposalInterval.Text));
   AppSettings.WriteBool(asCompletionProposalSearchOnMid, chkCompletionProposalSearchOnMid.Checked);
   AppSettings.WriteBool(asAutoUppercase, chkAutoUppercase.Checked);
   AppSettings.WriteBool(asTabsToSpaces, chkTabsToSpaces.Checked);
@@ -561,8 +547,6 @@ begin
   //EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, LPARAM(Pointer(comboSQLFontName.Items)));
   comboSQLFontName.Items.Assign(Screen.Fonts);
   comboSQLFontName.Sorted := True;
-  updownCompletionProposalInterval.Min := 0;
-  updownCompletionProposalInterval.Max := MaxInt;
   SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + sLineBreak +
     CodeIndent + '''String literal'' AS lit' + sLineBreak +
     'FROM tableA AS ta' + sLineBreak +
@@ -702,7 +686,7 @@ begin
   chkRestoreLastDB.Checked := AppSettings.ReadBool(asRestoreLastUsedDB);
   chkUpdatecheck.Checked := AppSettings.ReadBool(asUpdatecheck);
   chkUpdatecheckBuilds.Checked := AppSettings.ReadBool(asUpdatecheckBuilds);
-  updownUpdatecheckInterval.Position := AppSettings.ReadInt(asUpdatecheckInterval);
+  editUpdatecheckInterval.Text := AppSettings.ReadInt(asUpdatecheckInterval).ToString;
   chkUpdatecheckClick(Sender);
   chkDoStatistics.Checked := AppSettings.ReadBool(asDoUsageStatistics);
   chkWheelZoom.Checked := AppSettings.ReadBool(asWheelZoom);
@@ -723,15 +707,15 @@ begin
     comboGUIFont.ItemIndex := 0
   else
     comboGUIFont.ItemIndex := comboGUIFont.Items.IndexOf(GUIFont);
-  updownGUIFontSize.Position := AppSettings.ReadInt(asGUIFontSize);
+  editGUIFontSize.Text := AppSettings.ReadInt(asGUIFontSize).ToString;
   comboGUIFont.OnChange(comboGUIFont);
   comboTheme.ItemIndex := comboTheme.Items.IndexOf(AppSettings.ReadString(asTheme));
   comboIconPack.ItemIndex := comboIconPack.Items.IndexOf(AppSettings.ReadString(asIconPack));
   comboWebSearchBaseUrl.Text := AppSettings.ReadString(asWebSearchBaseUrl);
 
   // Logging
-  updownLogLines.Position := AppSettings.ReadInt(asLogsqlnum);
-  updownLogSnip.Position := AppSettings.ReadInt(asLogsqlwidth);
+  editLogLines.Text := AppSettings.ReadInt(asLogsqlnum).ToString;
+  editLogSnip.Text := AppSettings.ReadInt(asLogsqlwidth).ToString;
   chkLogToFile.Checked := AppSettings.ReadBool(asLogToFile);
   editLogDir.Text := AppSettings.ReadString(asSessionLogsDirectory);
   chkLogEventErrors.Checked := AppSettings.ReadBool(asLogErrors);
@@ -741,23 +725,23 @@ begin
   chkLogEventInfo.Checked := AppSettings.ReadBool(asLogInfos);
   chkLogEventDebug.Checked := AppSettings.ReadBool(asLogDebug);
   chkQueryHistory.Checked := AppSettings.ReadBool(asQueryHistoryEnabled);
-  updownQueryHistoryKeepDays.Position := AppSettings.ReadInt(asQueryHistoryKeepDays);
+  editQueryHistoryKeepDays.Text := AppSettings.ReadInt(asQueryHistoryKeepDays).ToString;
   chkHorizontalScrollbar.Checked := AppSettings.ReadBool(asLogHorizontalScrollbar);
   chkLogTimestamp.Checked := AppSettings.ReadBool(asLogTimestamp);
 
   // Default column width in grids:
-  updownMaxColWidth.Position := AppSettings.ReadInt(asMaxColWidth);
+  editMaxColWidth.Text := AppSettings.ReadInt(asMaxColWidth).ToString;
   editGridRowCountStep.Text := IntToStr(AppSettings.ReadInt(asDatagridRowsPerStep));
   editGridRowCountMax.Text := IntToStr(AppSettings.ReadInt(asDatagridMaximumRows));
-  updownGridRowsLineCount.Position := AppSettings.ReadInt(asGridRowLineCount);
+  editGridRowsLineCount.Text := AppSettings.ReadInt(asGridRowLineCount).ToString;
 
   // SQL:
   Mainform.SetupSynEditor(SynMemoSQLSample);
   comboSQLFontName.ItemIndex := comboSQLFontName.Items.IndexOf(SynMemoSQLSample.Font.Name);
-  updownSQLFontSize.Position := SynMemoSQLSample.Font.Size;
-  updownSQLTabWidth.Position := SynMemoSQLSample.TabWidth;
+  editSQLFontSize.Text := SynMemoSQLSample.Font.Size.ToString;
+  editSQLTabWidth.Text := SynMemoSQLSample.TabWidth.ToString;
   chkCompletionProposal.Checked := AppSettings.ReadBool(asCompletionProposal);
-  updownCompletionProposalInterval.Position := AppSettings.ReadInt(asCompletionProposalInterval);
+  editCompletionProposalInterval.Text := AppSettings.ReadInt(asCompletionProposalInterval).ToString;
   chkCompletionProposalSearchOnMid.Checked := AppSettings.ReadBool(asCompletionProposalSearchOnMid);
   chkAutoUppercase.Checked := AppSettings.ReadBool(asAutoUppercase);
   chkTabsToSpaces.Checked := AppSettings.ReadBool(asTabsToSpaces);
@@ -766,8 +750,8 @@ begin
   // Grid formatting:
   comboDataFontName.Items := Screen.Fonts;
   comboDataFontName.ItemIndex := comboDataFontName.Items.IndexOf(AppSettings.ReadString(asDataFontName));
-  updownDataFontSize.Position := AppSettings.ReadInt(asDataFontSize);
-  updownMaxQueryResults.Position := AppSettings.ReadINt(asMaxQueryResults);
+  editDataFontSize.Text := AppSettings.ReadInt(asDataFontSize).ToString;
+  editMaxQueryResults.Text := AppSettings.ReadINt(asMaxQueryResults).ToString;
   // Load color settings
   FGridTextColors[dtcInteger] := AppSettings.ReadInt(asFieldColorNumeric);
   FGridTextColors[dtcReal] := AppSettings.ReadInt(asFieldColorReal);
@@ -783,8 +767,8 @@ begin
   cboxRowBackgroundEven.Selected := AppSettings.ReadInt(asRowBackgroundEven);
   cboxRowBackgroundOdd.Selected := AppSettings.ReadInt(asRowBackgroundOdd);
   cboxRowHighlightSameText.Selected := AppSettings.ReadInt(asHightlightSameTextBackground);
-  updownRealTrailingZeros.Position := AppSettings.ReadInt(asRealTrailingZeros);
-  updownLongSortRowNum.Position := AppSettings.ReadInt(asQueryGridLongSortRowNum);
+  editRealTrailingZeros.Text := AppSettings.ReadInt(asRealTrailingZeros).ToString;
+  editLongSortRowNum.Text := AppSettings.ReadInt(asQueryGridLongSortRowNum).ToString;
   chkLocalNumberFormat.Checked := AppSettings.ReadBool(asDataLocalNumberFormat);
   chkLowercaseHex.Checked := AppSettings.ReadBool(asLowercaseHex);
   chkHintsOnResultTabs.Checked := AppSettings.ReadBool(asHintsOnResultTabs);
@@ -836,9 +820,10 @@ var
   Attri: TSynHighlighterAttributes;
   Foreground, Background: TColor;
 begin
-  SynMemoSQLSample.Font.Name := comboSQLFontName.Items[comboSQLFontName.ItemIndex];
-  SynMemoSQLSample.Font.Size := updownSQLFontSize.Position;
-  SynMemoSQLSample.TabWidth := updownSQLTabWidth.Position;
+  if comboSQLFontName.ItemIndex > -1 then
+    SynMemoSQLSample.Font.Name := comboSQLFontName.Items[comboSQLFontName.ItemIndex];
+  SynMemoSQLSample.Font.Size := MakeInt(editSQLFontSize.Text);
+  SynMemoSQLSample.TabWidth := MakeInt(editSQLTabWidth.Text);
   AttriIdx := comboSQLColElement.ItemIndex;
   Foreground := cboxSQLColForeground.Selected;
   Background := cboxSQLColBackground.Selected;
@@ -931,7 +916,6 @@ end;
 }
 procedure TfrmPreferences.chkUpdatecheckClick(Sender: TObject);
 begin
-  updownUpdatecheckInterval.Enabled := chkUpdatecheck.Checked;
   editUpdatecheckInterval.Enabled := chkUpdatecheck.Checked;
   chkUpdatecheckBuilds.Enabled := chkUpdatecheck.Checked;
   Modified(Sender);
@@ -944,7 +928,6 @@ var
 begin
   Enable := TCheckBox(Sender).Checked;
   editCompletionProposalInterval.Enabled := Enable;
-  updownCompletionProposalInterval.Enabled := Enable;
   lblCompletionProposalIntervalUnit.Enabled := Enable;
   chkCompletionProposalSearchOnMid.Enabled := Enable;
   Modified(Sender);
@@ -960,7 +943,6 @@ end;
 procedure TfrmPreferences.chkQueryHistoryClick(Sender: TObject);
 begin
   editQueryHistoryKeepDays.Enabled := chkQueryHistory.Checked;
-  updownQueryHistoryKeepDays.Enabled := chkQueryHistory.Checked;
   lblQueryHistoryKeepDays.Enabled := chkQueryHistory.Checked;
   Modified(Sender);
 end;
@@ -1047,7 +1029,6 @@ begin
   // System font selected
   UseCustomFont := comboGUIFont.ItemIndex > 0;
   editGUIFontSize.Enabled := UseCustomFont;
-  updownGUIFontSize.Enabled := UseCustomFont;
   lblGUIFontSize.Enabled := UseCustomFont;
   Modified(Sender);
 end;

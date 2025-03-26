@@ -15,24 +15,22 @@ object frmTextEditor: TfrmTextEditor
   OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '3.8.0.0'
   object Panel1: TPanel
     Left = 0
     Height = 28
-    Top = 125
-    Width = 472
+    Top = 163
+    Width = 602
     Align = alBottom
     BevelOuter = bvNone
-    Caption = 'Panel1'
     ClientHeight = 28
-    ClientWidth = 472
+    ClientWidth = 602
     ParentBackground = False
     TabOrder = 0
     object lblTextLength: TLabel
-      Left = 409
-      Height = 16
-      Top = 3
-      Width = 76
+      Left = 211
+      Height = 28
+      Top = 0
+      Width = 89
       Align = alLeft
       Caption = 'lblTextLength'
       Layout = tlCenter
@@ -40,91 +38,90 @@ object frmTextEditor: TfrmTextEditor
     end
     object tlbStandard: TToolBar
       Left = 0
-      Height = 22
+      Height = 28
       Top = 0
-      Width = 261
+      Width = 30
       Align = alLeft
       AutoSize = True
       Caption = 'tlbStandard'
-      Images = MainForm.ImageListIcons8
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
       Wrapable = False
       object btnWrap: TToolButton
-        Left = 0
+        Left = 1
         Hint = 'Wrap long lines'
-        Top = 0
+        Top = 2
         Caption = 'Wrap long lines'
         ImageIndex = 62
         OnClick = btnWrapClick
       end
       object btnLinebreaks: TToolButton
-        Left = 29
-        Top = 0
+        Left = 1
+        Top = 30
         Caption = 'Linebreaks'
         DropdownMenu = popupLinebreaks
         ImageIndex = 123
         Style = tbsDropDown
       end
       object btnLoadText: TToolButton
-        Left = 81
+        Left = 1
         Hint = 'Load textfile'
-        Top = 0
+        Top = 58
         Caption = 'Load textfile'
         ImageIndex = 52
         OnClick = btnLoadTextClick
       end
       object btnCancel: TToolButton
-        Left = 110
+        Left = 1
         Hint = 'Cancel'
-        Top = 0
+        Top = 86
         Caption = 'Cancel'
         ImageIndex = 26
         OnClick = btnCancelClick
       end
       object btnApply: TToolButton
-        Left = 139
+        Left = 1
         Hint = 'Apply changes'
-        Top = 0
+        Top = 114
         Caption = 'Apply changes'
         ImageIndex = 55
         OnClick = btnApplyClick
       end
       object btnSeparator1: TToolButton
-        Left = 168
-        Top = 0
-        Width = 10
+        Left = 1
+        Top = 142
+        Width = 29
         Caption = 'btnSeparator1'
         ImageIndex = 60
         Style = tbsSeparator
       end
       object btnSearchFind: TToolButton
-        Left = 178
-        Top = 0
+        Left = 1
+        Top = 152
         Action = MainForm.actQueryFind
       end
       object btnSearchFindNext: TToolButton
-        Left = 206
-        Top = 0
+        Left = 1
+        Top = 180
         Action = MainForm.actQueryFindAgain
       end
       object btnSearchReplace: TToolButton
-        Left = 235
-        Top = 0
+        Left = 1
+        Top = 208
         Action = MainForm.actQueryReplace
       end
       object ToolButton1: TToolButton
-        Left = 264
-        Top = 0
-        Width = 10
+        Left = 1
+        Top = 236
+        Width = 29
         Caption = 'ToolButton1'
         ImageIndex = 60
         Style = tbsSeparator
       end
       object btnCustomizeHighlighter: TToolButton
-        Left = 274
-        Top = 0
+        Left = 1
+        Top = 246
         Caption = 'Customize highlighter'
         DropdownMenu = popupHighlighter
         ImageIndex = 39
@@ -133,12 +130,12 @@ object frmTextEditor: TfrmTextEditor
       end
     end
     object comboHighlighter: TComboBox
-      Left = 261
-      Height = 22
+      Left = 30
+      Height = 28
       Top = 0
       Width = 181
       Align = alLeft
-      ItemHeight = 0
+      ItemHeight = 20
       Sorted = True
       Style = csDropDownList
       TabOrder = 1
@@ -147,9 +144,9 @@ object frmTextEditor: TfrmTextEditor
   end
   inline MemoText: TSynEdit
     Left = 0
-    Height = 131
+    Height = 163
     Top = 0
-    Width = 482
+    Width = 602
     Align = alClient
     Font.Color = clWindowText
     Font.Height = -16
@@ -234,7 +231,6 @@ object frmTextEditor: TfrmTextEditor
     end
   end
   object popupLinebreaks: TPopupMenu
-    Images = MainForm.ImageListIcons8
     Left = 10
     Top = 20
     object menuWindowsLB: TMenuItem
@@ -270,7 +266,6 @@ object frmTextEditor: TfrmTextEditor
     Top = 20
   end
   object popupEditor: TPopupMenu
-    Images = MainForm.ImageListIcons8
     Left = 300
     Top = 20
     object Selectall1: TMenuItem
@@ -299,7 +294,6 @@ object frmTextEditor: TfrmTextEditor
     end
   end
   object popupHighlighter: TPopupMenu
-    Images = MainForm.ImageListIcons8
     Left = 440
     Top = 40
     object menuCustomizeHighlighter: TMenuItem

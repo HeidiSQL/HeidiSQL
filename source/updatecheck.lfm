@@ -21,6 +21,7 @@ object frmUpdateCheck: TfrmUpdateCheck
     Width = 262
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = False
+    BorderSpacing.Around = 6
     Caption = 'lblStatus'
     Layout = tlCenter
     WordWrap = True
@@ -31,6 +32,7 @@ object frmUpdateCheck: TfrmUpdateCheck
     Top = 464
     Width = 132
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
     Default = True
@@ -38,22 +40,25 @@ object frmUpdateCheck: TfrmUpdateCheck
     TabOrder = 3
   end
   object groupBuild: TGroupBox
+    AnchorSideBottom.Control = btnCancel
     Left = 10
-    Height = 215
+    Height = 218
     Top = 240
     Width = 430
     Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Nightly build'
-    ClientHeight = 190
+    ClientHeight = 193
     ClientWidth = 426
     ParentBackground = False
     TabOrder = 2
     object btnBuild: TButton
       Left = 8
       Height = 31
-      Top = 150
+      Top = 153
       Width = 409
       Anchors = [akLeft, akRight, akBottom]
+      BorderSpacing.Around = 6
       Caption = 'Download nightly build'
       Enabled = False
       ModalResult = 1
@@ -63,10 +68,11 @@ object frmUpdateCheck: TfrmUpdateCheck
     end
     object memoBuild: TMemo
       Left = 8
-      Height = 90
-      Top = 20
+      Height = 93
+      Top = 11
       Width = 409
       Anchors = [akTop, akLeft, akRight, akBottom]
+      BorderSpacing.Around = 6
       BorderStyle = bsNone
       Color = clBtnFace
       Font.Color = clWindowText
@@ -81,22 +87,27 @@ object frmUpdateCheck: TfrmUpdateCheck
       TabOrder = 0
     end
     object btnChangelog: TButton
+      AnchorSideBottom.Control = btnBuild
       Left = 8
       Height = 31
-      Top = 111
+      Top = 116
       Width = 409
       Anchors = [akLeft, akRight, akBottom]
+      BorderSpacing.Around = 6
       Caption = 'View changelog'
       TabOrder = 1
       OnClick = btnChangelogClick
     end
   end
   object groupRelease: TGroupBox
+    AnchorSideTop.Control = btnDonate
+    AnchorSideTop.Side = asrBottom
     Left = 10
     Height = 122
-    Top = 110
+    Top = 108
     Width = 430
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     Caption = 'Official release'
     ClientHeight = 97
     ClientWidth = 426
@@ -105,10 +116,11 @@ object frmUpdateCheck: TfrmUpdateCheck
     TabOrder = 1
     object memoRelease: TMemo
       Left = 8
-      Height = 41
-      Top = 20
+      Height = 59
+      Top = 5
       Width = 409
       Anchors = [akTop, akLeft, akRight, akBottom]
+      BorderSpacing.Around = 6
       BorderStyle = bsNone
       Color = clBtnFace
       Lines.Strings = (
@@ -125,6 +137,7 @@ object frmUpdateCheck: TfrmUpdateCheck
       Top = 72
       Width = 151
       Anchors = [akLeft, akBottom]
+      BorderSpacing.Around = 6
       Caption = 'Download new release'
       PopupMenu = popupDownloadRelease
       OnClick = LinkLabelReleaseLinkClick
@@ -136,6 +149,7 @@ object frmUpdateCheck: TfrmUpdateCheck
     Top = 10
     Width = 430
     Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Around = 6
     Caption = 'Donate'
     TabOrder = 0
   end

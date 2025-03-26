@@ -12,18 +12,23 @@ object frmCsvDetector: TfrmCsvDetector
   OnShow = FormShow
   Position = poOwnerFormCenter
   object btnScan: TSpeedButton
+    AnchorSideTop.Control = Owner
     Left = 10
     Height = 31
-    Top = 10
+    Top = 6
     Width = 141
+    BorderSpacing.Around = 6
     Caption = 'Scan file...'
     OnClick = btnScanClick
   end
   inline SynMemoCreateTable: TSynEdit
+    AnchorSideTop.Control = btnScan
+    AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 301
-    Top = 49
+    Height = 307
+    Top = 43
     Width = 657
+    BorderSpacing.Around = 6
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.Color = clWindowText
     Font.Height = -16
@@ -32,7 +37,7 @@ object frmCsvDetector: TfrmCsvDetector
     Font.Quality = fqNonAntialiased
     ParentColor = False
     ParentFont = False
-    TabOrder = 1
+    TabOrder = 0
     Gutter.Width = 72
     Gutter.MouseActions = <>
     RightGutter.Width = 0
@@ -103,6 +108,7 @@ object frmCsvDetector: TfrmCsvDetector
     Top = 358
     Width = 152
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
@@ -114,10 +120,10 @@ object frmCsvDetector: TfrmCsvDetector
     Top = 358
     Width = 152
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Ok, create table'
-    Default = True
     ModalResult = 1
-    TabOrder = 3
+    TabOrder = 1
     OnClick = btnSaveClick
   end
   object TimerStartScan: TTimer
