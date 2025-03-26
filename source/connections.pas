@@ -143,6 +143,7 @@ type
     procedure btnNewDropdown(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnSaveAsClick(Sender: TObject);
@@ -390,13 +391,6 @@ procedure Tconnform.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   // Suspend calculating statistics as long as they're not visible
   TimerStatistics.Enabled := False;
-  // Save GUI stuff
-  AppSettings.WriteIntDpiAware(asSessionManagerListWidth, Self, pnlLeft.Width);
-  AppSettings.WriteIntDpiAware(asSessionManagerWindowWidth, Self, Width);
-  AppSettings.WriteIntDpiAware(asSessionManagerWindowHeight, Self, Height);
-  AppSettings.WriteInt(asSessionManagerWindowLeft, Left);
-  AppSettings.WriteInt(asSessionManagerWindowTop, Top);
-  SaveListSetup(ListSessions);
 end;
 
 
@@ -475,6 +469,17 @@ begin
   btnOpen.Enabled := True;
   btnOpen.Caption := _('Open');
   Screen.Cursor := crDefault;
+end;
+
+procedure Tconnform.FormDestroy(Sender: TObject);
+begin
+  // Save GUI stuff
+  AppSettings.WriteInt(asSessionManagerListWidth, pnlLeft.Width);
+  AppSettings.WriteInt(asSessionManagerWindowWidth, Width);
+  AppSettings.WriteInt(asSessionManagerWindowHeight, Height);
+  AppSettings.WriteInt(asSessionManagerWindowLeft, Left);
+  AppSettings.WriteInt(asSessionManagerWindowTop, Top);
+  SaveListSetup(ListSessions);
 end;
 
 
