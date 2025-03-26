@@ -32,6 +32,8 @@ type
   end;
   TGridColorsPresetList = TObjectList<TGridColorsPreset>;
 
+  { TfrmPreferences }
+
   TfrmPreferences = class(TExtForm)
     pagecontrolMain: TPageControl;
     tabMisc: TTabSheet;
@@ -178,6 +180,7 @@ type
     Label5: TLabel;
     lblReformatter: TLabel;
     comboReformatter: TComboBox;
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -485,8 +488,6 @@ begin
       [mbOk]);
   end;
   MainForm.ActionList1.State := asNormal;
-  AppSettings.WriteIntDpiAware(asPreferencesWindowWidth, Self, Width);
-  AppSettings.WriteIntDpiAware(asPreferencesWindowHeight, Self, Height);
 end;
 
 
@@ -508,6 +509,8 @@ var
   Reformatter: TfrmReformatter;
 begin
   HasSizeGrip := True;
+  Width := AppSettings.ReadInt(asPreferencesWindowWidth);
+  Height := AppSettings.ReadInt(asPreferencesWindowHeight);
 
   // Misecllaneous
   // Hide browse button on Wine, as the browse dialog returns Windows-style paths, while we need a Unix path
@@ -677,9 +680,6 @@ var
 begin
   Screen.Cursor := crHourGlass;
 
-  Width := AppSettings.ReadIntDpiAware(asPreferencesWindowWidth, Self);
-  Height := AppSettings.ReadIntDpiAware(asPreferencesWindowHeight, Self);
-
   // Read and display values
   chkAutoReconnect.Checked := AppSettings.ReadBool(asAutoReconnect);;
   chkAllowMultiInstances.Checked := AppSettings.ReadBool(asAllowMultipleInstances);
@@ -812,6 +812,11 @@ begin
   screen.Cursor := crdefault;
 end;
 
+procedure TfrmPreferences.FormDestroy(Sender: TObject);
+begin
+  AppSettings.WriteInt(asPreferencesWindowWidth, ScaleFormToDesign(Width));
+  AppSettings.WriteInt(asPreferencesWindowHeight, ScaleFormToDesign(Height));
+end;
 
 
 procedure TfrmPreferences.SQLFontChange(Sender: TObject);
@@ -1280,7 +1285,6 @@ begin
     end;
   end;
 end;
-
 
 procedure TfrmPreferences.TreeShortcutItemsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
   var InitialStates: TVirtualNodeInitStates);

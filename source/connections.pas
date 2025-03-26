@@ -474,11 +474,11 @@ end;
 procedure Tconnform.FormDestroy(Sender: TObject);
 begin
   // Save GUI stuff
-  AppSettings.WriteInt(asSessionManagerListWidth, pnlLeft.Width);
-  AppSettings.WriteInt(asSessionManagerWindowWidth, Width);
-  AppSettings.WriteInt(asSessionManagerWindowHeight, Height);
-  AppSettings.WriteInt(asSessionManagerWindowLeft, Left);
-  AppSettings.WriteInt(asSessionManagerWindowTop, Top);
+  AppSettings.WriteInt(asSessionManagerListWidth, ScaleFormToDesign(pnlLeft.Width));
+  AppSettings.WriteInt(asSessionManagerWindowWidth, ScaleFormToDesign(Width));
+  AppSettings.WriteInt(asSessionManagerWindowHeight, ScaleFormToDesign(Height));
+  AppSettings.WriteInt(asSessionManagerWindowLeft, ScaleFormToDesign(Left));
+  AppSettings.WriteInt(asSessionManagerWindowTop, ScaleFormToDesign(Top));
   SaveListSetup(ListSessions);
 end;
 

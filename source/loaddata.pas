@@ -16,6 +16,9 @@ uses
   dbconnection, dbstructures;
 
 type
+
+  { Tloaddataform }
+
   Tloaddataform = class(TExtForm)
     btnImport: TButton;
     btnCancel: TButton;
@@ -58,6 +61,7 @@ type
     const ProgressBarSteps=100;
     procedure FormCreate(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure comboDatabaseChange(Sender: TObject);
     procedure comboTablePopulate(SelectTableName: String; RefreshDbObjects: Boolean);
@@ -111,6 +115,8 @@ begin
   chkTruncateTable.Checked := False;
   grpDuplicates.ItemIndex := AppSettings.ReadInt(asCSVImportDuplicateHandling);
   grpParseMethod.ItemIndex := AppSettings.ReadInt(asCSVImportParseMethod);
+  Width := AppSettings.ReadInt(asCSVImportWindowWidth);
+  Height := AppSettings.ReadInt(asCSVImportWindowHeight);
 end;
 
 
@@ -134,9 +140,6 @@ end;
 
 procedure Tloaddataform.FormShow(Sender: TObject);
 begin
-  Width := AppSettings.ReadIntDpiAware(asCSVImportWindowWidth, Self);
-  Height := AppSettings.ReadIntDpiAware(asCSVImportWindowHeight, Self);
-
   FConnection := MainForm.ActiveConnection;
 
   // Disable features supported in MySQL only, if active connection is not MySQL
@@ -164,8 +167,6 @@ end;
 procedure Tloaddataform.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   // Save settings
-  AppSettings.WriteIntDpiAware(asCSVImportWindowWidth, Self, Width);
-  AppSettings.WriteIntDpiAware(asCSVImportWindowHeight, Self, Height);
   AppSettings.WriteString(asCSVImportFilename, editFilename.Text);
   AppSettings.WriteString(asCSVImportSeparator, editFieldTerminator.Text);
   AppSettings.WriteString(asCSVImportEncloser, editFieldEncloser.Text);
@@ -765,6 +766,12 @@ begin
   btnImport.Enabled := (editFilename.Text <> '')
     and (chklistColumns.Items.Count > 0)
     and (FileExists(editFilename.Text));
+end;
+
+procedure Tloaddataform.FormDestroy(Sender: TObject);
+begin
+  AppSettings.WriteInt(asCSVImportWindowWidth, ScaleFormToDesign(Width));
+  AppSettings.WriteInt(asCSVImportWindowHeight, ScaleFormToDesign(Height));
 end;
 
 

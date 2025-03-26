@@ -267,14 +267,19 @@ begin
   //MemoText.OnPaintTransient := MainForm.SynMemoQuery.OnPaintTransient;
   if AppSettings.ReadBool(asMemoEditorMaximized) then
     WindowState := wsMaximized;
+  // Restore form dimensions
+  if WindowState <> wsMaximized then begin
+    Width := AppSettings.ReadInt(asMemoEditorWidth);
+    Height := AppSettings.ReadInt(asMemoEditorHeight);
+  end;
 end;
 
 
 procedure TfrmTextEditor.FormDestroy(Sender: TObject);
 begin
   if WindowState <> wsMaximized then begin
-    AppSettings.WriteIntDpiAware(asMemoEditorWidth, Self, Width);
-    AppSettings.WriteIntDpiAware(asMemoEditorHeight, Self, Height);
+    AppSettings.WriteInt(asMemoEditorWidth, ScaleFormToDesign(Width));
+    AppSettings.WriteInt(asMemoEditorHeight, ScaleFormToDesign(Height));
   end;
   AppSettings.WriteBool(asMemoEditorMaximized, WindowState=wsMaximized);
   if btnWrap.Enabled then begin
@@ -291,12 +296,6 @@ procedure TfrmTextEditor.FormShow(Sender: TObject);
 var
   HighlighterName: String;
 begin
-  // Restore form dimensions
-  if WindowState <> wsMaximized then begin
-    Width := AppSettings.ReadIntDpiAware(asMemoEditorWidth, Self);
-    Height := AppSettings.ReadIntDpiAware(asMemoEditorHeight, Self);
-  end;
-
   if AppSettings.ReadBool(asMemoEditorWrap) and btnWrap.Enabled then begin
     btnWrap.Click;
   end;

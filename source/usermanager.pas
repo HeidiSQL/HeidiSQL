@@ -114,6 +114,7 @@ type
     procedure editFromHostButtonClick(Sender: TObject);
     procedure editPasswordButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnAddUserClick(Sender: TObject);
     procedure btnDeleteUserClick(Sender: TObject);
@@ -214,6 +215,12 @@ procedure TUserManagerForm.FormCreate(Sender: TObject);
 begin
   // Restore GUI setup
   HasSizeGrip := True;
+  Width := AppSettings.ReadInt(asUsermanagerWindowWidth);
+  Height := AppSettings.ReadInt(asUsermanagerWindowHeight);
+  pnlLeft.Width := AppSettings.ReadInt(asUsermanagerListWidth);
+  FixVT(listUsers);
+  FixVT(treePrivs);
+  RestoreListSetup(listUsers);
   lblWarning.Font.Color := clRed;
   PrivsRead := Explode(',', 'SELECT,SHOW VIEW,SHOW DATABASES,PROCESS,EXECUTE');
   PrivsWrite := Explode(',', 'ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,'+
@@ -221,6 +228,15 @@ begin
   PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER,'+
     'BINLOG ADMIN,BINLOG REPLAY,CONNECTION ADMIN,FEDERATED ADMIN,READ_ONLY ADMIN,REPLICATION MASTER ADMIN,'+
     'REPLICATION SLAVE ADMIN,SET USER,SLAVE MONITOR');
+end;
+
+procedure TUserManagerForm.FormDestroy(Sender: TObject);
+begin
+  // Save GUI setup
+  AppSettings.WriteInt(asUsermanagerWindowWidth, ScaleFormToDesign(Width));
+  AppSettings.WriteInt(asUsermanagerWindowHeight, ScaleFormToDesign(Height));
+  AppSettings.WriteInt(asUsermanagerListWidth, ScaleFormToDesign(pnlLeft.Width));
+  SaveListSetup(listUsers);
 end;
 
 procedure TUserManagerForm.btnCancelClick(Sender: TObject);
@@ -274,15 +290,6 @@ var
   end;
 
 begin
-  ArrangeControls(tabCredentials);
-  ArrangeControls(tabLimitations);
-  ArrangeControls(tabSSL);
-  Width := AppSettings.ReadIntDpiAware(asUsermanagerWindowWidth, Self);
-  Height := AppSettings.ReadIntDpiAware(asUsermanagerWindowHeight, Self);
-  pnlLeft.Width := AppSettings.ReadIntDpiAware(asUsermanagerListWidth, Self);
-  FixVT(listUsers);
-  FixVT(treePrivs);
-  RestoreListSetup(listUsers);
   FColorReadPriv := clGreen;
   FColorWritePriv := clMaroon;
   FColorAdminPriv := clNavy;
@@ -450,11 +457,6 @@ begin
   FreeAndNil(FPrivsTable);
   FreeAndNil(FPrivsRoutine);
   FreeAndNil(FPrivsColumn);
-  // Save GUI setup
-  AppSettings.WriteIntDpiAware(asUsermanagerWindowWidth, Self, Width);
-  AppSettings.WriteIntDpiAware(asUsermanagerWindowHeight, Self, Height);
-  AppSettings.WriteIntDpiAware(asUsermanagerListWidth, Self, pnlLeft.Width);
-  SaveListSetup(listUsers);
 end;
 
 

@@ -10,6 +10,9 @@ uses
   Buttons;
 
 type
+
+  { TCopyTableForm }
+
   TCopyTableForm = class(TExtForm)
     editNewTablename: TEdit;
     lblNewTablename: TLabel;
@@ -23,6 +26,7 @@ type
     btnRecentFilters: TSpeedButton;
     popupRecentFilters: TPopupMenu;
     procedure editNewTablenameChange(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -187,9 +191,6 @@ begin
       AppSettings.WriteString(asCopyTableRecentFilter, NewValues[i], IntToStr(i));
     end;
   end;
-  // Store GUI setup
-  AppSettings.WriteIntDpiAware(asCopyTableWindowWidth, Self, Width);
-  AppSettings.WriteIntDpiAware(asCopyTableWindowHeight, Self, Height);
 end;
 
 
@@ -341,6 +342,13 @@ procedure TCopyTableForm.editNewTablenameChange(Sender: TObject);
 begin
   // Disable OK button as long as table name is empty
   btnOK.Enabled := editNewTablename.Text <> '';
+end;
+
+procedure TCopyTableForm.FormDestroy(Sender: TObject);
+begin
+  // Store GUI setup
+  AppSettings.WriteInt(asCopyTableWindowWidth, ScaleFormToDesign(Width));
+  AppSettings.WriteInt(asCopyTableWindowHeight, ScaleFormToDesign(Height));
 end;
 
 

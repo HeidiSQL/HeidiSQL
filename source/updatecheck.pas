@@ -10,6 +10,9 @@ uses
   Menus, Clipbrd, generic_types, DateUtils;
 
 type
+
+  { TfrmUpdateCheck }
+
   TfrmUpdateCheck = class(TExtForm)
     btnCancel: TButton;
     groupBuild: TGroupBox;
@@ -25,6 +28,7 @@ type
     btnDonate: TButton;
     procedure FormCreate(Sender: TObject);
     procedure btnBuildClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure LinkLabelReleaseLinkClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnChangelogClick(Sender: TObject);
@@ -71,13 +75,13 @@ begin
   btnDonate.Visible := MainForm.HasDonated(False) = nbFalse;
   btnDonate.Caption := f_('Donate to the %s project', [APPNAME]);
   HasSizeGrip := True;
+  Width := AppSettings.ReadInt(asUpdateCheckWindowWidth);
+  Height := AppSettings.ReadInt(asUpdateCheckWindowHeight);
   FRestartTaskName := 'yet_invalid';
 end;
 
 procedure TfrmUpdateCheck.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  AppSettings.WriteIntDpiAware(asUpdateCheckWindowWidth, Self, Width);
-  AppSettings.WriteIntDpiAware(asUpdateCheckWindowHeight, Self, Height);
   if ModalResult <> btnBuild.ModalResult then begin
     DeleteRestartTask;
   end;
@@ -98,8 +102,6 @@ end;
 }
 procedure TfrmUpdateCheck.FormShow(Sender: TObject);
 begin
-  Width := AppSettings.ReadIntDpiAware(asUpdateCheckWindowWidth, Self);
-  Height := AppSettings.ReadIntDpiAware(asUpdateCheckWindowHeight, Self);
   Caption := f_('Check for %s updates', [APPNAME]) + ' ...';
   Screen.Cursor := crHourglass;
   try
@@ -244,6 +246,12 @@ end;
 procedure TfrmUpdateCheck.btnBuildClick(Sender: TObject);
 begin
   // No auto-update
+end;
+
+procedure TfrmUpdateCheck.FormDestroy(Sender: TObject);
+begin
+  AppSettings.WriteInt(asUpdateCheckWindowWidth, ScaleFormToDesign(Width));
+  AppSettings.WriteInt(asUpdateCheckWindowHeight, ScaleFormToDesign(Height));
 end;
 
 

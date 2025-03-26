@@ -68,6 +68,8 @@ end;
 procedure TfrmSelectDBObject.FormCreate(Sender: TObject);
 begin
   HasSizeGrip := True;
+  Width := AppSettings.ReadInt(asSelectDBOWindowWidth);
+  Height := AppSettings.ReadInt(asSelectDBOWindowHeight);
   TreeDBO.TreeOptions := MainForm.DBtree.TreeOptions;
   TreeDBO.TreeOptions.SelectionOptions := TreeDBO.TreeOptions.SelectionOptions + [toMultiSelect];
   FixVT(TreeDBO);
@@ -76,8 +78,8 @@ end;
 
 procedure TfrmSelectDBObject.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteIntDpiAware(asSelectDBOWindowWidth, Self, Width);
-  AppSettings.WriteIntDpiAware(asSelectDBOWindowHeight, Self, Height);
+  AppSettings.WriteInt(asSelectDBOWindowWidth, ScaleFormToDesign(Width));
+  AppSettings.WriteInt(asSelectDBOWindowHeight, ScaleFormToDesign(Height));
 end;
 
 
@@ -98,8 +100,6 @@ end;
 
 procedure TfrmSelectDBObject.FormShow(Sender: TObject);
 begin
-  Width := AppSettings.ReadIntDpiAware(asSelectDBOWindowWidth, Self);
-  Height := AppSettings.ReadIntDpiAware(asSelectDBOWindowHeight, Self);
   TreeDBO.Clear;
   TreeDBO.RootNodeCount := Mainform.DBtree.RootNodeCount;
   TreeDBO.OnFocusChanged(TreeDBO, TreeDBO.FocusedNode, 0);

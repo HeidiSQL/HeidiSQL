@@ -1846,10 +1846,10 @@ begin
   AppSettings.WriteInt(asMainWinOnMonitor, Monitor.MonitorNum);
   // Window dimensions are only valid when WindowState is normal.
   if WindowState = wsNormal then begin
-    AppSettings.WriteInt(asMainWinLeft, Left);
-    AppSettings.WriteInt(asMainWinTop, Top);
-    AppSettings.WriteIntDpiAware(asMainWinWidth, Self, Width);
-    AppSettings.WriteIntDpiAware(asMainWinHeight, Self, Height);
+    AppSettings.WriteInt(asMainWinLeft, ScaleFormToDesign(Left));
+    AppSettings.WriteInt(asMainWinTop, ScaleFormToDesign(Top));
+    AppSettings.WriteInt(asMainWinWidth, ScaleFormToDesign(Width));
+    AppSettings.WriteInt(asMainWinHeight, ScaleFormToDesign(Height));
   end;
   SaveListSetup(ListDatabases);
   SaveListSetup(ListVariables);
@@ -2023,7 +2023,12 @@ begin
   Top := AppSettings.ReadInt(asMainWinTop);
   // ... state
   if AppSettings.ReadBool(asMainWinMaximized) then
-    WindowState := wsMaximized;
+    WindowState := wsMaximized
+  // ... dimensions
+  else begin
+    Width := AppSettings.ReadInt(asMainWinWidth);
+    Height := AppSettings.ReadInt(asMainWinHeight);
+  end;
   // ... and monitor placement
   MonitorIndex := AppSettings.ReadInt(asMainWinOnMonitor);
   MonitorIndex := Max(0, MonitorIndex);
@@ -2832,12 +2837,6 @@ end;
 
 procedure TMainForm.FormShow(Sender: TObject);
 begin
-  // Window dimensions
-  if WindowState <> wsMaximized then begin
-    Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
-    Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
-  end;
-
   {LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(ScaleFactor*100)]));
   if TStyleManager.IsCustomStyleActive and (ScaleFactor<>1) then begin
     LogSQL(f_('Caution: Style "%s" selected and non-default DPI factor - be aware that some styles appear broken with high DPI settings!', [TStyleManager.ActiveStyle.Name]));

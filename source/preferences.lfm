@@ -13,6 +13,7 @@ object frmPreferences: TfrmPreferences
   DesignTimePPI = 120
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
   object pagecontrolMain: TPageControl

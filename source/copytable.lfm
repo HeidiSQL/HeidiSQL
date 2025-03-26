@@ -10,6 +10,7 @@ object CopyTableForm: TCopyTableForm
   DesignTimePPI = 120
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
   Position = poMainFormCenter

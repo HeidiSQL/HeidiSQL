@@ -35,6 +35,7 @@ type
     MemoExample: TSynEdit;
     timerSearch: TTimer;
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure memosKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure ButtonOnlinehelpClick(Sender: TObject);
@@ -94,6 +95,14 @@ begin
   Caption := DEFAULT_WINDOW_CAPTION;
   FixVT(treeTopics);
   HasSizeGrip := True;
+  Top := AppSettings.ReadInt(asSQLHelpWindowTop);
+  Left := AppSettings.ReadInt(asSQLHelpWindowLeft);
+  Width := AppSettings.ReadInt(asSQLHelpWindowWidth);
+  Height := AppSettings.ReadInt(asSQLHelpWindowHeight);
+  MakeFullyVisible;
+
+  pnlLeft.Width := AppSettings.ReadInt(asSQLHelpPnlLeftWidth);
+  memoDescription.Height := AppSettings.ReadInt(asSQLHelpPnlRightTopHeight);
 
   treeTopics.Clear;
   FreeAndNil(FRootTopics);
@@ -102,15 +111,19 @@ begin
   treeTopics.RootNodeCount := FRootTopics.RecordCount;
 end;
 
+procedure TfrmSQLhelp.FormDestroy(Sender: TObject);
+begin
+  AppSettings.WriteInt(asSQLHelpWindowLeft, ScaleFormToDesign(Left));
+  AppSettings.WriteInt(asSQLHelpWindowTop, ScaleFormToDesign(Top));
+  AppSettings.WriteInt(asSQLHelpWindowWidth, ScaleFormToDesign(Width));
+  AppSettings.WriteInt(asSQLHelpWindowHeight, ScaleFormToDesign(Height));
+  AppSettings.WriteInt(asSQLHelpPnlLeftWidth, ScaleFormToDesign(pnlLeft.Width));
+  AppSettings.WriteInt(asSQLHelpPnlRightTopHeight, ScaleFormToDesign(memoDescription.Height));
+end;
+
 
 procedure TfrmSQLhelp.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  AppSettings.WriteInt(asSQLHelpWindowLeft, Left );
-  AppSettings.WriteInt(asSQLHelpWindowTop, Top );
-  AppSettings.WriteIntDpiAware(asSQLHelpWindowWidth, Self, Width);
-  AppSettings.WriteIntDpiAware(asSQLHelpWindowHeight, Self, Height);
-  AppSettings.WriteIntDpiAware(asSQLHelpPnlLeftWidth, Self, pnlLeft.Width);
-  AppSettings.WriteIntDpiAware(asSQLHelpPnlRightTopHeight, Self, memoDescription.Height);
   Action := caFree;
   SqlHelpDialog := nil;
 end;
@@ -227,7 +240,6 @@ begin
   ChildCount := Results.RecordCount;
 end;
 
-
 procedure TfrmSQLhelp.treeTopicsInitNode(Sender: TBaseVirtualTree; ParentNode,
   Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 var
@@ -270,14 +282,6 @@ end;
 
 procedure TfrmSQLhelp.FormShow(Sender: TObject);
 begin
-  Top := AppSettings.ReadInt(asSQLHelpWindowTop);
-  Left := AppSettings.ReadInt(asSQLHelpWindowLeft);
-  Width := AppSettings.ReadIntDpiAware(asSQLHelpWindowWidth, Self);
-  Height := AppSettings.ReadIntDpiAware(asSQLHelpWindowHeight, Self);
-  MakeFullyVisible;
-
-  pnlLeft.Width := AppSettings.ReadIntDpiAware(asSQLHelpPnlLeftWidth, Self);
-  memoDescription.Height := AppSettings.ReadIntDpiAware(asSQLHelpPnlRightTopHeight, Self);
   // Apply themed colors in OnShow, not OnCreate, as a check with <> nil returns false otherwise
   MainForm.SetupSynEditors(Self);
   // These SynMemo's don't have any (SQL) highligher, so we have to assign correct colors for basic text

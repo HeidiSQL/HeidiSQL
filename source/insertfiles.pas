@@ -129,8 +129,8 @@ end;
 
 procedure TfrmInsertFiles.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteIntDpiAware(asFileImportWindowWidth, Self, Width);
-  AppSettings.WriteIntDpiAware(asFileImportWindowHeight, Self, Height);
+  AppSettings.WriteInt(asFileImportWindowWidth, ScaleFormToDesign(Width));
+  AppSettings.WriteInt(asFileImportWindowHeight, ScaleFormToDesign(Height));
   SaveListSetup(ListColumns);
   SaveListSetup(listFiles);
 end;

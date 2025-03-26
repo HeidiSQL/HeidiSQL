@@ -9,6 +9,9 @@ uses
   apphelpers, extra_controls, EditBtn;
 
 type
+
+  { TfrmColumnSelection }
+
   TfrmColumnSelection = class(TExtForm)
     btnCancel: TButton;
     btnOK: TButton;
@@ -18,6 +21,7 @@ type
     editFilter: TEditButton;
     chkShowRowId: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure chklistColumnsClickCheck(Sender: TObject);
     procedure chkSelectAllClick(Sender: TObject);
@@ -49,6 +53,8 @@ procedure TfrmColumnSelection.FormCreate(Sender: TObject);
 begin
   HasSizeGrip := True;
   FCheckedColumns := TStringList.Create;
+  Width := AppSettings.ReadInt(asColumnSelectorWidth);
+  Height := AppSettings.ReadInt(asColumnSelectorHeight);
 end;
 
 
@@ -60,8 +66,6 @@ var
   i: Integer;
   Col: String;
 begin
-  Width := AppSettings.ReadIntDpiAware(asColumnSelectorWidth, Self);
-  Height := AppSettings.ReadIntDpiAware(asColumnSelectorHeight, Self);
   FCheckedColumns.Clear;
   for i:=0 to Mainform.SelectedTableColumns.Count-1 do begin
     Col := Mainform.SelectedTableColumns[i].Name;
@@ -214,6 +218,12 @@ begin
   Close;
 end;
 
+procedure TfrmColumnSelection.FormDestroy(Sender: TObject);
+begin
+  AppSettings.WriteInt(asColumnSelectorWidth, ScaleFormToDesign(Width));
+  AppSettings.WriteInt(asColumnSelectorHeight, ScaleFormToDesign(Height));
+end;
+
 
 {**
   Cancel this dialog if the user clicks elsewhere on mainform
@@ -230,8 +240,6 @@ end;
 procedure TfrmColumnSelection.FormClose(Sender: TObject; var Action:
     TCloseAction);
 begin
-  AppSettings.WriteIntDpiAware(asColumnSelectorWidth, Self, Width);
-  AppSettings.WriteIntDpiAware(asColumnSelectorHeight, Self, Height);
   Action := caFree;
   FCheckedColumns.Free;
 end;

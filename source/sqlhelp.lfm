@@ -12,6 +12,7 @@ object frmSQLhelp: TfrmSQLhelp
   FormStyle = fsStayOnTop
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   object pnlMain: TPanel
     Left = 10

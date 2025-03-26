@@ -295,12 +295,12 @@ type
       constructor Create;
       destructor Destroy; override;
       function ReadInt(Index: TAppSettingIndex; FormatName: String=''; Default: Integer=0): Integer;
-      function ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
+      //function ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
       function ReadBool(Index: TAppSettingIndex; FormatName: String=''; Default: Boolean=False): Boolean;
       function ReadString(Index: TAppSettingIndex; FormatName: String=''; Default: String=''): String; overload;
       function ReadString(ValueName: String): String; overload;
       procedure WriteInt(Index: TAppSettingIndex; Value: Integer; FormatName: String='');
-      procedure WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
+      //procedure WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
       procedure WriteBool(Index: TAppSettingIndex; Value: Boolean; FormatName: String='');
       procedure WriteString(Index: TAppSettingIndex; Value: String; FormatName: String=''); overload;
       procedure WriteString(ValueName, Value: String); overload;
@@ -4185,12 +4185,12 @@ begin
 end;
 
 
-function TAppSettings.ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
+{function TAppSettings.ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
 begin
   // take a forms DesignTimePPI into account
   Result := ReadInt(Index, FormatName, Default);
   Result := AControl.ScaleDesignToForm(Result);
-end;
+end;}
 
 
 function TAppSettings.ReadBool(Index: TAppSettingIndex; FormatName: String=''; Default: Boolean=False): Boolean;
@@ -4273,11 +4273,11 @@ begin
 end;
 
 
-procedure TAppSettings.WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
+{procedure TAppSettings.WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
 begin
   Value := AControl.ScaleFormToDesign(Value);
   WriteInt(Index, Value, FormatName);
-end;
+end;}
 
 
 procedure TAppSettings.WriteBool(Index: TAppSettingIndex; Value: Boolean; FormatName: String='');

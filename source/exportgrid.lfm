@@ -13,6 +13,7 @@ object frmExportGrid: TfrmExportGrid
   DesignTimePPI = 120
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   Position = poMainFormCenter
   object btnOK: TButton

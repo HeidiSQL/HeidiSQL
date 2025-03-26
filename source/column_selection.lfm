@@ -14,6 +14,7 @@ object frmColumnSelection: TfrmColumnSelection
   OnClose = FormClose
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   object btnCancel: TButton
     Left = 146
