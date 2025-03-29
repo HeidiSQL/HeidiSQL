@@ -14,7 +14,7 @@ uses
   Generics.Defaults, opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn,
   FileUtil, LMessages, jsonconf, dbconnection, dbstructures, dbstructures.mysql,
   generic_types, apphelpers, extra_controls, createdatabase,
-  SynEditMarkupSpecialLine, searchreplace;
+  SynEditMarkupSpecialLine, searchreplace, ImgList;
 
 
 type
@@ -788,6 +788,8 @@ type
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure actNextTabExecute(Sender: TObject);
     procedure actPreviousTabExecute(Sender: TObject);
+    procedure ImageListIcons8GetWidthForPPI(Sender: TCustomImageList;
+      AImageWidth, APPI: Integer; var AResultWidth: Integer);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
     //procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
@@ -4525,6 +4527,14 @@ end;
 procedure TMainForm.actPreviousTabExecute(Sender: TObject);
 begin
   PageControlMain.SelectNextPage(False);
+end;
+
+procedure TMainForm.ImageListIcons8GetWidthForPPI(Sender: TCustomImageList;
+  AImageWidth, APPI: Integer; var AResultWidth: Integer);
+begin
+  // Scale for intermediate resolutions which were not added explictly
+  // https://wiki.freepascal.org/TImageList#How_to_create_a_multi-resolution_ImageList_in_the_application
+  AResultWidth := AImageWidth * APPI div 96;
 end;
 
 
