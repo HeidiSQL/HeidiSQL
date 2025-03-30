@@ -8,13 +8,13 @@ object MainForm: TMainForm
   ClientWidth = 998
   DesignTimePPI = 120
   Menu = MainMenu1
+  OnActivate = FormActivate
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnMouseWheel = FormMouseWheel
   OnShow = FormShow
   Position = poMainFormCenter
-  LCLVersion = '3.8.0.0'
   object StatusBar: TStatusBar
     Left = 0
     Height = 29
@@ -74,7 +74,7 @@ object MainForm: TMainForm
     end
     object tlbSep1: TToolButton
       Left = 74
-      Height = 8
+      Height = 28
       Top = 2
       Caption = 'tlbSep1'
       ImageIndex = 2
@@ -105,7 +105,7 @@ object MainForm: TMainForm
     end
     object tlbSep2: TToolButton
       Left = 198
-      Height = 8
+      Height = 28
       Top = 2
       Caption = 'tlbSep2'
       ImageIndex = 3
@@ -139,7 +139,7 @@ object MainForm: TMainForm
     end
     object tlbSep6: TToolButton
       Left = 337
-      Height = 8
+      Height = 28
       Top = 2
       Caption = 'tlbSep6'
       ImageIndex = 97
@@ -253,7 +253,7 @@ object MainForm: TMainForm
     end
     object ToolButton2: TToolButton
       Left = 955
-      Height = 5
+      Height = 28
       Top = 2
       Caption = 'ToolButton2'
       Style = tbsDivider
@@ -918,7 +918,7 @@ object MainForm: TMainForm
           item
             Position = 0
             Text = 'Name'
-            Width = 149
+            Width = 145
           end        
           item
             Alignment = taRightJustify
@@ -1169,7 +1169,7 @@ object MainForm: TMainForm
                   item
                     Position = 0
                     Text = 'Variable'
-                    Width = 252
+                    Width = 248
                   end                
                   item
                     Position = 1
@@ -1226,7 +1226,7 @@ object MainForm: TMainForm
                   item
                     Position = 0
                     Text = 'Variable'
-                    Width = 252
+                    Width = 248
                   end                
                   item
                     Alignment = taRightJustify
@@ -1829,7 +1829,7 @@ object MainForm: TMainForm
                   item
                     Position = 7
                     Text = 'Info'
-                    Width = 248
+                    Width = 244
                   end>
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
@@ -1900,7 +1900,7 @@ object MainForm: TMainForm
                   item
                     Position = 4
                     Text = 'Percentage'
-                    Width = 344
+                    Width = 340
                   end>
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
                 Header.PopupMenu = popupListHeader
@@ -2823,7 +2823,7 @@ object MainForm: TMainForm
                   item
                     Position = 0
                     Text = 'Main column'
-                    Width = 113
+                    Width = 88
                   end                
                   item
                     Position = 1
@@ -20047,7 +20047,7 @@ object MainForm: TMainForm
   end
   object SynCompletionProposal: TSynCompletion
     OnExecute = SynCompletionProposalExecute
-    Position = 0
+    Position = -1
     LinesInWindow = 6
     OnPositionChanged = SynCompletionProposalChange
     SelectedColor = clHighlight

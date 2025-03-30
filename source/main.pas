@@ -788,6 +788,7 @@ type
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure actNextTabExecute(Sender: TObject);
     procedure actPreviousTabExecute(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
     procedure ImageListIcons8GetWidthForPPI(Sender: TCustomImageList;
       AImageWidth, APPI: Integer; var AResultWidth: Integer);
     procedure menuConnectionsPopup(Sender: TObject);
@@ -1259,6 +1260,7 @@ type
     FSynEditInOnPaintTransient: Boolean;
     FExactRowCountMode: Boolean;
     //FHelpData: TSimpleKeyValuePairs;
+    FMainWinMaximized: Boolean;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1830,15 +1832,15 @@ begin
   AppSettings.WriteBool(asStopOnErrorsInBatchMode, actQueryStopOnErrors.Checked);
   AppSettings.WriteBool(asDisplayBLOBsAsText, actBlobAsText.Checked);
   AppSettings.WriteString(asDelimiter, FDelimiter);
-  AppSettings.WriteInt(asQuerymemoheight, pnlQueryMemo.Height);
-  AppSettings.WriteInt(asQueryhelperswidth, pnlQueryHelpers.Width);
-  AppSettings.WriteInt(asCompletionProposalWidth, SynCompletionProposal.Width);
+  AppSettings.WriteInt(asQuerymemoheight, ScaleFormToDesign(pnlQueryMemo.Height));
+  AppSettings.WriteInt(asQueryhelperswidth, ScaleFormToDesign(pnlQueryHelpers.Width));
+  AppSettings.WriteInt(asCompletionProposalWidth, ScaleFormToDesign(SynCompletionProposal.Width));
   AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.NbLinesInWindow);
-  AppSettings.WriteInt(asDbtreewidth, pnlLeft.width);
+  AppSettings.WriteInt(asDbtreewidth, ScaleFormToDesign(pnlLeft.width));
   AppSettings.WriteBool(asGroupTreeObjects, actGroupObjects.Checked);
-  AppSettings.WriteInt(asDataPreviewHeight, pnlPreview.Height);
+  AppSettings.WriteInt(asDataPreviewHeight, ScaleFormToDesign(pnlPreview.Height));
   AppSettings.WriteBool(asDataPreviewEnabled, actDataPreview.Checked);
-  AppSettings.WriteInt(asLogHeight, SynMemoSQLLog.Height);
+  AppSettings.WriteInt(asLogHeight, ScaleFormToDesign(SynMemoSQLLog.Height));
   AppSettings.WriteBool(asFilterPanel, actFilterPanel.Checked);
   AppSettings.WriteBool(asWrapLongLines, actQueryWordWrap.Checked);
   AppSettings.WriteBool(asCodeFolding, actCodeFolding.Checked);
@@ -2024,10 +2026,9 @@ begin
   Left := AppSettings.ReadInt(asMainWinLeft);
   Top := AppSettings.ReadInt(asMainWinTop);
   // ... state
-  if AppSettings.ReadBool(asMainWinMaximized) then
-    WindowState := wsMaximized
+  FMainWinMaximized := AppSettings.ReadBool(asMainWinMaximized);
   // ... dimensions
-  else begin
+  if not FMainWinMaximized then begin
     Width := AppSettings.ReadInt(asMainWinWidth);
     Height := AppSettings.ReadInt(asMainWinHeight);
   end;
@@ -4527,6 +4528,15 @@ end;
 procedure TMainForm.actPreviousTabExecute(Sender: TObject);
 begin
   PageControlMain.SelectNextPage(False);
+end;
+
+procedure TMainForm.FormActivate(Sender: TObject);
+begin
+  // Work around non-working wsMaxmized in OnCreate and OnShow
+  if FMainWinMaximized then begin
+    WindowState := wsMaximized;
+    FMainWinMaximized := False;
+  end;
 end;
 
 procedure TMainForm.ImageListIcons8GetWidthForPPI(Sender: TCustomImageList;
