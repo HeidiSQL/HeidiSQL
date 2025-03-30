@@ -291,8 +291,6 @@ begin
   MakeFullyVisible;
   pnlLeft.Width := AppSettings.ReadInt(asSessionManagerListWidth);
   splitterMain.OnMoved(Sender);
-  FixVT(ListSessions);
-  RestoreListSetup(ListSessions);
 
   // Fix GUI stuff
   HasSizeGrip := True;
@@ -401,6 +399,9 @@ var
   PSess: PConnectionParameters;
   Node: PVirtualNode;
 begin
+  FixVT(ListSessions);
+  RestoreListSetup(ListSessions);
+
   // Init sessions tree
   RefreshSessions(nil);
 

@@ -218,9 +218,6 @@ begin
   Width := AppSettings.ReadInt(asUsermanagerWindowWidth);
   Height := AppSettings.ReadInt(asUsermanagerWindowHeight);
   pnlLeft.Width := AppSettings.ReadInt(asUsermanagerListWidth);
-  FixVT(listUsers);
-  FixVT(treePrivs);
-  RestoreListSetup(listUsers);
   lblWarning.Font.Color := clRed;
   PrivsRead := Explode(',', 'SELECT,SHOW VIEW,SHOW DATABASES,PROCESS,EXECUTE');
   PrivsWrite := Explode(',', 'ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,'+
@@ -290,6 +287,9 @@ var
   end;
 
 begin
+  FixVT(listUsers);
+  FixVT(treePrivs);
+  RestoreListSetup(listUsers);
   FColorReadPriv := clGreen;
   FColorWritePriv := clMaroon;
   FColorAdminPriv := clNavy;

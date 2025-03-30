@@ -120,10 +120,6 @@ begin
   //DragAcceptFiles(Handle, True);
   Width := AppSettings.ReadInt(asFileImportWindowWidth);
   Height := AppSettings.ReadInt(asFileImportWindowHeight);
-  RestoreListSetup(ListColumns);
-  RestoreListSetup(ListFiles);
-  FixVT(ListFiles);
-  FixVT(ListColumns);
 end;
 
 
@@ -138,6 +134,10 @@ end;
 
 procedure TfrmInsertFiles.FormShow(Sender: TObject);
 begin
+  RestoreListSetup(ListColumns);
+  RestoreListSetup(ListFiles);
+  FixVT(ListFiles);
+  FixVT(ListColumns);
   FConnection := Mainform.ActiveConnection;
   Caption := FConnection.Parameters.SessionName + ' - ' + MainForm.actInsertFiles.Caption;
   comboDBs.Items.Clear;

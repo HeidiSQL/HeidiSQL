@@ -240,6 +240,7 @@ begin
   ChildCount := Results.RecordCount;
 end;
 
+
 procedure TfrmSQLhelp.treeTopicsInitNode(Sender: TBaseVirtualTree; ParentNode,
   Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 var

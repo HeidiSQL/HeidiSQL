@@ -326,7 +326,7 @@ begin
     for i := 0 to ValueList.Count - 1 do
     begin
       ColWidth := MakeInt(ValueList[i]);
-      //ColWidth := RoundCommercial(ColWidth * OwnerForm.ScaleFactor);
+      ColWidth := OwnerForm.ScaleDesignToForm(ColWidth);
       // Check if column number exists and width is at least 1 pixel
       if (List.Header.Columns.Count > i) and (ColWidth > 0) and (ColWidth < 1000) then
         List.Header.Columns[i].Width := ColWidth;
