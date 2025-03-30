@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynEditHighlighter, EditBtn, ComCtrls, SynCompletion, fphttpclient,
-  dbconnection, dbstructures, jsonregistry;
+  dbconnection, dbstructures, Registry;
 
 type
 
@@ -272,7 +272,7 @@ type
       FBasePath: String;
       FSessionPath: String;
       FStoredPath: String;
-      FRegistry: TJsonRegistry;
+      FRegistry: TRegistry;
       FPortableMode: Boolean;
       FPortableModeReadOnly: Boolean;
       FRestoreTabsInitValue: Boolean;
@@ -291,7 +291,7 @@ type
       procedure Write(Index: TAppSettingIndex; FormatName: String;
         DataType: TAppSettingDataType; I: Integer; B: Boolean; S: String);
     public
-      const PathDelimiter: Char = '/';
+      const PathDelimiter = '\';
       constructor Create;
       destructor Destroy; override;
       function ReadInt(Index: TAppSettingIndex; FormatName: String=''; Default: Integer=0): Integer;
@@ -3525,7 +3525,8 @@ var
 begin
   inherited;
   FDirnameUserAppData := '';
-  FRegistry := TJsonRegistry.Create(DirnameUserAppData + 'settings.json');
+  FRegistry := TRegistry.Create;
+  FRegistry.RootKey := HKEY_CURRENT_USER;
   FReads := 0;
   FWrites := 0;
 
@@ -3567,7 +3568,7 @@ begin
         MessageDlg(E.Message, mtError, [mbOK], 0, mbOK);
     end;
   end else begin
-    FBasePath := PathDelimiter;
+    FBasePath := PathDelimiter + 'Software' + PathDelimiter + APPNAME + PathDelimiter;
     FSettingsFile := '';
   end;
 
@@ -4058,7 +4059,7 @@ begin
   // Note that, contrary to the documentation, .DeleteKey is done even when this key has subkeys
   PrepareRegistry;
   if FSessionPath.IsEmpty then
-     raise Exception.CreateFmt(_('No path set, won''t delete root key %s'), [FRegistry.CurrentPath])
+    raise Exception.CreateFmt(_('No path set, won''t delete root key %s'), [FRegistry.CurrentPath])
   else begin
     KeyPath := AppendDelimiter(REGKEY_SESSIONS) + FSessionPath;
     ResetPath;
@@ -4361,8 +4362,6 @@ begin
     Segments := Explode(LINEDELIMITER, Lines[i]);
     if Segments.Count <> 3 then
       continue;
-    // Windows registry to JSON path delimiter conversion: \ => /
-    Segments[0] := StringReplace(Segments[0], '\', PathDelimiter, [rfReplaceAll]);
     KeyPath := FBasePath + ExtractFilePath(Segments[0]);
     Name := ExtractFileName(Segments[0]);
     DataType := StrToIntDef(Segments[1], 0);
@@ -4378,7 +4377,7 @@ begin
         Value := StringReplace(Value, CHR10REPLACEMENT, #10, [rfReplaceAll]);
         FRegistry.WriteString(Name, Value);
       end;
-      3: // Integer
+      3: // Integer (Delphi definition)
         FRegistry.WriteInteger(Name, MakeInt(Value));
       else
         ErrorDialog(Name+' has an unsupported data type.');
@@ -4392,7 +4391,8 @@ end;
 function TAppSettings.ExportSettings(Filename: String): Boolean;
 var
   Content, Value: String;
-  //DataType: TRegDataType;
+  DataType: TRegDataType;
+  DataTypeInt: Integer;
 
   procedure ReadKeyToContent(Path: String);
   var
@@ -4401,15 +4401,19 @@ var
     SubPath: String;
   begin
     // Recursively read values in keys and their subkeys into "content" variable
-    {FRegistry.OpenKey(Path, True);
+    FRegistry.OpenKey(Path, True);
     SubPath := Copy(Path, Length(FBasePath)+1, MaxInt);
     Names := TStringList.Create;
     FRegistry.GetValueNames(Names);
     for i:=0 to Names.Count-1 do begin
       DataType := FRegistry.GetDataType(Names[i]);
+      DataTypeInt := Integer(DataType);
+      // Delphi uses 3, Lazarus 4
+      if DataTypeInt = 4 then
+        DataTypeInt := 3;
       Content := Content +
-        SubPath + Names[i] + DELIMITER +
-        IntToStr(Integer(DataType)) + DELIMITER;
+        SubPath + Names[i] + LINEDELIMITER +
+        DataTypeInt.ToString + LINEDELIMITER;
       case DataType of
         rdString: begin
           Value := FRegistry.ReadString(Names[i]);
@@ -4426,8 +4430,8 @@ var
     Names.Clear;
     FRegistry.GetKeyNames(Names);
     for i:=0 to Names.Count-1 do
-      ReadKeyToContent(Path + AppendDelimiter(Names[i]));
-    Names.Free;}
+      ReadKeyToContent(Path + Names[i] + PathDelimiter);
+    Names.Free;
   end;
 
 begin
