@@ -17,26 +17,31 @@ object frmExportGrid: TfrmExportGrid
   OnShow = FormShow
   Position = poMainFormCenter
   object btnOK: TButton
-    Left = 425
+    AnchorSideRight.Control = btnCancel
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 430
     Height = 31
-    Top = 474
+    Top = 478
     Width = 94
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 6
     Caption = 'OK'
-    Default = True
     ModalResult = 1
     TabOrder = 5
     OnClick = btnOKClick
   end
   object btnCancel: TButton
-    Left = 526
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 530
     Height = 31
-    Top = 474
+    Top = 478
     Width = 94
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 6
-    Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 4
@@ -44,12 +49,15 @@ object frmExportGrid: TfrmExportGrid
   object grpSelection: TRadioGroup
     AnchorSideTop.Control = grpFormat
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 10
-    Height = 82
-    Top = 202
-    Width = 610
+    Height = 73
+    Top = 198
+    Width = 614
     Anchors = [akTop, akLeft, akRight]
     AutoFill = True
+    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'Row selection'
     ChildSizing.LeftRightSpacing = 6
@@ -59,8 +67,8 @@ object frmExportGrid: TfrmExportGrid
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 57
-    ClientWidth = 606
+    ClientHeight = 48
+    ClientWidth = 610
     ItemIndex = 1
     Items.Strings = (
       'Selected rows'
@@ -71,32 +79,35 @@ object frmExportGrid: TfrmExportGrid
   end
   object grpOutput: TGroupBox
     AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 10
-    Height = 122
+    Height = 129
     Top = 6
-    Width = 610
+    Width = 614
     Anchors = [akTop, akLeft, akRight]
+    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'Output target'
-    ClientHeight = 97
-    ClientWidth = 606
+    ClientHeight = 104
+    ClientWidth = 610
     ParentBackground = False
     TabOrder = 0
     object lblEncoding: TLabel
       AnchorSideTop.Control = editFilename
       AnchorSideTop.Side = asrBottom
-      Left = 10
+      Left = 6
       Height = 20
-      Top = 66
+      Top = 70
       Width = 65
       BorderSpacing.Around = 6
       Caption = 'Encoding:'
     end
     object radioOutputCopyToClipboard: TRadioButton
-      Left = 10
+      Left = 6
       Height = 24
-      Top = 2
-      Width = 584
+      Top = 6
+      Width = 592
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       Caption = 'Copy to clipboard'
@@ -108,9 +119,9 @@ object frmExportGrid: TfrmExportGrid
     object radioOutputFile: TRadioButton
       AnchorSideTop.Control = radioOutputCopyToClipboard
       AnchorSideTop.Side = asrBottom
-      Left = 10
+      Left = 6
       Height = 24
-      Top = 32
+      Top = 36
       Width = 44
       BorderSpacing.Around = 6
       Caption = 'File'
@@ -120,10 +131,10 @@ object frmExportGrid: TfrmExportGrid
     object editFilename: TEditButton
       AnchorSideTop.Control = radioOutputCopyToClipboard
       AnchorSideTop.Side = asrBottom
-      Left = 99
+      Left = 95
       Height = 28
-      Top = 32
-      Width = 495
+      Top = 36
+      Width = 503
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ButtonWidth = 29
@@ -141,10 +152,10 @@ object frmExportGrid: TfrmExportGrid
     object comboEncoding: TComboBox
       AnchorSideTop.Control = editFilename
       AnchorSideTop.Side = asrBottom
-      Left = 99
+      Left = 95
       Height = 28
-      Top = 66
-      Width = 495
+      Top = 70
+      Width = 503
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ItemHeight = 20
@@ -155,15 +166,18 @@ object frmExportGrid: TfrmExportGrid
   object grpOptions: TGroupBox
     AnchorSideTop.Control = grpSelection
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = btnOK
     Left = 10
-    Height = 176
-    Top = 290
-    Width = 610
+    Height = 195
+    Top = 277
+    Width = 614
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Around = 6
     Caption = 'Options'
-    ClientHeight = 151
-    ClientWidth = 606
+    ClientHeight = 170
+    ClientWidth = 610
     ParentBackground = False
     TabOrder = 3
     object lblSeparator: TLabel
@@ -219,7 +233,7 @@ object frmExportGrid: TfrmExportGrid
       Left = 500
       Height = 28
       Top = 6
-      Width = 94
+      Width = 98
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ButtonWidth = 29
@@ -239,7 +253,7 @@ object frmExportGrid: TfrmExportGrid
       Left = 500
       Height = 28
       Top = 40
-      Width = 94
+      Width = 98
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ButtonWidth = 29
@@ -258,7 +272,7 @@ object frmExportGrid: TfrmExportGrid
       Left = 500
       Height = 28
       Top = 74
-      Width = 94
+      Width = 98
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ButtonWidth = 29
@@ -300,7 +314,7 @@ object frmExportGrid: TfrmExportGrid
       Left = 500
       Height = 28
       Top = 108
-      Width = 94
+      Width = 98
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ButtonWidth = 29
@@ -326,9 +340,11 @@ object frmExportGrid: TfrmExportGrid
     end
   end
   object btnSetClipboardDefaults: TSpeedButton
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
     Left = 10
     Height = 31
-    Top = 474
+    Top = 478
     Width = 191
     Anchors = [akLeft, akBottom]
     BorderSpacing.Around = 6
@@ -340,22 +356,26 @@ object frmExportGrid: TfrmExportGrid
   object grpFormat: TGroupBox
     AnchorSideTop.Control = grpOutput
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 10
-    Height = 62
-    Top = 134
-    Width = 610
+    Height = 51
+    Top = 141
+    Width = 614
     Anchors = [akTop, akLeft, akRight]
+    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'Output format'
-    ClientHeight = 37
-    ClientWidth = 606
+    ClientHeight = 26
+    ClientWidth = 610
     ParentBackground = False
     TabOrder = 1
     object comboFormat: TComboBoxEx
+      AnchorSideTop.Control = grpFormat
       Left = 10
       Height = 26
-      Top = 3
-      Width = 584
+      Top = 0
+      Width = 588
       Anchors = [akTop, akLeft, akRight]
       DropDownCount = 20
       Images = MainForm.ImageListIcons8
