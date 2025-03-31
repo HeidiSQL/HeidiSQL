@@ -17,6 +17,7 @@ object frmPreferences: TfrmPreferences
   OnShow = FormShow
   Position = poMainFormCenter
   object pagecontrolMain: TPageControl
+    AnchorSideRight.Side = asrBottom
     Left = 10
     Height = 543
     Top = 10
