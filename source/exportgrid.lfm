@@ -219,9 +219,10 @@ object frmExportGrid: TfrmExportGrid
       Caption = 'NULL value:'
     end
     object chkIncludeColumnNames: TCheckBox
+      AnchorSideTop.Control = grpOptions
       Left = 10
       Height = 24
-      Top = 9
+      Top = 6
       Width = 169
       BorderSpacing.Around = 6
       Caption = 'Include column names'
@@ -287,22 +288,22 @@ object frmExportGrid: TfrmExportGrid
       Text = '\r\n'
     end
     object chkIncludeAutoIncrement: TCheckBox
-      AnchorSideTop.Control = editSeparator
+      AnchorSideTop.Control = chkIncludeColumnNames
       AnchorSideTop.Side = asrBottom
       Left = 10
       Height = 24
-      Top = 40
+      Top = 36
       Width = 226
       BorderSpacing.Around = 6
       Caption = 'Include auto increment column'
       TabOrder = 1
     end
     object chkIncludeQuery: TCheckBox
-      AnchorSideTop.Control = editEncloser
+      AnchorSideTop.Control = chkIncludeAutoIncrement
       AnchorSideTop.Side = asrBottom
       Left = 10
       Height = 24
-      Top = 74
+      Top = 66
       Width = 140
       BorderSpacing.Around = 6
       Caption = 'Include SQL query'
@@ -328,11 +329,11 @@ object frmExportGrid: TfrmExportGrid
       TabOrder = 7
     end
     object chkRemoveLinebreaks: TCheckBox
-      AnchorSideTop.Control = editTerminator
+      AnchorSideTop.Control = chkIncludeQuery
       AnchorSideTop.Side = asrBottom
       Left = 10
       Height = 24
-      Top = 108
+      Top = 96
       Width = 242
       BorderSpacing.Around = 6
       Caption = 'Remove linebreaks from contents'
