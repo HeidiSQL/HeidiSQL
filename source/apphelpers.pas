@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynEditHighlighter, EditBtn, ComCtrls, SynCompletion, fphttpclient,
-  dbconnection, dbstructures, Registry;
+  dbconnection, dbstructures, jsonregistry, fpjson, registry;
 
 type
 
@@ -272,7 +272,7 @@ type
       FBasePath: String;
       FSessionPath: String;
       FStoredPath: String;
-      FRegistry: TRegistry;
+      FRegistry: TJsonRegistry;
       FPortableMode: Boolean;
       FPortableModeReadOnly: Boolean;
       FRestoreTabsInitValue: Boolean;
@@ -291,7 +291,7 @@ type
       procedure Write(Index: TAppSettingIndex; FormatName: String;
         DataType: TAppSettingDataType; I: Integer; B: Boolean; S: String);
     public
-      const PathDelimiter = '\';
+      const PathDelimiter = '/';
       constructor Create;
       destructor Destroy; override;
       function ReadInt(Index: TAppSettingIndex; FormatName: String=''; Default: Integer=0): Integer;
@@ -3525,8 +3525,7 @@ var
 begin
   inherited;
   FDirnameUserAppData := '';
-  FRegistry := TRegistry.Create;
-  FRegistry.RootKey := HKEY_CURRENT_USER;
+  FRegistry := TJsonRegistry.Create(DirnameUserAppData + 'settings.json');
   FReads := 0;
   FWrites := 0;
 
@@ -3568,7 +3567,7 @@ begin
         MessageDlg(E.Message, mtError, [mbOK], 0, mbOK);
     end;
   end else begin
-    FBasePath := PathDelimiter + 'Software' + PathDelimiter + APPNAME + PathDelimiter;
+    FBasePath := PathDelimiter;
     FSettingsFile := '';
   end;
 
@@ -4362,6 +4361,8 @@ begin
     Segments := Explode(LINEDELIMITER, Lines[i]);
     if Segments.Count <> 3 then
       continue;
+    // Windows registry to JSON path delimiter conversion: \ => /
+    Segments[0] := StringReplace(Segments[0], '\', PathDelimiter, [rfReplaceAll]);
     KeyPath := FBasePath + ExtractFilePath(Segments[0]);
     Name := ExtractFileName(Segments[0]);
     DataType := StrToIntDef(Segments[1], 0);
@@ -4391,7 +4392,9 @@ end;
 function TAppSettings.ExportSettings(Filename: String): Boolean;
 var
   Content, Value: String;
-  DataType: TRegDataType;
+  DataType: TJSONtype; // (jtUnknown, jtNumber, jtString, jtBoolean, jtNull, jtArray, jtObject);
+  // (rdUnknown, rdString, rdExpandString, rdBinary, rdInteger, rdIntegerBigEndian,
+  //                rdLink, rdMultiString, rdResourceList, rdFullResourceDescriptor,  rdResourceRequirementList, rdInt64);
   DataTypeInt: Integer;
 
   procedure ReadKeyToContent(Path: String);
@@ -4403,26 +4406,26 @@ var
     // Recursively read values in keys and their subkeys into "content" variable
     FRegistry.OpenKey(Path, True);
     SubPath := Copy(Path, Length(FBasePath)+1, MaxInt);
+    // JSON to Windows registry path delimiter conversion: / => \
+    SubPath := StringReplace(SubPath, PathDelimiter, '\', [rfReplaceAll]);
     Names := TStringList.Create;
     FRegistry.GetValueNames(Names);
     for i:=0 to Names.Count-1 do begin
       DataType := FRegistry.GetDataType(Names[i]);
-      DataTypeInt := Integer(DataType);
-      // Delphi uses 3, Lazarus 4
-      if DataTypeInt = 4 then
-        DataTypeInt := 3;
+      // string: 1, int: 3
+      DataTypeInt := IfThen(DataType = jtString, 1, 3);
       Content := Content +
         SubPath + Names[i] + LINEDELIMITER +
         DataTypeInt.ToString + LINEDELIMITER;
       case DataType of
-        rdString: begin
+        jtString, jtNull: begin
           Value := FRegistry.ReadString(Names[i]);
           Value := StringReplace(Value, #13, CHR13REPLACEMENT, [rfReplaceAll]);
           Value := StringReplace(Value, #10, CHR10REPLACEMENT, [rfReplaceAll]);
         end;
-        rdInteger:
+        jtNumber, jtBoolean:
           Value := IntToStr(FRegistry.ReadInteger(Names[i]));
-        rdBinary, rdUnknown, rdExpandString:
+        else
           ErrorDialog(Names[i]+' has an unsupported data type.');
       end;
       Content := Content + Value + CRLF;

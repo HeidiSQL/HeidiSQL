@@ -19,7 +19,7 @@ uses
   dbstructures.sqlite, change_password, loginform, data_sorting, extra_controls,
   column_selection, loaddata, csv_detector, createdatabase, editvar, copytable,
   exportgrid, usermanager, selectdbobject, reformatter, searchreplace,
-  connections, sqlhelp, updatecheck, insertfiles, texteditor,
+  connections, jsonregistry, sqlhelp, updatecheck, insertfiles, texteditor,
   customize_highlighter, preferences;
 
 {$R *.res}
