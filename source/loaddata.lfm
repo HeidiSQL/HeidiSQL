@@ -17,12 +17,16 @@ object loaddataform: Tloaddataform
   OnShow = FormShow
   Position = poMainFormCenter
   object btnImport: TButton
+    AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 448
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 556
     Height = 31
-    Top = 645
+    Top = 651
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Import!'
     Enabled = False
     ModalResult = 1
@@ -30,28 +34,33 @@ object loaddataform: Tloaddataform
     OnClick = btnImportClick
   end
   object btnCancel: TButton
-    AnchorSideRight.Side = asrBottom
-    Left = 548
+    AnchorSideRight.Control = btnImport
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 456
     Height = 31
-    Top = 645
+    Top = 651
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 7
   end
   object grpFilename: TGroupBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 10
+    Left = 6
     Height = 99
     Top = 10
-    Width = 632
+    Width = 644
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'Input file'
     ClientHeight = 74
-    ClientWidth = 628
+    ClientWidth = 640
     ParentBackground = False
     TabOrder = 0
     object lblFilename: TLabel
@@ -77,7 +86,7 @@ object loaddataform: Tloaddataform
       Left = 104
       Height = 28
       Top = 6
-      Width = 512
+      Width = 524
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ButtonWidth = 29
@@ -98,7 +107,7 @@ object loaddataform: Tloaddataform
       Left = 104
       Height = 28
       Top = 40
-      Width = 512
+      Width = 524
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       DropDownCount = 16
@@ -111,8 +120,9 @@ object loaddataform: Tloaddataform
   object grpChars: TGroupBox
     AnchorSideTop.Control = grpFilename
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 278
+    Left = 286
     Height = 169
     Top = 115
     Width = 364
@@ -219,17 +229,18 @@ object loaddataform: Tloaddataform
     end
   end
   object grpOptions: TGroupBox
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = grpFilename
     AnchorSideTop.Side = asrBottom
-    Left = 10
+    Left = 6
     Height = 219
     Top = 115
-    Width = 261
+    Width = 265
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Around = 6
     Caption = 'Options'
     ClientHeight = 194
-    ClientWidth = 257
+    ClientWidth = 261
     ParentBackground = False
     TabOrder = 1
     object lblIgnoreLinesCount: TLabel
@@ -264,7 +275,7 @@ object loaddataform: Tloaddataform
       Left = 12
       Height = 24
       Top = 43
-      Width = 241
+      Width = 245
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       Caption = 'Low priority, avoid high server load'
@@ -278,7 +289,7 @@ object loaddataform: Tloaddataform
       Left = 12
       Height = 24
       Top = 73
-      Width = 241
+      Width = 245
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       Caption = 'Input file contains local formatted numbers, e.g. 1.234,56 in Germany'
@@ -290,7 +301,7 @@ object loaddataform: Tloaddataform
       Left = 12
       Height = 24
       Top = 103
-      Width = 241
+      Width = 245
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       Caption = 'Truncate destination table before import'
@@ -302,7 +313,7 @@ object loaddataform: Tloaddataform
       Left = 12
       Height = 24
       Top = 133
-      Width = 241
+      Width = 245
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       Caption = 'Keep dialog open after import'
@@ -310,12 +321,13 @@ object loaddataform: Tloaddataform
     end
   end
   object grpDuplicates: TRadioGroup
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = grpOptions
     AnchorSideTop.Side = asrBottom
-    Left = 10
+    Left = 6
     Height = 154
     Top = 340
-    Width = 261
+    Width = 265
     Anchors = [akTop, akLeft, akRight]
     AutoFill = True
     BorderSpacing.Around = 6
@@ -328,7 +340,7 @@ object loaddataform: Tloaddataform
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
     ClientHeight = 129
-    ClientWidth = 257
+    ClientWidth = 261
     ItemIndex = 2
     Items.Strings = (
       'INSERT (may throw errors)'
@@ -339,12 +351,14 @@ object loaddataform: Tloaddataform
     TabOrder = 3
   end
   object grpParseMethod: TRadioGroup
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = grpDuplicates
     AnchorSideTop.Side = asrBottom
-    Left = 10
-    Height = 137
+    AnchorSideBottom.Control = btnImport
+    Left = 6
+    Height = 145
     Top = 500
-    Width = 261
+    Width = 265
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoFill = True
     BorderSpacing.Around = 6
@@ -356,8 +370,8 @@ object loaddataform: Tloaddataform
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 112
-    ClientWidth = 257
+    ClientHeight = 120
+    ClientWidth = 261
     ItemIndex = 0
     Items.Strings = (
       'Server parses file contents (LOAD DATA)'
@@ -370,14 +384,17 @@ object loaddataform: Tloaddataform
   object grpDestination: TGroupBox
     AnchorSideTop.Control = grpChars
     AnchorSideTop.Side = asrBottom
-    Left = 278
-    Height = 347
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = btnImport
+    Left = 286
+    Height = 355
     Top = 290
     Width = 364
     Anchors = [akTop, akRight, akBottom]
     BorderSpacing.Around = 6
     Caption = 'Destination'
-    ClientHeight = 322
+    ClientHeight = 330
     ClientWidth = 360
     ParentBackground = False
     TabOrder = 5
@@ -439,7 +456,7 @@ object loaddataform: Tloaddataform
       AnchorSideTop.Control = comboTable
       AnchorSideTop.Side = asrBottom
       Left = 140
-      Height = 236
+      Height = 244
       Top = 75
       Width = 204
       Anchors = [akTop, akLeft, akRight, akBottom]
