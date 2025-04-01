@@ -433,10 +433,9 @@ type
     menuEditVariable: TMenuItem;
     menuTreeExpandAll: TMenuItem;
     menuTreeCollapseAll: TMenuItem;
-    tlbDataButtons: TToolBar;
-    tbtnDataSorting: TToolButton;
-    tbtnDataColumns: TToolButton;
-    tbtnDataFilter: TToolButton;
+    tbtnDataSorting: TSpeedButton;
+    tbtnDataColumns: TSpeedButton;
+    tbtnDataFilter: TSpeedButton;
     pnlFilter: TPanel;
     btnFilterApply: TButton;
     lblTableFilter: TLabel;
@@ -534,8 +533,8 @@ type
     Replacetext1: TMenuItem;
     lblExplainProcess: TLabel;
     menuExplainProcess: TMenuItem;
-    tbtnDataShowAll: TToolButton;
-    tbtnDataNext: TToolButton;
+    tbtnDataShowAll: TSpeedButton;
+    tbtnDataNext: TSpeedButton;
     actDataShowNext: TAction;
     actDataShowAll: TAction;
     QFvalues: TMenuItem;
@@ -601,10 +600,10 @@ type
     N2: TMenuItem;
     Save1: TMenuItem;
     Saveassnippet1: TMenuItem;
-    ToolBarTree: TToolBar;
+    ToolBarTree: TPanel;
     editDatabaseFilter: TEditButton;
     editTableFilter: TEditButton;
-    btnTreeFavorites: TToolButton;
+    btnTreeFavorites: TSpeedButton;
     actFavoriteObjectsOnly: TAction;
     ToolBarMainButtons: TToolBar;
     actFavoriteObjectsOnly1: TMenuItem;
@@ -2054,8 +2053,7 @@ begin
   pnlQueryMemo.Height := AppSettings.ReadInt(asQuerymemoheight);
   pnlQueryHelpers.Width := AppSettings.ReadInt(asQueryhelperswidth);
   pnlLeft.Width := AppSettings.ReadInt(asDbtreewidth);
-  pnlPreview.Height := AppSettings.ReadInt(asDataPreviewHeight);
-  ToolBarTree.Height := editDatabaseFilter.Height + ToolBarTree.BorderWidth;
+  pnlPreview.Height := Min(AppSettings.ReadInt(asDataPreviewHeight), pnlLeft.Height - 40);
   if AppSettings.ReadBool(asDataPreviewEnabled) then
     actDataPreviewExecute(actDataPreview);
   SynMemoSQLLog.Height := Max(AppSettings.ReadInt(asLogHeight), spltTopBottom.MinSize);
@@ -2825,7 +2823,7 @@ begin
   ProgressBarStatus.Top := StatusBar.Top;
   ProgressBarStatus.Width := StatusBar.Panels[5].Width;
 
-  lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
+  //lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
   {FixQueryTabCloseButtons;}
 
   // Right aligned button
@@ -2836,6 +2834,7 @@ begin
     //ToolBarDonate.Buttons[0].Height := ToolBarMainButtons.Buttons[0].Height;
   end;}
 
+  DBtree.ScrollIntoView(DBtree.FocusedNode, False);
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
@@ -8532,15 +8531,15 @@ end;
 }
 procedure TMainForm.btnDataClick(Sender: TObject);
 var
-  btn : TToolButton;
+  btn : TSpeedButton;
   frm : TForm;
 begin
-  btn := (Sender as TToolButton);
+  btn := (Sender as TSpeedButton);
 
   if (btn = tbtnDataColumns) or (btn = tbtnDataSorting) then begin
     // Create desired form for SELECT and ORDER buttons
     btn.Down := not btn.Down;
-    if not btn.Down then Exit;
+    //if not btn.Down then Exit;
     if btn = tbtnDataColumns then
       frm := TfrmColumnSelection.Create(self)
     else if btn = tbtnDataSorting then
@@ -12650,6 +12649,8 @@ end;
 procedure TMainForm.actFavoriteObjectsOnlyExecute(Sender: TObject);
 begin
   // Click on "tree favorites" main button
+  // actFavoriteObjectsOnly.AutoCheck does not work?
+  //actFavoriteObjectsOnly.Checked := not actFavoriteObjectsOnly.Checked;
   editDatabaseTableFilterChange(Sender);
   if actFavoriteObjectsOnly.Checked then
     actFavoriteObjectsOnly.ImageIndex := 112
