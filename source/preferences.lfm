@@ -17,13 +17,15 @@ object frmPreferences: TfrmPreferences
   OnShow = FormShow
   Position = poMainFormCenter
   object pagecontrolMain: TPageControl
-    AnchorSideRight.Side = asrBottom
-    Left = 10
-    Height = 543
-    Top = 10
-    Width = 870
+    AnchorSideBottom.Control = btnOK
+    Left = 6
+    Height = 553
+    Top = 6
+    Width = 878
     ActivePage = tabMisc
+    Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Around = 6
     Images = MainForm.ImageListIcons8
     TabIndex = 0
     TabOrder = 4
@@ -31,8 +33,8 @@ object frmPreferences: TfrmPreferences
     OnChanging = pagecontrolMainChanging
     object tabMisc: TTabSheet
       Caption = 'General'
-      ClientHeight = 510
-      ClientWidth = 862
+      ClientHeight = 520
+      ClientWidth = 870
       ImageIndex = 137
       object lblMySQLBinaries: TLabel
         AnchorSideTop.Control = chkColorBars
@@ -79,7 +81,7 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabMisc
         AnchorSideRight.Side = asrBottom
-        Left = 842
+        Left = 850
         Height = 20
         Top = 326
         Width = 14
@@ -124,7 +126,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 40
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Automatically reconnect to previously opened sessions on startup'
@@ -137,7 +139,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 70
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Restore last used database on startup'
@@ -183,7 +185,7 @@ object frmPreferences: TfrmPreferences
         Left = 557
         Height = 24
         Top = 100
-        Width = 282
+        Width = 290
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Also check for updated nightly builds'
@@ -198,7 +200,7 @@ object frmPreferences: TfrmPreferences
         Height = 24
         Hint = 'This option, if enabled, will cause HeidiSQL to ping heidisql.com at most once every month.  This is used to count the used HeidiSQL and server versions.'
         Top = 134
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Send usage statistics'
@@ -209,7 +211,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 10
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Allow multiple application instances'
@@ -238,7 +240,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 28
         Top = 224
-        Width = 581
+        Width = 589
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
@@ -263,7 +265,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 28
         Top = 292
-        Width = 581
+        Width = 589
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ItemHeight = 20
@@ -279,7 +281,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 28
         Top = 258
-        Width = 581
+        Width = 589
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
@@ -303,7 +305,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 28
         Top = 326
-        Width = 493
+        Width = 501
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ItemHeight = 20
@@ -318,7 +320,7 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Control = comboAppLanguage
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = lblGUIFontSize
-        Left = 774
+        Left = 782
         Height = 28
         Top = 326
         Width = 62
@@ -335,7 +337,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 164
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Use Ctrl+Mousewheel for zooming'
@@ -350,7 +352,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 28
         Top = 360
-        Width = 503
+        Width = 511
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ItemHeight = 20
@@ -367,7 +369,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 28
         Top = 394
-        Width = 581
+        Width = 589
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ItemHeight = 20
@@ -383,7 +385,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 28
         Top = 428
-        Width = 581
+        Width = 589
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ItemHeight = 20
@@ -406,7 +408,7 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabMisc
         AnchorSideRight.Side = asrBottom
-        Left = 784
+        Left = 792
         Height = 24
         Top = 360
         Width = 72
@@ -419,8 +421,8 @@ object frmPreferences: TfrmPreferences
     end
     object tabLogging: TTabSheet
       Caption = 'Logging'
-      ClientHeight = 510
-      ClientWidth = 862
+      ClientHeight = 520
+      ClientWidth = 870
       ImageIndex = 56
       object Label4: TLabel
         Left = 10
@@ -591,7 +593,7 @@ object frmPreferences: TfrmPreferences
         Left = 437
         Height = 28
         Top = 78
-        Width = 419
+        Width = 427
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
@@ -677,8 +679,8 @@ object frmPreferences: TfrmPreferences
     end
     object tabSQL: TTabSheet
       Caption = 'SQL'
-      ClientHeight = 510
-      ClientWidth = 862
+      ClientHeight = 520
+      ClientWidth = 870
       ImageIndex = 57
       object lblFont: TLabel
         Left = 10
@@ -937,9 +939,9 @@ object frmPreferences: TfrmPreferences
         AnchorSideBottom.Side = asrBottom
         Cursor = crHandPoint
         Left = 462
-        Height = 328
+        Height = 338
         Top = 176
-        Width = 394
+        Width = 402
         BorderSpacing.Around = 6
         Anchors = [akTop, akLeft, akRight, akBottom]
         Font.Color = clWindowText
@@ -1032,7 +1034,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 146
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Auto uppercase reserved words and functions'
@@ -1065,7 +1067,7 @@ object frmPreferences: TfrmPreferences
         Left = 432
         Height = 24
         Top = 112
-        Width = 407
+        Width = 415
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Find matches in the middle'
@@ -1092,8 +1094,8 @@ object frmPreferences: TfrmPreferences
     end
     object tabGridFormatting: TTabSheet
       Caption = 'Grid formatting'
-      ClientHeight = 510
-      ClientWidth = 862
+      ClientHeight = 520
+      ClientWidth = 870
       ImageIndex = 41
       object lblMaxColWidth: TLabel
         Left = 10
@@ -1375,7 +1377,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 378
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Local number format'
@@ -1388,7 +1390,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 438
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Pop up SQL text over result tabs'
@@ -1439,7 +1441,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 408
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Lowercase hexadecimal'
@@ -1463,7 +1465,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 468
-        Width = 566
+        Width = 574
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Show static row id column'
@@ -1473,8 +1475,8 @@ object frmPreferences: TfrmPreferences
     end
     object tabDataEditors: TTabSheet
       Caption = 'Data editors'
-      ClientHeight = 510
-      ClientWidth = 862
+      ClientHeight = 520
+      ClientWidth = 870
       ImageIndex = 33
       object lblLineBreakStyle: TLabel
         AnchorSideTop.Control = chkIncrementalSearch
@@ -1490,7 +1492,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 10
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Enable popup BLOB/HEX editor'
@@ -1503,7 +1505,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 40
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Enable inplace date/time editor'
@@ -1516,7 +1518,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 70
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Prefill empty date/time fields with current date/time'
@@ -1529,7 +1531,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 100
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Enable ENUM pulldown editor'
@@ -1542,7 +1544,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 130
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Enable SET checkbox editor'
@@ -1555,7 +1557,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 196
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Remember filters, sorting and column selection across sessions'
@@ -1568,7 +1570,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 226
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Show values in foreign key columns'
@@ -1616,8 +1618,8 @@ object frmPreferences: TfrmPreferences
     end
     object tabShortcuts: TTabSheet
       Caption = 'Shortcuts'
-      ClientHeight = 510
-      ClientWidth = 862
+      ClientHeight = 520
+      ClientWidth = 870
       ImageIndex = 13
       object lblShortcut1: TLabel
         Left = 382
@@ -1630,7 +1632,7 @@ object frmPreferences: TfrmPreferences
         Left = 382
         Height = 69
         Top = 4
-        Width = 459
+        Width = 467
         Anchors = [akTop, akLeft, akRight]
         AutoSize = False
         Caption = 'Please select a shortcut item in the tree.'
@@ -1645,7 +1647,7 @@ object frmPreferences: TfrmPreferences
       end
       object TreeShortcutItems: TLazVirtualStringTree
         Left = 0
-        Height = 510
+        Height = 520
         Top = 0
         Width = 375
         Align = alLeft
@@ -1680,7 +1682,7 @@ object frmPreferences: TfrmPreferences
         OnInitNode = TreeShortcutItemsInitNode
       end
       object btnRemoveHotKey1: TSpeedButton
-        Left = 740
+        Left = 748
         Height = 31
         Top = 100
         Width = 101
@@ -1691,7 +1693,7 @@ object frmPreferences: TfrmPreferences
         OnClick = btnRemoveHotKeyClick
       end
       object btnRemoveHotKey2: TSpeedButton
-        Left = 740
+        Left = 748
         Height = 31
         Top = 180
         Width = 101
@@ -1704,8 +1706,8 @@ object frmPreferences: TfrmPreferences
     end
     object tabFiles: TTabSheet
       Caption = 'Files and tabs'
-      ClientHeight = 510
-      ClientWidth = 862
+      ClientHeight = 520
+      ClientWidth = 870
       ImageIndex = 10
       object Label5: TLabel
         AnchorSideTop.Control = chkTabCloseOnMiddleClick
@@ -1731,7 +1733,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 10
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Prompt to save modified files on tab close'
@@ -1746,7 +1748,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 40
-        Width = 564
+        Width = 572
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Reopen previously used SQL files and unsaved content in tabs *'
@@ -1771,7 +1773,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 100
-        Width = 566
+        Width = 574
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Close tab on middleclick'
@@ -1786,7 +1788,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 28
         Top = 130
-        Width = 581
+        Width = 589
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ItemHeight = 20
@@ -1807,7 +1809,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 28
         Top = 164
-        Width = 581
+        Width = 589
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ItemHeight = 20
@@ -1817,22 +1819,30 @@ object frmPreferences: TfrmPreferences
     end
   end
   object btnCancel: TButton
-    Left = 671
+    AnchorSideRight.Control = btnApply
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 690
     Height = 31
-    Top = 561
+    Top = 565
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 2
   end
   object btnOK: TButton
-    Left = 571
+    AnchorSideRight.Control = btnCancel
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 590
     Height = 31
-    Top = 561
+    Top = 565
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'OK'
     Default = True
     ModalResult = 1
@@ -1840,22 +1850,31 @@ object frmPreferences: TfrmPreferences
     OnClick = Apply
   end
   object btnApply: TButton
-    Left = 771
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 790
     Height = 31
-    Top = 561
+    Top = 565
     Width = 94
     Anchors = [akRight, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Apply'
     Enabled = False
     TabOrder = 3
     OnClick = Apply
   end
   object btnRestoreDefaults: TButton
-    Left = 10
+    AnchorSideLeft.Control = Owner
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 6
     Height = 31
-    Top = 561
+    Top = 565
     Width = 221
     Anchors = [akLeft, akBottom]
+    BorderSpacing.Around = 6
     Caption = 'Restore defaults'
     TabOrder = 0
     OnClick = btnRestoreDefaultsClick

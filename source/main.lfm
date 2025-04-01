@@ -1039,7 +1039,6 @@ object MainForm: TMainForm
           Height = 28
           Top = 6
           Width = 237
-          AutoSize = False
           BorderSpacing.Around = 6
           ButtonWidth = 23
           Flat = True
