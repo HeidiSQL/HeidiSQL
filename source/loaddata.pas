@@ -12,7 +12,7 @@ interface
 
 uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst,
-  RegExpr, Buttons, ExtCtrls, ToolWin, ExtDlgs, Math, EditBtn, extra_controls,
+  RegExpr, ExtCtrls, Math, EditBtn, extra_controls,
   dbconnection, dbstructures;
 
 type

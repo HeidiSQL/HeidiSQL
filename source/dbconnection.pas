@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults,
-  DateUtils, Types, Math, Dialogs, DB, Graphics, ExtCtrls, StrUtils,
+  DateUtils, Types, Math, Dialogs, Graphics, ExtCtrls, StrUtils,
   Controls, Forms, IniFiles, Variants, Rtti, FileUtil,
   RegExpr, Process,
   generic_types,

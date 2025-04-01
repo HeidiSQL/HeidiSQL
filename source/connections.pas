@@ -11,9 +11,9 @@ interface
 
 uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  laz.VirtualTrees, Menus, Graphics, Generics.Collections, extra_controls,
+  laz.VirtualTrees, Menus, Graphics, extra_controls,
   dbconnection, RegExpr, Types, GraphUtil, StrUtils, FileUtil,
-  Math, ActnList, StdActns, ComboEx, EditBtn, Buttons, ColorBox;
+  Math, ActnList, ComboEx, EditBtn, Buttons, ColorBox;
 
 type
 

@@ -11,8 +11,8 @@ interface
 
 uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
-  SynEdit, laz.VirtualTrees, SynEditKeyCmds, ActnList, StdActns, Menus,
+  StdCtrls, ComCtrls, SynEditHighlighter, SynHighlighterSQL,
+  SynEdit, laz.VirtualTrees, SynEditKeyCmds, ActnList, Menus,
   dbstructures, RegExpr, Generics.Collections, EditBtn,
   extra_controls, {theme_preview,} reformatter, Buttons, ColorBox, LCLProc, LCLIntf;
 

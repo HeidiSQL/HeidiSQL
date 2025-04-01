@@ -5,10 +5,10 @@ unit apphelpers;
 interface
 
 uses
-  Classes, SysUtils, Generics.Collections, Generics.Defaults, Controls, RegExpr, Math, FileUtil,
+  Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
-  Character, DateUtils, laz.VirtualTrees, SynEdit, SynEditHighlighter, EditBtn, ComCtrls, SynCompletion, fphttpclient,
-  dbconnection, dbstructures, jsonregistry, fpjson, registry;
+  Character, DateUtils, laz.VirtualTrees, SynEdit, SynEditHighlighter, ComCtrls, SynCompletion, fphttpclient,
+  dbconnection, dbstructures, jsonregistry, fpjson;
 
 type
 

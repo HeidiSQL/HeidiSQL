@@ -11,6 +11,8 @@
       <UseXPManifest Value="True"/>
       <XPManifest>
         <DpiAware Value="True"/>
+        <TextName Value="HeidiSQL"/>
+        <TextDesc Value="A lightweight, fast and flexible interface to MySQL"/>
       </XPManifest>
       <Icon Value="0"/>
     </General>
