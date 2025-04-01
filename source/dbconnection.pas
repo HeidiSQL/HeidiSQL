@@ -3746,6 +3746,11 @@ begin
       if Reconnect then
         Active := True;
     end;
+  end
+  else begin
+    // Not active currently, reconnect
+    if Reconnect then
+      Active := True;
   end;
   Result := FActive;
   // Restart keep-alive timer
