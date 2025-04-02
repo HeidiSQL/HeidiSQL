@@ -446,6 +446,8 @@ var
   GrayscaleMode: Integer;
   IsQueryTab, DoGrayscale: Boolean;
 begin
+  // Unsupported yet. We have no TVirtualImageList, see MainForm.PrepareImageList
+  Exit;
   // Set grayscale icon on inactive tabs
   if not (PageControl.Images is TImageList) then
     Exit;

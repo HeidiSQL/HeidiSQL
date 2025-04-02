@@ -16,11 +16,17 @@ object frmUpdateCheck: TfrmUpdateCheck
   OnShow = FormShow
   Position = poOwnerFormCenter
   object lblStatus: TLabel
-    Left = 10
-    Height = 48
-    Top = 455
-    Width = 262
-    Anchors = [akLeft, akRight, akBottom]
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = groupBuild
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = btnCancel
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 6
+    Height = 31
+    Top = 468
+    Width = 300
+    Anchors = [akTop, akLeft, akRight, akBottom]
     AutoSize = False
     BorderSpacing.Around = 6
     Caption = 'lblStatus'
@@ -28,9 +34,13 @@ object frmUpdateCheck: TfrmUpdateCheck
     WordWrap = True
   end
   object btnCancel: TButton
-    Left = 308
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 312
     Height = 31
-    Top = 464
+    Top = 468
     Width = 132
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 6
@@ -41,23 +51,33 @@ object frmUpdateCheck: TfrmUpdateCheck
     TabOrder = 3
   end
   object groupBuild: TGroupBox
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = groupRelease
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnCancel
-    Left = 10
-    Height = 218
-    Top = 240
-    Width = 430
+    Left = 6
+    Height = 230
+    Top = 232
+    Width = 438
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Around = 6
     Caption = 'Nightly build'
-    ClientHeight = 193
-    ClientWidth = 426
+    ClientHeight = 205
+    ClientWidth = 434
     ParentBackground = False
     TabOrder = 2
     object btnBuild: TButton
-      Left = 8
+      AnchorSideLeft.Control = groupBuild
+      AnchorSideRight.Control = groupBuild
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = groupBuild
+      AnchorSideBottom.Side = asrBottom
+      Left = 6
       Height = 31
-      Top = 153
-      Width = 409
+      Top = 168
+      Width = 422
       Anchors = [akLeft, akRight, akBottom]
       BorderSpacing.Around = 6
       Caption = 'Download nightly build'
@@ -68,10 +88,15 @@ object frmUpdateCheck: TfrmUpdateCheck
       OnClick = btnBuildClick
     end
     object memoBuild: TMemo
-      Left = 8
-      Height = 93
-      Top = 11
-      Width = 409
+      AnchorSideLeft.Control = groupBuild
+      AnchorSideTop.Control = groupBuild
+      AnchorSideRight.Control = groupBuild
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = btnChangelog
+      Left = 6
+      Height = 119
+      Top = 6
+      Width = 422
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Around = 6
       BorderStyle = bsNone
@@ -88,11 +113,14 @@ object frmUpdateCheck: TfrmUpdateCheck
       TabOrder = 0
     end
     object btnChangelog: TButton
+      AnchorSideLeft.Control = groupBuild
+      AnchorSideRight.Control = groupBuild
+      AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = btnBuild
-      Left = 8
+      Left = 6
       Height = 31
-      Top = 116
-      Width = 409
+      Top = 131
+      Width = 422
       Anchors = [akLeft, akRight, akBottom]
       BorderSpacing.Around = 6
       Caption = 'View changelog'
@@ -101,17 +129,20 @@ object frmUpdateCheck: TfrmUpdateCheck
     end
   end
   object groupRelease: TGroupBox
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = btnDonate
     AnchorSideTop.Side = asrBottom
-    Left = 10
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 6
     Height = 122
-    Top = 108
-    Width = 430
+    Top = 104
+    Width = 438
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Around = 6
     Caption = 'Official release'
     ClientHeight = 97
-    ClientWidth = 426
+    ClientWidth = 434
     Enabled = False
     ParentBackground = False
     TabOrder = 1
@@ -119,7 +150,7 @@ object frmUpdateCheck: TfrmUpdateCheck
       Left = 8
       Height = 59
       Top = 5
-      Width = 409
+      Width = 417
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Around = 6
       BorderStyle = bsNone
@@ -145,10 +176,14 @@ object frmUpdateCheck: TfrmUpdateCheck
     end
   end
   object btnDonate: TButton
-    Left = 10
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 6
     Height = 92
-    Top = 10
-    Width = 430
+    Top = 6
+    Width = 438
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Around = 6
     Caption = 'Donate'

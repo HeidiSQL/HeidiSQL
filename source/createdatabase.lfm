@@ -3,7 +3,6 @@ object CreateDatabaseForm: TCreateDatabaseForm
   Height = 284
   Top = 0
   Width = 396
-  BorderStyle = bsDialog
   Caption = 'Create database ...'
   ClientHeight = 284
   ClientWidth = 396
@@ -37,10 +36,12 @@ object CreateDatabaseForm: TCreateDatabaseForm
   object lblCreateCode: TLabel
     AnchorSideTop.Control = btnOK
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 10
     Height = 20
     Top = 137
-    Width = 81
+    Width = 380
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Around = 6
     Caption = 'CREATE code'
@@ -48,10 +49,12 @@ object CreateDatabaseForm: TCreateDatabaseForm
   object lblServerDefaultCollation: TLabel
     AnchorSideTop.Control = comboCollation
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 120
     Height = 20
     Top = 74
-    Width = 103
+    Width = 270
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Around = 6
     Caption = 'Servers default:'

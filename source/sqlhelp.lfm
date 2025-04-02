@@ -3,7 +3,6 @@ object frmSQLhelp: TfrmSQLhelp
   Height = 444
   Top = 0
   Width = 728
-  BorderWidth = 10
   Caption = 'Integrated SQL-help'
   ClientHeight = 444
   ClientWidth = 728
@@ -15,40 +14,54 @@ object frmSQLhelp: TfrmSQLhelp
   OnDestroy = FormDestroy
   OnShow = FormShow
   object pnlMain: TPanel
-    Left = 10
-    Height = 382
-    Top = 10
-    Width = 708
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 6
+    Height = 384
+    Top = 6
+    Width = 716
     Align = alClient
+    BorderSpacing.Around = 6
     BevelOuter = bvNone
-    ClientHeight = 382
-    ClientWidth = 708
+    ClientHeight = 384
+    ClientWidth = 716
     ParentBackground = False
     TabOrder = 0
     object Splitter1: TSplitter
       Cursor = crSizeWE
       Left = 191
-      Height = 382
+      Height = 384
       Top = 0
       Width = 10
     end
     object pnlLeft: TPanel
+      AnchorSideLeft.Control = pnlMain
+      AnchorSideTop.Control = pnlMain
+      AnchorSideRight.Control = Splitter1
+      AnchorSideRight.Side = asrBottom
       Left = 0
-      Height = 382
+      Height = 384
       Top = 0
       Width = 191
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 382
+      ClientHeight = 384
       ClientWidth = 191
       ParentBackground = False
       TabOrder = 0
       object editFilter: TEditButton
-        Left = 0
+        AnchorSideLeft.Control = pnlLeft
+        AnchorSideTop.Control = pnlLeft
+        AnchorSideRight.Control = pnlLeft
+        AnchorSideRight.Side = asrBottom
+        Left = 2
         Height = 28
-        Top = 0
-        Width = 191
+        Top = 2
+        Width = 187
         Align = alTop
+        BorderSpacing.Around = 2
         ButtonWidth = 29
         Images = MainForm.ImageListIcons8
         ImageIndex = 193
@@ -61,11 +74,16 @@ object frmSQLhelp: TfrmSQLhelp
         TextHint = 'Filter'
       end
       object treeTopics: TLazVirtualStringTree
-        Left = 0
-        Height = 354
-        Top = 28
-        Width = 191
+        AnchorSideLeft.Control = pnlLeft
+        AnchorSideTop.Control = editFilter
+        AnchorSideRight.Control = pnlLeft
+        AnchorSideRight.Side = asrBottom
+        Left = 2
+        Height = 350
+        Top = 32
+        Width = 187
         Align = alClient
+        BorderSpacing.Around = 2
         Constraints.MinWidth = 38
         Header.AutoSizeIndex = 0
         Header.Columns = <>
@@ -83,55 +101,73 @@ object frmSQLhelp: TfrmSQLhelp
       end
     end
     object pnlRight: TPanel
+      AnchorSideLeft.Control = Splitter1
+      AnchorSideTop.Control = pnlMain
+      AnchorSideRight.Control = pnlMain
+      AnchorSideRight.Side = asrBottom
       Left = 201
-      Height = 382
+      Height = 384
       Top = 0
-      Width = 507
+      Width = 515
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 382
-      ClientWidth = 507
+      ClientHeight = 384
+      ClientWidth = 515
       ParentBackground = False
       TabOrder = 1
       object Splitter2: TSplitter
         Cursor = crVSplit
         Left = 0
         Height = 10
-        Top = 212
-        Width = 507
+        Top = 220
+        Width = 515
         Align = alTop
         ResizeAnchor = akTop
       end
       object lblDescription: TLabel
-        Left = 0
+        AnchorSideLeft.Control = pnlRight
+        AnchorSideTop.Control = pnlRight
+        AnchorSideRight.Control = pnlRight
+        AnchorSideRight.Side = asrBottom
+        Left = 2
         Height = 20
-        Top = 1
-        Width = 507
+        Top = 5
+        Width = 511
         Align = alTop
+        BorderSpacing.Around = 2
         Caption = 'Description:'
       end
       object lblKeyword: TLabel
-        Left = 0
+        Left = 2
         Height = 1
-        Top = 0
-        Width = 507
+        Top = 2
+        Width = 511
         Align = alTop
+        BorderSpacing.Around = 2
         ShowAccelChar = False
       end
       object lblExample: TLabel
-        Left = 0
+        AnchorSideTop.Control = Splitter2
+        AnchorSideTop.Side = asrBottom
+        Left = 2
         Height = 20
-        Top = 222
-        Width = 507
+        Top = 232
+        Width = 511
         Align = alTop
+        BorderSpacing.Around = 2
         Caption = 'Example:'
       end
       inline memoDescription: TSynEdit
-        Left = 0
+        AnchorSideTop.Control = lblDescription
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = pnlRight
+        AnchorSideRight.Side = asrBottom
+        Left = 2
         Height = 191
-        Top = 21
-        Width = 507
+        Top = 27
+        Width = 511
         Align = alTop
+        BorderSpacing.Around = 2
         Constraints.MinHeight = 38
         Font.Height = -16
         Font.Name = 'Courier New'
@@ -211,11 +247,12 @@ object frmSQLhelp: TfrmSQLhelp
         end
       end
       inline MemoExample: TSynEdit
-        Left = 0
-        Height = 140
-        Top = 242
-        Width = 507
+        Left = 2
+        Height = 128
+        Top = 254
+        Width = 511
         Align = alClient
+        BorderSpacing.Around = 2
         Constraints.MinHeight = 38
         Font.Height = -16
         Font.Name = 'Courier New'
@@ -297,33 +334,44 @@ object frmSQLhelp: TfrmSQLhelp
     end
   end
   object pnlBottom: TPanel
-    Left = 10
+    Left = 6
     Height = 42
-    Top = 392
-    Width = 708
+    Top = 396
+    Width = 716
     Align = alBottom
+    AutoSize = True
+    BorderSpacing.Around = 6
     BevelOuter = bvNone
     ClientHeight = 42
-    ClientWidth = 708
+    ClientWidth = 716
     ParentBackground = False
     TabOrder = 1
     object btnSearchOnline: TSpeedButton
-      Left = 444
-      Height = 31
-      Top = 8
-      Width = 129
+      AnchorSideTop.Control = pnlBottom
+      AnchorSideRight.Control = ButtonClose
+      Left = 529
+      Height = 24
+      Top = 6
+      Width = 113
       Anchors = [akTop, akRight]
+      AutoSize = True
+      BorderSpacing.Around = 6
       Caption = 'Search online'
       Images = MainForm.ImageListIcons8
       ImageIndex = 69
       OnClick = ButtonOnlinehelpClick
     end
     object ButtonClose: TButton
-      Left = 580
-      Height = 31
-      Top = 8
-      Width = 128
+      AnchorSideTop.Control = pnlBottom
+      AnchorSideRight.Control = pnlBottom
+      AnchorSideRight.Side = asrBottom
+      Left = 648
+      Height = 30
+      Top = 6
+      Width = 62
       Anchors = [akTop, akRight]
+      AutoSize = True
+      BorderSpacing.Around = 6
       Cancel = True
       Caption = 'Close'
       Default = True

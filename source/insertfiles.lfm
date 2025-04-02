@@ -16,9 +16,12 @@ object frmInsertFiles: TfrmInsertFiles
   OnShow = FormShow
   Position = poOwnerFormCenter
   object btnInsert: TButton
-    Left = 341
+    AnchorSideRight.Control = btnCancel
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 346
     Height = 31
-    Top = 573
+    Top = 577
     Width = 162
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 6
@@ -30,9 +33,13 @@ object frmInsertFiles: TfrmInsertFiles
     OnClick = btnInsertClick
   end
   object btnCancel: TButton
-    Left = 510
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 514
     Height = 31
-    Top = 573
+    Top = 577
     Width = 119
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 6
@@ -42,39 +49,52 @@ object frmInsertFiles: TfrmInsertFiles
     TabOrder = 0
   end
   object grpSelectObject: TGroupBox
-    Left = 10
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 6
     Height = 292
-    Top = 10
-    Width = 619
-    Anchors = [akTop, akLeft, akRight]
+    Top = 6
+    Width = 627
+    Align = alTop
     BorderSpacing.Around = 6
     Caption = 'Target table and columns'
     ClientHeight = 267
-    ClientWidth = 615
+    ClientWidth = 623
     ParentBackground = False
     TabOrder = 2
     object lblTable: TLabel
-      Left = 12
+      AnchorSideLeft.Control = grpSelectObject
+      AnchorSideTop.Control = grpSelectObject
+      Left = 6
       Height = 20
-      Top = 8
+      Top = 6
       Width = 107
       BorderSpacing.Around = 6
       Caption = 'Database, table:'
     end
     object lblFilecontents: TLabel
+      AnchorSideLeft.Control = grpSelectObject
       AnchorSideTop.Control = comboDBs
       AnchorSideTop.Side = asrBottom
-      Left = 12
+      AnchorSideRight.Control = grpSelectObject
+      AnchorSideRight.Side = asrBottom
+      Left = 6
       Height = 20
-      Top = 39
-      Width = 515
+      Top = 40
+      Width = 611
+      Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       Caption = 'Column values (Hint: Assign "%filecontent%" value to a BLOB or TEXT column)'
     end
     object comboDBs: TComboBox
-      Left = 212
+      AnchorSideLeft.Control = lblTable
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = grpSelectObject
+      Left = 119
       Height = 28
-      Top = 5
+      Top = 6
       Width = 189
       BorderSpacing.Around = 6
       ItemHeight = 20
@@ -83,10 +103,15 @@ object frmInsertFiles: TfrmInsertFiles
       OnChange = comboDBsChange
     end
     object comboTables: TComboBox
-      Left = 409
+      AnchorSideLeft.Control = comboDBs
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = grpSelectObject
+      AnchorSideRight.Control = grpSelectObject
+      AnchorSideRight.Side = asrBottom
+      Left = 314
       Height = 28
-      Top = 5
-      Width = 195
+      Top = 6
+      Width = 303
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ItemHeight = 20
@@ -95,13 +120,18 @@ object frmInsertFiles: TfrmInsertFiles
       OnChange = comboTablesChange
     end
     object ListColumns: TLazVirtualStringTree
+      AnchorSideLeft.Control = grpSelectObject
       AnchorSideTop.Control = lblFilecontents
       AnchorSideTop.Side = asrBottom
-      Left = 12
-      Height = 189
-      Top = 65
-      Width = 592
-      Anchors = [akTop, akLeft, akRight]
+      AnchorSideRight.Control = grpSelectObject
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = grpSelectObject
+      AnchorSideBottom.Side = asrBottom
+      Left = 6
+      Height = 195
+      Top = 66
+      Width = 611
+      Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Around = 6
       EditDelay = 0
       Header.AutoSizeIndex = 2
@@ -122,7 +152,7 @@ object frmInsertFiles: TfrmInsertFiles
           Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
           Position = 2
           Text = 'Value'
-          Width = 363
+          Width = 382
         end>
       Header.Height = 32
       Header.Images = MainForm.ImageListIcons8
@@ -142,22 +172,33 @@ object frmInsertFiles: TfrmInsertFiles
     end
   end
   object GroupBox2: TGroupBox
-    Left = 10
-    Height = 255
-    Top = 310
-    Width = 619
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = grpSelectObject
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = btnInsert
+    Left = 6
+    Height = 267
+    Top = 304
+    Width = 627
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Around = 6
     Caption = 'Files to import'
-    ClientHeight = 230
-    ClientWidth = 615
+    ClientHeight = 242
+    ClientWidth = 623
     ParentBackground = False
     TabOrder = 3
     object lblDropHint: TLabel
-      Left = 310
+      AnchorSideLeft.Control = ToolBar1
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = GroupBox2
+      AnchorSideRight.Control = GroupBox2
+      AnchorSideRight.Side = asrBottom
+      Left = 302
       Height = 28
-      Top = 17
-      Width = 290
+      Top = 6
+      Width = 315
       Anchors = [akTop, akLeft, akRight]
       AutoSize = False
       BorderSpacing.Around = 6
@@ -165,24 +206,30 @@ object frmInsertFiles: TfrmInsertFiles
       Layout = tlCenter
     end
     object lblFileCount: TLabel
+      AnchorSideLeft.Control = GroupBox2
       AnchorSideTop.Control = ListFiles
       AnchorSideTop.Side = asrBottom
-      Left = 12
+      AnchorSideBottom.Control = GroupBox2
+      AnchorSideBottom.Side = asrBottom
+      Left = 6
       Height = 20
-      Top = 195
+      Top = 216
       Width = 39
       Anchors = [akLeft, akBottom]
       BorderSpacing.Around = 6
       Caption = '0 files'
     end
     object ListFiles: TLazVirtualStringTree
+      AnchorSideLeft.Control = GroupBox2
       AnchorSideTop.Control = ToolBar1
       AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = GroupBox2
+      AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = lblFileCount
-      Left = 12
-      Height = 138
-      Top = 51
-      Width = 592
+      Left = 6
+      Height = 170
+      Top = 40
+      Width = 611
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Around = 6
       Header.AutoSizeIndex = 0
@@ -190,7 +237,7 @@ object frmInsertFiles: TfrmInsertFiles
         item
           Position = 0
           Text = 'Filename'
-          Width = 400
+          Width = 419
         end      
         item
           CheckBox = True
@@ -229,29 +276,32 @@ object frmInsertFiles: TfrmInsertFiles
       OnStructureChange = ListFilesStructureChange
     end
     object ToolBar1: TToolBar
-      Left = 12
+      AnchorSideLeft.Control = GroupBox2
+      AnchorSideTop.Control = GroupBox2
+      Left = 6
       Height = 28
-      Top = 17
+      Top = 6
       Width = 290
       Align = alNone
       BorderSpacing.Around = 6
       ButtonHeight = 35
       ButtonWidth = 82
       Caption = 'ToolBarFiles'
+      EdgeBorders = []
       Images = MainForm.ImageListIcons8
       List = True
       ShowCaptions = True
       TabOrder = 1
       object btnAddFiles: TToolButton
         Left = 1
-        Top = 2
+        Top = 0
         Caption = 'Add'
         ImageIndex = 45
         OnClick = btnAddFilesClick
       end
       object btnRemoveFiles: TToolButton
         Left = 83
-        Top = 2
+        Top = 0
         Caption = 'Remove'
         Enabled = False
         ImageIndex = 46
@@ -259,7 +309,7 @@ object frmInsertFiles: TfrmInsertFiles
       end
       object btnClearFiles: TToolButton
         Left = 168
-        Top = 2
+        Top = 0
         Caption = 'Clear'
         Enabled = False
         ImageIndex = 26
