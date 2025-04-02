@@ -162,8 +162,8 @@ type
     db:               PAnsiChar;   // table schema (added after 3.23.58)
     catalog:	        PAnsiChar;   // table catalog (added after 3.23.58)
     def:              PAnsiChar;   // Default value (set by mysql_list_fields)
-    length:           LongInt;     // Width of column
-    max_length:       LongInt;     // Max width of selected set
+    length:           {$IfDef LINUX} NativeUInt {$Else} LongInt {$EndIf};     // Width of column
+    max_length:       {$IfDef LINUX} NativeUInt {$Else} LongInt {$EndIf};     // Max width of selected set
     // added after 3.23.58
     name_length:      Cardinal;
     org_name_length:  Cardinal;
