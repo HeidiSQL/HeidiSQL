@@ -55,6 +55,7 @@ type
       function GetDataType(Path: UnicodeString): TJSONtype;
 
       property AutoFlushMilliSeconds: Cardinal read GetAutoFlushMilliSeconds write SetAutoFlushMilliSeconds;
+      procedure FlushToDisk;
   end;
 
 implementation
@@ -158,6 +159,11 @@ begin
 end;
 
 procedure TJsonRegistry.AutoFlushOnTimer(Sender: TObject);
+begin
+  FlushToDisk;
+end;
+
+procedure TJsonRegistry.FlushToDisk;
 begin
   FJsConf.Flush;
 end;

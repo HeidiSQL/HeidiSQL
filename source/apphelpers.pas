@@ -4386,6 +4386,7 @@ begin
     Segments.Free;
   end;
   Lines.Free;
+  FRegistry.FlushToDisk;
 end;
 
 
