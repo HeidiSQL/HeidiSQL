@@ -90,7 +90,7 @@ type
       Number: Integer;
       Uid: String;
       ExecutionThread: TQueryThread;
-      CloseButton: TSpeedButton;
+      //CloseButton: TSpeedButton;
       pnlMemo: TPanel;
       Memo: TSynMemo;
       pnlHelpers: TPanel;
@@ -987,8 +987,8 @@ type
     procedure actCloseQueryTabExecute(Sender: TObject);
     procedure menuCloseQueryTabClick(Sender: TObject);
     procedure CloseQueryTab(PageIndex: Integer);
-    //procedure CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    //procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     function GetMainTabAt(X, Y: Integer): Integer;
     procedure FixQueryTabCloseButtons;
     function GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
@@ -2108,7 +2108,7 @@ begin
   // We already store and restore the dimensions DPI aware.
   {SynCompletionProposal.Form.Scaled := False;
   SynCompletionProposal.TimerInterval := AppSettings.ReadInt(asCompletionProposalInterval);}
-  SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
+  SynCompletionProposal.Width := Min(AppSettings.ReadInt(asCompletionProposalWidth), 1000);
   SynCompletionProposal.LinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
 
   // Place progressbar on the statusbar
@@ -2824,7 +2824,7 @@ begin
   ProgressBarStatus.Width := StatusBar.Panels[5].Width;
 
   //lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
-  {FixQueryTabCloseButtons;}
+  FixQueryTabCloseButtons;
 
   // Right aligned button
   // Do not set ToolBar.Align to alRight. See issue #1967
@@ -12293,14 +12293,14 @@ begin
   QueryTab.TabSheet.PageControl := PageControlMain;
   QueryTab.TabSheet.ImageIndex := tabQuery.ImageIndex;
 
-  QueryTab.CloseButton := TSpeedButton.Create(QueryTab.TabSheet);
+  {QueryTab.CloseButton := TSpeedButton.Create(QueryTab.TabSheet);
   QueryTab.CloseButton.Parent := PageControlMain;
   QueryTab.CloseButton.Width := 16;
   QueryTab.CloseButton.Height := 16;
   QueryTab.CloseButton.Flat := True;
   VirtualImageListMain.GetBitmap(134, QueryTab.CloseButton.Glyph);
-  //QueryTab.CloseButton.OnMouseDown := CloseButtonOnMouseDown;
-  //QueryTab.CloseButton.OnMouseUp := CloseButtonOnMouseUp;
+  QueryTab.CloseButton.OnMouseDown := CloseButtonOnMouseDown;
+  QueryTab.CloseButton.OnMouseUp := CloseButtonOnMouseUp;}
   SetTabCaption(QueryTab.TabSheet.PageIndex, '');
 
   // Dumb code which replicates all controls from tabQuery
@@ -12850,13 +12850,13 @@ begin
 end;
 
 
-{procedure TMainForm.CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TMainForm.CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   FLastMouseDownCloseButton := Sender;
-end;}
+end;
 
 
-{procedure TMainForm.CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TMainForm.CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   // Click on "Close" button of Query tab
   if Button <> mbLeft then
@@ -12867,12 +12867,12 @@ begin
     Exit;
   // Prevent EAccessViolation in TControl.GetClientWidth, see issue #1640
   TimerCloseTabByButton.Enabled := True;
-end;}
+end;
 
 procedure TMainForm.PageControlMainCloseTabClicked(Sender: TObject);
 begin
   logsql('PageControlMainCloseTabClicked');
-  //TimerCloseTabByButton.Enabled := True;
+  TimerCloseTabByButton.Enabled := True;
 end;
 
 
@@ -12883,10 +12883,10 @@ begin
   // Asynchronous timer for mousedown event on query tab close button
   TimerCloseTabByButton.Enabled := False;
   for i:=0 to QueryTabs.Count-1 do begin
-    if QueryTabs[i].CloseButton = FLastMouseDownCloseButton then begin
+    {if QueryTabs[i].CloseButton = FLastMouseDownCloseButton then begin
       CloseQueryTab(QueryTabs[i].TabSheet.PageIndex);
       break;
-    end;
+    end;}
   end;
 end;
 

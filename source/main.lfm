@@ -1101,7 +1101,6 @@ object MainForm: TMainForm
         OnCloseTabClicked = PageControlMainCloseTabClicked
         OnContextPopup = PageControlMainContextPopup
         OnMouseUp = PageControlMainMouseUp
-        Options = [nboShowCloseButtons, nboShowAddTabButton]
         object tabHost: TTabSheet
           Caption = 'Host'
           ClientHeight = 282

@@ -15,9 +15,12 @@ object frmEditVariable: TfrmEditVariable
   OnShow = FormShow
   Position = poMainFormCenter
   object btnOK: TButton
-    Left = 159
+    AnchorSideRight.Control = btnCancel
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 164
     Height = 31
-    Top = 237
+    Top = 241
     Width = 94
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 6
@@ -28,9 +31,13 @@ object frmEditVariable: TfrmEditVariable
     OnClick = btnOKClick
   end
   object btnCancel: TButton
-    Left = 260
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 264
     Height = 31
-    Top = 237
+    Top = 241
     Width = 94
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 6
@@ -40,73 +47,95 @@ object frmEditVariable: TfrmEditVariable
     TabOrder = 1
   end
   object grpScope: TGroupBox
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = gbValue
     AnchorSideTop.Side = asrBottom
-    Left = 10
-    Height = 51
-    Top = 178
-    Width = 344
-    Anchors = [akLeft, akRight, akBottom]
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = btnOK
+    Left = 6
+    Height = 59
+    Top = 176
+    Width = 352
+    Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'Scope'
-    ClientHeight = 26
-    ClientWidth = 340
+    ClientHeight = 34
+    ClientWidth = 348
     ParentBackground = False
     TabOrder = 2
     object radioScopeSession: TRadioButton
-      Left = 8
+      AnchorSideLeft.Control = grpScope
+      AnchorSideTop.Control = grpScope
+      Left = 6
       Height = 24
-      Top = 0
+      Top = 6
       Width = 98
+      BorderSpacing.Around = 6
       Caption = 'This session'
       TabOrder = 0
     end
     object radioScopeGlobal: TRadioButton
-      Left = 140
+      AnchorSideLeft.Control = radioScopeSession
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = grpScope
+      Left = 110
       Height = 24
-      Top = 0
+      Top = 6
       Width = 65
+      BorderSpacing.Around = 6
       Caption = 'Global'
       TabOrder = 1
     end
   end
   object gbValue: TGroupBox
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    Left = 10
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 6
     Height = 164
     Top = 6
-    Width = 344
+    Width = 352
+    Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'name of variable'
     ClientHeight = 139
-    ClientWidth = 340
+    ClientWidth = 348
     ParentBackground = False
     TabOrder = 3
     object lblString: TLabel
-      Left = 10
+      AnchorSideLeft.Control = gbValue
+      AnchorSideTop.Control = gbValue
+      Left = 6
       Height = 20
-      Top = 8
+      Top = 6
       Width = 42
       BorderSpacing.Around = 6
       Caption = 'String:'
     end
     object lblNumber: TLabel
+      AnchorSideLeft.Control = gbValue
       AnchorSideTop.Control = editString
       AnchorSideTop.Side = asrBottom
-      Left = 10
+      Left = 6
       Height = 20
-      Top = 39
+      Top = 40
       Width = 57
       BorderSpacing.Around = 6
       Caption = 'Number:'
     end
     object lblEnum: TLabel
+      AnchorSideLeft.Control = gbValue
       AnchorSideTop.Control = editNumber
       AnchorSideTop.Side = asrBottom
-      Left = 10
+      Left = 6
       Height = 20
-      Top = 73
+      Top = 74
       Width = 87
       BorderSpacing.Around = 6
       Caption = 'Enumeration:'
@@ -114,19 +143,20 @@ object frmEditVariable: TfrmEditVariable
     object lblBoolean: TLabel
       AnchorSideTop.Control = comboEnum
       AnchorSideTop.Side = asrBottom
-      Left = 10
+      Left = 6
       Height = 20
-      Top = 107
+      Top = 108
       Width = 58
       BorderSpacing.Around = 6
       Caption = 'Boolean:'
     end
     object radioBooleanOn: TRadioButton
+      AnchorSideLeft.Control = comboEnum
       AnchorSideTop.Control = comboEnum
       AnchorSideTop.Side = asrBottom
-      Left = 110
+      Left = 112
       Height = 24
-      Top = 107
+      Top = 108
       Width = 40
       BorderSpacing.Around = 6
       Caption = 'On'
@@ -135,10 +165,10 @@ object frmEditVariable: TfrmEditVariable
     object radioBooleanOff: TRadioButton
       AnchorSideTop.Control = comboEnum
       AnchorSideTop.Side = asrBottom
-      Left = 220
+      Left = 216
       Height = 24
-      Top = 107
-      Width = 110
+      Top = 108
+      Width = 122
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       Caption = 'Off'
@@ -147,10 +177,12 @@ object frmEditVariable: TfrmEditVariable
     object comboEnum: TComboBox
       AnchorSideTop.Control = editNumber
       AnchorSideTop.Side = asrBottom
-      Left = 110
+      AnchorSideRight.Control = gbValue
+      AnchorSideRight.Side = asrBottom
+      Left = 106
       Height = 28
-      Top = 73
-      Width = 221
+      Top = 74
+      Width = 236
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ItemHeight = 20
@@ -160,10 +192,12 @@ object frmEditVariable: TfrmEditVariable
     object editNumber: TEdit
       AnchorSideTop.Control = editString
       AnchorSideTop.Side = asrBottom
-      Left = 110
+      AnchorSideRight.Control = gbValue
+      AnchorSideRight.Side = asrBottom
+      Left = 106
       Height = 28
-      Top = 39
-      Width = 221
+      Top = 40
+      Width = 236
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       NumbersOnly = True
@@ -171,19 +205,25 @@ object frmEditVariable: TfrmEditVariable
       Text = '0'
     end
     object editString: TEdit
-      Left = 110
+      AnchorSideTop.Control = gbValue
+      AnchorSideRight.Control = gbValue
+      AnchorSideRight.Side = asrBottom
+      Left = 106
       Height = 28
-      Top = 5
-      Width = 221
+      Top = 6
+      Width = 236
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       TabOrder = 4
     end
   end
   object btnHelp: TButton
-    Left = 58
+    AnchorSideRight.Control = btnOK
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 64
     Height = 31
-    Top = 237
+    Top = 241
     Width = 94
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 6
