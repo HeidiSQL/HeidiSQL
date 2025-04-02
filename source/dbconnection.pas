@@ -2565,9 +2565,11 @@ begin
     if Parameters.WantSSL then
       ClientFlags := ClientFlags or CLIENT_SSL;
 
+    {$IfDef WINDOWS}
     // Point libmysql to the folder with client plugins
     PluginDir := AnsiString(ExtractFilePath(ParamStr(0))+'plugins');
     SetOption(FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
+    {$EndIf}
 
     // Enable cleartext plugin
     if Parameters.CleartextPluginEnabled then
