@@ -81,7 +81,7 @@ begin
       if Assigned(Mainform.ActiveObjectEditor)
         and (Mainform.ActiveObjectEditor.DBObject.NodeType = lntTable)
         and Mainform.ActiveObjectEditor.Visible then
-      {list := (Mainform.ActiveObjectEditor as TfrmTableEditor).listColumns;}
+      list := (Mainform.ActiveObjectEditor as TfrmTableEditor).listColumns;
     end;
     else list := Mainform.ActiveGrid;
   end;

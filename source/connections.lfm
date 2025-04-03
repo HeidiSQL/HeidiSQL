@@ -1045,8 +1045,8 @@ object connform: Tconnform
     TabOrder = 2
     object ListSessions: TLazVirtualStringTree
       Left = 0
-      Height = 546
-      Top = 28
+      Height = 540
+      Top = 34
       Width = 250
       Align = alClient
       DragMode = dmAutomatic
@@ -1119,6 +1119,7 @@ object connform: Tconnform
       Top = 0
       Width = 250
       Align = alTop
+      BorderSpacing.Bottom = 6
       ButtonWidth = 29
       Images = MainForm.ImageListIcons8
       ImageIndex = 193

@@ -4394,8 +4394,6 @@ function TAppSettings.ExportSettings(Filename: String): Boolean;
 var
   Content, Value: String;
   DataType: TJSONtype; // (jtUnknown, jtNumber, jtString, jtBoolean, jtNull, jtArray, jtObject);
-  // (rdUnknown, rdString, rdExpandString, rdBinary, rdInteger, rdIntegerBigEndian,
-  //                rdLink, rdMultiString, rdResourceList, rdFullResourceDescriptor,  rdResourceRequirementList, rdInt64);
   DataTypeInt: Integer;
 
   procedure ReadKeyToContent(Path: String);

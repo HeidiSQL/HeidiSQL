@@ -1,0 +1,1259 @@
+object frmTableEditor: TfrmTableEditor
+  Left = 0
+  Height = 626
+  Top = 0
+  Width = 875
+  ClientHeight = 626
+  ClientWidth = 875
+  DesignTimePPI = 120
+  ParentFont = False
+  TabOrder = 0
+  object SplitterTopBottom: TSplitter
+    AnchorSideTop.Control = PageControlMain
+    AnchorSideTop.Side = asrBottom
+    Cursor = crVSplit
+    Left = 0
+    Height = 10
+    Top = 210
+    Width = 875
+    Align = alTop
+    ResizeAnchor = akTop
+  end
+  object PageControlMain: TPageControl
+    Left = 0
+    Height = 210
+    Top = 0
+    Width = 875
+    ActivePage = tabOptions
+    Align = alTop
+    Images = MainForm.ImageListIcons8
+    TabIndex = 1
+    TabOrder = 0
+    OnChange = PageControlMainChange
+    object tabBasic: TTabSheet
+      Caption = 'Basic'
+      ClientHeight = 177
+      ClientWidth = 867
+      ImageIndex = 14
+      object lblName: TLabel
+        AnchorSideLeft.Control = tabBasic
+        AnchorSideTop.Control = tabBasic
+        Left = 6
+        Height = 20
+        Top = 6
+        Width = 43
+        BorderSpacing.Around = 6
+        Caption = 'Name:'
+      end
+      object lblComment: TLabel
+        AnchorSideLeft.Control = tabBasic
+        AnchorSideTop.Control = editName
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 20
+        Top = 40
+        Width = 68
+        BorderSpacing.Around = 6
+        Caption = 'Comment:'
+      end
+      object editName: TEdit
+        AnchorSideTop.Control = tabBasic
+        AnchorSideRight.Control = tabBasic
+        AnchorSideRight.Side = asrBottom
+        Left = 120
+        Height = 28
+        Top = 6
+        Width = 741
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        TabOrder = 0
+        Text = 'editName'
+        TextHint = 'Enter table name'
+        OnChange = Modification
+      end
+      object memoComment: TMemo
+        AnchorSideTop.Control = editName
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabBasic
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = tabBasic
+        AnchorSideBottom.Side = asrBottom
+        Left = 120
+        Height = 131
+        Top = 40
+        Width = 741
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Around = 6
+        Lines.Strings = (
+          'memoComment'
+        )
+        MaxLength = 60
+        ScrollBars = ssVertical
+        TabOrder = 1
+        OnChange = Modification
+      end
+    end
+    object tabOptions: TTabSheet
+      Caption = 'Options'
+      ClientHeight = 177
+      ClientWidth = 867
+      ImageIndex = 39
+      object lblAutoinc: TLabel
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = tabOptions
+        Left = 6
+        Height = 20
+        Top = 6
+        Width = 105
+        BorderSpacing.Around = 6
+        Caption = 'Auto increment:'
+      end
+      object lblCollation: TLabel
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = tabOptions
+        Left = 356
+        Height = 20
+        Top = 6
+        Width = 114
+        BorderSpacing.Left = 350
+        BorderSpacing.Around = 6
+        Caption = 'Default collation:'
+      end
+      object lblAvgRowLen: TLabel
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = editAutoInc
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 20
+        Top = 40
+        Width = 133
+        BorderSpacing.Around = 6
+        Caption = 'Average row length:'
+      end
+      object lblEngine: TLabel
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = comboCollation
+        AnchorSideTop.Side = asrBottom
+        Left = 356
+        Height = 20
+        Top = 40
+        Width = 48
+        BorderSpacing.Left = 350
+        BorderSpacing.Around = 6
+        Caption = 'Engine:'
+      end
+      object lblMaxRows: TLabel
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = editAvgRowLen
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 20
+        Top = 74
+        Width = 139
+        BorderSpacing.Around = 6
+        Caption = 'Maximum row count:'
+      end
+      object lblUnion: TLabel
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = comboEngine
+        AnchorSideTop.Side = asrBottom
+        Left = 356
+        Height = 20
+        Top = 74
+        Width = 86
+        BorderSpacing.Left = 350
+        BorderSpacing.Around = 6
+        Caption = 'Union tables:'
+      end
+      object lblRowFormat: TLabel
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = chkChecksum
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 20
+        Top = 138
+        Width = 81
+        BorderSpacing.Around = 6
+        Caption = 'Row format:'
+      end
+      object lblInsertMethod: TLabel
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = memoUnionTables
+        AnchorSideTop.Side = asrBottom
+        Left = 356
+        Height = 20
+        Top = 135
+        Width = 106
+        BorderSpacing.Left = 350
+        BorderSpacing.Around = 6
+        Caption = 'INSERT method:'
+      end
+      object editAutoInc: TEdit
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = tabOptions
+        Left = 176
+        Height = 28
+        Top = 6
+        Width = 150
+        BorderSpacing.Left = 170
+        BorderSpacing.Around = 6
+        TabOrder = 0
+        OnChange = editNumEditChange
+      end
+      object comboCollation: TComboBox
+        AnchorSideTop.Control = tabOptions
+        Left = 505
+        Height = 28
+        Top = 6
+        Width = 162
+        BorderSpacing.Around = 6
+        DropDownCount = 16
+        ItemHeight = 20
+        Sorted = True
+        Style = csDropDownList
+        TabOrder = 5
+        OnChange = chkCharsetConvertClick
+      end
+      object chkCharsetConvert: TCheckBox
+        AnchorSideLeft.Control = comboCollation
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = tabOptions
+        Left = 673
+        Height = 24
+        Top = 6
+        Width = 106
+        BorderSpacing.Around = 6
+        Caption = 'Convert data'
+        TabOrder = 6
+        OnClick = chkCharsetConvertClick
+      end
+      object editAvgRowLen: TEdit
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = editAutoInc
+        AnchorSideTop.Side = asrBottom
+        Left = 176
+        Height = 28
+        Top = 40
+        Width = 150
+        BorderSpacing.Left = 170
+        BorderSpacing.Around = 6
+        TabOrder = 1
+        OnChange = editNumEditChange
+      end
+      object comboEngine: TComboBox
+        AnchorSideTop.Control = comboCollation
+        AnchorSideTop.Side = asrBottom
+        Left = 505
+        Height = 28
+        Top = 40
+        Width = 276
+        BorderSpacing.Around = 6
+        ItemHeight = 20
+        Style = csDropDownList
+        TabOrder = 7
+        OnSelect = comboEngineSelect
+      end
+      object editMaxRows: TEdit
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = editAvgRowLen
+        AnchorSideTop.Side = asrBottom
+        Left = 176
+        Height = 28
+        Top = 74
+        Width = 150
+        BorderSpacing.Left = 170
+        BorderSpacing.Around = 6
+        TabOrder = 2
+        OnChange = editNumEditChange
+      end
+      object memoUnionTables: TMemo
+        AnchorSideTop.Control = comboEngine
+        AnchorSideTop.Side = asrBottom
+        Left = 505
+        Height = 55
+        Top = 74
+        Width = 276
+        BorderSpacing.Around = 6
+        Lines.Strings = (
+          'memoUnion'
+        )
+        TabOrder = 8
+        OnChange = Modification
+      end
+      object chkChecksum: TCheckBox
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = editMaxRows
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 24
+        Top = 108
+        Width = 148
+        Alignment = taLeftJustify
+        BorderSpacing.Around = 6
+        Caption = 'Checksum for rows:'
+        TabOrder = 3
+        OnClick = Modification
+      end
+      object comboRowFormat: TComboBox
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = chkChecksum
+        AnchorSideTop.Side = asrBottom
+        Left = 176
+        Height = 28
+        Top = 138
+        Width = 150
+        BorderSpacing.Left = 170
+        BorderSpacing.Around = 6
+        ItemHeight = 20
+        Style = csDropDownList
+        TabOrder = 4
+        OnChange = Modification
+      end
+      object comboInsertMethod: TComboBox
+        AnchorSideTop.Control = memoUnionTables
+        AnchorSideTop.Side = asrBottom
+        Left = 505
+        Height = 28
+        Top = 135
+        Width = 276
+        BorderSpacing.Around = 6
+        ItemHeight = 20
+        Style = csDropDownList
+        TabOrder = 9
+        OnClick = Modification
+      end
+    end
+    object tabIndexes: TTabSheet
+      Caption = 'Indexes'
+      ClientHeight = 177
+      ClientWidth = 867
+      ImageIndex = 13
+      object treeIndexes: TLazVirtualStringTree
+        Left = 83
+        Height = 177
+        Top = 0
+        Width = 784
+        Align = alClient
+        DragMode = dmAutomatic
+        EditDelay = 0
+        Header.AutoSizeIndex = 0
+        Header.Columns = <        
+          item
+            Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 0
+            Text = 'Name'
+            Width = 305
+          end        
+          item
+            Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 1
+            Text = 'Type / Length'
+            Width = 125
+          end        
+          item
+            Position = 2
+            Text = 'Algorithm'
+            Width = 100
+          end        
+          item
+            Position = 3
+            Text = 'Comment'
+            Width = 150
+          end        
+          item
+            Position = 4
+            Text = 'Direction'
+            Width = 100
+          end>
+        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+        Header.PopupMenu = MainForm.popupListHeader
+        Images = MainForm.ImageListIcons8
+        PopupMenu = popupProperties
+        TabOrder = 1
+        TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
+        TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toFullVertGridLines, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.SelectionOptions = [toExtendedFocus, toRightClickSelect]
+        OnBeforePaint = treeIndexesBeforePaint
+        OnClick = AnyTreeClick
+        OnCreateEditor = treeIndexesCreateEditor
+        OnDragOver = treeIndexesDragOver
+        OnEditing = treeIndexesEditing
+        OnFocusChanged = treeIndexesFocusChanged
+        OnGetText = treeIndexesGetText
+        OnGetImageIndex = treeIndexesGetImageIndex
+        OnInitChildren = treeIndexesInitChildren
+        OnInitNode = treeIndexesInitNode
+        OnNewText = treeIndexesNewText
+        OnStructureChange = AnyTreeStructureChange
+      end
+      object tlbIndexes: TToolBar
+        Left = 0
+        Height = 177
+        Top = 0
+        Width = 83
+        Align = alLeft
+        AutoSize = True
+        ButtonHeight = 35
+        ButtonWidth = 82
+        Caption = 'tlbIndexes'
+        Images = MainForm.ImageListIcons8
+        List = True
+        ShowCaptions = True
+        TabOrder = 0
+        object btnAddIndex: TToolButton
+          Left = 1
+          Hint = 'Add index'
+          Top = 2
+          Caption = 'Add'
+          ImageIndex = 45
+          OnClick = btnAddIndexClick
+          Wrap = True
+        end
+        object btnRemoveIndex: TToolButton
+          Left = 1
+          Hint = 'Remove index'
+          Top = 37
+          Caption = 'Remove'
+          ImageIndex = 46
+          OnClick = btnRemoveIndexClick
+          Wrap = True
+        end
+        object btnClearIndexes: TToolButton
+          Left = 1
+          Hint = 'Clear indexes'
+          Top = 72
+          Caption = 'Clear'
+          ImageIndex = 26
+          OnClick = btnClearIndexesClick
+          Wrap = True
+        end
+        object btnMoveUpIndex: TToolButton
+          Left = 1
+          Hint = 'Move up'
+          Top = 107
+          Caption = 'Up'
+          ImageIndex = 74
+          OnClick = btnMoveUpIndexClick
+          Wrap = True
+        end
+        object btnMoveDownIndex: TToolButton
+          Left = 1
+          Hint = 'Move down'
+          Top = 142
+          Caption = 'Down'
+          ImageIndex = 75
+          OnClick = btnMoveDownIndexClick
+        end
+      end
+    end
+    object tabForeignKeys: TTabSheet
+      Caption = 'Foreign keys'
+      ClientHeight = 177
+      ClientWidth = 867
+      ImageIndex = 136
+      object tlbForeignKeys: TToolBar
+        Left = 0
+        Height = 177
+        Top = 0
+        Width = 83
+        Align = alLeft
+        AutoSize = True
+        ButtonHeight = 35
+        ButtonWidth = 82
+        Caption = 'tlbForeignKeys'
+        Images = MainForm.ImageListIcons8
+        List = True
+        ShowCaptions = True
+        TabOrder = 0
+        object btnAddForeignKey: TToolButton
+          Left = 1
+          Top = 2
+          Caption = 'Add'
+          ImageIndex = 45
+          OnClick = btnAddForeignKeyClick
+          Wrap = True
+        end
+        object btnRemoveForeignKey: TToolButton
+          Left = 1
+          Top = 37
+          Caption = 'Remove'
+          Enabled = False
+          ImageIndex = 46
+          OnClick = btnRemoveForeignKeyClick
+          Wrap = True
+        end
+        object btnClearForeignKeys: TToolButton
+          Left = 1
+          Top = 72
+          Caption = 'Clear'
+          Enabled = False
+          ImageIndex = 26
+          OnClick = btnClearForeignKeysClick
+        end
+      end
+      object listForeignKeys: TLazVirtualStringTree
+        Left = 83
+        Height = 177
+        Top = 0
+        Width = 784
+        Align = alClient
+        EditDelay = 0
+        Header.AutoSizeIndex = -1
+        Header.Columns = <        
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 0
+            Text = 'Key name'
+            Width = 245
+          end        
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 1
+            Text = 'Columns'
+            Width = 100
+          end        
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 2
+            Text = 'Reference table'
+            Width = 125
+          end        
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 3
+            Text = 'Foreign columns'
+            Width = 100
+          end        
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 4
+            Text = 'On UPDATE'
+            Width = 100
+          end        
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 5
+            Text = 'On DELETE'
+            Width = 110
+          end>
+        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+        Header.PopupMenu = MainForm.popupListHeader
+        Images = MainForm.ImageListIcons8
+        PopupMenu = popupProperties
+        TabOrder = 1
+        TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+        TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.SelectionOptions = [toExtendedFocus]
+        OnBeforePaint = listForeignKeysBeforePaint
+        OnClick = AnyTreeClick
+        OnCreateEditor = listForeignKeysCreateEditor
+        OnEditing = listForeignKeysEditing
+        OnFocusChanged = listForeignKeysFocusChanged
+        OnGetText = listForeignKeysGetText
+        OnGetImageIndex = listForeignKeysGetImageIndex
+        OnNewText = listForeignKeysNewText
+        OnStructureChange = AnyTreeStructureChange
+      end
+    end
+    object tabCheckConstraints: TTabSheet
+      Caption = 'Check constraints'
+      ClientHeight = 177
+      ClientWidth = 867
+      ImageIndex = 55
+      object tlbCheckConstraints: TToolBar
+        Left = 0
+        Height = 177
+        Top = 0
+        Width = 83
+        Align = alLeft
+        AutoSize = True
+        ButtonHeight = 35
+        ButtonWidth = 82
+        Caption = 'tlbCheckConstraints'
+        Images = MainForm.ImageListIcons8
+        List = True
+        ShowCaptions = True
+        TabOrder = 0
+        object btnAddCheckConstraint: TToolButton
+          Left = 1
+          Top = 2
+          Caption = 'Add'
+          ImageIndex = 45
+          OnClick = btnAddCheckConstraintClick
+          Wrap = True
+        end
+        object btnRemoveCheckConstraint: TToolButton
+          Left = 1
+          Top = 37
+          Caption = 'Remove'
+          Enabled = False
+          ImageIndex = 46
+          OnClick = btnRemoveCheckConstraintClick
+          Wrap = True
+        end
+        object btnClearCheckConstraints: TToolButton
+          Left = 1
+          Top = 72
+          Caption = 'Clear'
+          Enabled = False
+          ImageIndex = 26
+          OnClick = btnClearCheckConstraintsClick
+        end
+      end
+      object listCheckConstraints: TLazVirtualStringTree
+        Left = 83
+        Height = 177
+        Top = 0
+        Width = 784
+        Align = alClient
+        EditDelay = 0
+        Header.AutoSizeIndex = 1
+        Header.Columns = <        
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus, coEditable]
+            Position = 0
+            Text = 'Name'
+            Width = 250
+          end        
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus, coEditable]
+            Position = 1
+            Text = 'Check clause'
+            Width = 530
+          end>
+        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+        Header.PopupMenu = MainForm.popupListHeader
+        Images = MainForm.ImageListIcons8
+        PopupMenu = popupProperties
+        TabOrder = 1
+        TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+        TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.SelectionOptions = [toExtendedFocus]
+        OnBeforePaint = listCheckConstraintsBeforePaint
+        OnClick = AnyTreeClick
+        OnCreateEditor = listCheckConstraintsCreateEditor
+        OnFocusChanged = listCheckConstraintsFocusChanged
+        OnGetText = listCheckConstraintsGetText
+        OnGetImageIndex = listCheckConstraintsGetImageIndex
+        OnNewText = listCheckConstraintsNewText
+        OnStructureChange = AnyTreeStructureChange
+      end
+    end
+    object tabPartitions: TTabSheet
+      Caption = 'Partitions'
+      ClientHeight = 177
+      ClientWidth = 867
+      ImageIndex = 186
+      inline SynMemoPartitions: TSynEdit
+        Left = 0
+        Height = 177
+        Top = 0
+        Width = 867
+        Align = alClient
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Pitch = fpFixed
+        Font.Quality = fqNonAntialiased
+        ParentColor = False
+        ParentFont = False
+        TabOrder = 0
+        Gutter.LeftOffset = 2
+        Gutter.Width = 70
+        Gutter.MouseActions = <>
+        RightGutter.Width = 0
+        RightGutter.MouseActions = <>
+        Highlighter = MainForm.SynSQLSynUsed
+        Keystrokes = <>
+        MouseActions = <>
+        MouseTextActions = <>
+        MouseSelActions = <>
+        Lines.Strings = (
+          'SynMemoPartitions'
+        )
+        Options = [eoAutoIndent, eoGroupUndo, eoKeepCaretX, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces, eoDragDropEditing]
+        MouseOptions = [emDragDropEditing]
+        VisibleSpecialChars = [vscSpace, vscTabAtLast]
+        ReadOnly = True
+        SelectedColor.BackPriority = 50
+        SelectedColor.ForePriority = 50
+        SelectedColor.FramePriority = 50
+        SelectedColor.BoldPriority = 50
+        SelectedColor.ItalicPriority = 50
+        SelectedColor.UnderlinePriority = 50
+        SelectedColor.StrikeOutPriority = 50
+        BracketHighlightStyle = sbhsBoth
+        BracketMatchColor.Background = clNone
+        BracketMatchColor.Foreground = clNone
+        BracketMatchColor.Style = [fsBold]
+        FoldedCodeColor.Background = clNone
+        FoldedCodeColor.Foreground = clGray
+        FoldedCodeColor.FrameColor = clGray
+        MouseLinkColor.Background = clNone
+        MouseLinkColor.Foreground = clBlue
+        LineHighlightColor.Background = clNone
+        LineHighlightColor.Foreground = clNone
+        inline SynLeftGutterPartList1: TSynGutterPartList
+          object SynGutterMarks1: TSynGutterMarks
+            Width = 30
+            MouseActions = <>
+          end
+          object SynGutterLineNumber1: TSynGutterLineNumber
+            Width = 17
+            MouseActions = <>
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
+            DigitCount = 2
+            ShowOnlyLineNumbersMultiplesOf = 1
+            ZeroStart = False
+            LeadingZeros = False
+          end
+          object SynGutterChanges1: TSynGutterChanges
+            Width = 5
+            MouseActions = <>
+            ModifiedColor = 59900
+            SavedColor = clGreen
+          end
+          object SynGutterSeparator1: TSynGutterSeparator
+            Width = 3
+            MouseActions = <>
+            MarkupInfo.Background = clWhite
+            MarkupInfo.Foreground = clGray
+          end
+          object SynGutterCodeFolding1: TSynGutterCodeFolding
+            Width = 13
+            MouseActions = <>
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGray
+            MouseActionsExpanded = <>
+            MouseActionsCollapsed = <>
+          end
+        end
+      end
+    end
+    object tabCREATEcode: TTabSheet
+      Caption = 'CREATE code'
+      ClientHeight = 177
+      ClientWidth = 867
+      ImageIndex = 119
+      inline SynMemoCREATEcode: TSynEdit
+        Left = 0
+        Height = 177
+        Top = 0
+        Width = 867
+        Align = alClient
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Pitch = fpFixed
+        Font.Quality = fqNonAntialiased
+        ParentColor = False
+        ParentFont = False
+        TabOrder = 0
+        Gutter.LeftOffset = 2
+        Gutter.Width = 70
+        Gutter.MouseActions = <>
+        RightGutter.Width = 0
+        RightGutter.MouseActions = <>
+        Highlighter = MainForm.SynSQLSynUsed
+        Keystrokes = <>
+        MouseActions = <>
+        MouseTextActions = <>
+        MouseSelActions = <>
+        Lines.Strings = (
+          'SynMemoALTERcode'
+        )
+        Options = [eoAutoIndent, eoGroupUndo, eoKeepCaretX, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces, eoDragDropEditing]
+        MouseOptions = [emDragDropEditing]
+        VisibleSpecialChars = [vscSpace, vscTabAtLast]
+        ReadOnly = True
+        SelectedColor.BackPriority = 50
+        SelectedColor.ForePriority = 50
+        SelectedColor.FramePriority = 50
+        SelectedColor.BoldPriority = 50
+        SelectedColor.ItalicPriority = 50
+        SelectedColor.UnderlinePriority = 50
+        SelectedColor.StrikeOutPriority = 50
+        BracketHighlightStyle = sbhsBoth
+        BracketMatchColor.Background = clNone
+        BracketMatchColor.Foreground = clNone
+        BracketMatchColor.Style = [fsBold]
+        FoldedCodeColor.Background = clNone
+        FoldedCodeColor.Foreground = clGray
+        FoldedCodeColor.FrameColor = clGray
+        MouseLinkColor.Background = clNone
+        MouseLinkColor.Foreground = clBlue
+        LineHighlightColor.Background = clNone
+        LineHighlightColor.Foreground = clNone
+        inline SynLeftGutterPartList1: TSynGutterPartList
+          object SynGutterMarks1: TSynGutterMarks
+            Width = 30
+            MouseActions = <>
+          end
+          object SynGutterLineNumber1: TSynGutterLineNumber
+            Width = 17
+            MouseActions = <>
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
+            DigitCount = 2
+            ShowOnlyLineNumbersMultiplesOf = 1
+            ZeroStart = False
+            LeadingZeros = False
+          end
+          object SynGutterChanges1: TSynGutterChanges
+            Width = 5
+            MouseActions = <>
+            ModifiedColor = 59900
+            SavedColor = clGreen
+          end
+          object SynGutterSeparator1: TSynGutterSeparator
+            Width = 3
+            MouseActions = <>
+            MarkupInfo.Background = clWhite
+            MarkupInfo.Foreground = clGray
+          end
+          object SynGutterCodeFolding1: TSynGutterCodeFolding
+            Width = 13
+            MouseActions = <>
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGray
+            MouseActionsExpanded = <>
+            MouseActionsCollapsed = <>
+          end
+        end
+      end
+    end
+    object tabALTERCode: TTabSheet
+      Caption = 'ALTER code'
+      ClientHeight = 177
+      ClientWidth = 867
+      ImageIndex = 119
+      inline SynMemoALTERcode: TSynEdit
+        Left = 0
+        Height = 177
+        Top = 0
+        Width = 867
+        Align = alClient
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Pitch = fpFixed
+        Font.Quality = fqNonAntialiased
+        ParentColor = False
+        ParentFont = False
+        TabOrder = 0
+        Gutter.LeftOffset = 2
+        Gutter.Width = 70
+        Gutter.MouseActions = <>
+        RightGutter.Width = 0
+        RightGutter.MouseActions = <>
+        Highlighter = MainForm.SynSQLSynUsed
+        Keystrokes = <>
+        MouseActions = <>
+        MouseTextActions = <>
+        MouseSelActions = <>
+        Lines.Strings = (
+          'SynMemoALTERcode'
+        )
+        Options = [eoAutoIndent, eoGroupUndo, eoKeepCaretX, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces, eoDragDropEditing]
+        MouseOptions = [emDragDropEditing]
+        VisibleSpecialChars = [vscSpace, vscTabAtLast]
+        ReadOnly = True
+        SelectedColor.BackPriority = 50
+        SelectedColor.ForePriority = 50
+        SelectedColor.FramePriority = 50
+        SelectedColor.BoldPriority = 50
+        SelectedColor.ItalicPriority = 50
+        SelectedColor.UnderlinePriority = 50
+        SelectedColor.StrikeOutPriority = 50
+        BracketHighlightStyle = sbhsBoth
+        BracketMatchColor.Background = clNone
+        BracketMatchColor.Foreground = clNone
+        BracketMatchColor.Style = [fsBold]
+        FoldedCodeColor.Background = clNone
+        FoldedCodeColor.Foreground = clGray
+        FoldedCodeColor.FrameColor = clGray
+        MouseLinkColor.Background = clNone
+        MouseLinkColor.Foreground = clBlue
+        LineHighlightColor.Background = clNone
+        LineHighlightColor.Foreground = clNone
+        inline SynLeftGutterPartList1: TSynGutterPartList
+          object SynGutterMarks1: TSynGutterMarks
+            Width = 30
+            MouseActions = <>
+          end
+          object SynGutterLineNumber1: TSynGutterLineNumber
+            Width = 17
+            MouseActions = <>
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
+            DigitCount = 2
+            ShowOnlyLineNumbersMultiplesOf = 1
+            ZeroStart = False
+            LeadingZeros = False
+          end
+          object SynGutterChanges1: TSynGutterChanges
+            Width = 5
+            MouseActions = <>
+            ModifiedColor = 59900
+            SavedColor = clGreen
+          end
+          object SynGutterSeparator1: TSynGutterSeparator
+            Width = 3
+            MouseActions = <>
+            MarkupInfo.Background = clWhite
+            MarkupInfo.Foreground = clGray
+          end
+          object SynGutterCodeFolding1: TSynGutterCodeFolding
+            Width = 13
+            MouseActions = <>
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGray
+            MouseActionsExpanded = <>
+            MouseActionsCollapsed = <>
+          end
+        end
+      end
+    end
+  end
+  object pnlColumnsTop: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = SplitterTopBottom
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 0
+    Height = 35
+    Top = 220
+    Width = 875
+    Align = alTop
+    Alignment = taLeftJustify
+    AutoSize = True
+    BevelOuter = bvNone
+    Caption = 'Columns:'
+    ClientHeight = 35
+    ClientWidth = 875
+    TabOrder = 1
+    object tlbColumns: TToolBar
+      Left = 0
+      Height = 35
+      Top = 0
+      Width = 875
+      Align = alClient
+      AutoSize = True
+      ButtonHeight = 35
+      ButtonWidth = 82
+      Caption = 'Columns:'
+      EdgeBorders = []
+      Images = MainForm.ImageListIcons8
+      List = True
+      ShowCaptions = True
+      TabOrder = 0
+      object btnAddColumn: TToolButton
+        Left = 1
+        Hint = 'Add column'
+        Top = 0
+        Caption = 'Add'
+        ImageIndex = 45
+        OnClick = btnAddColumnClick
+      end
+      object btnRemoveColumn: TToolButton
+        Left = 83
+        Hint = 'Remove column'
+        Top = 0
+        Caption = 'Remove'
+        ImageIndex = 46
+        OnClick = btnRemoveColumnClick
+      end
+      object btnMoveUpColumn: TToolButton
+        Left = 168
+        Hint = 'Move up'
+        Top = 0
+        Caption = 'Up'
+        ImageIndex = 74
+        OnClick = btnMoveUpColumnClick
+      end
+      object btnMoveDownColumn: TToolButton
+        Left = 250
+        Hint = 'Move down'
+        Top = 0
+        Caption = 'Down'
+        ImageIndex = 75
+        OnClick = btnMoveDownColumnClick
+      end
+    end
+  end
+  object listColumns: TLazVirtualStringTree
+    AnchorSideBottom.Control = btnSave
+    Left = 0
+    Height = 328
+    Top = 255
+    Width = 875
+    Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Constraints.MinHeight = 25
+    DragMode = dmAutomatic
+    EditDelay = 0
+    Header.AutoSizeIndex = -1
+    Header.Columns = <    
+      item
+        Alignment = taRightJustify
+        MinWidth = 20
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible, coAllowFocus]
+        Position = 0
+        Text = '#'
+        Width = 25
+      end    
+      item
+        MinWidth = 50
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 1
+        Text = 'Name'
+        Width = 125
+      end    
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 2
+        Text = 'Datatype'
+        Width = 112
+      end    
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 3
+        Text = 'Length/Set'
+        Width = 112
+      end    
+      item
+        Alignment = taCenter
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 4
+        Text = 'Unsigned'
+        Width = 75
+      end    
+      item
+        Alignment = taCenter
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 5
+        Text = 'Allow NULL'
+        Width = 81
+      end    
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 6
+        Text = 'Zerofill'
+      end    
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 7
+        Text = 'Default'
+        Width = 125
+      end    
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 8
+        Text = 'Comment'
+        Width = 162
+      end    
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 9
+        Text = 'Collation'
+        Width = 125
+      end    
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 10
+        Text = 'Expression'
+        Width = 125
+      end    
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 11
+        Text = 'Virtuality'
+        Width = 125
+      end    
+      item
+        Hint = 'Spatial reference system'
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 12
+        Text = 'SRID'
+      end    
+      item
+        Hint = 'Hide in certain contexts'
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 13
+        Text = 'Invisible'
+      end>
+    Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible, hoDisableAnimatedResize]
+    Header.PopupMenu = MainForm.popupListHeader
+    Images = MainForm.ImageListIcons8
+    IncrementalSearch = isAll
+    PopupMenu = popupColumns
+    TabOrder = 2
+    TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
+    TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toWheelPanning, toFullRowDrag, toEditOnClick]
+    TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+    TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+    WantTabs = True
+    OnAfterCellPaint = listColumnsAfterCellPaint
+    OnBeforeCellPaint = listColumnsBeforeCellPaint
+    OnChange = listColumnsChange
+    OnClick = listColumnsClick
+    OnCreateEditor = listColumnsCreateEditor
+    OnDragOver = listColumnsDragOver
+    OnEditing = listColumnsEditing
+    OnFocusChanged = listColumnsFocusChanged
+    OnGetText = listColumnsGetText
+    OnPaintText = listColumnsPaintText
+    OnGetNodeDataSize = listColumnsGetNodeDataSize
+    OnInitNode = listColumnsInitNode
+    OnKeyPress = listColumnsKeyPress
+    OnNewText = listColumnsNewText
+    OnNodeMoved = listColumnsNodeMoved
+  end
+  object btnSave: TButton
+    AnchorSideLeft.Control = btnDiscard
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 206
+    Height = 31
+    Top = 589
+    Width = 94
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Around = 6
+    Caption = 'Save'
+    Default = True
+    TabOrder = 5
+    OnClick = btnSaveClick
+  end
+  object btnDiscard: TButton
+    AnchorSideLeft.Control = btnHelp
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 106
+    Height = 31
+    Top = 589
+    Width = 94
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Around = 6
+    Caption = 'Discard'
+    TabOrder = 4
+    OnClick = btnDiscardClick
+  end
+  object btnHelp: TButton
+    AnchorSideLeft.Control = Owner
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 6
+    Height = 31
+    Top = 589
+    Width = 94
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Around = 6
+    Caption = 'Help'
+    TabOrder = 3
+    OnClick = btnHelpClick
+  end
+  object popupProperties: TPopupMenu
+    Images = MainForm.ImageListIcons8
+    OnPopup = popupPropertiesPopup
+    Left = 500
+    Top = 450
+    object Copy1: TMenuItem
+      Action = MainForm.actCopy
+    end
+    object menuAddProperty: TMenuItem
+      Caption = 'Add'
+      ImageIndex = 45
+      ShortCut = 16429
+      OnClick = menuAddPropertyClick
+    end
+    object menuAddIndexColumn: TMenuItem
+      Caption = 'Add column'
+      ImageIndex = 91
+      ShortCut = 24621
+      OnClick = menuAddIndexColumnClick
+    end
+    object menuRemoveProperty: TMenuItem
+      Caption = 'Remove'
+      ImageIndex = 46
+      ShortCut = 16430
+      OnClick = menuRemovePropertyClick
+    end
+    object menuClearProperties: TMenuItem
+      Caption = 'Clear'
+      ImageIndex = 26
+      ShortCut = 24622
+      OnClick = menuClearPropertiesClick
+    end
+    object menuMoveUpIndex: TMenuItem
+      Caption = 'Up'
+      ImageIndex = 74
+      ShortCut = 16469
+      OnClick = btnMoveUpIndexClick
+    end
+    object menuMoveDownIndex: TMenuItem
+      Caption = 'Down'
+      ImageIndex = 75
+      ShortCut = 16452
+      OnClick = btnMoveDownIndexClick
+    end
+  end
+  object popupColumns: TPopupMenu
+    Images = MainForm.ImageListIcons8
+    OnPopup = popupColumnsPopup
+    Left = 390
+    Top = 450
+    object menuCopyColumnCell: TMenuItem
+      Action = MainForm.actCopy
+    end
+    object menuCopyColumns: TMenuItem
+      Caption = 'Copy selected columns'
+      ImageIndex = 155
+      OnClick = menuCopyColumnsClick
+    end
+    object menuPasteColumns: TMenuItem
+      Caption = 'Paste columns'
+      ImageIndex = 156
+      OnClick = menuPasteColumnsClick
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object menuAddColumn: TMenuItem
+      Caption = 'Add column'
+      ImageIndex = 45
+      ShortCut = 16429
+      OnClick = btnAddColumnClick
+    end
+    object menuRemoveColumn: TMenuItem
+      Caption = 'Remove column'
+      ImageIndex = 46
+      ShortCut = 16430
+      OnClick = btnRemoveColumnClick
+    end
+    object menuMoveUpColumn: TMenuItem
+      Caption = 'Move up'
+      ImageIndex = 74
+      ShortCut = 16469
+      OnClick = btnMoveUpColumnClick
+    end
+    object menuMoveDownColumn: TMenuItem
+      Caption = 'Move down'
+      ImageIndex = 75
+      ShortCut = 16452
+      OnClick = btnMoveDownColumnClick
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object menuCreateIndex: TMenuItem
+      Caption = 'Create new index'
+      ImageIndex = 13
+    end
+    object menuAddToIndex: TMenuItem
+      Caption = 'Add to index'
+      ImageIndex = 13
+    end
+  end
+end

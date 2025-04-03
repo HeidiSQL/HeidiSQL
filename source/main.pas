@@ -1421,7 +1421,7 @@ implementation
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
   copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp, updatecheck,
-  insertfiles, texteditor, preferences;
+  insertfiles, texteditor, preferences, table_editor;
 
 {$R *.lfm}
 
@@ -9187,11 +9187,11 @@ begin
   end else if tab = tabDatabase then begin
     VT := ListTables;
     FFilterTextDatabase := editFilterVT.Text;
-  end {else if tab = tabEditor then begin
+  end else if tab = tabEditor then begin
     if ActiveObjectEditor is TfrmTableEditor then
       VT := TfrmTableEditor(ActiveObjectEditor).listColumns;
     FFilterTextEditor := editFilterVT.Text;
-  end} else if tab = tabData then begin
+  end else if tab = tabData then begin
     VT := DataGrid;
     FFilterTextData := editFilterVT.Text;
   end else if QueryTabs.HasActiveTab and (QueryTabs.ActiveTab.ActiveResultTab <> nil) then begin
@@ -12178,11 +12178,11 @@ end;
 
 
 procedure TMainForm.PlaceObjectEditor(Obj: TDBObject);
-//var
-//  EditorClass: TDBObjectEditorClass;
+var
+  EditorClass: TDBObjectEditorClass;
 begin
   // Place the relevant editor frame onto the editor tab, hide all others
-  {if FTreeRefreshInProgress and Assigned(ActiveObjectEditor) then begin
+  if FTreeRefreshInProgress and Assigned(ActiveObjectEditor) then begin
     ActiveObjectEditor.Init(Obj);
     UpdateFilterPanel(Self);
   end else begin
@@ -12190,10 +12190,10 @@ begin
       FreeAndNil(ActiveObjectEditor);
     case Obj.NodeType of
       lntTable: EditorClass := TfrmTableEditor;
-      lntView: EditorClass := TfrmView;
-      lntProcedure, lntFunction: EditorClass := TfrmRoutineEditor;
-      lntTrigger: EditorClass := TfrmTriggerEditor;
-      lntEvent: EditorClass := TfrmEventEditor;
+      //lntView: EditorClass := TfrmView;
+      //lntProcedure, lntFunction: EditorClass := TfrmRoutineEditor;
+      //lntTrigger: EditorClass := TfrmTriggerEditor;
+      //lntEvent: EditorClass := TfrmEventEditor;
       else Exit;
     end;
     if not Assigned(ActiveObjectEditor) then begin
@@ -12203,7 +12203,7 @@ begin
     end;
     ActiveObjectEditor.Init(Obj);
     buttonedEditClear(editFilterVT);
-  end;}
+  end;
 end;
 
 
@@ -13246,14 +13246,14 @@ var
   f: String;
 begin
   // Called when active tab changes
-  pnlFilterVT.Enabled := (PageControlMain.ActivePage <> tabEditor); // or (ActiveObjectEditor is TfrmTableEditor);
+  pnlFilterVT.Enabled := (PageControlMain.ActivePage <> tabEditor) or (ActiveObjectEditor is TfrmTableEditor);
   lblFilterVT.Enabled := pnlFilterVT.Enabled;
   editFilterVT.Enabled := pnlFilterVT.Enabled;
   lblFilterVTInfo.Enabled := pnlFilterVT.Enabled;
-  {if pnlFilterVT.Enabled then
+  if pnlFilterVT.Enabled then
     editFilterVT.Color := GetThemeColor(clWindow)
   else
-    editFilterVT.Color := GetThemeColor(clBtnFace);}
+    editFilterVT.Color := GetThemeColor(clBtnFace);
 
   tab := PageControlMain.ActivePage;
   if tab = tabHost then
