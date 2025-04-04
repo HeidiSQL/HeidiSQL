@@ -8,7 +8,7 @@ uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   ComCtrls, ToolWin, laz.VirtualTrees, RegExpr, ExtCtrls, SynEdit,
   Menus, Clipbrd, Math, UITypes, Generics.Collections, LCLProc, LCLType,
-  {grideditlinks,} dbstructures, dbstructures.mysql, dbconnection, apphelpers, StrUtils, extra_controls, ActiveX;
+  {grideditlinks,} dbstructures, dbstructures.mysql, dbconnection, apphelpers, StrUtils, extra_controls;
 
 type
   TFrame = TDBObjectEditor;
@@ -111,8 +111,8 @@ type
     procedure btnMoveDownColumnClick(Sender: TObject);
     procedure listColumnsDragOver(Sender: TBaseVirtualTree; Source: TObject; Shift: TShiftState; State: TDragState;
 		  Pt: TPoint; Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
-    procedure listColumnsDragDrop(Sender: TBaseVirtualTree; Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
-      Shift: TShiftState; const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
+    //procedure listColumnsDragDrop(Sender: TBaseVirtualTree; Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
+    //  Shift: TShiftState; const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
     procedure listColumnsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
 		  Column: TColumnIndex; TextType: TVSTTextType);
     procedure listColumnsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
@@ -138,9 +138,9 @@ type
     procedure treeIndexesDragOver(Sender: TBaseVirtualTree; Source: TObject;
       Shift: TShiftState; State: TDragState; Pt: TPoint; Mode: TDropMode;
       var Effect: Integer; var Accept: Boolean);
-    procedure treeIndexesDragDrop(Sender: TBaseVirtualTree; Source: TObject;
-      DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
-      const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
+    //procedure treeIndexesDragDrop(Sender: TBaseVirtualTree; Source: TObject;
+    //  DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
+    //  const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
     procedure treeIndexesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: String);
     procedure treeIndexesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
     procedure treeIndexesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
@@ -1164,7 +1164,7 @@ begin
 end;
 
 
-procedure TfrmTableEditor.listColumnsDragDrop(Sender: TBaseVirtualTree;
+{procedure TfrmTableEditor.listColumnsDragDrop(Sender: TBaseVirtualTree;
   Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
   Shift: TShiftState; const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
 var
@@ -1180,7 +1180,7 @@ begin
     listColumns.MoveTo(listColumns.FocusedNode, Node, AttachMode, False);
     ValidateColumnControls;
   end;
-end;
+end;}
 
 
 procedure TfrmTableEditor.listColumnsBeforeCellPaint(Sender: TBaseVirtualTree;
@@ -2366,7 +2366,7 @@ begin
 end;
 
 
-procedure TfrmTableEditor.treeIndexesDragDrop(Sender: TBaseVirtualTree;
+{procedure TfrmTableEditor.treeIndexesDragDrop(Sender: TBaseVirtualTree;
   Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
   Shift: TShiftState; const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
 var
@@ -2385,7 +2385,7 @@ begin
   IndexNode := nil;
   ColPos := 0;
   if not Assigned(TargetNode) then begin
-    Beep;
+    MessageBeep(MB_ICONEXCLAMATION);
     Exit;
   end;
   Mainform.LogSQL('TargetNode.Index: '+TargetNode.Index.ToString, lcDebug);
@@ -2443,7 +2443,7 @@ begin
   // Finally tell parent node to update its children
   VT.ReinitChildren(IndexNode, False);
   VT.Repaint;
-end;
+end;}
 
 
 procedure TfrmTableEditor.btnMoveUpIndexClick(Sender: TObject);
