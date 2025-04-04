@@ -24,10 +24,10 @@ object frmTableEditor: TfrmTableEditor
     Height = 210
     Top = 0
     Width = 875
-    ActivePage = tabOptions
+    ActivePage = tabIndexes
     Align = alTop
     Images = MainForm.ImageListIcons8
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 0
     OnChange = PageControlMainChange
     object tabBasic: TTabSheet
@@ -342,7 +342,7 @@ object frmTableEditor: TfrmTableEditor
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
             Text = 'Name'
-            Width = 305
+            Width = 309
           end        
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
@@ -378,6 +378,7 @@ object frmTableEditor: TfrmTableEditor
         OnClick = AnyTreeClick
         OnCreateEditor = treeIndexesCreateEditor
         OnDragOver = treeIndexesDragOver
+        OnDragDrop = treeIndexesDragDrop
         OnEditing = treeIndexesEditing
         OnFocusChanged = treeIndexesFocusChanged
         OnGetText = treeIndexesGetText
@@ -535,7 +536,7 @@ object frmTableEditor: TfrmTableEditor
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 5
             Text = 'On DELETE'
-            Width = 110
+            Width = 114
           end>
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
@@ -620,7 +621,7 @@ object frmTableEditor: TfrmTableEditor
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus, coEditable]
             Position = 1
             Text = 'Check clause'
-            Width = 530
+            Width = 534
           end>
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
@@ -1099,6 +1100,7 @@ object frmTableEditor: TfrmTableEditor
     OnClick = listColumnsClick
     OnCreateEditor = listColumnsCreateEditor
     OnDragOver = listColumnsDragOver
+    OnDragDrop = listColumnsDragDrop
     OnEditing = listColumnsEditing
     OnFocusChanged = listColumnsFocusChanged
     OnGetText = listColumnsGetText
