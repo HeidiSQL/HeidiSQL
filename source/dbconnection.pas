@@ -2924,7 +2924,7 @@ begin
     ConnectOptions.Free;
     ConnectionString := ConnectionString.TrimRight;
 
-    FHandle := FLib.PQconnectdb(PAnsiChar(AnsiString(ConnectionString)));
+    FHandle := FLib.PQconnectdb(PAnsiChar(UTF8Encode(ConnectionString)));
     if FLib.PQstatus(FHandle) = CONNECTION_BAD then begin
       Error := LastErrorMsg;
       Log(lcError, Error);
