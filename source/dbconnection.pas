@@ -2966,7 +2966,8 @@ begin
     DoAfterConnect;
   end else begin
     try
-      FLib.PQfinish(FHandle);
+      if FActive then
+        FLib.PQfinish(FHandle);
     except
       on E:EAccessViolation do;
     end;
