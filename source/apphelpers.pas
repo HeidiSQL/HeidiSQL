@@ -322,6 +322,9 @@ type
   function Explode(Separator, Text: String) :TStringList;
   procedure ExplodeQuotedList(Text: String; var List: TStringList);
   function StrEllipsis(const S: String; MaxLen: Integer; FromLeft: Boolean=True): String;
+  function isUnicode(str: String): Boolean;
+  function encryptUnicode(str: String): String;
+  function decryptUnicode(str: String): String;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function HTMLSpecialChars(str: String): String;
@@ -524,13 +527,84 @@ begin
     Exit;
   if FromLeft then begin
     SetLength(Result, MaxLen);
-    Result[MaxLen] := '…';
+    Result[MaxLen] := 'Â…';
   end else begin
     Result := Copy(Result, Length(Result)-MaxLen, Length(Result));
-    Result := '…' + Result;
+    Result := 'Â…' + Result;
   end;
 end;
 
+
+
+{***
+  Check if string is Unicode
+
+  @param string String to check
+  @return boolean
+}
+function isUnicode(str: String): Boolean;
+var i: integer;
+begin
+  result := false;
+  for i := 1 to length(str) do begin
+    result := ord(str[i]) > 255;
+    if result then exit;
+  end;
+end;
+
+
+{***
+  Password-encryption, used to store session-passwords in registry
+  Unicode (UTF-16) version, support up to 0xFFFF
+
+  @param string Text to encrypt
+  @return string Encrypted Text
+}
+function encryptUnicode(str: String): String;
+var
+  i, salt, nr: integer;
+  h: String;
+begin
+  randomize();
+  result := '';
+  salt := random(9) + 1;
+  for i := 1 to length(str) do begin
+    nr := (ord(str[i]) + salt) mod 65536;
+    h := IntToHex(nr, 4);  // 4 hex-symbols
+    result := result + h;
+  end;
+  // Adding Unicode flag
+  result := result + IntToStr(salt) + '0';
+end;
+
+
+{***
+  Password-decryption, used to restore session-passwords from registry
+  Unicode (UTF-16) version, support up to 0xFFFF
+
+  @param string Text to decrypt
+  @return string Decrypted Text
+}
+function decryptUnicode(str: String): String;
+var
+  j, salt, nr: integer;
+begin
+  result := '';
+  if str = '' then exit;
+  salt := StrToIntDef(str[length(str)], -1);
+
+  // Salt is NAN
+  if salt < 0 then exit;
+
+  j := 1;
+  while j < length(str) do begin
+    nr := StrToInt('$' + copy(str, j, 4)) - salt;
+    if nr < 0 then
+      nr := nr + 65536;
+    result := result + chr(nr);
+    inc(j, 4);
+  end;
+end;
 
 
 {***
@@ -544,6 +618,11 @@ var
   i, salt, nr : integer;
   h : String;
 begin
+  if isUnicode(str) then begin
+    result := encryptUnicode(str);
+    exit;
+  end;
+
   randomize();
   result := '';
   salt := random(9) + 1;
@@ -560,7 +639,6 @@ begin
 end;
 
 
-
 {***
   Password-decryption, used to restore session-passwords from registry
 
@@ -573,9 +651,20 @@ var
 begin
   result := '';
   if str = '' then exit;
+  salt := StrToIntDef(str[length(str)], -1);
+
+  // Salt is NAN - error
+  if salt < 0 then exit;
+
+  // Salt is Unicode flag - Unicode logic
+  if salt = 0 then begin
+    // Removing Unicode flag
+    result := decryptUnicode(copy(str, 1, length(str) - 1));
+    exit;
+  end;
+
+  // Salt is... salt - ANSI logic
   j := 1;
-  salt := StrToIntDef(str[length(str)],0);
-  result := '';
   while j < length(str)-1 do begin
     nr := StrToInt('$' + str[j] + str[j+1]) - salt;
     if nr < 0 then
@@ -764,7 +853,7 @@ end;
 
 function RoundCommercial(e: Extended): Int64;
 begin
-  // "Kaufmännisch runden"
+  // "KaufmÃ¤nnisch runden"
   // In contrast to Delphi's Round() which rounds *.5 to the next even number
   Result := Trunc(e);
   if Frac(e) >= 0.5 then
