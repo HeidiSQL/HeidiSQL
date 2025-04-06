@@ -1215,6 +1215,9 @@ procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
 var
   Writer: TStreamWriter;
 begin
+  // Encoding may be nil when previously loaded via auto-detection
+  if not Assigned(Encoding) then
+    Encoding := UTF8NoBOMEncoding;
   Writer := TStreamWriter.Create(Filename, False, Encoding);
   Writer.Write(Text);
   Writer.Free;
