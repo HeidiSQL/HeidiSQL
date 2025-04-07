@@ -527,10 +527,10 @@ begin
     Exit;
   if FromLeft then begin
     SetLength(Result, MaxLen);
-    Result[MaxLen] := 'Â…';
+    Result[MaxLen] := '…';
   end else begin
     Result := Copy(Result, Length(Result)-MaxLen, Length(Result));
-    Result := 'Â…' + Result;
+    Result := '…' + Result;
   end;
 end;
 
@@ -853,7 +853,7 @@ end;
 
 function RoundCommercial(e: Extended): Int64;
 begin
-  // "KaufmÃ¤nnisch runden"
+  // "Kaufmännisch runden"
   // In contrast to Delphi's Round() which rounds *.5 to the next even number
   Result := Trunc(e);
   if Frac(e) >= 0.5 then
