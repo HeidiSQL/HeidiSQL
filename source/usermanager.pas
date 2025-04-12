@@ -1293,15 +1293,19 @@ begin
           0: RequireClause := RequireClause + 'NONE';
           1: RequireClause := RequireClause + 'SSL';
           2: RequireClause := RequireClause + 'X509';
-          3: RequireClause := RequireClause + 'CIPHER '+FConnection.EscapeString(editCipher.Text)+' ISSUER '+FConnection.EscapeString(editIssuer.Text)+' SUBJECT '+FConnection.EscapeString(editSubject.Text);
+          3: RequireClause := RequireClause + 'CIPHER '+FConnection.EscapeString(editCipher.Text)+' AND ISSUER '+FConnection.EscapeString(editIssuer.Text)+' AND SUBJECT '+FConnection.EscapeString(editSubject.Text);
         end;
         if (FocusedUser.SSL = comboSSL.ItemIndex)
           and (FocusedUser.Cipher = editCipher.Text)
           and (FocusedUser.Issuer = editIssuer.Text)
           and (FocusedUser.Subject = editSubject.Text)
-          then
+          then begin
           RequireClause := '';
-        Grant := Grant + RequireClause;
+        end;
+        if not RequireClause.IsEmpty then begin
+          FConnection.Query('ALTER USER ' + UserHost + RequireClause);
+          FConnection.ShowWarnings;
+        end;
       end;
 
       WithClauses := TStringList.Create;
@@ -1321,7 +1325,7 @@ begin
       if WithClauses.Count > 0 then
         Grant := Grant + ' WITH ' + Implode(' ', WithClauses);
 
-      if P.Added or (P.AddedPrivs.Count > 0) or (WithClauses.Count > 0) or (RequireClause <> '') then begin
+      if P.Added or (P.AddedPrivs.Count > 0) or (WithClauses.Count > 0) then begin
         FConnection.Query(Grant);
         FConnection.ShowWarnings;
       end;
