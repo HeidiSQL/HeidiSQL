@@ -20,7 +20,7 @@ uses
   column_selection, loaddata, csv_detector, createdatabase, editvar, copytable,
   exportgrid, usermanager, selectdbobject, reformatter, searchreplace,
   connections, jsonregistry, sqlhelp, updatecheck, insertfiles, texteditor,
-  customize_highlighter, preferences, table_editor;
+  customize_highlighter, preferences, table_editor, view;
 
 {$R *.res}
 {.$R resources.rc}

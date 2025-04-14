@@ -1,0 +1,423 @@
+object frmView: TfrmView
+  Left = 0
+  Height = 625
+  Top = 0
+  Width = 875
+  ClientHeight = 625
+  ClientWidth = 875
+  DesignTimePPI = 120
+  ParentFont = False
+  TabOrder = 0
+  object lblSelect: TLabel
+    Left = 4
+    Height = 20
+    Top = 186
+    Width = 113
+    BorderSpacing.Around = 6
+    Caption = 'Select statement:'
+  end
+  object lblDisabledWhy: TLabel
+    AnchorSideLeft.Control = btnSave
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 306
+    Height = 31
+    Top = 588
+    Width = 563
+    Anchors = [akLeft, akRight, akBottom]
+    AutoSize = False
+    BorderSpacing.Around = 6
+    Caption = 'You need the SHOW VIEW privilege in order to edit a view.'
+    Layout = tlCenter
+    Visible = False
+  end
+  inline SynMemoBody: TSynEdit
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = PageControlMain
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = btnSave
+    Left = 6
+    Height = 349
+    Top = 233
+    Width = 863
+    BorderSpacing.Around = 6
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Courier New'
+    Font.Pitch = fpFixed
+    Font.Quality = fqNonAntialiased
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 1
+    Gutter.LeftOffset = 2
+    Gutter.Width = 70
+    Gutter.MouseActions = <>
+    RightGutter.Width = 0
+    RightGutter.MouseActions = <>
+    Keystrokes = <>
+    MouseActions = <>
+    MouseTextActions = <>
+    MouseSelActions = <>
+    Options = [eoAutoIndent, eoGroupUndo, eoShowScrollHint]
+    VisibleSpecialChars = [vscSpace, vscTabAtLast]
+    RightEdge = 0
+    SelectedColor.BackPriority = 50
+    SelectedColor.ForePriority = 50
+    SelectedColor.FramePriority = 50
+    SelectedColor.BoldPriority = 50
+    SelectedColor.ItalicPriority = 50
+    SelectedColor.UnderlinePriority = 50
+    SelectedColor.StrikeOutPriority = 50
+    BracketHighlightStyle = sbhsBoth
+    BracketMatchColor.Background = clNone
+    BracketMatchColor.Foreground = clNone
+    BracketMatchColor.Style = [fsBold]
+    FoldedCodeColor.Background = clNone
+    FoldedCodeColor.Foreground = clGray
+    FoldedCodeColor.FrameColor = clGray
+    MouseLinkColor.Background = clNone
+    MouseLinkColor.Foreground = clBlue
+    LineHighlightColor.Background = clNone
+    LineHighlightColor.Foreground = clNone
+    OnChange = Modification
+    inline SynLeftGutterPartList1: TSynGutterPartList
+      object SynGutterMarks1: TSynGutterMarks
+        Width = 30
+        MouseActions = <>
+      end
+      object SynGutterLineNumber1: TSynGutterLineNumber
+        Width = 17
+        MouseActions = <>
+        MarkupInfo.Background = clBtnFace
+        MarkupInfo.Foreground = clNone
+        DigitCount = 2
+        ShowOnlyLineNumbersMultiplesOf = 1
+        ZeroStart = False
+        LeadingZeros = False
+      end
+      object SynGutterChanges1: TSynGutterChanges
+        Width = 5
+        MouseActions = <>
+        ModifiedColor = 59900
+        SavedColor = clGreen
+      end
+      object SynGutterSeparator1: TSynGutterSeparator
+        Width = 3
+        MouseActions = <>
+        MarkupInfo.Background = clWhite
+        MarkupInfo.Foreground = clGray
+      end
+      object SynGutterCodeFolding1: TSynGutterCodeFolding
+        Width = 13
+        MouseActions = <>
+        MarkupInfo.Background = clNone
+        MarkupInfo.Foreground = clGray
+        MouseActionsExpanded = <>
+        MouseActionsCollapsed = <>
+      end
+    end
+  end
+  object btnDiscard: TButton
+    AnchorSideLeft.Control = btnHelp
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 106
+    Height = 31
+    Top = 588
+    Width = 94
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Around = 6
+    Caption = 'Discard'
+    TabOrder = 3
+    OnClick = btnDiscardClick
+  end
+  object btnSave: TButton
+    AnchorSideLeft.Control = btnDiscard
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 206
+    Height = 31
+    Top = 588
+    Width = 94
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Around = 6
+    Caption = 'Save'
+    Default = True
+    TabOrder = 4
+    OnClick = btnSaveClick
+  end
+  object btnHelp: TButton
+    AnchorSideLeft.Control = Owner
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 6
+    Height = 31
+    Top = 588
+    Width = 94
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Around = 6
+    Caption = 'Help'
+    TabOrder = 2
+    OnClick = btnHelpClick
+  end
+  object PageControlMain: TPageControl
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 6
+    Height = 221
+    Top = 6
+    Width = 863
+    ActivePage = tabOptions
+    Align = alTop
+    BorderSpacing.Around = 6
+    TabIndex = 0
+    TabOrder = 0
+    OnChange = PageControlMainChange
+    object tabOptions: TTabSheet
+      Caption = 'Options'
+      ClientHeight = 188
+      ClientWidth = 855
+      ImageIndex = 14
+      object lblName: TLabel
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = tabOptions
+        Left = 6
+        Height = 20
+        Top = 6
+        Width = 43
+        BorderSpacing.Around = 6
+        Caption = 'Name:'
+      end
+      object lblDefiner: TLabel
+        AnchorSideLeft.Control = editName
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = tabOptions
+        Left = 499
+        Height = 20
+        Top = 6
+        Width = 52
+        BorderSpacing.Around = 6
+        Caption = 'Definer:'
+      end
+      object lblSecurity: TLabel
+        AnchorSideLeft.Control = rgAlgorithm
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = comboDefiner
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabOptions
+        AnchorSideRight.Side = asrBottom
+        Left = 501
+        Height = 20
+        Top = 40
+        Width = 83
+        BorderSpacing.Around = 6
+        Caption = 'SQL security:'
+      end
+      object rgAlgorithm: TRadioGroup
+        AnchorSideLeft.Control = tabOptions
+        AnchorSideTop.Control = editName
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = tabOptions
+        AnchorSideBottom.Side = asrBottom
+        Left = 6
+        Height = 142
+        Top = 40
+        Width = 489
+        Anchors = [akTop, akLeft, akBottom]
+        AutoFill = True
+        BorderSpacing.Around = 6
+        Caption = 'Algorithm'
+        ChildSizing.LeftRightSpacing = 6
+        ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+        ChildSizing.EnlargeVertical = crsHomogenousChildResize
+        ChildSizing.ShrinkHorizontal = crsScaleChilds
+        ChildSizing.ShrinkVertical = crsScaleChilds
+        ChildSizing.Layout = cclLeftToRightThenTopToBottom
+        ChildSizing.ControlsPerLine = 1
+        ClientHeight = 117
+        ClientWidth = 485
+        ItemIndex = 0
+        Items.Strings = (
+          'UNDEFINED'
+          'MERGE'
+          'TEMPTABLE'
+        )
+        OnClick = Modification
+        TabOrder = 3
+      end
+      object editName: TEdit
+        AnchorSideTop.Control = tabOptions
+        Left = 105
+        Height = 28
+        Top = 6
+        Width = 388
+        BorderSpacing.Around = 6
+        TabOrder = 0
+        Text = 'editName'
+        TextHint = 'Enter view name'
+        OnChange = Modification
+      end
+      object comboDefiner: TComboBox
+        AnchorSideTop.Control = tabOptions
+        AnchorSideRight.Control = tabOptions
+        AnchorSideRight.Side = asrBottom
+        Left = 606
+        Height = 28
+        Top = 6
+        Width = 243
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        ItemHeight = 20
+        TabOrder = 1
+        Text = 'comboDefiner'
+        OnChange = Modification
+        OnDropDown = comboDefinerDropDown
+      end
+      object comboSecurity: TComboBox
+        AnchorSideRight.Control = tabOptions
+        AnchorSideRight.Side = asrBottom
+        Left = 606
+        Height = 28
+        Top = 38
+        Width = 243
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        ItemHeight = 20
+        Style = csDropDownList
+        TabOrder = 2
+        OnChange = Modification
+      end
+      object rgCheck: TRadioGroup
+        AnchorSideLeft.Control = rgAlgorithm
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = comboSecurity
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabOptions
+        AnchorSideRight.Side = asrBottom
+        AnchorSideBottom.Control = tabOptions
+        AnchorSideBottom.Side = asrBottom
+        Left = 501
+        Height = 108
+        Top = 72
+        Width = 348
+        Anchors = [akTop, akLeft, akRight]
+        AutoFill = True
+        BorderSpacing.Around = 6
+        Caption = 'Check option for updates'
+        ChildSizing.LeftRightSpacing = 6
+        ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+        ChildSizing.EnlargeVertical = crsHomogenousChildResize
+        ChildSizing.ShrinkHorizontal = crsScaleChilds
+        ChildSizing.ShrinkVertical = crsScaleChilds
+        ChildSizing.Layout = cclLeftToRightThenTopToBottom
+        ChildSizing.ControlsPerLine = 1
+        ClientHeight = 83
+        ClientWidth = 344
+        ItemIndex = 0
+        Items.Strings = (
+          'None'
+          'CASCADED'
+          'LOCAL'
+        )
+        OnClick = Modification
+        TabOrder = 4
+      end
+    end
+    object tabCreateCode: TTabSheet
+      Caption = 'CREATE code'
+      ClientHeight = 188
+      ClientWidth = 855
+      ImageIndex = 39
+      inline SynMemoCreateCode: TSynEdit
+        Left = 0
+        Height = 188
+        Top = 0
+        Width = 855
+        Align = alClient
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Pitch = fpFixed
+        Font.Quality = fqNonAntialiased
+        ParentColor = False
+        ParentFont = False
+        TabOrder = 0
+        Gutter.Width = 68
+        Gutter.MouseActions = <>
+        RightGutter.Width = 0
+        RightGutter.MouseActions = <>
+        Keystrokes = <>
+        MouseActions = <>
+        MouseTextActions = <>
+        MouseSelActions = <>
+        VisibleSpecialChars = [vscSpace, vscTabAtLast]
+        ReadOnly = True
+        SelectedColor.BackPriority = 50
+        SelectedColor.ForePriority = 50
+        SelectedColor.FramePriority = 50
+        SelectedColor.BoldPriority = 50
+        SelectedColor.ItalicPriority = 50
+        SelectedColor.UnderlinePriority = 50
+        SelectedColor.StrikeOutPriority = 50
+        BracketHighlightStyle = sbhsBoth
+        BracketMatchColor.Background = clNone
+        BracketMatchColor.Foreground = clNone
+        BracketMatchColor.Style = [fsBold]
+        FoldedCodeColor.Background = clNone
+        FoldedCodeColor.Foreground = clGray
+        FoldedCodeColor.FrameColor = clGray
+        MouseLinkColor.Background = clNone
+        MouseLinkColor.Foreground = clBlue
+        LineHighlightColor.Background = clNone
+        LineHighlightColor.Foreground = clNone
+        inline SynLeftGutterPartList1: TSynGutterPartList
+          object SynGutterMarks1: TSynGutterMarks
+            Width = 30
+            MouseActions = <>
+          end
+          object SynGutterLineNumber1: TSynGutterLineNumber
+            Width = 17
+            MouseActions = <>
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
+            DigitCount = 2
+            ShowOnlyLineNumbersMultiplesOf = 1
+            ZeroStart = False
+            LeadingZeros = False
+          end
+          object SynGutterChanges1: TSynGutterChanges
+            Width = 5
+            MouseActions = <>
+            ModifiedColor = 59900
+            SavedColor = clGreen
+          end
+          object SynGutterSeparator1: TSynGutterSeparator
+            Width = 3
+            MouseActions = <>
+            MarkupInfo.Background = clWhite
+            MarkupInfo.Foreground = clGray
+          end
+          object SynGutterCodeFolding1: TSynGutterCodeFolding
+            Width = 13
+            MouseActions = <>
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGray
+            MouseActionsExpanded = <>
+            MouseActionsCollapsed = <>
+          end
+        end
+      end
+    end
+  end
+end
