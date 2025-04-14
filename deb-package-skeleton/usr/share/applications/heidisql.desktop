@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Name=HeidiSQL
+Exec=heidisql %f
+TryExec=heidisql
+Comment=A lightweight interface to MySQL
+Terminal=false
+Categories=Development;
+Icon=heidisql
+Type=Application
+

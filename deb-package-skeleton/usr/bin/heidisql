@@ -1,0 +1,21 @@
+#!/bin/sh
+
+HS_DIR=/usr/share/heidisql
+export HS_DIR
+
+EXEC="$HS_DIR/heidisql"
+
+if [ -n "$LD_LIBRARY_PATH" ]; then
+export LD_LIBRARY_PATH="$HS_DIR:$LD_LIBRARY_PATH"
+else
+export LD_LIBRARY_PATH="$HS_DIR"
+fi
+
+# execute the program
+ARGS="";
+while [ "$#" -gt 0 ]; do
+	ARGS=$ARGS" \"$1\""
+	shift 1
+done
+/bin/bash -c "exec -a $0 $EXEC $ARGS > /dev/null 2>&1" $0
+
