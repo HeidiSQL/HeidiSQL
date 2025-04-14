@@ -181,6 +181,7 @@ object frmView: TfrmView
     Align = alTop
     BorderSpacing.Around = 6
     TabIndex = 0
+    Images = MainForm.ImageListIcons8
     TabOrder = 0
     OnChange = PageControlMainChange
     object tabOptions: TTabSheet
@@ -285,11 +286,13 @@ object frmView: TfrmView
         OnDropDown = comboDefinerDropDown
       end
       object comboSecurity: TComboBox
+        AnchorSideTop.Control = comboDefiner
+        AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
         Left = 606
         Height = 28
-        Top = 38
+        Top = 40
         Width = 243
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
@@ -309,10 +312,11 @@ object frmView: TfrmView
         AnchorSideBottom.Side = asrBottom
         Left = 501
         Height = 108
-        Top = 72
+        Top = 74
         Width = 348
-        Anchors = [akTop, akLeft, akRight]
+        Anchors = [akTop, akLeft, akRight, akBottom]
         AutoFill = True
+        AutoSize = True
         BorderSpacing.Around = 6
         Caption = 'Check option for updates'
         ChildSizing.LeftRightSpacing = 6
