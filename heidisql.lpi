@@ -287,6 +287,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\routine_editor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmRoutineEditor"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

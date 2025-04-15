@@ -1421,7 +1421,7 @@ implementation
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
   copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp, updatecheck,
-  insertfiles, texteditor, preferences, table_editor, view;
+  insertfiles, texteditor, preferences, table_editor, view, routine_editor;
 
 {$R *.lfm}
 
@@ -6811,7 +6811,7 @@ var
   Queries: TSQLBatch;
   Query: TSQLSentence;
   Conn: TDBConnection;
-  //RoutineEditor: TfrmRoutineEditor;
+  RoutineEditor: TfrmRoutineEditor;
   Param: TRoutineParam;
   DisplayText: String;
   SQLFunc: TSQLFunction;
@@ -6838,7 +6838,7 @@ var
     end;
 
     DisplayText := SynCompletionProposalPrettyText(Obj.ImageIndex, _(LowerCase(Obj.ObjType)), Obj.Name, FunctionDeclaration);
-    Proposal.ItemList.Add(DisplayText);
+    Proposal.ItemList.Add(Obj.Name+FunctionDeclaration);
   end;
 
   procedure AddColumns(const LeftToken: String);
@@ -6879,10 +6879,9 @@ var
           // Put formatted text and icon into proposal
           DisplayText := SynCompletionProposalPrettyText(ColumnIcon, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, DatatypeCategories[Col.DataType.Category].NullColor);
           //if CurrentInput.StartsWith(Conn.QuoteChar) then
-          //  Proposal.AddItem(DisplayText, Conn.QuoteChar + Col.Name)
+          //  Proposal.ItemList.Add(Conn.QuoteChar + Col.Name)
           //else
-          //  Proposal.AddItem(DisplayText, Col.Name);
-          Proposal.ItemList.Add(DisplayText);
+            Proposal.ItemList.Add(Col.Name);
           Inc(ColumnsInList);
         end;
         Columns.Free;
@@ -6930,7 +6929,7 @@ begin
       Results := Conn.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
         DisplayText := SynCompletionProposalPrettyText(ICONINDEX_PRIMARYKEY, _('Variable'), Results.Col(0), StringReplace(Results.Col(1), '\', '\\', [rfReplaceAll]));
-        Proposal.ItemList.Add(DisplayText);
+        Proposal.ItemList.Add(Results.Col(1));
         Results.Next;
       end;
     except
@@ -7055,7 +7054,7 @@ begin
       end;
 
       // Procedure params
-      {if GetParentFormOrFrame(Editor) is TfrmRoutineEditor then begin
+      if GetParentFormOrFrame(Editor) is TfrmRoutineEditor then begin
         RoutineEditor := GetParentFormOrFrame(Editor) as TfrmRoutineEditor;
         for Param in RoutineEditor.Parameters do begin
           if Param.Context = 'IN' then ImageIndex := 120
@@ -7063,9 +7062,9 @@ begin
           else if Param.Context = 'INOUT' then ImageIndex := 122
           else ImageIndex := -1;
           DisplayText := SynCompletionProposalPrettyText(ImageIndex, Param.Datatype, Param.Name, '');
-          Proposal.AddItem(DisplayText, Param.Name);
+          Proposal.ItemList.Add(Param.Name);
         end;
-      end;}
+      end;
 
     end;
 
@@ -12191,7 +12190,7 @@ begin
     case Obj.NodeType of
       lntTable: EditorClass := TfrmTableEditor;
       lntView: EditorClass := TfrmView;
-      //lntProcedure, lntFunction: EditorClass := TfrmRoutineEditor;
+      lntProcedure, lntFunction: EditorClass := TfrmRoutineEditor;
       //lntTrigger: EditorClass := TfrmTriggerEditor;
       //lntEvent: EditorClass := TfrmEventEditor;
       else Exit;
@@ -14203,8 +14202,8 @@ begin
                    if SelectedTableColumns.Count > Integer(Node.Index) then
                      CellText := SelectedTableColumns[Node.Index].Name;
                  lntFunction, lntProcedure:
-                   //if Assigned(ActiveObjectEditor) then
-                   //  CellText := TfrmRoutineEditor(ActiveObjectEditor).Parameters[Node.Index].Name;
+                   if Assigned(ActiveObjectEditor) then
+                     CellText := TfrmRoutineEditor(ActiveObjectEditor).Parameters[Node.Index].Name;
                end;
              end;
              TQueryTab.HelperNodeFunctions: begin
@@ -14348,7 +14347,7 @@ begin
                ChildCount := SelectedTableColumns.Count;
              lntFunction, lntProcedure:
                if Assigned(ActiveObjectEditor) then
-                 ChildCount := 0; //TfrmRoutineEditor(ActiveObjectEditor).Parameters.Count
+                 ChildCount := TfrmRoutineEditor(ActiveObjectEditor).Parameters.Count
                else
                  ChildCount := 0;
            end;
