@@ -36,6 +36,12 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="DateTimeCtrlsDsgn"/>
+      </Item>
+      <Item>
+        <PackageName Value="DateTimeCtrls"/>
+      </Item>
+      <Item>
         <PackageName Value="Printer4Lazarus"/>
       </Item>
       <Item>
@@ -298,6 +304,13 @@
         <Filename Value="source\trigger_editor.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmTriggerEditor"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit>
+      <Unit>
+        <Filename Value="source\event_editor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmEventEditor"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit>

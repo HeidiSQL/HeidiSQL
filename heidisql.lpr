@@ -11,7 +11,7 @@ uses
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   SysUtils,
-  Forms, printer4lazarus,
+  Forms, printer4lazarus, datetimectrls,
   { you can add units after this }
   main, apphelpers, dbconnection, { gnugettext,}
   dbstructures, dbstructures.mysql, About, generic_types,
@@ -21,7 +21,7 @@ uses
   exportgrid, usermanager, selectdbobject, reformatter, searchreplace,
   connections, jsonregistry, sqlhelp, updatecheck, insertfiles, texteditor,
   customize_highlighter, preferences, table_editor, view, routine_editor,
-  trigger_editor;
+  trigger_editor, event_editor;
 
 {$R *.res}
 {.$R resources.rc}
