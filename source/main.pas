@@ -1421,7 +1421,7 @@ implementation
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
   copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp, updatecheck,
-  insertfiles, texteditor, preferences, table_editor, view, routine_editor;
+  insertfiles, texteditor, preferences, table_editor, view, routine_editor, trigger_editor;
 
 {$R *.lfm}
 
@@ -12191,7 +12191,7 @@ begin
       lntTable: EditorClass := TfrmTableEditor;
       lntView: EditorClass := TfrmView;
       lntProcedure, lntFunction: EditorClass := TfrmRoutineEditor;
-      //lntTrigger: EditorClass := TfrmTriggerEditor;
+      lntTrigger: EditorClass := TfrmTriggerEditor;
       //lntEvent: EditorClass := TfrmEventEditor;
       else Exit;
     end;
