@@ -24,10 +24,11 @@ object frmTableEditor: TfrmTableEditor
     Height = 210
     Top = 0
     Width = 875
-    ActivePage = tabOptions
+    ActivePage = tabBasic
     Align = alTop
+    AutoSize = True
     Images = MainForm.ImageListIcons8
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 0
     OnChange = PageControlMainChange
     object tabBasic: TTabSheet

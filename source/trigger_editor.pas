@@ -11,6 +11,9 @@ uses
 
 type
   TFrame = TDBObjectEditor;
+
+  { TfrmTriggerEditor }
+
   TfrmTriggerEditor = class(TFrame)
     SynMemoBody: TSynEdit;
     btnHelp: TButton;

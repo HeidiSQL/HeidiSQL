@@ -42,8 +42,8 @@ object frmView: TfrmView
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnSave
     Left = 6
-    Height = 349
-    Top = 233
+    Height = 360
+    Top = 222
     Width = 863
     BorderSpacing.Around = 6
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -174,19 +174,20 @@ object frmView: TfrmView
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 6
-    Height = 221
+    Height = 210
     Top = 6
     Width = 863
     ActivePage = tabOptions
     Align = alTop
+    AutoSize = True
     BorderSpacing.Around = 6
-    TabIndex = 0
     Images = MainForm.ImageListIcons8
+    TabIndex = 0
     TabOrder = 0
     OnChange = PageControlMainChange
     object tabOptions: TTabSheet
       Caption = 'Options'
-      ClientHeight = 188
+      ClientHeight = 177
       ClientWidth = 855
       ImageIndex = 14
       object lblName: TLabel
@@ -211,13 +212,13 @@ object frmView: TfrmView
         Caption = 'Definer:'
       end
       object lblSecurity: TLabel
-        AnchorSideLeft.Control = rgAlgorithm
+        AnchorSideLeft.Control = editName
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboDefiner
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
-        Left = 501
+        Left = 499
         Height = 20
         Top = 40
         Width = 83
@@ -226,15 +227,15 @@ object frmView: TfrmView
       end
       object rgAlgorithm: TRadioGroup
         AnchorSideLeft.Control = tabOptions
-        AnchorSideTop.Control = editName
+        AnchorSideTop.Control = comboSecurity
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = tabOptions
         AnchorSideBottom.Side = asrBottom
         Left = 6
-        Height = 142
-        Top = 40
-        Width = 489
+        Height = 97
+        Top = 74
+        Width = 486
         Anchors = [akTop, akLeft, akBottom]
         AutoFill = True
         BorderSpacing.Around = 6
@@ -246,8 +247,8 @@ object frmView: TfrmView
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 117
-        ClientWidth = 485
+        ClientHeight = 72
+        ClientWidth = 482
         ItemIndex = 0
         Items.Strings = (
           'UNDEFINED'
@@ -310,10 +311,10 @@ object frmView: TfrmView
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = tabOptions
         AnchorSideBottom.Side = asrBottom
-        Left = 501
-        Height = 108
+        Left = 498
+        Height = 97
         Top = 74
-        Width = 348
+        Width = 351
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoFill = True
         AutoSize = True
@@ -326,8 +327,8 @@ object frmView: TfrmView
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 83
-        ClientWidth = 344
+        ClientHeight = 72
+        ClientWidth = 347
         ItemIndex = 0
         Items.Strings = (
           'None'
@@ -340,12 +341,12 @@ object frmView: TfrmView
     end
     object tabCreateCode: TTabSheet
       Caption = 'CREATE code'
-      ClientHeight = 188
+      ClientHeight = 177
       ClientWidth = 855
       ImageIndex = 39
       inline SynMemoCreateCode: TSynEdit
         Left = 0
-        Height = 188
+        Height = 177
         Top = 0
         Width = 855
         Align = alClient

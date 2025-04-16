@@ -13,7 +13,7 @@ object frmEventEditor: TfrmEventEditor
     AnchorSideTop.Side = asrBottom
     Left = 6
     Height = 20
-    Top = 220
+    Top = 187
     Width = 863
     Align = alTop
     BorderSpacing.Around = 6
@@ -25,8 +25,8 @@ object frmEventEditor: TfrmEventEditor
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = btnSave
     Left = 6
-    Height = 336
-    Top = 246
+    Height = 369
+    Top = 213
     Width = 863
     Align = alTop
     BorderSpacing.Around = 6
@@ -157,11 +157,12 @@ object frmEventEditor: TfrmEventEditor
   end
   object PageControlMain: TPageControl
     Left = 6
-    Height = 208
+    Height = 175
     Top = 6
     Width = 863
     ActivePage = tabSettings
     Align = alTop
+    AutoSize = True
     BorderSpacing.Around = 6
     Images = MainForm.ImageListIcons8
     TabIndex = 0
@@ -169,7 +170,7 @@ object frmEventEditor: TfrmEventEditor
     OnChange = PageControlMainChange
     object tabSettings: TTabSheet
       Caption = 'Settings'
-      ClientHeight = 175
+      ClientHeight = 142
       ClientWidth = 855
       ImageIndex = 39
       object lblName: TLabel
@@ -257,11 +258,12 @@ object frmEventEditor: TfrmEventEditor
         AnchorSideBottom.Control = tabSettings
         AnchorSideBottom.Side = asrBottom
         Left = 105
-        Height = 65
+        Height = 32
         Top = 104
         Width = 744
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoFill = True
+        AutoSize = True
         BorderSpacing.Around = 6
         Caption = 'State'
         ChildSizing.LeftRightSpacing = 6
@@ -294,7 +296,7 @@ object frmEventEditor: TfrmEventEditor
     end
     object tabScheduling: TTabSheet
       Caption = 'Timing'
-      ClientHeight = 175
+      ClientHeight = 142
       ClientWidth = 855
       ImageIndex = 80
       object radioOnce: TRadioButton
@@ -539,12 +541,12 @@ object frmEventEditor: TfrmEventEditor
     end
     object tabCREATEcode: TTabSheet
       Caption = 'CREATE code'
-      ClientHeight = 175
+      ClientHeight = 142
       ClientWidth = 855
       ImageIndex = 119
       inline SynMemoCREATEcode: TSynEdit
         Left = 0
-        Height = 175
+        Height = 142
         Top = 0
         Width = 855
         Align = alClient
@@ -630,13 +632,13 @@ object frmEventEditor: TfrmEventEditor
     end
     object tabALTERcode: TTabSheet
       Caption = 'ALTER code'
-      ClientHeight = 175
+      ClientHeight = 142
       ClientWidth = 855
       ImageIndex = 119
       TabVisible = False
       inline SynMemoALTERcode: TSynEdit
         Left = 0
-        Height = 175
+        Height = 142
         Top = 0
         Width = 855
         Align = alClient

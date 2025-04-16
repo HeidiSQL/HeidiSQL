@@ -11,7 +11,7 @@ object frmTriggerEditor: TfrmTriggerEditor
   object lblBody: TLabel
     Left = 6
     Height = 20
-    Top = 177
+    Top = 153
     Width = 863
     Align = alTop
     BorderSpacing.Around = 6
@@ -19,11 +19,12 @@ object frmTriggerEditor: TfrmTriggerEditor
   end
   object PageControlMain: TPageControl
     Left = 6
-    Height = 165
+    Height = 141
     Top = 6
     Width = 863
     ActivePage = tabOptions
     Align = alTop
+    AutoSize = True
     BorderSpacing.Around = 6
     Images = MainForm.ImageListIcons8
     TabIndex = 0
@@ -31,7 +32,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     OnChange = PageControlMainChange
     object tabOptions: TTabSheet
       Caption = 'Options'
-      ClientHeight = 132
+      ClientHeight = 108
       ClientWidth = 855
       ImageIndex = 39
       object lblDefiner: TLabel
@@ -39,7 +40,7 @@ object frmTriggerEditor: TfrmTriggerEditor
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboDefiner
         AnchorSideTop.Side = asrCenter
-        Left = 307
+        Left = 308
         Height = 20
         Top = 10
         Width = 52
@@ -97,11 +98,13 @@ object frmTriggerEditor: TfrmTriggerEditor
         OnDropDown = comboDefinerDropDown
       end
       object editName: TEdit
+        AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = tabOptions
-        Left = 105
+        Left = 106
         Height = 28
         Top = 6
         Width = 196
+        BorderSpacing.Left = 100
         BorderSpacing.Around = 6
         TabOrder = 1
         Text = 'editName'
@@ -109,15 +112,17 @@ object frmTriggerEditor: TfrmTriggerEditor
         OnChange = Modification
       end
       object comboTable: TComboBox
+        AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = editName
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
-        Left = 105
+        Left = 106
         Height = 28
         Top = 40
-        Width = 744
+        Width = 743
         Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Left = 100
         BorderSpacing.Around = 6
         ItemHeight = 20
         Style = csDropDownList
@@ -125,12 +130,17 @@ object frmTriggerEditor: TfrmTriggerEditor
         OnChange = comboChange
       end
       object comboTiming: TComboBox
+        AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = comboTable
         AnchorSideTop.Side = asrBottom
-        Left = 105
+        AnchorSideBottom.Control = tabOptions
+        AnchorSideBottom.Side = asrBottom
+        Left = 106
         Height = 28
         Top = 74
         Width = 196
+        Anchors = [akTop, akLeft, akBottom]
+        BorderSpacing.Left = 100
         BorderSpacing.Around = 6
         ItemHeight = 20
         Style = csDropDownList
@@ -142,7 +152,7 @@ object frmTriggerEditor: TfrmTriggerEditor
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboTable
         AnchorSideTop.Side = asrBottom
-        Left = 307
+        Left = 308
         Height = 28
         Top = 74
         Width = 181
@@ -155,12 +165,12 @@ object frmTriggerEditor: TfrmTriggerEditor
     end
     object tabCreateCode: TTabSheet
       Caption = 'CREATE code'
-      ClientHeight = 132
+      ClientHeight = 108
       ClientWidth = 855
       ImageIndex = 119
       inline SynMemoCreateCode: TSynEdit
         Left = 0
-        Height = 132
+        Height = 108
         Top = 0
         Width = 855
         Align = alClient
@@ -251,8 +261,8 @@ object frmTriggerEditor: TfrmTriggerEditor
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnSave
     Left = 6
-    Height = 379
-    Top = 203
+    Height = 403
+    Top = 179
     Width = 863
     Align = alTop
     BorderSpacing.Around = 6

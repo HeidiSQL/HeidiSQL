@@ -11,7 +11,7 @@ object frmRoutineEditor: TfrmRoutineEditor
   object lblSQLcode: TLabel
     Left = 6
     Height = 20
-    Top = 236
+    Top = 238
     Width = 863
     Align = alTop
     BorderSpacing.Around = 6
@@ -36,7 +36,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Cursor = crVSplit
     Left = 0
     Height = 10
-    Top = 220
+    Top = 222
     Width = 875
     Align = alTop
     ResizeAnchor = akTop
@@ -90,8 +90,8 @@ object frmRoutineEditor: TfrmRoutineEditor
   inline SynMemoBody: TSynEdit
     AnchorSideBottom.Control = btnSave
     Left = 6
-    Height = 320
-    Top = 262
+    Height = 318
+    Top = 264
     Width = 863
     Align = alTop
     BorderSpacing.Around = 6
@@ -179,11 +179,12 @@ object frmRoutineEditor: TfrmRoutineEditor
   end
   object PageControlMain: TPageControl
     Left = 6
-    Height = 208
+    Height = 210
     Top = 6
     Width = 863
     ActivePage = tabOptions
     Align = alTop
+    AutoSize = True
     BorderSpacing.Around = 6
     Constraints.MinHeight = 125
     Images = MainForm.ImageListIcons8
@@ -192,7 +193,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     OnChange = PageControlMainChange
     object tabOptions: TTabSheet
       Caption = 'Options'
-      ClientHeight = 175
+      ClientHeight = 177
       ClientWidth = 855
       ImageIndex = 39
       object lblName: TLabel
@@ -401,12 +402,12 @@ object frmRoutineEditor: TfrmRoutineEditor
     end
     object tabParameters: TTabSheet
       Caption = 'Parameters'
-      ClientHeight = 175
+      ClientHeight = 177
       ClientWidth = 855
       ImageIndex = 122
       object listParameters: TLazVirtualStringTree
         Left = 103
-        Height = 175
+        Height = 177
         Top = 0
         Width = 752
         Align = alClient
@@ -458,7 +459,7 @@ object frmRoutineEditor: TfrmRoutineEditor
       end
       object tlbParameters: TToolBar
         Left = 0
-        Height = 175
+        Height = 177
         Top = 0
         Width = 103
         Align = alLeft
@@ -505,8 +506,8 @@ object frmRoutineEditor: TfrmRoutineEditor
           Wrap = True
         end
         object btnMoveDownParam: TToolButton
-          Left = 103
-          Top = 2
+          Left = 1
+          Top = 142
           Caption = 'Move down'
           Enabled = False
           ImageIndex = 75
@@ -516,12 +517,12 @@ object frmRoutineEditor: TfrmRoutineEditor
     end
     object tabCreateCode: TTabSheet
       Caption = 'CREATE code'
-      ClientHeight = 175
+      ClientHeight = 177
       ClientWidth = 855
       ImageIndex = 119
       inline SynMemoCREATEcode: TSynEdit
         Left = 0
-        Height = 175
+        Height = 177
         Top = 0
         Width = 855
         Align = alClient
