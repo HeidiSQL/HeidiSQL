@@ -14,7 +14,7 @@ uses
   Generics.Defaults, opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn,
   FileUtil, LMessages, jsonconf, dbconnection, dbstructures, dbstructures.mysql,
   generic_types, apphelpers, extra_controls, createdatabase,
-  SynEditMarkupSpecialLine, searchreplace, ImgList;
+  SynEditMarkupSpecialLine, searchreplace, ImgList, IniFiles, LazFileUtils;
 
 
 type
@@ -1298,9 +1298,9 @@ type
     //procedure SetLogToFile(Value: Boolean);
     procedure StoreLastSessions;
     function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
-    //function InitTabsIniFile: TIniFile;
-    //procedure StoreTabs;
-    //function RestoreTabs: Boolean;
+    function InitTabsIniFile: TIniFile;
+    procedure StoreTabs;
+    function RestoreTabs: Boolean;
     procedure SetHintFontByControl(Control: TWinControl=nil);
   public
     QueryTabs: TQueryTabList;
@@ -2331,10 +2331,10 @@ begin
     end;
   end;
 
-  {// Restore backup'ed query tabs
+  // Restore backup'ed query tabs
   if AppSettings.RestoreTabsInitValue then begin
     TimerStoreTabs.Enabled := RestoreTabs;
-  end;}
+  end;
 
   // Load SQL file(s) by command line
   if not RunQueryFiles(FileNames, nil, false) then begin
@@ -2353,10 +2353,10 @@ begin
 end;
 
 
-{function TMainForm.InitTabsIniFile: TIniFile;
+function TMainForm.InitTabsIniFile: TIniFile;
 var
-  WaitingSince: UInt64;
-  Attempts: Integer;
+  //WaitingSince: UInt64;
+  //Attempts: Integer;
   TabsIniFilename: String;
 begin
   // Try to open tabs.ini for writing or reading
@@ -2365,7 +2365,7 @@ begin
     TabsIniFilename := ExtractFilePath(Application.ExeName) + 'tabs.ini'
   else
     TabsIniFilename := AppSettings.DirnameUserAppData + 'tabs.ini';
-  WaitingSince := GetTickCount64;
+  {WaitingSince := GetTickCount64;
   Attempts := 0;
   while not FileIsWritable(TabsIniFilename) do begin
     if GetTickCount64 - WaitingSince > 3000 then
@@ -2375,16 +2375,16 @@ begin
   end;
   if Attempts > 0 then begin
     LogSQL(Format('Had to wait %d ms before opening %s', [GetTickCount64 - WaitingSince, TabsIniFilename]), lcDebug);
-  end;
+  end;}
   // Catch errors when file cannot be created
   if not FileExists(TabsIniFilename) then begin
     SaveUnicodeFile(TabsIniFilename, '', UTF8NoBOMEncoding);
   end;
   Result := TIniFile.Create(TabsIniFilename);
-end;}
+end;
 
 
-{procedure TMainForm.StoreTabs;
+procedure TMainForm.StoreTabs;
 var
   Tab: TQueryTab;
   Section, TabCaption: String;
@@ -2413,8 +2413,8 @@ begin
         TabsIni.WriteString(Section, TQueryTab.IdentFilename, Tab.MemoFilename);
       if TabsIni.ReadString(Section, TQueryTab.IdentCaption, '') <> TabCaption then
         TabsIni.WriteString(Section, TQueryTab.IdentCaption, TabCaption);
-      if TabsIni.ReadInteger(Section, TQueryTab.IdentPid, 0) <> Integer(GetCurrentProcessId) then
-        TabsIni.WriteInteger(Section, TQueryTab.IdentPid, Integer(GetCurrentProcessId));
+      if TabsIni.ReadInteger(Section, TQueryTab.IdentPid, 0) <> Integer(GetProcessId) then
+        TabsIni.WriteInteger(Section, TQueryTab.IdentPid, Integer(GetProcessId));
       if TabsIni.ReadInteger(Section, TQueryTab.IdentEditorHeight, 0) <> Tab.pnlMemo.Height then
         TabsIni.WriteInteger(Section, TQueryTab.IdentEditorHeight, Tab.pnlMemo.Height);
       if TabsIni.ReadInteger(Section, TQueryTab.IdentHelpersWidth, 0) <> Tab.pnlHelpers.Width then
@@ -2444,7 +2444,7 @@ begin
       end;
       // Delete tab section if tab was closed and section belongs to this app instance
       pid := Cardinal(TabsIni.ReadInteger(Section, TQueryTab.IdentPid, 0));
-      if (not SectionTabExists) and (pid = GetCurrentProcessId) then begin
+      if (not SectionTabExists) and (pid = GetProcessId) then begin
         TabsIni.EraseSection(Section);
       end;
     end;
@@ -2457,14 +2457,14 @@ begin
       ErrorDialog(_('Storing tab setup failed'),
         'Tabs won''t be stored in this session.' + CRLF + CRLF +
         E.Message + CRLF + CRLF +
-        SysErrorMessage(GetLastError)
+        SysErrorMessage(GetLastOSError)
         );
     end;
   end;
-end;}
+end;
 
 
-{function TMainForm.RestoreTabs: Boolean;
+function TMainForm.RestoreTabs: Boolean;
 var
   Tab: TQueryTab;
   Sections, SlowTabs: TStringList;
@@ -2513,7 +2513,7 @@ begin
       Encoding := GetEncodingByName(TabsIni.ReadString(Section, TQueryTab.IdentFileEncoding, 'UTF-8'));
 
       // Don't restore this tab if it belongs to a different running Heidi process
-      if (pid > 0) and (pid <> GetCurrentProcessId) and ProcessExists(pid, APPNAME) then begin
+      if (pid > 0) and (pid <> GetProcessId) and ProcessExists(pid, APPNAME) then begin
         LogSQL(IfThen(BackupFilename.IsEmpty, Filename, BackupFilename)+' loaded in process #'+pid.ToString);
         Continue;
       end;
@@ -2590,11 +2590,11 @@ begin
       ErrorDialog(_('Restoring tab setup failed'),
         'Tabs won''t be stored in this session.' + CRLF + CRLF +
         E.Message + CRLF + CRLF +
-        SysErrorMessage(GetLastError)
+        SysErrorMessage(GetLastOSError)
         );
     end;
   end;
-end;}
+end;
 
 
 procedure TMainForm.SetHintFontByControl(Control: TWinControl=nil);
@@ -2614,7 +2614,7 @@ end;
 procedure TMainForm.TimerStoreTabsTimer(Sender: TObject);
 begin
   // Backup unsaved content every 10 seconds
-  //StoreTabs;
+  StoreTabs;
 end;
 
 
@@ -2626,6 +2626,7 @@ begin
   Dialog.ShowModal;
   Dialog.Free;
 end;
+
 
 procedure TMainForm.actDisconnectExecute(Sender: TObject);
 var
@@ -12328,7 +12329,19 @@ begin
   QueryTab.Memo.RightEdge := SynMemoQuery.RightEdge;
   QueryTab.Memo.WantTabs := SynMemoQuery.WantTabs;
   QueryTab.Memo.Highlighter := SynMemoQuery.Highlighter;
-  QueryTab.Memo.Gutter.Assign(SynMemoQuery.Gutter);
+  QueryTab.Memo.Gutter.Width := SynMemoQuery.Gutter.Width;
+  // Todo: adding and gutter part results in EAccessviolation's when closing a query tab.
+  // Fix that and use the same gutter as in mother query tab
+  // In the meantime we let SynEdit use TSynGutter.CreateDefaultGutterParts
+  //for GutterPartIndex:=0 to SynMemoQuery.Gutter.Parts.Count-1 do begin
+  //  QueryTab.Memo.Gutter.Parts.Add(SynMemoQuery.Gutter.Parts[GutterPartIndex].ClassType.Create(QueryTab.Memo.Gutter.Parts));
+  //  QueryTab.Memo.Gutter.Parts[GutterPartIndex].Width := SynMemoQuery.Gutter.Parts[GutterPartIndex].Width;
+  //end;
+  //QueryTab.Memo.Gutter.Parts.Clear;
+  //QueryTab.Memo.Gutter.Parts.Add(TSynGutterLineNumber.Create(QueryTab.Memo.Gutter.Parts));
+  //QueryTab.Memo.Gutter.Parts[0].Width := SynMemoQuery.Gutter.Parts[0].Width;
+  //QueryTab.Memo.Gutter.Parts.Add(TSynGutterCodeFolding.Create(QueryTab.Memo.Gutter.Parts));
+  //QueryTab.Memo.Gutter.Parts[1].Width := SynMemoQuery.Gutter.Parts[1].Width;
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
   //QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
@@ -13123,7 +13136,7 @@ begin
       end;
     end;
     // Leave space for close button on closable query tabs
-    Text := Text + '      ';
+    //Text := Text + '      ';
   end;
   PageControlMain.Pages[PageIndex].Caption := Text;
   FixQueryTabCloseButtons;
@@ -13186,8 +13199,8 @@ begin
       else begin
         Dialog := TExtFileSaveDialog.Create(Self);
         Dialog.Options := Dialog.Options + [ofOverwritePrompt];
-        //Dialog.AddFileType('*.sql', _('SQL files'));
-        //Dialog.AddFileType('*.*', _('All files'));
+        Dialog.AddFileType('*.sql', _('SQL files'));
+        Dialog.AddFileType('*.*', _('All files'));
         Dialog.DefaultExt := 'sql';
         //Dialog.LineBreakIndex := Tab.MemoLineBreaks;
         if Dialog.Execute then begin

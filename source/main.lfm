@@ -1089,12 +1089,12 @@ object MainForm: TMainForm
         Height = 315
         Top = 0
         Width = 780
-        ActivePage = tabData
+        ActivePage = tabQuery
         Align = alClient
         HotTrack = True
         Images = ImageListIcons8
         PopupMenu = popupMainTabs
-        TabIndex = 3
+        TabIndex = 4
         TabOrder = 1
         OnChange = PageControlMainChange
         OnChanging = PageControlMainChanging
@@ -3019,7 +3019,7 @@ object MainForm: TMainForm
               OnDragOver = SynMemoQueryDragOver
               OnKeyPress = SynMemoQueryKeyPress
               OnMouseWheel = AnySynMemoMouseWheel
-              Gutter.Width = 30
+              Gutter.Width = 68
               Gutter.MouseActions = <>
               RightGutter.Width = 0
               RightGutter.MouseActions = <>
@@ -3473,6 +3473,10 @@ object MainForm: TMainForm
               OnSpecialLineColors = SynMemoQuerySpecialLineColors
               OnStatusChange = SynMemoQueryStatusChange
               inline SynLeftGutterPartList1: TSynGutterPartList
+                object SynGutterMarks1: TSynGutterMarks
+                  Width = 30
+                  MouseActions = <>
+                end
                 object SynGutterLineNumber1: TSynGutterLineNumber
                   Width = 17
                   MouseActions = <>
@@ -3482,6 +3486,18 @@ object MainForm: TMainForm
                   ShowOnlyLineNumbersMultiplesOf = 1
                   ZeroStart = False
                   LeadingZeros = False
+                end
+                object SynGutterChanges1: TSynGutterChanges
+                  Width = 5
+                  MouseActions = <>
+                  ModifiedColor = 59900
+                  SavedColor = clGreen
+                end
+                object SynGutterSeparator1: TSynGutterSeparator
+                  Width = 3
+                  MouseActions = <>
+                  MarkupInfo.Background = clWhite
+                  MarkupInfo.Foreground = clGray
                 end
                 object SynGutterCodeFolding1: TSynGutterCodeFolding
                   Width = 13

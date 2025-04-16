@@ -59,22 +59,23 @@ type
       property EncodingIndex: Cardinal read FEncodingIndex write FEncodingIndex;
   end;
 
-  {TExtFileSaveDialog = class(TFileSaveDialog)
+  TExtFileSaveDialog = class(TSaveDialog)
     private
+      FFilters: TStringList;
       FLineBreaks: TStringList;
       FLineBreakIndex: TLineBreaks;
       const idLineBreakCombo = 1;
       procedure FileOkClickNoOp(Sender: TObject; var CanClose: Boolean);
     protected
-      procedure DoOnExecute; override;
-      function DoOnFileOkClick: Boolean; override;
+      //procedure DoOnExecute; override;
+      //function DoOnFileOkClick: Boolean; override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure AddFileType(FileMask, DisplayName: String);
       property LineBreaks: TStringList read FLineBreaks;
       property LineBreakIndex: TLineBreaks read FLineBreakIndex write FLineBreakIndex;
-  end;}
+  end;
 
   {TExtSynHotKey = class(TSynHotKey)
     private
@@ -502,14 +503,10 @@ end;
 
 procedure TExtFileOpenDialog.AddFileType(FileMask, DisplayName: String);
 var
-  //FileType: TFileTypeItem;
   i: Integer;
   NewFilter: String;
 begin
   // Shorthand for callers
-  {FileType := FileTypes.Add;
-  FileType.DisplayName := DisplayName;
-  FileType.FileMask := FileMask;}
   FFilters.Values[DisplayName] := FileMask;
   NewFilter := '';
   for i:=FFilters.Count-1 downto 0 do begin
@@ -567,7 +564,7 @@ end;}
 
 { TExtFileSaveDialog }
 
-{constructor TExtFileSaveDialog.Create(AOwner: TComponent);
+constructor TExtFileSaveDialog.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FLineBreaks := TStringList.Create;
@@ -575,6 +572,7 @@ begin
   FLineBreaks.Add(_('UNIX linebreaks'));
   FLineBreaks.Add(_('Mac OS linebreaks'));
   FLineBreakIndex := lbsWindows;
+  FFilters := TStringList.Create;
 end;
 
 
@@ -587,16 +585,22 @@ end;
 
 procedure TExtFileSaveDialog.AddFileType(FileMask, DisplayName: String);
 var
-  FileType: TFileTypeItem;
+  i: Integer;
+  NewFilter: String;
 begin
   // Shorthand for callers
-  FileType := FileTypes.Add;
-  FileType.DisplayName := DisplayName;
-  FileType.FileMask := FileMask;
+  FFilters.Values[DisplayName] := FileMask;
+  NewFilter := '';
+  for i:=FFilters.Count-1 downto 0 do begin
+    NewFilter := NewFilter + Format('%s (%s)|%s', [FFilters.Names[i], FFilters.ValueFromIndex[i], FFilters.ValueFromIndex[i]]);
+    if i > 0 then
+      NewFilter := NewFilter + '|';
+  end;
+  Filter := NewFilter;
 end;
 
 
-procedure TExtFileSaveDialog.DoOnExecute;
+{procedure TExtFileSaveDialog.DoOnExecute;
 var
   iCustomize: IFileDialogCustomize;
   i, ComboIndex: Integer;
@@ -622,7 +626,7 @@ begin
       iCustomize.EndVisualGroup;
     end;
   end;
-end;
+end;}
 
 
 procedure TExtFileSaveDialog.FileOkClickNoOp(Sender: TObject; var CanClose: Boolean);
@@ -631,7 +635,7 @@ begin
 end;
 
 
-function TExtFileSaveDialog.DoOnFileOkClick: Boolean;
+{function TExtFileSaveDialog.DoOnFileOkClick: Boolean;
 var
   iCustomize: IFileDialogCustomize;
   ComboIndex: Cardinal;

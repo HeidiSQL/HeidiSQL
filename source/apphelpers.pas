@@ -15,7 +15,6 @@ type
   // Sync with main branch and Delphi structures
   TSynMemo = TSynEdit;
   TVirtualStringTree = TLazVirtualStringTree;
-  TExtFileSaveDialog = class(TSaveDialog);
   TImageIndex = Integer;
   PInt = ^Integer;
   TProgressBarState = (pbsNormal, pbsError, pbsPaused);
@@ -441,7 +440,7 @@ type
   //function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
   function GetThemeColor(Color: TColor): TColor;
   function ThemeIsDark(ThemeName: String=''): Boolean;
-  //function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
+  function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   //procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
   function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
   function PopupComponent(Sender: TObject): TComponent;
@@ -663,15 +662,9 @@ end;
 
 
 function DeleteFileWithUndo(sFileName: string): Boolean;
-//var
-//  fos: TSHFileOpStruct;
 begin
-  {FillChar(fos, SizeOf(fos), 0);
-  fos.wFunc := FO_DELETE;
-  fos.pFrom := PChar(sFileName + #0);
-  fos.fFlags := FOF_ALLOWUNDO or FOF_NOCONFIRMATION or FOF_SILENT;
-  Result := (0 = ShFileOperation(fos));}
-  Beep;
+  // Todo: move to trash, cross-platform
+  Result := DeleteFile(sFileName);
 end;
 
 
@@ -2767,6 +2760,7 @@ var
   hFile: DWORD;
 begin
   // Check if file is writable
+  // replaced through LazFileUtils.FileIsWritable
   if not FileExists(FilePath) then begin
     // Return true if file does not exist
     Result := True;
@@ -2792,14 +2786,16 @@ begin
 end;
 
 
-{function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
-var
+function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
+{var
   Proc: TProcessEntry32;
   SnapShot: THandle;
-  ContinueLoop: Boolean;
+  ContinueLoop: Boolean;}
 begin
   // Check if a given process id exists
-  SnapShot := CreateToolhelp32Snapshot(TH32CS_SnapProcess, 0);
+  // Todo: convert code for cross-platforming
+  Result := False;
+  {SnapShot := CreateToolhelp32Snapshot(TH32CS_SnapProcess, 0);
   Proc.dwSize := Sizeof(Proc);
   Result := False;
   ContinueLoop := Process32First(SnapShot, Proc);
@@ -2809,8 +2805,8 @@ begin
       Break;
     ContinueLoop := Process32Next(SnapShot, Proc);
   end;
-  CloseHandle(Snapshot);
-end;}
+  CloseHandle(Snapshot);}
+end;
 
 
 {procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
