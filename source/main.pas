@@ -2713,7 +2713,7 @@ begin
       end;
       rx.Free;
 
-      //FreeAndNil(ActiveObjectEditor);
+      FreeAndNil(ActiveObjectEditor);
       RefreshHelperNode(TQueryTab.HelperNodeProfile);
       RefreshHelperNode(TQueryTab.HelperNodeColumns);
 
@@ -3693,6 +3693,7 @@ begin
     UpdatePreviewPanel;
 end;
 
+
 procedure TMainForm.UpdatePreviewPanel;
 var
   Grid: TVirtualStringTree;
@@ -3858,7 +3859,7 @@ var
   Obj: PDBObject;
   DBObject: TDBObject;
   ObjectList: TDBObjectList;
-  //Editor: TDBObjectEditor;
+  Editor: TDBObjectEditor;
   Conn: TDBConnection;
 begin
   Conn := ActiveConnection;
@@ -3918,11 +3919,11 @@ begin
       if Conn.Has(frForeignKeyChecksVar) then
         Conn.Query('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0');
       // Compose and run DROP [TABLE|VIEW|...] queries
-      //Editor := ActiveObjectEditor;
+      Editor := ActiveObjectEditor;
       for DBObject in ObjectList do begin
         DBObject.Drop;
-        //if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
-        //  Editor.Modified := False;
+        if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
+          Editor.Modified := False;
       end;
       if Conn.Has(frForeignKeyChecksVar) then
         Conn.Query('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS');
@@ -4961,17 +4962,17 @@ begin
   if Assigned(Memo) then begin
     Dialog := TExtFileSaveDialog.Create(Self);
     Dialog.Options := Dialog.Options + [ofOverWritePrompt];
-    //Dialog.AddFileType('*.sql', _('SQL files'));
-    //Dialog.AddFileType('*.*', _('All files'));
+    Dialog.AddFileType('*.sql', _('SQL files'));
+    Dialog.AddFileType('*.*', _('All files'));
     Dialog.DefaultExt := 'sql';
     //Dialog.LineBreakIndex := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
     if Dialog.Execute then begin
       Screen.Cursor := crHourGlass;
-      //SaveUnicodeFile(
-      //  Dialog.FileName,
-      //  Implode(GetLineBreak(Dialog.LineBreakIndex), Memo.Lines),
-      //  UTF8NoBOMEncoding
-      //  );
+      SaveUnicodeFile(
+        Dialog.FileName,
+        Implode(GetLineBreak(Dialog.LineBreakIndex), Memo.Lines),
+        UTF8NoBOMEncoding
+        );
       Screen.Cursor := crDefault;
     end;
   end else begin
@@ -5005,8 +5006,8 @@ begin
     Dialog.Options := Dialog.Options + [ofNoChangeDir];
     Dialog.Title := _('Save snippet');
   end;
-  //Dialog.AddFileType('*.sql', _('SQL files'));
-  //Dialog.AddFileType('*.*', _('All files'));
+  Dialog.AddFileType('*.sql', _('SQL files'));
+  Dialog.AddFileType('*.*', _('All files'));
   Dialog.DefaultExt := 'sql';
   //Dialog.LineBreakIndex := QueryTab.MemoLineBreaks;
   while (CanSave = mrNo) and Dialog.Execute do begin
@@ -5041,7 +5042,7 @@ end;
 procedure TMainForm.actSaveSQLExecute(Sender: TObject);
 var
   i: Integer;
-  //ObjEditor: TDBObjectEditor;
+  ObjEditor: TDBObjectEditor;
   Handled: Boolean;
 begin
   Handled := False;
@@ -5062,11 +5063,11 @@ begin
   end
   else if PageControlMain.ActivePage = tabEditor then begin
     // Save table, procedure, etc.
-    {ObjEditor := ActiveObjectEditor;
+    ObjEditor := ActiveObjectEditor;
     if Assigned(ObjEditor) and ObjEditor.Modified then begin
       ObjEditor.ApplyModifications;
       Handled := True;
-    end;}
+    end;
   end;
   if not Handled then begin
     Beep;
@@ -5342,11 +5343,11 @@ begin
   if Msg <> '' then begin
     Msg := f_('Error setting delimiter to "%s": %s', [Value, Msg]);
     LogSQL(Msg, lcError);
-    //ErrorDialog(Msg);
+    ErrorDialog(Msg);
   end else begin
     FDelimiter := Value;
     LogSQL(f_('Delimiter changed to %s', [FDelimiter]), lcInfo);
-    //actSetDelimiter.Hint := actSetDelimiter.Caption + ' (' + _('current value:') + ' ' + FDelimiter + ')';
+    actSetDelimiter.Hint := actSetDelimiter.Caption + ' (' + _('current value:') + ' ' + FDelimiter + ')';
   end;
 end;
 
@@ -6364,7 +6365,7 @@ begin
   else Exit; // Silence compiler warning
   list.TrySetFocus;
   UpdateFilterPanel(Sender);
-  //PageControlTabHighlight(PageControlHost);
+  PageControlTabHighlight(PageControlHost);
 end;
 
 
@@ -6557,6 +6558,7 @@ var
   ResultCol: Integer;
 begin
   // When adding some new TAction here, be sure to apply this procedure to its OnUpdate event
+
   Grid := ActiveGrid;
   Conn := ActiveConnection;
   HasConnection := Conn <> nil;
@@ -8331,7 +8333,7 @@ var
   Uid: TGuid;
   DateTimeSQL, StrUid: String;
   UnixTimestamp, UtcUnixTimestamp: Int64;
-  SystemTime: TSystemTime;
+  SystemTime: TDateTime;
   ColNum: TColumnIndex;
   Col: TTableColumn;
   Conn: TDBConnection;
@@ -8351,8 +8353,8 @@ begin
   DataDate.Caption := Format(FrmDate, [_('Date'), y,m,d]);
   DataTime.Caption := Format(FrmTime, [_('Time'), h,i,s]);
   DataYear.Caption := Format(FrmYear, [_('Year'), y]);
-  //GetSystemTime(SystemTime);
-  //UnixTimestamp := DateTimeToUnix(SystemTimeToDateTime(SystemTime));
+  SystemTime := Now;
+  UnixTimestamp := DateTimeToUnix(SystemTime);
   DataUnixTimestamp.Caption := Format(FrmUnixTs, [_('UNIX Timestamp'), UnixTimestamp]);
 
   UtcTime := IncSecond(LocalTime, FTimeZoneOffset);
@@ -9217,9 +9219,9 @@ begin
   OldDataLocalNumberFormat := DataLocalNumberFormat;
   DataLocalNumberFormat := False;
   // Display hour glass instead of X icon
-  //OldImageIndex := editFilterVT.RightButton.ImageIndex;
-  //editFilterVT.RightButton.ImageIndex := 150;
-  //editFilterVT.Repaint;
+  OldImageIndex := editFilterVT.ImageIndex;
+  editFilterVT.ImageIndex := 150;
+  editFilterVT.Repaint;
 
   VT.BeginUpdate;
   while Assigned(Node) do begin
@@ -9248,7 +9250,7 @@ begin
   else
     InvalidateVT(VT, VTREE_LOADED, true);
   DataLocalNumberFormat := OldDataLocalNumberFormat;
-  //editFilterVT.RightButton.ImageIndex := OldImageIndex;
+  editFilterVT.ImageIndex := OldImageIndex;
   rx.Free;
 end;
 
@@ -9960,11 +9962,11 @@ begin
   end;
   // TODO: Free object if its host or db. Tables/views/... already get freed in Connection.ClearDBObjects
   // does not work here when table is focused, for some reason:
-  // DBObj := Sender.GetNodeData(Node);
-  // if Assigned(DBObj^) and (DBObj.NodeType in [lntNone, lntDb]) then
-  //   logsql('freeing node: type #'+inttostr(integer(dbobj.NodeType))+' name: '+dbobj.database);
-  //   FreeAndNil(DBObj^);
-  // end;
+  {DBObj := Sender.GetNodeData(Node);
+  if Assigned(DBObj^) and (DBObj.NodeType in [lntNone, lntDb]) then
+    logsql('freeing node: type #'+inttostr(integer(dbobj.NodeType))+' name: '+dbobj.database);
+    FreeAndNil(DBObj^);
+  end; }
 end;
 
 
@@ -12010,12 +12012,12 @@ begin
     end;
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
-    {if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
+    if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
       FGridPasting := True;
       Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := Clipboard.TryAsText;
       Success := True;
       FGridPasting := False;
-    end;}
+    end;
   end else if Control is TSynMemo then begin
     SynMemo := TSynMemo(Control);
     if not SynMemo.ReadOnly then begin
@@ -13296,7 +13298,7 @@ end;
 procedure TMainform.SetupSynEditors;
 var
   i, j: Integer;
-  Editors: TObjectList<TSynEdit>;
+  Editors: TObjectList<TComponent>;
   BaseEditor: TSynMemo;
   KeyStroke: TSynEditKeyStroke;
   Attri: TSynHighlighterAttributes;
@@ -13304,17 +13306,17 @@ var
 begin
   // Setup all known TSynMemo's
   // This version includes global settings for keyboard shortcut, highlighting and completion proposal
-  Editors := TObjectList<TSynEdit>.Create(False);
+  Editors := TObjectList<TComponent>.Create(False);
   BaseEditor := SynMemoQuery;
   for i:=0 to QueryTabs.Count-1 do
     Editors.Add(QueryTabs[i].Memo);
   Editors.Add(SynMemoFilter);
   Editors.Add(SynMemoProcessView);
   Editors.Add(SynMemoSQLLog);
-  {if Assigned(ActiveObjectEditor) then
-    FindComponentInstances(ActiveObjectEditor, TSynMemo, Editors);}
-  {if Assigned(frmPreferences) then
-    Editors.Add(frmPreferences.SynMemoSQLSample);}
+  if Assigned(ActiveObjectEditor) then
+    FindComponentInstances(ActiveObjectEditor, TSynMemo, Editors);
+  if Assigned(frmPreferences) then
+    Editors.Add(frmPreferences.SynMemoSQLSample);
   if Assigned(FCreateDatabaseDialog) then
     Editors.Add(FCreateDatabaseDialog.SynMemoCreateCode);
   if SqlHelpDialog <> nil then begin
@@ -14408,6 +14410,7 @@ begin
   end;
 end;
 
+
 procedure TMainForm.SetSnippetFilenames;
 var
   Files: TStringList;
@@ -14819,7 +14822,7 @@ procedure TMainForm.EnableProgress(MaxValue: Integer);
 begin
   // Initialize progres bar and button
   SetProgressState(pbsNormal);
-  ProgressBarStatus.Visible := True{ and (not IsWine)};
+  ProgressBarStatus.Visible := True and (not IsWine);
   SetProgressPosition(0);
   ProgressBarStatus.Max := MaxValue;
 end;
@@ -15152,7 +15155,7 @@ begin
     Memo.SelStart := Memo.SelEnd;
     Memo.Modified := False;
     MemoFilename := Filepath;
-    //FileEncoding := MainForm.GetEncodingName(Encoding);
+    FileEncoding := MainForm.GetEncodingName(Encoding);
     //showmessage(FileEncoding);
     Result := True;
   end;
@@ -15178,7 +15181,7 @@ begin
     FileDir := ExtractFilePath(Filename);
     if not DirectoryExists(FileDir) then
       ForceDirectories(FileDir);
-    //SaveUnicodeFile(Filename, Text, MainForm.GetEncodingByName(FFileEncoding));
+    SaveUnicodeFile(Filename, Text, MainForm.GetEncodingByName(FFileEncoding));
     MemoFilename := Filename;
     Memo.Modified := False;
     LastSaveTime := GetTickCount;
@@ -15688,5 +15691,4 @@ begin
 end;
 
 end.
-
 
