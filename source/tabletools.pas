@@ -220,7 +220,7 @@ var
   DATA_INSERTNEW,
   DATA_UPDATE : String;
 
-{$R *.LFM}
+{$R *.lfm}
 
 
 {procedure TfrmTableTools.WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ;
