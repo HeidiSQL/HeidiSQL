@@ -164,9 +164,9 @@ type
     procedure LogFromThread(Msg: String; Category: TDBLogCategory);
   end;
 
-  {TSqlTranspiler = class(TObject)
+  TSqlTranspiler = class(TObject)
     class function CreateTable(SQL: String; SourceDb, TargetDb: TDBConnection): String;
-  end;}
+  end;
 
   TClipboardHelper = class helper for TClipboard
   private
@@ -434,7 +434,7 @@ type
   function GetExecutableBits: Byte;
   procedure Help(Sender: TObject; Anchor: String);
   //function PortOpen(Port: Word): Boolean;
-  //function IsValidFilePath(FilePath: String): Boolean;
+  function IsValidFilePath(FilePath: String): Boolean;
   //function FileIsWritable(FilePath: String): Boolean;
   //function GetProductInfo(dwOSMajorVersion, dwOSMinorVersion, dwSpMajorVersion, dwSpMinorVersion: DWORD; out pdwReturnedProductType: DWORD): BOOL stdcall; external kernel32 delayed;
   //function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
@@ -2739,7 +2739,7 @@ begin
 end;}
 
 
-{function IsValidFilePath(FilePath: String): Boolean;
+function IsValidFilePath(FilePath: String): Boolean;
 var
   Pieces: TStringList;
   i: Integer;
@@ -2748,11 +2748,12 @@ begin
   Result := True;
   Pieces := TStringList.Create;
   SplitRegExpr('[\\\/]', FilePath, Pieces);
-  for i:=1 to Pieces.Count-1 do begin
+  // Todo: implement cross platformic
+  {for i:=1 to Pieces.Count-1 do begin
     Result := Result and TPath.HasValidFileNameChars(Pieces[i], False);
-  end;
+  end;}
   Pieces.Free;
-end;}
+end;
 
 
 {function FileIsWritable(FilePath: String): Boolean;
@@ -3398,7 +3399,7 @@ end;
 
 { TSqlTranspiler }
 
-{class function TSqlTranspiler.CreateTable(SQL: String; SourceDb, TargetDb: TDBConnection): String;
+class function TSqlTranspiler.CreateTable(SQL: String; SourceDb, TargetDb: TDBConnection): String;
 begin
   Result := SQL;
 
@@ -3408,7 +3409,7 @@ begin
     Result := ReplaceRegExpr('\sCOLLATE\s\w+(\s+GENERATED\s)', Result, '$1', [rroModifierI, rroUseSubstitution]);
   end;
 
-end;}
+end;
 
 
 { TClipboardHelper }

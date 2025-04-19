@@ -14,7 +14,7 @@ uses
   Generics.Defaults, opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn,
   FileUtil, LMessages, jsonconf, dbconnection, dbstructures, dbstructures.mysql,
   generic_types, apphelpers, extra_controls, createdatabase,
-  SynEditMarkupSpecialLine, searchreplace, ImgList, IniFiles, LazFileUtils;
+  SynEditMarkupSpecialLine, searchreplace, ImgList, IniFiles, LazFileUtils, tabletools;
 
 
 type
@@ -1236,7 +1236,7 @@ type
     FDBObjectsMaxRows: Int64;
     FSearchReplaceDialog: TfrmSearchReplace;
     FCreateDatabaseDialog: TCreateDatabaseForm;
-    //FTableToolsDialog: TfrmTableTools;
+    FTableToolsDialog: TfrmTableTools;
     FGridEditFunctionMode: Boolean;
     FClipboardHasNull: Boolean;
     FTimeZoneOffset: Integer;
@@ -2967,7 +2967,7 @@ var
   DBObj: PDBObject;
 begin
   // Show table tools dialog
-  {FTableToolsDialog := TfrmTableTools.Create(Self);
+  FTableToolsDialog := TfrmTableTools.Create(Self);
   FTableToolsDialog.PreSelectObjects.Clear;
   if DBTreeClicked(Sender) then
     FTableToolsDialog.PreSelectObjects.Add(ActiveDbObj)
@@ -2990,7 +2990,7 @@ begin
   else if Sender = actGenerateData then
     FTableToolsDialog.ToolMode := tmGenerateData;
   FTableToolsDialog.ShowModal;
-  FreeAndNil(FTableToolsDialog);}
+  FreeAndNil(FTableToolsDialog);
 end;
 
 
@@ -13323,8 +13323,8 @@ begin
     Editors.Add(SqlHelpDialog.memoDescription);
     Editors.Add(SqlHelpDialog.MemoExample);
   end;
-  {if Assigned(FTableToolsDialog) then
-    Editors.Add(FTableToolsDialog.SynMemoFindText);}
+  if Assigned(FTableToolsDialog) then
+    Editors.Add(FTableToolsDialog.SynMemoFindText);
   if Assigned(frmCsvDetector) then
     Editors.Add(frmCsvDetector.SynMemoCreateTable);
 
