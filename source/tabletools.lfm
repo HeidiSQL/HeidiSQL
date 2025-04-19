@@ -80,8 +80,8 @@ object frmTableTools: TfrmTableTools
       TabOrder = 0
       object ResultGrid: TLazVirtualStringTree
         Left = 0
-        Height = 189
-        Top = 241
+        Height = 192
+        Top = 238
         Width = 707
         Align = alClient
         Header.AutoSizeIndex = -1
@@ -105,18 +105,19 @@ object frmTableTools: TfrmTableTools
       end
       object tabsTools: TPageControl
         Left = 0
-        Height = 241
+        Height = 238
         Top = 0
         Width = 707
         ActivePage = tabMaintenance
         Align = alTop
+        AutoSize = True
         Images = MainForm.ImageListIcons8
         TabIndex = 0
         TabOrder = 1
         OnChange = ValidateControls
         object tabMaintenance: TTabSheet
           Caption = 'Maintenance'
-          ClientHeight = 208
+          ClientHeight = 205
           ClientWidth = 699
           ImageIndex = 39
           object lblOperation: TLabel
@@ -274,7 +275,7 @@ object frmTableTools: TfrmTableTools
         end
         object tabFind: TTabSheet
           Caption = 'Find text'
-          ClientHeight = 208
+          ClientHeight = 205
           ClientWidth = 699
           ImageIndex = 30
           object lblFindText: TLabel
@@ -492,7 +493,7 @@ object frmTableTools: TfrmTableTools
         end
         object tabSQLexport: TTabSheet
           Caption = 'SQL export'
-          ClientHeight = 208
+          ClientHeight = 205
           ClientWidth = 699
           ImageIndex = 9
           object lblExportData: TLabel
@@ -727,7 +728,7 @@ object frmTableTools: TfrmTableTools
         end
         object tabBulkTableEdit: TTabSheet
           Caption = 'Bulk table editor'
-          ClientHeight = 208
+          ClientHeight = 205
           ClientWidth = 699
           ImageIndex = 19
           object chkBulkTableEditDatabase: TCheckBox
@@ -871,7 +872,7 @@ object frmTableTools: TfrmTableTools
         end
         object tabGenerateData: TTabSheet
           Caption = 'Generate data'
-          ClientHeight = 208
+          ClientHeight = 205
           ClientWidth = 699
           ImageIndex = 130
           object lblGenerateDataNumRows: TLabel

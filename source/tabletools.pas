@@ -2227,6 +2227,7 @@ var
   EnumValues: TStringList;
   TextVal: String;
   BinVal: String;
+  NumRows, NullsAmount: Int64;
 begin
   // Generate rows
   if not (DBObj.NodeType in [lntTable, lntView]) then begin
@@ -2258,7 +2259,10 @@ begin
 
   Randomize;
 
-  for i:=1 to StrToInt64Def(editGenerateDataNumRows.Text, 0) do begin
+  NumRows := StrToInt64Def(editGenerateDataNumRows.Text, 0);
+  NullsAmount := StrToInt64Def(editGenerateDataNullAmount.Text, 0);
+
+  for i:=1 to NumRows do begin
     Values.Clear;
     // Generate random values. Include some NULLs for columns which allow that.
     for Col in Columns do begin
@@ -2267,8 +2271,8 @@ begin
 
       // https://www.delphipraxis.net/31059-warscheinlichkeit-random.html
       if Col.AllowNull
-        and (StrToInt64Def(editGenerateDataNullAmount.Text, 0) > 0) // prevent division by zero
-        and (Random < (StrToInt64Def(editGenerateDataNullAmount.Text, 0) / 100))
+        and (NullsAmount > 0) // prevent division by zero
+        and (Random < (NullsAmount / 100))
         then begin
         Values.Add('NULL');
         Continue;
