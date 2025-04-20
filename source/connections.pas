@@ -1275,7 +1275,6 @@ var
   Params: TConnectionParameters;
   Item: TMenuItem;
   DB: String;
-  p: TPoint;
   Databases: TStringList;
 begin
   if FPopupDatabases = nil then begin
@@ -1316,8 +1315,7 @@ begin
   end;
   Databases.Free;
 
-  p := editDatabases.ClientToScreen(editDatabases.ClientRect.BottomRight);
-  FPopupDatabases.Popup(p.X-editDatabases.Images.Width, p.Y);
+  ShowPopup(editDatabases.Button, FPopupDatabases);
   Screen.Cursor := crDefault;
 end;
 

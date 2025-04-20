@@ -12798,8 +12798,7 @@ begin
   Item.Enabled := Menu.Items.Count > 1;
   Menu.Items.Add(Item);
 
-  P := Edit.ClientToScreen(Edit.ClientRect.TopLeft);
-  Menu.Popup(p.X, p.Y+16);
+  ShowPopup(Edit.Button, Menu);
 end;
 
 

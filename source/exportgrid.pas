@@ -559,16 +559,14 @@ end;
 
 procedure TfrmExportGrid.editCSVRightButtonClick(Sender: TObject);
 var
-  p: TPoint;
   Item: TMenuItem;
 begin
   // Remember editor and prepare popup menu items
   FCSVEditor := Sender as TEditButton;
-  p := FCSVEditor.ClientToScreen(FCSVEditor.ClientRect.BottomRight);
   for Item in popupCSVchar.Items do begin
     Item.Checked := FCSVEditor.Text = Item.Hint;
   end;
-  popupCSVchar.Popup(p.X-16, p.Y);
+  ShowPopup(FCSVEditor.Button, popupCSVchar);
 end;
 
 

@@ -242,21 +242,13 @@ begin
 end;
 
 procedure TUserManagerForm.editFromHostButtonClick(Sender: TObject);
-var
-  p: TPoint;
 begin
-  p := Point(editFromHost.Width-50, editFromHost.Height);
-  p := editFromHost.ClientToScreen(p);
-  menuHost.PopUp(p.X, p.Y);
+  ShowPopup(editFromHost.Button, menuHost);
 end;
 
 procedure TUserManagerForm.editPasswordButtonClick(Sender: TObject);
-var
-  p: TPoint;
 begin
-  p := Point(editPassword.Width-50, editPassword.Height);
-  p := editPassword.ClientToScreen(p);
-  menuPassword.PopUp(p.X, p.Y);
+  ShowPopup(editPassword.Button, menuPassword);
 end;
 
 
