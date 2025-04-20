@@ -192,7 +192,7 @@ type
       function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
       function SchemaClauseIS(Prefix: String): String;
-      function RowCount(Reload: Boolean; ForceExact: Bool=False): Int64;
+      function RowCount(Reload: Boolean; ForceExact: Boolean=False): Int64;
       function GetCreateCode: String; overload;
       function GetCreateCode(RemoveAutoInc, RemoveDefiner: Boolean): String; overload;
       property ObjType: String read GetObjType;
@@ -532,7 +532,7 @@ type
       function GetCurrentUserHostCombination: String;
       function GetAllUserHostCombinations: TStringList;
       function DecodeAPIString(a: AnsiString): String;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; virtual;
+      function GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64; virtual;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
       procedure KeepAliveTimerEvent(Sender: TObject);
@@ -676,7 +676,7 @@ type
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
       function GetCreateViewCode(Database, Name: String): String;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -708,7 +708,7 @@ type
       function GetAllDatabases: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -748,7 +748,7 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
       property RegClasses: TOidStringPairs read FRegClasses;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
@@ -6897,7 +6897,7 @@ begin
 end;
 
 
-function TDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
+function TDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
 var
   Rows: String;
 begin
@@ -6907,7 +6907,7 @@ begin
 end;
 
 
-function TMySQLConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
+function TMySQLConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
 var
   Rows: String;
 begin
@@ -6922,7 +6922,7 @@ begin
 end;
 
 
-function TAdoDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
+function TAdoDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
 var
   Rows: String;
 begin
@@ -6939,7 +6939,7 @@ begin
 end;
 
 
-function TPgConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
+function TPgConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
 var
   Rows: String;
 begin
@@ -10687,7 +10687,7 @@ begin
     Result := Connection.GetSQLSpecifity(spISSchemaCol, [Prefix]) + '=' + Connection.EscapeString(Database);
 end;
 
-function TDBObject.RowCount(Reload: Boolean; ForceExact: Bool=False): Int64;
+function TDBObject.RowCount(Reload: Boolean; ForceExact: Boolean=False): Int64;
 begin
   if (Rows = -1) or Reload then begin
     Rows := Connection.GetRowCount(Self, ForceExact);
