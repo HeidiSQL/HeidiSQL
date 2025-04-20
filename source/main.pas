@@ -103,7 +103,7 @@ type
       LastSaveTime: Cardinal;
       spltHelpers: TSplitter;
       spltQuery: TSplitter;
-      tabsetQuery: TTabSet;
+      tabsetQuery: TTabControl;
       TabSheet: TTabSheet;
       ResultTabs: TResultTabs;
       DoProfile: Boolean;
@@ -385,7 +385,7 @@ type
     InsertfilesintoBLOBfields3: TMenuItem;
     setNULL1: TMenuItem;
     menuExporttables: TMenuItem;
-    SynCompletionProposal: TSynCompletionProposal;
+    SynCompletionProposal: TSynCompletion;
     tabCommandStats: TTabSheet;
     ListCommandStats: TVirtualStringTree;
     N21: TMenuItem;
@@ -545,7 +545,7 @@ type
     Runroutines1: TMenuItem;
     actCreateEvent: TAction;
     Event1: TMenuItem;
-    tabsetQuery: TTabSet;
+    tabsetQuery: TTabControl;
     actDataSetNull: TAction;
     pnlPreview: TPanel;
     spltPreview: TSplitter;
@@ -915,7 +915,7 @@ type
       Column: TColumnIndex);
     procedure DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var
-        ImageIndex: TImageIndex);
+        ImageIndex: Integer);
     procedure DBtreeGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize:
         Integer);
     procedure DBtreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
@@ -964,7 +964,7 @@ type
       var ContentRect: TRect);
     procedure ListTablesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure ListTablesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
-      Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+      Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
     procedure ListTablesGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure ListTablesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
@@ -6439,7 +6439,7 @@ end;
 
 
 procedure TMainForm.ListTablesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
 var
   Obj: PDBObject;
 begin
@@ -8573,7 +8573,7 @@ end;
 procedure TMainForm.tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
   idx, i: Integer;
-  Tabs: TTabSet;
+  Tabs: TTabControl;
   Rect: TRect;
   Org: TPoint;
   QueryTab: TQueryTab;
@@ -8584,7 +8584,7 @@ begin
   if (FLastHintMousepos.X = x) and (FLastHintMousepos.Y = Y) then
     Exit;
   FLastHintMousepos := Point(X, Y);
-  Tabs := Sender as TTabSet;
+  Tabs := Sender as TTabControl;
   idx := Tabs.IndexOfTabAt(X, Y);
   if (idx = -1) or (idx = FLastHintControlIndex) then
     Exit;
@@ -9603,7 +9603,7 @@ end;
 }
 procedure TMainForm.DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
-    Boolean; var ImageIndex: TImageIndex);
+    Boolean; var ImageIndex: Integer);
 var
   DBObj: PDBObject;
 begin

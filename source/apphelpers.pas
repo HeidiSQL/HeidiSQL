@@ -15,11 +15,8 @@ type
   // Sync with main branch and Delphi structures
   TSynMemo = TSynEdit;
   TVirtualStringTree = TLazVirtualStringTree;
-  TImageIndex = Integer;
   PInt = ^Integer;
   TProgressBarState = (pbsNormal, pbsError, pbsPaused);
-  TTabSet = TTabControl;
-  TSynCompletionProposal = TSynCompletion;
 
   TSortItemOrder = (sioAscending, sioDescending);
   TSortItem = class(TPersistent)
@@ -1369,7 +1366,8 @@ function DetectEncoding(Stream: TStream): TEncoding;
   WithBOM: Boolean;}
 begin
   Result := TEncoding.UTF8
-  {SynEnc := SynUnicode.GetEncoding(Stream, WithBOM);
+  { LConvEncoding.GuessEncoding returns string identifiers, not the TEncoding objects
+  SynEnc := SynUnicode.GetEncoding(Stream, WithBOM);
   case SynEnc of
     seUTF8: begin
       if WithBOM then

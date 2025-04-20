@@ -178,7 +178,7 @@ end;
 
 
 procedure TfrmSQLhelp.treeTopicsGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
 begin
   // Return open or closed book icon for folders, or document icon for topics
   if not (Kind in [ikNormal, ikSelected]) then
