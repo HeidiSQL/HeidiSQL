@@ -660,7 +660,7 @@ type
       FLastRawResults: TMySQLRawResults;
       FStatementNum: Cardinal;
       procedure SetActive(Value: Boolean); override;
-      procedure SetOption(Option: Integer; Arg: PAnsiChar);
+      procedure SetOption(Option: Integer; Arg: Pointer);
       procedure DoBeforeConnect; override;
       procedure DoAfterConnect; override;
       function GetThreadId: Int64; override;
@@ -2457,7 +2457,7 @@ procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
   ClientFlags, FinalPort, SSLoption: Integer;
-  VerifyServerCert: Byte;
+  VerifyServerCert: Integer;
   Error, StatusName: String;
   FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
   ErrorHint: String;
@@ -2496,7 +2496,7 @@ begin
         SetOption(FLib.MYSQL_OPT_SSL_CA, PAnsiChar(AnsiString(FParameters.SSLCACertificate)));
       if FParameters.SSLCipher <> '' then
         SetOption(FLib.MYSQL_OPT_SSL_CIPHER, PAnsiChar(AnsiString(FParameters.SSLCipher)));
-      if FLib.MYSQL_OPT_SSL_MODE <> TMySQLLib.INVALID_OPT then begin
+      if not FLib.IsLibMariadb then begin
         // MySQL
         Log(lcInfo, 'SSL parameters for MySQL');
         case FParameters.SSLVerification of
@@ -2562,7 +2562,7 @@ begin
       or CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA;
     if Parameters.Compressed then
       ClientFlags := ClientFlags or CLIENT_COMPRESS;
-    if Parameters.WantSSL then
+    if Parameters.WantSSL and (not FLib.IsLibMariadb) then
       ClientFlags := ClientFlags or CLIENT_SSL;
 
     {$IfDef WINDOWS}
@@ -2662,8 +2662,6 @@ begin
       end;
       // mysql_character_set_name() reports utf8* if in fact we're on some latin* charset on v5.1 servers
       // See https://www.heidisql.com/forum.php?t=39278
-      FIsUnicode := CharacterSet.StartsWith('utf', True) and (ServerVersionInt >= 50500);
-      if not IsUnicode then
       try
         CharacterSet := 'utf8mb4';
       except
@@ -2951,7 +2949,7 @@ begin
     ConnectOptions.Free;
     ConnectionString := ConnectionString.TrimRight;
 
-    FHandle := FLib.PQconnectdb(PAnsiChar(AnsiString(ConnectionString)));
+    FHandle := FLib.PQconnectdb(PAnsiChar(UTF8Encode(ConnectionString)));
     if FLib.PQstatus(FHandle) = CONNECTION_BAD then begin
       Error := LastErrorMsg;
       Log(lcError, Error);
@@ -2993,7 +2991,8 @@ begin
     DoAfterConnect;
   end else begin
     try
-      FLib.PQfinish(FHandle);
+      if FActive then
+        FLib.PQfinish(FHandle);
     except
       on E:EAccessViolation do;
     end;
@@ -3233,7 +3232,7 @@ begin
 end;}
 
 
-procedure TMySQLConnection.SetOption(Option: Integer; Arg: PAnsiChar);
+procedure TMySQLConnection.SetOption(Option: Integer; Arg: Pointer);
 var
   SetOptionResult: Integer;
   RttiContext: TRttiContext;
@@ -3242,23 +3241,25 @@ var
   FieldName: String;
 begin
   // Set one of the MYSQL_* option and log a warning if that failed
-  SetOptionResult := FLib.mysql_options(FHandle, Option, Arg);
-  if SetOptionResult <> 0 then begin
-    FieldName := Option.ToString;
-    // Attempt to find readable name of option constant
-    {RttiContext := TRttiContext.Create;
-    LibType := RttiContext.GetType(TypeInfo(TMySQLLib));
-    for LibField in LibType.GetFields do begin
-      // Skip assigned procedures
-      if LibField.FieldType = nil then
-        Continue;
-      if LibField.DataType.TypeKind = tkInteger then begin
-        if LibField.GetValue(FLib).AsInteger = Option then begin
-          FieldName := LibField.Name;
-        end;
+  FieldName := Option.ToString;
+  // Attempt to find readable name of option constant
+  {RttiContext := TRttiContext.Create;
+  LibType := RttiContext.GetType(TypeInfo(TMySQLLib));
+  for LibField in LibType.GetFields do begin
+    // Skip assigned procedures
+    if LibField.FieldType = nil then
+      Continue;
+    if LibField.DataType.TypeKind = tkInteger then begin
+      if LibField.GetValue(FLib).AsInteger = Option then begin
+        FieldName := LibField.Name;
       end;
     end;
-    RttiContext.Free;}
+  end;
+  RttiContext.Free;}
+
+  Log(lcDebug, Format('Calling mysql_options(%s, ...)', [FieldName]));
+  SetOptionResult := FLib.mysql_options(FHandle, Option, Arg);
+  if SetOptionResult <> 0 then begin
     Log(lcError, _(SLogPrefixWarning) + ': mysql_options(' + FieldName + ', ...) failed!');
   end;
 end;
@@ -3764,6 +3765,11 @@ begin
       if Reconnect then
         Active := True;
     end;
+  end
+  else begin
+    // Not active currently, reconnect
+    if Reconnect then
+      Active := True;
   end;
   Result := FActive;
   // Restart keep-alive timer

@@ -278,7 +278,7 @@ type
     mysql_info: function(Handle: PMYSQL): PAnsiChar; stdcall;
     mysql_num_fields: function(Result: PMYSQL_RES): Integer; stdcall;
     mysql_num_rows: function(Result: PMYSQL_RES): Int64; stdcall;
-    mysql_options: function(Handle: PMYSQL; Option: Integer; arg: PAnsiChar): Integer; stdcall;
+    mysql_options: function(Handle: PMYSQL; Option: Integer; arg: Pointer): Integer; stdcall;
     mysql_optionsv: function(Handle: PMYSQL; Option: Integer; arg, val: PAnsiChar): Integer; stdcall;
     mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
     mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
@@ -293,8 +293,8 @@ type
     mysql_warning_count: function(Handle: PMYSQL): Cardinal; stdcall;
     const
       INVALID_OPT = -1;
-      MYBOOL_FALSE: Byte = 0;
-      MYBOOL_TRUE: Byte = 1;
+      MYBOOL_FALSE: Integer = 0;
+      MYBOOL_TRUE: Integer = 1;
     protected
       procedure AssignProcedures; override;
     public
@@ -317,6 +317,7 @@ type
       SSL_MODE_VERIFY_CA,
       SSL_MODE_VERIFY_IDENTITY: Integer;
       constructor Create(UsedDllFile, HintDefaultDll: String); override;
+      function IsLibMariadb: Boolean;
   end;
 var
   MySQLKeywords: TStringList;
@@ -3155,7 +3156,7 @@ begin
   SSL_MODE_REQUIRED := 3;
   SSL_MODE_VERIFY_CA := 4;
   SSL_MODE_VERIFY_IDENTITY := 5;
-  if String(ExtractFileName(FDllFile)).StartsWith('libmariadb', True) then begin
+  if IsLibMariadb then begin
     // Differences in libmariadb
     MYSQL_OPT_SSL_VERIFY_SERVER_CERT := 21;
     MARIADB_OPT_TLS_VERSION := 7005;
@@ -3172,6 +3173,12 @@ begin
     MYSQL_OPT_TLS_VERSION := 34;
     MYSQL_OPT_SSL_MODE := 35;
   end;
+end;
+
+function TMySQLLib.IsLibMariadb: Boolean;
+begin
+  // libmariadb used (not libmysql) ?
+  Result := LowerCase(ExtractFileName(FDllFile)).IndexOf('libmariadb') > -1;
 end;
 
 procedure TMySQLLib.AssignProcedures;
