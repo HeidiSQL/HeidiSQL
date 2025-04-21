@@ -238,7 +238,7 @@ type
 
 implementation
 
-uses Main, apphelpers, dbstructures.sqlite;
+uses Main, apphelpers, dbstructures.sqlite, grideditlinks;
 
 {$I const.inc}
 
@@ -870,7 +870,7 @@ procedure Tconnform.ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVi
   Column: TColumnIndex; out EditLink: IVTEditLink);
 begin
   // Use our own text editor to rename a session
-  //EditLink := TInplaceEditorLink.Create(Sender as TVirtualStringTree, True, nil);
+  EditLink := TInplaceEditorLink.Create(Sender as TVirtualStringTree, True, nil);
 end;
 
 

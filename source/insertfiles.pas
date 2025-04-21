@@ -99,7 +99,7 @@ type
 
 implementation
 
-uses main;
+uses main, grideditlinks;
 
 const
   ColColname = 0;
@@ -260,12 +260,12 @@ procedure TfrmInsertFiles.ListColumnsCreateEditor(Sender: TBaseVirtualTree; Node
   Column: TColumnIndex; out EditLink: IVTEditLink);
 var
   Grid: TVirtualStringTree;
-  //EnumEditor: TEnumEditorLink;
+  EnumEditor: TEnumEditorLink;
 begin
   // Start cell editor
   Grid := Sender as TVirtualStringTree;
   if Column = ColValue then begin
-    {EnumEditor := TEnumEditorLink.Create(Grid, True, nil);
+    EnumEditor := TEnumEditorLink.Create(Grid, True, nil);
     EnumEditor.AllowCustomText := True;
     EnumEditor.ValueList := TStringList.Create;
     EnumEditor.ValueList.Text := 'NULL'+CRLF+
@@ -281,7 +281,7 @@ begin
       'UPPER(''%filenname%'')'+CRLF+
       'UNIX_TIMESTAMP(''%filedatetime%'')'+CRLF+
       'ENCODE(''%filename%'', ''password'')';
-    EditLink := EnumEditor;}
+    EditLink := EnumEditor;
   end;
 end;
 

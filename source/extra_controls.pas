@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Forms, Types, StdCtrls, Clipbrd, apphelpers,
   Graphics, Dialogs, ImgList, ComCtrls, Generics.Collections, Generics.Defaults,
   ExtCtrls, laz.VirtualTrees, RegExpr, Controls, EditBtn, Menus,
-  GraphUtil, Math;
+  GraphUtil, Math, LCLIntf;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -37,7 +37,7 @@ type
       class function ScaleSize(x: Extended; Control: TControl): Integer; overload;
       class procedure PageControlTabHighlight(PageControl: TPageControl);
       property PixelsPerInchDesigned: Integer read FPixelsPerInchDesigned;
-      procedure ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
+      class procedure ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
   end;
 
   // Modern file-open-dialog with high DPI support and encoding selector
@@ -93,7 +93,7 @@ type
       property OnExit: TNotifyEvent read FOnExit write FOnExit;
   end;}
 
-  {TExtComboBox = class(TComboBox)
+  TExtComboBox = class(TComboBox)
     private
       FcbHintIndex: Integer;
       FHintWindow: THintWindow;
@@ -102,7 +102,7 @@ type
       procedure DropDown; override;
       procedure CloseUp; override;
       procedure InitiateAction; override;
-  end;}
+  end;
 
   {TExtHintWindow = class(THintWindow)
     private
@@ -476,7 +476,7 @@ begin
   end;;
 end;
 
-procedure TExtForm.ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
+class procedure TExtForm.ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
 begin
   PopupMenu.Popup(ClickedControl.ClientOrigin.X, ClickedControl.ClientOrigin.Y + ClickedControl.Height);
 end;
@@ -696,7 +696,7 @@ end;}
 
 { TExtComboBox }
 
-{procedure TExtComboBox.Change;
+procedure TExtComboBox.Change;
 var
   P: TPoint;
   HintRect: TRect;
@@ -747,7 +747,7 @@ begin
     FcbHintIndex := ItemIndex;
     Change;
   end;
-end;}
+end;
 
 
 

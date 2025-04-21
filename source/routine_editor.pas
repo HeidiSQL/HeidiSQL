@@ -96,7 +96,7 @@ type
 
 implementation
 
-uses main, dbstructures, dbstructures.mysql;
+uses main, dbstructures, dbstructures.mysql, grideditlinks;
 
 {$R *.lfm}
 
@@ -389,14 +389,14 @@ procedure TfrmRoutineEditor.listParametersCreateEditor(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
 var
   VT: TLazVirtualStringTree;
-  //EnumEditor: TEnumEditorLink;
+  EnumEditor: TEnumEditorLink;
   Datatype: String;
   DBDatatype: TDBDatatype;
 begin
   VT := Sender as TLazVirtualStringTree;
   if Column = 1 then
     EditLink := TStringEditLink.Create
-  {else if Column = 2 then begin
+  else if Column = 2 then begin
     EnumEditor := TEnumEditorLink.Create(VT, True, nil);
     EnumEditor.AllowCustomText := True;
     EnumEditor.ValueList := TStringList.Create;
@@ -414,7 +414,7 @@ begin
     EnumEditor.ValueList.Add('OUT');
     EnumEditor.ValueList.Add('INOUT');
     EditLink := EnumEditor;
-  end;}
+  end;
 end;
 
 

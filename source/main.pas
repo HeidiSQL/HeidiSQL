@@ -1421,7 +1421,7 @@ implementation
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
   copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp, updatecheck,
-  insertfiles, texteditor, preferences, table_editor, view, routine_editor, trigger_editor, event_editor;
+  insertfiles, texteditor, preferences, table_editor, view, routine_editor, trigger_editor, event_editor, grideditlinks;
 
 {$R *.lfm}
 
@@ -10848,11 +10848,11 @@ const
   ForeignItemsLimit: Integer = 10000;
 var
   VT: TVirtualStringTree;
-  {HexEditor: THexEditorLink;
+  HexEditor: THexEditorLink;
   DateTimeEditor: TDateTimeEditorLink;
   EnumEditor: TEnumEditorLink;
   SetEditor: TSetEditorLink;
-  InplaceEditor: TInplaceEditorLink;}
+  InplaceEditor: TInplaceEditorLink;
   TypeCat: TDBDatatypeCategoryIndex;
   ForeignKey: TForeignKey;
   TblColumn: TTableColumn;
@@ -10912,7 +10912,7 @@ begin
 
         ForeignResults := Conn.GetResults(SQL);
         if ForeignResults.RecordCount < ForeignItemsLimit then begin
-          {EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
+          EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
           EditLink := EnumEditor;
           DisplayHex := (not actBlobAsText.Checked) and (ForeignResults.DataType(0).Category in [dtcBinary, dtcSpatial]);
           while not ForeignResults.Eof do begin
@@ -10927,7 +10927,7 @@ begin
                 EnumEditor.DisplayList.Add(ForeignResults.Col(0)+': '+ForeignResults.Col(1));
             end;
             ForeignResults.Next;
-          end;}
+          end;
         end else begin
           LogSQL(f_('Connected table has too many rows. Foreign key drop-down is limited to %d items.', [ForeignItemsLimit]), lcInfo);
         end;
@@ -10941,11 +10941,11 @@ begin
 
   FGridEditFunctionMode := FGridEditFunctionMode or Results.IsFunction(ResultCol);
   if FGridEditFunctionMode then begin
-    {EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
+    EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
     for SQLFunc in Conn.SQLFunctions do
       EnumEditor.ValueList.Add(SQLFunc.Name + SQLFunc.Declaration);
     EnumEditor.AllowCustomText := True;
-    EditLink := EnumEditor;}
+    EditLink := EnumEditor;
   end;
 
   TypeCat := Results.DataType(ResultCol).Category;
@@ -10953,20 +10953,20 @@ begin
   if Assigned(EditLink) then
     // Editor was created above, do nothing now
   else if (Results.DataType(ResultCol).Index in [dbdtEnum, dbdtBool]) and AppSettings.ReadBool(asFieldEditorEnum) then begin
-    {EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
+    EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
     EnumEditor.ValueList := Results.ValueList(ResultCol);
-    EditLink := EnumEditor;}
+    EditLink := EnumEditor;
   end else if (TypeCat = dtcText) or ((TypeCat in [dtcBinary, dtcSpatial]) and actBlobAsText.Checked) then begin
-    {InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit, TblColumn);
+    InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit, TblColumn);
     InplaceEditor.MaxLength := Results.MaxLength(ResultCol);
     InplaceEditor.TitleText := Results.ColumnOrgNames[ResultCol];
     InplaceEditor.ButtonVisible := True;
-    EditLink := InplaceEditor;}
+    EditLink := InplaceEditor;
   end else if (TypeCat in [dtcBinary, dtcSpatial]) and AppSettings.ReadBool(asFieldEditorBinary) then begin
-    {HexEditor := THexEditorLink.Create(VT, AllowEdit, TblColumn);
+    HexEditor := THexEditorLink.Create(VT, AllowEdit, TblColumn);
     HexEditor.MaxLength := Results.MaxLength(ResultCol);
     HexEditor.TitleText := Results.ColumnOrgNames[ResultCol];
-    EditLink := HexEditor;}
+    EditLink := HexEditor;
   end else if (TypeCat = dtcTemporal)
     and AppSettings.ReadBool(asFieldEditorDatetime)
     and Assigned(TblColumn) // Editor crashes without a column object (on joins), see #1024
@@ -10988,22 +10988,22 @@ begin
         NowText := NowText + '.' + StringOfChar('0', MicroSecondsPrecision);
       VT.Text[Node, Column] := NowText;
     end;
-    {DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit, TblColumn);
-    EditLink := DateTimeEditor;}
+    DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit, TblColumn);
+    EditLink := DateTimeEditor;
   end else if AppSettings.ReadBool(asFieldEditorDatetime)
     and HandleUnixTimestampColumn(Sender, Column)
     and Assigned(TblColumn) // see above
     then begin
-    {DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit, TblColumn);
-    EditLink := DateTimeEditor;}
+    DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit, TblColumn);
+    EditLink := DateTimeEditor;
   end else if (Results.DataType(ResultCol).Index = dbdtSet) and AppSettings.ReadBool(asFieldEditorSet) then begin
-    {SetEditor := TSetEditorLink.Create(VT, AllowEdit, TblColumn);
+    SetEditor := TSetEditorLink.Create(VT, AllowEdit, TblColumn);
     SetEditor.ValueList := Results.ValueList(ResultCol);
-    EditLink := SetEditor;}
+    EditLink := SetEditor;
   end else begin
-    {InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit, TblColumn);
+    InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit, TblColumn);
     InplaceEditor.ButtonVisible := False;
-    EditLink := InplaceEditor;}
+    EditLink := InplaceEditor;
   end;
   Sender.FocusedNode := Node;
   Sender.FocusedColumn := Column;
@@ -14541,13 +14541,13 @@ end;
 procedure TMainForm.treeQueryHelpersCreateEditor(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
 var
- //InplaceEditor: TInplaceEditorLink;
+ InplaceEditor: TInplaceEditorLink;
  VT: TVirtualStringTree;
 begin
   VT := Sender as TVirtualStringTree;
-  //InplaceEditor := TInplaceEditorLink.Create(VT, True, nil);
-  //InplaceEditor.ButtonVisible := true;
-  //EditLink := InplaceEditor;
+  InplaceEditor := TInplaceEditorLink.Create(VT, True, nil);
+  InplaceEditor.ButtonVisible := true;
+  EditLink := InplaceEditor;
 end;
 
 

@@ -254,7 +254,7 @@ type
 
 implementation
 
-uses main;
+uses main, grideditlinks;
 
 
 {$R *.lfm}
@@ -1730,56 +1730,56 @@ procedure TfrmTableEditor.listColumnsCreateEditor(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
 var
   VT: TLazVirtualStringTree;
-  //EnumEditor: TEnumEditorLink;
-  //DefaultEditor: TColumnDefaultEditorLink;
-  //DatatypeEditor: TDatatypeEditorLink;
+  EnumEditor: TEnumEditorLink;
+  DefaultEditor: TColumnDefaultEditorLink;
+  DatatypeEditor: TDatatypeEditorLink;
   Col: PTableColumn;
-  //Edit: TInplaceEditorLink;
+  Edit: TInplaceEditorLink;
 begin
   // Start cell editor
   VT := Sender as TLazVirtualStringTree;
   Col := Sender.GetNodeData(Node);
   case Column of
     ColNumDatatype: begin // Datatype pulldown
-      {DatatypeEditor := TDatatypeEditorLink.Create(VT, True, Col^);
-      EditLink := DataTypeEditor;}
+      DatatypeEditor := TDatatypeEditorLink.Create(VT, True, Col^);
+      EditLink := DataTypeEditor;
       end;
 
     ColNumCollation: begin // Collation pulldown
-      {EnumEditor := TEnumEditorLink.Create(VT, True, Col^);
+      EnumEditor := TEnumEditorLink.Create(VT, True, Col^);
       EnumEditor.AllowCustomText := True;
       EnumEditor.ItemMustExist := True;
       EnumEditor.ValueList := TStringList.Create;
       EnumEditor.ValueList.Text := DBObject.Connection.CollationList.Text;
       EnumEditor.ValueList.Sort;
       EnumEditor.ValueList.Insert(0, '');
-      EditLink := EnumEditor;}
+      EditLink := EnumEditor;
       end;
 
     ColNumDefault: begin
-      {DefaultEditor := TColumnDefaultEditorLink.Create(VT, True, Col^);
+      DefaultEditor := TColumnDefaultEditorLink.Create(VT, True, Col^);
       DefaultEditor.DefaultType := Col.DefaultType;
       DefaultEditor.DefaultText := Col.DefaultText;
       DefaultEditor.OnUpdateType := Col.OnUpdateType;
       DefaultEditor.OnUpdateText := Col.OnUpdateText;
-      EditLink := DefaultEditor;}
+      EditLink := DefaultEditor;
     end;
 
     ColNumVirtuality: begin // Virtuality pulldown
-      {EnumEditor := TEnumEditorLink.Create(VT, True, Col^);
+      EnumEditor := TEnumEditorLink.Create(VT, True, Col^);
       EnumEditor.ValueList := TStringList.Create;
       if DBObject.Connection.Parameters.IsMariaDB then
         EnumEditor.ValueList.CommaText := ',VIRTUAL,PERSISTENT'
       else
         EnumEditor.ValueList.CommaText := ',VIRTUAL,STORED';
-      EditLink := EnumEditor;}
+      EditLink := EnumEditor;
     end
 
     else begin
-      {Edit := TInplaceEditorLink.Create(VT, True, Col^);
+      Edit := TInplaceEditorLink.Create(VT, True, Col^);
       Edit.TitleText := VT.Header.Columns[Column].Text;
       Edit.ButtonVisible := True;
-      EditLink := Edit;}
+      EditLink := Edit;
     end;
   end;
 end;
@@ -2128,25 +2128,25 @@ procedure TfrmTableEditor.listCheckConstraintsCreateEditor(
   out EditLink: IVTEditLink);
 var
   VT: TLazVirtualStringTree;
-  //Edit: TInplaceEditorLink;
-  //EnumEditor: TEnumEditorLink;
+  Edit: TInplaceEditorLink;
+  EnumEditor: TEnumEditorLink;
   SQLFunc: TSQLFunction;
 begin
   // Edit check constraint
   VT := Sender as TLazVirtualStringTree;
   case Column of
     0: begin
-      {Edit := TInplaceEditorLink.Create(VT, True, nil);
+      Edit := TInplaceEditorLink.Create(VT, True, nil);
       Edit.TitleText := VT.Header.Columns[Column].Text;
       Edit.ButtonVisible := True;
-      EditLink := Edit;}
+      EditLink := Edit;
     end;
     1: begin
-      {EnumEditor := TEnumEditorLink.Create(VT, True, nil);
+      EnumEditor := TEnumEditorLink.Create(VT, True, nil);
       for SQLFunc in DBObject.Connection.SQLFunctions do
         EnumEditor.ValueList.Add(SQLFunc.Name + SQLFunc.Declaration);
       EnumEditor.AllowCustomText := True;
-      EditLink := EnumEditor;}
+      EditLink := EnumEditor;
     end;
   end;
 end;
@@ -2242,7 +2242,7 @@ procedure TfrmTableEditor.treeIndexesCreateEditor(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
 var
   VT: TLazVirtualStringTree;
-  //EnumEditor: TEnumEditorLink;
+  EnumEditor: TEnumEditorLink;
   Level: Cardinal;
   ColNode: PVirtualNode;
   Col: PTableColumn;
@@ -2250,7 +2250,7 @@ begin
   // Start cell editor
   VT := Sender as TLazVirtualStringTree;
   Level := (Sender as TLazVirtualStringTree).GetNodeLevel(Node);
-  {if (Level = 0) and (Column = 1) then begin
+  if (Level = 0) and (Column = 1) then begin
     // Index type pulldown
     EnumEditor := TEnumEditorLink.Create(VT, True, nil);
     EnumEditor.ValueList := TStringList.Create;
@@ -2277,7 +2277,7 @@ begin
     EnumEditor.ValueList := Explode(',', ',ASC,DESC');
     EditLink := EnumEditor;
   end else
-    EditLink := TInplaceEditorLink.Create(VT, True, nil);}
+    EditLink := TInplaceEditorLink.Create(VT, True, nil);
 end;
 
 
@@ -2807,8 +2807,8 @@ procedure TfrmTableEditor.listForeignKeysCreateEditor(
   out EditLink: IVTEditLink);
 var
   VT: TLazVirtualStringTree;
-  //EnumEditor: TEnumEditorLink;
-  //SetEditor: TSetEditorLink;
+  EnumEditor: TEnumEditorLink;
+  SetEditor: TSetEditorLink;
   DBObjects: TDBObjectList;
   Key: TForeignKey;
   ColNode: PVirtualNode;
@@ -2819,7 +2819,7 @@ var
 begin
   // Init grid editor in foreign key list
   VT := Sender as TLazVirtualStringTree;
-  {case Column of
+  case Column of
     0: EditLink := TInplaceEditorLink.Create(VT, True, nil);
     1: begin
         SetEditor := TSetEditorLink.Create(VT, True, nil);
@@ -2858,7 +2858,7 @@ begin
         EnumEditor.ValueList := Explode(',', DBObject.Connection.GetSQLSpecifity(spForeignKeyEventAction));
         EditLink := EnumEditor;
       end;
-  end;}
+  end;
 end;
 
 
