@@ -1,0 +1,103 @@
+object frmBinEditor: TfrmBinEditor
+  Left = 0
+  Height = 119
+  Top = 0
+  Width = 269
+  Caption = 'Binary editor'
+  ClientHeight = 119
+  ClientWidth = 269
+  Color = clBtnFace
+  DesignTimePPI = 120
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poMainFormCenter
+  object lblTextLength: TLabel
+    AnchorSideLeft.Control = tlbStandard
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = tlbStandard
+    AnchorSideBottom.Side = asrCenter
+    Left = 133
+    Height = 20
+    Top = 89
+    Width = 130
+    Anchors = [akLeft, akRight, akBottom]
+    BorderSpacing.Around = 6
+    Caption = 'lblTextLength'
+    ParentBidiMode = False
+  end
+  object memoText: TMemo
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = tlbStandard
+    Left = 6
+    Height = 73
+    Top = 6
+    Width = 257
+    Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Around = 6
+    Lines.Strings = (
+      'memoText'
+    )
+    ScrollBars = ssBoth
+    TabOrder = 0
+    WantTabs = True
+    OnChange = memoTextChange
+    OnKeyDown = memoTextKeyDown
+  end
+  object tlbStandard: TToolBar
+    AnchorSideLeft.Control = Owner
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 6
+    Height = 28
+    Top = 85
+    Width = 121
+    Align = alNone
+    Anchors = [akLeft, akBottom]
+    BorderSpacing.Around = 6
+    Caption = 'tlbStandard'
+    Images = MainForm.ImageListIcons8
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 1
+    object btnWrap: TToolButton
+      Left = 1
+      Hint = 'Wrap long lines'
+      Top = 2
+      Caption = 'Wrap long lines'
+      ImageIndex = 62
+      OnClick = btnWrapClick
+    end
+    object btnLoadBinary: TToolButton
+      Left = 30
+      Hint = 'Load binary file'
+      Top = 2
+      Caption = 'Load binary file'
+      ImageIndex = 52
+      OnClick = btnLoadBinaryClick
+    end
+    object btnCancel: TToolButton
+      Left = 59
+      Hint = 'Cancel'
+      Top = 2
+      Caption = 'Cancel'
+      ImageIndex = 26
+      OnClick = btnCancelClick
+    end
+    object btnApply: TToolButton
+      Left = 88
+      Hint = 'Apply changes'
+      Top = 2
+      Caption = 'Apply changes'
+      ImageIndex = 55
+      OnClick = btnApplyClick
+    end
+  end
+end

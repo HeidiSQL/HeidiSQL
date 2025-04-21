@@ -21,7 +21,7 @@ uses
   exportgrid, usermanager, selectdbobject, reformatter, searchreplace,
   connections, jsonregistry, sqlhelp, updatecheck, insertfiles, texteditor,
   customize_highlighter, preferences, table_editor, view, routine_editor,
-  trigger_editor, event_editor, tabletools;
+  trigger_editor, event_editor, tabletools, bineditor;
 
 {$R *.res}
 {.$R resources.rc}
