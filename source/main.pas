@@ -14,7 +14,7 @@ uses
   Generics.Defaults, opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn,
   FileUtil, LMessages, jsonconf, dbconnection, dbstructures, dbstructures.mysql,
   generic_types, apphelpers, extra_controls, createdatabase,
-  SynEditMarkupSpecialLine, searchreplace, ImgList, IniFiles, LazFileUtils, tabletools;
+  SynEditMarkupSpecialLine, SynEditMarkupBracket, searchreplace, ImgList, IniFiles, LazFileUtils, tabletools;
 
 
 type
@@ -13442,6 +13442,9 @@ begin
   if Editor <> BaseEditor then begin
     Editor.Keystrokes := BaseEditor.KeyStrokes;
   end;
+  Editor.BracketHighlightStyle := sbhsBoth;
+  Editor.BracketMatchColor.Foreground := FMatchingBraceForegroundColor;
+  Editor.BracketMatchColor.Background := FMatchingBraceBackgroundColor;
 end;
 
 
