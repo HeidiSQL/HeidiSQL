@@ -10,7 +10,9 @@ HeidiSQL is a graphical interface for managing [MariaDB](http://www.mariadb.org/
 Look at [the online help page](https://www.heidisql.com/help.php) to learn how to use HeidiSQL. The [forum](https://www.heidisql.com/forum.php) is meant to ask questions. The [issue tracker](https://github.com/HeidiSQL/HeidiSQL/issues) is the place to report bugs or request new features.
 
 # Building
-Delphi 11.1 is required for building HeidiSQL. Older Delphi versions will most likely fail; newer Delphi versions may work or fail. Unfortunately, Lazarus or one 
+For compiling on platforms other than Windows, look at the [`lazarus`](https://github.com/HeidiSQL/HeidiSQL/tree/lazarus) branch.
+
+Delphi 12.1 is required for building HeidiSQL for Windows. Older Delphi versions will most likely fail; newer Delphi versions may work or fail. Unfortunately, Lazarus or one 
 of the other free compilers cannot currently compile HeidiSQL.
 
 Once Delphi is installed, you need to load the SynEdit project from the components folder. Build both run-time and design-time packages. Install the 
