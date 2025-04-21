@@ -7,6 +7,8 @@ I started the conversion in February 2025, after a short conversation with Aless
 
 Ansgar
 
+![HeidiSQL 12.10.1.92 running on Ubuntu Linux 22.04](https://www.heidisql.com/images/screenshots/linux_version_datagrid.png)
+
 # Building
 Install Lazarus and FreePascal. Then load the `.lpi` file in the root directory in the Lazarus IDE. Alternatively, use `/usr/bin/lazbuild heidisql.lpi` on the command line.
 
