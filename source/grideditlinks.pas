@@ -1269,7 +1269,7 @@ begin
   FPanel.ParentBackground := False;
   FPanel.Color := GetThemeColor(clWindow);
   //FPanel.BevelKind := bkFlat;
-  FPanel.BevelOuter := bvNone;
+  FPanel.BevelOuter := bvRaised;
   FPanel.DoubleBuffered := True; // Avoid flicker?
   FMainControl := FPanel;
 
@@ -1624,7 +1624,7 @@ begin
   FTreeSelect.Header.Columns.Add;
   FTreeSelect.Parent := FParentForm;
   FTreeSelect.TextMargin := 0;
-  FTreeSelect.BorderStyle := bsNone;
+  //FTreeSelect.BorderStyle := bsNone;
   //FTreeSelect.BevelKind := bkFlat;
   //FTreeSelect.BevelInner := bvNone;
   FTreeSelect.IncrementalSearch := isAll;
