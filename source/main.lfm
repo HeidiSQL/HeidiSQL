@@ -28,24 +28,29 @@ object MainForm: TMainForm
         Width = 110
       end    
       item
+        Style = psOwnerDraw
         Width = 140
       end    
       item
+        Style = psOwnerDraw
         Width = 170
       end    
       item
         Width = 170
       end    
       item
+        Style = psOwnerDraw
         Width = 170
       end    
       item
+        Style = psOwnerDraw
         Width = 250
       end>
     ParentShowHint = False
     SimplePanel = False
     ShowHint = True
     OnClick = StatusBarClick
+    OnDrawPanel = StatusBarDrawPanel
   end
   object ToolBarMainButtons: TToolBar
     Left = 0
@@ -20198,7 +20203,7 @@ object MainForm: TMainForm
   end
   object SynCompletionProposal: TSynCompletion
     OnExecute = SynCompletionProposalExecute
-    Position = 0
+    Position = -1
     LinesInWindow = 6
     OnPositionChanged = SynCompletionProposalChange
     SelectedColor = clHighlight

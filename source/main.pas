@@ -1500,12 +1500,12 @@ begin
     end;
   end;
   PanelRect := Rect;
-  StatusBar.Canvas.FillRect(PanelRect);
+  //StatusBar.Canvas.FillRect(PanelRect);
   if ImageIndex > -1 then begin
-    VirtualImageListMain.Draw(StatusBar.Canvas, PanelRect.Left, PanelRect.Top, ImageIndex, true);
-    OffsetRect(PanelRect, VirtualImageListMain.Width+2, 0);
+    VirtualImageListMain.DrawForControl(StatusBar.Canvas, PanelRect.Left, PanelRect.Top+2, ImageIndex, VirtualImageListMain.Width, StatusBar, True);
+    OffsetRect(PanelRect, Scale96ToForm(VirtualImageListMain.Width)+4, 0);
   end;
-  //DrawText(StatusBar.Canvas.Handle, PChar(Panel.Text), -1, PanelRect, DT_SINGLELINE or DT_VCENTER);
+  StatusBar.Canvas.TextRect(PanelRect, PanelRect.Left, PanelRect.Top+2, Panel.Text);
 end;
 
 
