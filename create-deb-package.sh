@@ -1,21 +1,37 @@
 #!/bin/sh
 
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
 APPNAME=HeidiSQL
 
 if [ ! -f "LICENSE" ]; then
   echo Error: Current dir is not the root: `pwd`. Please run in repository root directory.
   exit
 fi
-if [ ! -f "out/heidisql" ]; then
-  echo Error: compiled binary does not exist
-  exit
-fi
 
-echo -n Enter version number to use \(e.g. "12.10"\): 
-read versionStr
+echo -n Enter major + minor version number to use \(e.g. "12.10"\):
+read majorMinorVer
+
+echo Reset local modifications and pull latest commits...
+git clean -dfxq
+git --reset hard
+git pull
+
+echo Detect full version...
+buildRevision=`git log | grep -E "^commit\s" -c`
+fullVer="$majorMinorVer.1.$buildRevision"
+echo Full version: $fullVer
+
+echo Inject version string into .lpi file
+# <BuildNr Value="0"/>
+sed -i "s/<BuildNr Value=\"[0-9]\+\"/<BuildNr Value=\"$buildRevision\"/g" heidisql.lpi
+
+echo Build executable...
+lazbuild heidisql.lpi
 
 # create directory and prepare files
-packageDir="$APPNAME-$versionStr"
+packageDir="$APPNAME-$fullVer"
 echo Creating package directory $packageDir
 cp -R deb-package-skeleton $packageDir
 rm $packageDir/usr/share/heidisql/.gitkeep
@@ -26,7 +42,7 @@ cp res/deb-package-icon.png $packageDir/usr/share/pixmaps/heidisql.png
 cp LICENSE $packageDir/usr/share/doc/heidisql/
 
 echo Inject version number in control file...
-sed -i "s/%VERSION%/$versionStr/g" $packageDir/DEBIAN/control
+sed -i "s/%VERSION%/$majorMinorVer/g" $packageDir/DEBIAN/control
 
 # create deb package
 echo Creating package...
