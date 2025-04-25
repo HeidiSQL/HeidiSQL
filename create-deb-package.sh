@@ -15,7 +15,7 @@ read majorMinorVer
 
 echo Reset local modifications and pull latest commits...
 git clean -dfxq
-git --reset hard
+git reset --hard
 git pull
 
 echo Detect full version...
