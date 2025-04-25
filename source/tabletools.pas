@@ -12,7 +12,7 @@ interface
 uses
   SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs,
   laz.VirtualTrees, ExtCtrls, Graphics, RegExpr, Math, Generics.Collections, extra_controls,
-  dbconnection, apphelpers, Menus, DateUtils, Zipper, ZStream, StrUtils,
+  dbconnection, apphelpers, Menus, DateUtils, Zipper, StrUtils,
   SynEdit, ClipBrd, generic_types, fpjson, Variants, EditBtn, LazFileUtils;
 
 type
@@ -795,7 +795,7 @@ var
   Conn: TDBConnection;
   FileName, FileNameZip, FileNameInZip: TFileName;
   Zip: TZipper;
-  StartTime: Cardinal;
+  StartTime: QWord;
   LogRow: TStringlist;
 
   procedure ProcessNode(DBObj: TDBObject);
@@ -862,7 +862,7 @@ begin
   FObjectSizesDone := 0;
   FObjectSizesDoneExact := 0;
   MainForm.EnableProgress(100);
-  FStartTimeAll := GetTickCount;
+  FStartTimeAll := GetTickCount64;
 
   DoBeforeGenerateData(Sender);
 
@@ -932,7 +932,7 @@ begin
 
     if comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED then begin
       AddNotes('', '', _('Compressing')+'...', '');
-      StartTime := GetTickCount;
+      StartTime := GetTickCount64;
       FileNameZip := FExportFileName;
       if FileExists(FileNameZip) then
         DeleteFileWithUndo(FileNameZip);
@@ -945,7 +945,7 @@ begin
       DeleteFile(FileName);
       LogRow := FResults.Last;
       LogRow[2] := _('Compressing done.');
-      LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) / 1000, True);
+      LogRow[3] := FormatTimeNumber((GetTickCount64-StartTime) / 1000, True);
       UpdateResultGrid;
     end;
 
@@ -1401,7 +1401,7 @@ begin
   lblCheckedSize.Caption := f_('Selected objects size: %s', [FormatByteNumber(FObjectSizes)]) + '. ' +
     f_('%s%% done', [FormatNumber(Percent, 1)]) + '.';
   MainForm.SetProgressPosition(Round(Percent));
-  MainForm.ShowStatusMsg(Format(StatusMsg, [tabsTools.ActivePage.Caption, FormatTimeNumber((GetTickCount-FStartTimeAll)/1000, True)]));
+  MainForm.ShowStatusMsg(Format(StatusMsg, [tabsTools.ActivePage.Caption, FormatTimeNumber((GetTickCount64-FStartTimeAll)/1000, True)]));
   ResultGrid.Header.AutoFitColumns(False);
   Application.ProcessMessages;
 end;
@@ -1703,7 +1703,7 @@ var
   i: Integer;
   RowCount, RowCountInChunk: Int64;
   Limit, Offset, ResultCount, MaxInsertSize: Int64;
-  StartTime: Cardinal;
+  StartTime: QWord;
   StrucResult, Data: TDBQuery;
   ColumnList: TTableColumnList;
   Column: TTableColumn;
@@ -1725,7 +1725,7 @@ const
     BytesDone := Max(DBObj.Size,0) div Max(DBObj.Rows,1) * RowsDone;
     FObjectSizesDoneExact := FObjectSizesDone + BytesDone;
     LogRow[2] := FormatNumber(RowsDone) + ' / ' + FormatNumber(Percent, 0)+'%';
-    LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) / 1000, True);
+    LogRow[3] := FormatTimeNumber((GetTickCount64-StartTime) / 1000, True);
     UpdateResultGrid;
   end;
 
@@ -1755,7 +1755,7 @@ begin
   else
     Quoter := DBObj.Connection;
 
-  StartTime := GetTickCount;
+  StartTime := GetTickCount64;
   ExportStreamStartOfQueryPos := 0;
   MaxInsertSize := Trunc(StrToInt64Def(editInsertSize.Text, 0) * SIZE_KB * 0.9);
 

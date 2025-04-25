@@ -5,16 +5,16 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, GraphUtil, Dialogs, Menus,
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus,
   ActnList, ComCtrls, ExtCtrls, LCLProc, DateUtils, SynEdit, SynEditHighlighter,
   SynHighlighterSQL, SynGutterBase, SynCompletion, SynEditKeyCmds, SynEditTypes,
-  SynGutter, SynGutterChanges, SynGutterCodeFolding, SynGutterLineNumber,
-  SynGutterMarks, StrUtils, laz.VirtualTrees, laz.VTHeaderPopup, RegExpr,
+  SynGutter, SynGutterCodeFolding,
+  StrUtils, laz.VirtualTrees, laz.VTHeaderPopup, RegExpr,
   Buttons, StdCtrls, fphttpclient, Math, LCLIntf, Generics.Collections,
   Generics.Defaults, opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn,
   FileUtil, LMessages, jsonconf, dbconnection, dbstructures, dbstructures.mysql,
   generic_types, apphelpers, extra_controls, createdatabase,
-  SynEditMarkupSpecialLine, SynEditMarkupBracket, searchreplace, ImgList, IniFiles, LazFileUtils, tabletools;
+  SynEditMarkupBracket, searchreplace, ImgList, IniFiles, LazFileUtils, tabletools, lazaruscompat;
 
 
 type
@@ -1191,6 +1191,7 @@ type
     //  const Token: string; TokenType: Integer; Attri: TSynHighlighterAttributes;
     //  var HintText: string);
     procedure actCopyGridNodesExecute(Sender: TObject);
+    procedure ApplicationException(Sender: TObject; E: Exception);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1231,7 +1232,7 @@ type
     FOperatingGrid: TBaseVirtualTree;
     FActiveDbObj: TDBObject;
     FActiveObjectGroup: TListNodeType;
-    FBtnAddTab: TSpeedButton;
+    //FBtnAddTab: TSpeedButton;
     FDBObjectsMaxSize: Int64;
     FDBObjectsMaxRows: Int64;
     FSearchReplaceDialog: TfrmSearchReplace;
@@ -1253,7 +1254,7 @@ type
     FActionList1DefaultCaptions: TStringList;
     FActionList1DefaultHints: TStringList;
     FEditorCommandStrings: TStringList;
-    FLastSelWordInEditor: String;
+    //FLastSelWordInEditor: String;
     FMatchingBraceForegroundColor: TColor;
     FMatchingBraceBackgroundColor: TColor;
     FSynEditInOnPaintTransient: Boolean;
@@ -1429,8 +1430,6 @@ uses
 
 
 procedure TMainForm.ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
-var
-  PanelRect: TRect;
 begin
   // Show message in some statusbar panel
   if (PanelNr = 6) and (Msg = '') then
@@ -1717,12 +1716,8 @@ end;
 
 procedure TMainForm.StoreLastSessions;
 var
-  OpenSessions, SessionPaths, SortedSessions: TStringList;
+  OpenSessions: TStringList;
   Connection: TDBConnection;
-  //JumpTask: TJumpTask;
-  SessionPath: String;
-  i: Integer;
-  LastConnect: TDateTime;
 begin
   // Store names of open sessions
   OpenSessions := TStringList.Create;
@@ -1732,38 +1727,6 @@ begin
   OpenSessions.Free;
   if Assigned(ActiveConnection) then
     AppSettings.WriteString(asLastActiveSession, ActiveConnection.Parameters.SessionPath);
-
-  // Recreate Win7 taskbar jump list with sessions used in the last month, ordered by the number of connects
-  {if Assigned(FJumpList) then try
-    FJumpList.Clear;
-    SessionPaths := TStringList.Create;
-    SortedSessions := TStringList.Create;
-    AppSettings.GetSessionPaths('', SessionPaths);
-    for SessionPath in SessionPaths do begin
-      AppSettings.SessionPath := SessionPath;
-      LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DateTimeNever);
-      if DaysBetween(LastConnect, Now) <= 30 then
-        SortedSessions.Values[SessionPath] := IntToStr(AppSettings.ReadInt(asConnectCount));
-    end;
-    SessionPaths.Free;
-    AppSettings.ResetPath;
-    SortedSessions.CustomSort(StringListCompareByValue);
-    for i:=0 to SortedSessions.Count-1 do begin
-      JumpTask := TJumpTask.Create;
-      JumpTask.Title := SortedSessions.Names[i]+' ('+FormatNumber(SortedSessions.ValueFromIndex[i], True)+')';
-      JumpTask.ApplicationPath := ParamStr(0);
-      JumpTask.Arguments := '-d="'+SortedSessions.Names[i]+'"';
-      JumpTask.CustomCategory := _('Recent sessions');
-      FJumpList.JumpItems.Add(JumpTask);
-    end;
-    SortedSessions.Free;
-    // Seems to randomly produce access violations, not only on Wine
-    // See issue #3428
-    FJumpList.Apply;
-  except
-    on E:Exception do
-      LogSQL(E.Message, lcError);
-  end;}
 end;
 
 
@@ -1834,7 +1797,7 @@ begin
   AppSettings.WriteInt(asQuerymemoheight, ScaleFormToDesign(pnlQueryMemo.Height));
   AppSettings.WriteInt(asQueryhelperswidth, ScaleFormToDesign(pnlQueryHelpers.Width));
   AppSettings.WriteInt(asCompletionProposalWidth, ScaleFormToDesign(SynCompletionProposal.Width));
-  AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.NbLinesInWindow);
+  AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.LinesInWindow);
   AppSettings.WriteInt(asDbtreewidth, ScaleFormToDesign(pnlLeft.width));
   AppSettings.WriteBool(asGroupTreeObjects, actGroupObjects.Checked);
   AppSettings.WriteInt(asDataPreviewHeight, ScaleFormToDesign(pnlPreview.Height));
@@ -1873,12 +1836,9 @@ var
   ExportFormat: TGridExportFormat;
   VI: TVersionInfo;
   CopyAsMenu, CommandMenu: TMenuItem;
-  //TZI: TTimeZoneInformation;
   dti: TDBDatatypeCategoryIndex;
   EditorCommand: TSynEditorCommand;
   CmdCap: String;
-  Lib: TMySQLLib;
-  LibFile: String;
 begin
   {***
     OnCreate Event
@@ -1934,19 +1894,6 @@ begin
   end;
   FAppVersion := Format('%d.%d.%d.%d', [FAppVerMajor, FAppVerMinor, FAppVerRelease, FAppVerRevision]);
 
-  {// Taskbar button interface for Windows 7
-  // Possibly fails. See http://www.heidisql.com/forum.php?t=22451
-  if CheckWin32Version(6, 1) then
-  try
-    TaskbarList := CreateComObject(CLSID_TaskbarList) as ITaskbarList;
-    TaskbarList.HrInit;
-    Supports(TaskbarList, IID_ITaskbarList2, TaskbarList2);
-    Supports(TaskbarList, IID_ITaskbarList3, TaskbarList3);
-    Supports(TaskbarList, IID_ITaskbarList4, TaskbarList4);
-  except
-    on E:EOleSysError do;
-  end;}
-
   // Load snippet filenames
   SetSnippetFilenames;
 
@@ -1966,10 +1913,10 @@ begin
   end;
 
   // Generate submenu with SynEdit commands
-  {FEditorCommandStrings := TStringList.Create;
+  FEditorCommandStrings := TStringList.Create;
   SynEditKeyCmds.GetEditorCommandValues(AddEditorCommandMenu);
   for i:=0 to FEditorCommandStrings.Count-1 do begin
-    EditorCommand := ConvertCodeStringToCommand(FEditorCommandStrings[i]);
+    EditorCommand := SynMemoQuery.ConvertCodeStringToCommand(FEditorCommandStrings[i]);
     CommandMenu := TMenuItem.Create(MainMenu1);
     CmdCap := FEditorCommandStrings[i];
     CmdCap := Copy(CmdCap, 3, Length(CmdCap)-2);
@@ -1987,7 +1934,7 @@ begin
     end;
     CommandMenu.OnClick := EditorCommandOnClick;
     menuEditorCommands.Add(CommandMenu);
-  end;}
+  end;
 
 
   Delimiter := AppSettings.ReadString(asDelimiter);
@@ -2157,12 +2104,6 @@ begin
   // Set noderoot for query helpers box
   treeQueryHelpers.RootNodeCount := 7;
 
-  // Initialize taskbar jump list
-  {if not IsWine then begin
-    FJumpList := TJumpList.Create;
-    FJumpList.ApplicationId := APPNAME + IntToStr(GetExecutableBits);
-  end;}
-
   FLastCaptionChange := 0;
   FLastPortableSettingsSave := 0;
   FLastAppSettingsWrites := 0;
@@ -2272,6 +2213,7 @@ begin
 
   ConnectionParams := nil;
   RunFrom := '';
+  FileNames := nil;
   ParseCommandLine(GetCommandLine, ConnectionParams, FileNames, RunFrom);
 
   // Delete scheduled task from previous
@@ -2285,6 +2227,7 @@ begin
   if ConnectionParams <> nil then begin
     // Minimal parameter for command line mode is hostname
     try
+      Connection := nil;
       InitConnection(ConnectionParams, True, Connection);
     except on E:Exception do
       ErrorDialog(E.Message);
@@ -2346,9 +2289,11 @@ begin
     end;
   end;
 
+  Application.OnException := ApplicationException;
   Application.OnIdle := ApplicationEvents1Idle;
   Application.OnDeactivate := ApplicationEvents1Deactivate;
   Application.OnShortcut := ApplicationEvents1ShortCut;
+
   MainFormAfterCreateDone := True;
 end;
 
@@ -2471,7 +2416,7 @@ var
   Section, Filename, BackupFilename, TabCaption: String;
   TabsIni: TIniFile;
   pid: Cardinal;
-  EditorHeight, HelpersWidth, EditorTopLine: Integer;
+  EditorHeight, EditorTopLine: Integer;
   BindParams: String;
   TabFocused: Boolean;
   TabLoadStart, TabLoadTime: UInt64;
@@ -2506,7 +2451,7 @@ begin
       TabCaption := TabsIni.ReadString(Section, TQueryTab.IdentCaption, '');
       pid := Cardinal(TabsIni.ReadInteger(Section, TQueryTab.IdentPid, 0));
       EditorHeight := TabsIni.ReadInteger(Section, TQueryTab.IdentEditorHeight, 0);
-      HelpersWidth := TabsIni.ReadInteger(Section, TQueryTab.IdentHelpersWidth, 0);
+      //HelpersWidth := TabsIni.ReadInteger(Section, TQueryTab.IdentHelpersWidth, 0);
       BindParams := TabsIni.ReadString(Section, TQueryTab.IdentBindParams, '');
       EditorTopLine := TabsIni.ReadInteger(Section, TQueryTab.IdentEditorTopLine, 1);
       TabFocused := TabsIni.ReadBool(Section, TQueryTab.IdentTabFocused, False);
@@ -2890,13 +2835,11 @@ var
   EditorCommand: TSynEditorCommand;
   Editor: TSynMemo;
 begin
-  {EditorCommand := IndexToEditorCommand(TMenuItem(Sender).MenuIndex);
   Editor := ActiveSynMemo(False);
   if Assigned(Editor) then begin
-    Editor.BeginUndoBlock;
+    EditorCommand := Editor.IndexToEditorCommand(TMenuItem(Sender).MenuIndex);
     Editor.ExecuteCommand(EditorCommand, #0, nil);
-    Editor.EndUndoBlock;
-  end;}
+  end;
 end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
@@ -3043,8 +2986,8 @@ end;
   Edit view
 }
 procedure TMainForm.actPrintListExecute(Sender: TObject);
-var
-  f: TForm;
+//var
+  //f: TForm;
 begin
   // Print contents of a list or grid
   //f := TPrintlistForm.Create(Self);
@@ -4030,15 +3973,12 @@ var
   i, FilesProcessed: Integer;
   Filesize, FilesizeSum, CurrentPosition: Int64;
   StartTime: UInt64;
-  msgtext: String;
   AbsentFiles, PopupFileList: TStringList;
   DoRunFiles: Boolean;
   Dialog: TTaskDialog;
   Btn: TTaskDialogButtonItem;
   DialogResult: TModalResult;
   Conn: TDBConnection;
-  //ProgressDialog: IProgressDialog;
-  Dummy: Pointer;
   TimeElapsed: Double;
   RunSuccess: Boolean;
 const
@@ -4098,16 +4038,11 @@ begin
     case DialogResult of
       mrYes: begin
         Result := True;
-        // progress start
-        //ProgressDialog := CreateComObject(CLSID_ProgressDialog) as IProgressDialog;
-        Dummy := nil;
         CurrentPosition := 0;
         FilesProcessed := 0;
         StartTime := GetTickCount64;
         Conn := ActiveConnection;
         RunSuccess := False;
-        // PROGDLG_MODAL was used previously, but somehow that focuses some other application
-        //ProgressDialog.StartProgressDialog(Handle, nil, PROGDLG_NOMINIMIZE or PROGDLG_AUTOTIME, Dummy);
         for i:=0 to Filenames.Count-1 do begin
           RunSuccess := RunQueryFile(Filenames[i], Encoding, Conn, FilesizeSum, CurrentPosition);
           // Add filename to history menu
@@ -4117,8 +4052,6 @@ begin
           if not RunSuccess then
             Break;
         end;
-        // progress end
-        //ProgressDialog.StopProgressDialog;
         TimeElapsed := GetTickCount64 - StartTime;
         LogSQL(f_('%s file(s) processed, in %s', [FormatNumber(FilesProcessed), FormatTimeNumber(TimeElapsed/1000, True)]));
         if RunSuccess then
@@ -4141,9 +4074,8 @@ end;
 function TMainForm.RunQueryFile(FileName: String; Encoding: TEncoding; Conn: TDBConnection;
   FilesizeSum: Int64; var CurrentPosition: Int64): Boolean;
 var
-  Dummy: Pointer;
   Stream: TFileStream;
-  Lines, LinesRemain, ErrorNotice: String;
+  Lines, LinesRemain: String;
   Filesize, QueryCount, ErrorCount, RowsAffected: Int64;
   Queries: TSQLBatch;
   i: Integer;
@@ -4152,28 +4084,21 @@ var
   var
     MessageText: String;
   begin
-    //ProgressDialog.SetLine(1, PChar(_('Clean up ...')), False, Dummy);
     Queries.Free;
     try
       Stream.Free;
     except; // Eat error when stream wasn't yet created properly
     end;
     // BringToFront; // Not sure why I added this initially, but it steals focus from other applications
-    //if ProgressDialog.HasUserCancelled then
-    //  MessageText := 'File "%s" partially executed, with %s queries and %s affected rows'
-    //else
-      MessageText := 'File "%s" executed, with %s queries and %s affected rows';
+    MessageText := 'File "%s" executed, with %s queries and %s affected rows';
     LogSQL(f_(MessageText, [ExtractFileName(FileName), FormatNumber(QueryCount), FormatNumber(RowsAffected)]));
   end;
 
 begin
-  // Import single SQL file and display progress dialog
-  //ProgressDialog.SetTitle(PChar(f_('Importing file %s', [ExtractFileName(FileName)])));
-  Dummy := nil;
+  // Import single SQL file
 
   Result := True;
   Lines := '';
-  ErrorNotice := '';
   QueryCount := 0;
   ErrorCount := 0;
   RowsAffected := 0;
@@ -4186,24 +4111,18 @@ begin
 
     OpenTextfile(FileName, Stream, Encoding);
     while Stream.Position < Stream.Size do begin
-      //if ProgressDialog.HasUserCancelled then
-      //  Break;
 
       // Read lines from SQL file until buffer reaches a limit of some MB
       // This strategy performs vastly better than looping through each line
-      //ProgressDialog.SetLine(1, PChar(_('Reading next chunk from file...')), False, Dummy);
       Lines := ReadTextfileChunk(Stream, Encoding, 20*SIZE_MB);
 
       // Split buffer into single queries
-      //ProgressDialog.SetLine(1, PChar(_('Splitting queries...')), False, Dummy);
       Queries.SQL := LinesRemain + Lines;
       Lines := '';
       LinesRemain := '';
 
       // Execute detected queries
       for i:=0 to Queries.Count-1 do begin
-        //if ProgressDialog.HasUserCancelled then
-        //  Break;
         // Last line has to be processed in next loop if end of file is not reached
         if (i = Queries.Count-1) and (Stream.Position < Stream.Size) then begin
           LinesRemain := Queries[i].SQL;
@@ -4211,19 +4130,6 @@ begin
         end;
         Inc(QueryCount);
         Inc(CurrentPosition, Encoding.GetByteCount(Queries[i].SQL));
-        if ErrorCount > 0 then
-          ErrorNotice := '(' + FormatNumber(ErrorCount) + ' ' + _('Errors') + ')';
-        {ProgressDialog.SetLine(1,
-          PChar(f_('Processing query #%s. %s', [FormatNumber(QueryCount), ErrorNotice])),
-          False,
-          Dummy
-          );
-        ProgressDialog.SetLine(2,
-          PChar(f_('Position in file: %s / %s. Affected rows: %s.', [FormatByteNumber(CurrentPosition), FormatByteNumber(Filesize), FormatNumber(RowsAffected)])),
-          False,
-          Dummy
-          );
-        ProgressDialog.SetProgress64(CurrentPosition, FilesizeSum);}
 
         // Execute single query
         // Break or don't break loop, depending on the state of "Stop on errors" button
@@ -4242,10 +4148,6 @@ begin
 
       end;
     end;
-    {if ProgressDialog.HasUserCancelled then begin
-      LogSQL(_('Cancelled by user'));
-      Result := False;
-    end;}
     StopProgress;
     if ErrorCount > 0 then begin
       ErrorDialog(_('Errors'),
@@ -4320,6 +4222,7 @@ begin
     SelectNode(DBtree, Node)
   else begin
     Params := TConnectionParameters.Create(SessionPath);
+    Connection := nil;
     InitConnection(Params, True, Connection);
   end;
 end;
@@ -4452,6 +4355,7 @@ begin
       mtConfirmation, [mbOK, mbCancel]) = mrOK then begin
       FocusAfterDelete := nil;
       EnableProgress(Grid.SelectedCount);
+      Nodes := [];
       Node := GetNextNode(Grid, nil, True);
       while Assigned(Node) do begin
         RowNum := Grid.GetNodeData(Node);
@@ -5785,7 +5689,7 @@ end;
 
 procedure TMainForm.AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
   var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
-var
+{var
   PaintArea, TextArea, IconArea, SortArea: TRect;
   SortText, ColCaption: String;
   TextSpace, ColSortIndex, NumCharTop: Integer;
@@ -5819,18 +5723,18 @@ const
         SortDirection := Column.Owner.Header.SortDirection;
       end;
     end;
-  end;
+  end;}
 
 begin
   // Paint specified elements on column header
 
-  PaintArea := PaintInfo.PaintRectangle; // somehow empty/nil
+  {PaintArea := PaintInfo.PaintRectangle; // somehow empty/nil
   PaintArea.Inflate(-PaintInfo.Column.Margin, 0);
   DC := PaintInfo.TargetCanvas.Handle;
 
   // Draw column name. Code taken from TVirtualTreeColumns.DrawButtonText and modified for our needs
   if hpeText in Elements then begin
-    {ColCaption := PaintInfo.Column.Text;
+    ColCaption := PaintInfo.Column.Text;
     // Leave space for icons
     TextArea := PaintArea;
     if PaintInfo.Column.ImageIndex > -1 then
@@ -5850,21 +5754,21 @@ begin
     SetBkMode(DC, TRANSPARENT);
     SetTextColor(DC, ColorToRGB(clWindowText));
     DrawFormat := DT_TOP or DT_NOPREFIX or DT_LEFT;
-    //DrawTextW(DC, PWideChar(ColCaption), Length(ColCaption), TextArea, DrawFormat);}
+    //DrawTextW(DC, PWideChar(ColCaption), Length(ColCaption), TextArea, DrawFormat);
   end;
 
   // Draw image, if any
   if (hpeHeaderGlyph in Elements) and (PaintInfo.Column.ImageIndex > -1) then begin
-    {IconArea := PaintArea;
+    IconArea := PaintArea;
     Inc(IconArea.Left, IconArea.Width - Sender.Images.Width);
     GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
     if ColSortIndex > -1 then
       Dec(IconArea.Left, Sender.Images.Width);
-    Sender.Images.Draw(PaintInfo.TargetCanvas, IconArea.Left, IconArea.Top, PaintInfo.Column.ImageIndex);}
+    Sender.Images.Draw(PaintInfo.TargetCanvas, IconArea.Left, IconArea.Top, PaintInfo.Column.ImageIndex);
   end;
 
   // Paint sort icon and number
-  {if hpeOverlay in Elements then begin
+  if hpeOverlay in Elements then begin
     SortArea := PaintArea;
     GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
     if ColSortIndex > -1 then begin
@@ -6721,17 +6625,17 @@ end;
 
 
 procedure TMainForm.SynCompletionProposalChange(Sender: TObject);
-var
+{var
   Proposal: TSynCompletion;
   SelectedFuncName: String;
-  SQLFunc: TSQLFunction;
+  SQLFunc: TSQLFunction;}
 begin
-  Proposal := SynCompletionProposal;
-  //if (AIndex >= 0) and (AIndex < Proposal.ItemList.Count) then begin
-    //Proposal.Title := Proposal.InsertItem(AIndex);
+  {Proposal := Sender as TSynCompletionProposal;
+  if (AIndex >= 0) and (AIndex < Proposal.ItemList.Count) then begin
+    Proposal.Title := Proposal.InsertItem(AIndex);
     // Show function description in hint panel
     ShowStatusMsg('', 0);
-    SelectedFuncName := ''; //RegExprGetMatch('}function\\column\{\}\\color\{\w+\}([^\\]+)\\', Proposal.DisplayItem(AIndex), 1);
+    SelectedFuncName := RegExprGetMatch('...
     if not SelectedFuncName.IsEmpty then begin
       for SQLFunc in ActiveConnection.SQLFunctions do begin
         if SQLFunc.Name.ToUpper = SelectedFuncName.ToUpper then begin
@@ -6740,7 +6644,7 @@ begin
         end;
       end;
     end;
-  //end;
+  end;}
 end;
 
 
@@ -7671,7 +7575,7 @@ end;
 
 
 procedure TMainForm.SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
-var
+{var
   Editor: TSynMemo;
   Token, Replacement: String;
   Attri: TSynHighlighterAttributes;
@@ -7683,7 +7587,7 @@ var
   OldOnChange: TNotifyEvent;
 const
   WordChars = ['A'..'Z', 'a'..'z', '_'];
-  IgnoreChars = [#8]; // Backspace, and probably more which should not trigger uppercase
+  IgnoreChars = [#8]; // Backspace, and probably more which should not trigger uppercase}
 begin
   // Uppercase reserved words, functions and data types
   {if CharInSet(Key, WordChars) or CharInSet(Key, IgnoreChars) then
@@ -11528,6 +11432,7 @@ begin
   end;
 
   SelectedCaptions := TStringList.Create;
+  FocusedCaption := '';
   GetVTSelection(vt, SelectedCaptions, FocusedCaption);
   SelectNode(vt, nil);
   vt.BeginUpdate;
@@ -11790,7 +11695,7 @@ var
   SenderName: String;
   Grid: TVirtualStringTree;
   Header, Body, Line, Data: String;
-  Separator, Encloser, Terminator: String;
+  Separator, Terminator: String;
   Node: PVirtualNode;
   Col: TColumnIndex;
   Indent, NodesCopied: Integer;
@@ -11816,7 +11721,6 @@ begin
   // Grid.CopyToClipboard; // Does nothing (?)
 
   Separator := #9;
-  Encloser := '';
   Terminator := SLineBreak;
 
   Header := '';
@@ -11824,11 +11728,9 @@ begin
   IsFirstCol := True;
   while Col > NoColumn do begin
     Data := Grid.Header.Columns[Col].Text;
-    //Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
     if not IsFirstCol then
       Header := Header + Separator;
     IsFirstCol := False;
-    //Header := Header + Encloser + Data + Encloser;
     Header := Header + Data;
     Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
   end;
@@ -11847,18 +11749,15 @@ begin
         if not IsFirstCol then
           Line := Line + Separator;
         IsFirstCol := False;
-        //Line := Line + Encloser + Encloser;
       end;
 
       // Add data cells
       Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
       while Col > NoColumn do begin
         Data := Grid.Text[Node, Col];
-        //Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
         if not IsFirstCol then
           Line := Line + Separator;
         IsFirstCol := False;
-        //Line := Line + Encloser + Data + Encloser;
         Line := Line + Data;
         Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
       end;
@@ -11906,6 +11805,7 @@ begin
   try
     if SendingControl = btnPreviewCopy then begin
       if (imgPreview.Picture.Graphic <> nil) and (not imgPreview.Picture.Graphic.Empty) then begin
+        ClpFormat := 0;
         imgPreview.Picture.SaveToClipBoardFormat(ClpFormat);
         //ClipBoard.SetAsHandle(ClpFormat, ClpData);
       end;
@@ -11943,6 +11843,7 @@ begin
               FClipboardHasNull := True;
             end else begin
               TextCopy := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+              HasNulls := False;
               RemoveNullChars(TextCopy, HasNulls);
               Clipboard.TryAsText := TextCopy;
             end;
@@ -12593,7 +12494,7 @@ begin
   AppSettings.DeleteValue(asCompletionProposalWidth);
   AppSettings.DeleteValue(asCompletionProposalNbLinesInWindow);
   SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
-  SynCompletionProposal.NbLinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
+  SynCompletionProposal.LinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
 end;
 
 procedure TMainForm.menuRenameQueryTabClick(Sender: TObject);
@@ -12750,7 +12651,6 @@ procedure TMainForm.editDatabaseTableFilterLeftButtonClick(Sender: TObject);
 var
   Menu: TPopupMenu;
   Item: TMenuItem;
-  P: TPoint;
   Edit: TEditButton;
   History: TStringList;
   ItemText: String;
@@ -12953,10 +12853,10 @@ end;
 
 
 procedure TMainForm.FixQueryTabCloseButtons;
-var
+{var
   i, PageIndex, VisiblePageIndex: Integer;
   Rect: TRect;
-  btn: TSpeedButton;
+  btn: TSpeedButton;}
 begin
   // Fix positions of "Close" buttons on Query tabs
   // Avoid AV on Startup, when Mainform.OnResize is called once or twice implicitely.
@@ -14775,6 +14675,26 @@ begin
   else begin
     // Probably reset hint font
     SetHintFontByControl;
+  end;
+end;
+
+
+procedure TMainForm.ApplicationException(Sender: TObject; E: Exception);
+var
+  I: Integer;
+  Frames: PPointer;
+  Report: string;
+begin
+  Report := 'Call stack: (press Ctrl+C to copy)' + LineEnding + LineEnding;
+  if E <> nil then begin
+    Report := Report + 'Exception class: ' + E.ClassName + LineEnding + 'Message: ' + E.Message + LineEnding;
+  end;
+  Report := Report + BackTraceStrFunc(ExceptAddr);
+  Frames := ExceptFrames;
+  for I := 0 to ExceptFrameCount - 1 do
+    Report := Report + LineEnding + BackTraceStrFunc(Frames[I]);
+  if MessageDlg('Exception call stack', Report, mtError, [mbIgnore, mbAbort], 0) = mrAbort then begin
+    Halt; // End of program execution
   end;
 end;
 

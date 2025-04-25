@@ -1,4 +1,6 @@
 // Common constants
+{$WARN 5028 off : Local $1 "$2" is not used}
+{$WARN 5025 off : Local variable "$1" not used}
 const
 
   // Line breaks

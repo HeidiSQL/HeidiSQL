@@ -6,7 +6,7 @@ interface
 
 uses
   SysUtils, Variants, Classes, Graphics, EditBtn,
-  Controls, Forms, Dialogs, StdCtrls, ExtCtrls, GraphUtil, Math,
+  Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
   StrUtils, SynEditHighlighter, apphelpers, extra_controls;
 
 type
@@ -79,7 +79,6 @@ procedure TfrmCustomizeHighlighter.comboHighlighterSelect(Sender: TObject);
 var
   i: Integer;
   Highlighters: TSynHighlighterList;
-  h: TSynCustomHighlighterClass;
 begin
   // Highlighter selected
   listboxAttributes.Clear;

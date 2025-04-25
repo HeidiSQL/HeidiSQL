@@ -41,7 +41,6 @@ type
   private
     { Private declarations }
     BuildURL: String;
-    FLastStatusUpdate: Cardinal;
     FRestartTaskName: String;
     procedure Status(txt: String);
     function GetLinkUrl(Sender: TObject; LinkType: String): String;

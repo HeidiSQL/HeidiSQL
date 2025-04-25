@@ -6,8 +6,8 @@ interface
 
 uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
-  ComCtrls, ToolWin, laz.VirtualTrees, RegExpr, ExtCtrls, SynEdit,
-  Menus, Clipbrd, Math, UITypes, Generics.Collections, LCLProc, LCLType,
+  ComCtrls, laz.VirtualTrees, RegExpr, ExtCtrls, SynEdit,
+  Menus, Clipbrd, Math, System.UITypes, Generics.Collections, LCLProc, LCLType,
   {grideditlinks,} dbstructures, dbstructures.mysql, dbconnection, apphelpers, StrUtils, extra_controls;
 
 type

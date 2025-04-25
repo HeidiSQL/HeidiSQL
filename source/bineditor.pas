@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, Graphics, Forms, Controls, StdCtrls, laz.VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils, extra_controls, LCLType;
+  ComCtrls, Dialogs, SysUtils, extra_controls, LCLType;
 
 {$I const.inc}
 
@@ -57,6 +57,7 @@ var
   Ansi: AnsiString;
 begin
   // Convert hex to binary string before returning
+  Ansi := '';
   SetLength(Ansi, memoText.GetTextLen div 2);
   HexToBin(PChar(memoText.Text), PAnsiChar(Ansi), Length(Ansi));
   Result := String(Ansi);

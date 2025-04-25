@@ -141,8 +141,11 @@ begin
   EnclLen := Length(Encl);
   LineTermLen := Length(LineTerm);
 
+  TermTest := '';
   SetLength(TermTest, TermLen);
+  EnclTest := '';
   SetLength(EnclTest, EnclLen);
+  LineTermTest := '';
   SetLength(LineTermTest, LineTermLen);
 
   InEncl := False;

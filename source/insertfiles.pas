@@ -4,7 +4,7 @@ interface
 
 uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
-  Math, Graphics, ComCtrls, ToolWin, LCLType, extra_controls,
+  Math, Graphics, ComCtrls, LCLType, extra_controls,
   dbconnection, dbstructures, laz.VirtualTrees, RegExpr, apphelpers;
 
 type
@@ -579,8 +579,6 @@ end;
 
 
 procedure TfrmInsertFiles.btnInsertClick(Sender: TObject);
-const
-  ChunkSize = 131072;
 var
   Value, sql, FileContent: String;
   FileDate: TDateTime;

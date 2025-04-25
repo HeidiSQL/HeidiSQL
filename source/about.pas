@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, ActnList,
   ComCtrls, ExtCtrls, SynEdit, SynHighlighterSQL, laz.VirtualTrees,
-  RegExpr, Buttons, StdCtrls, Clipbrd, LCLIntf, StrUtils, LazVersion;
+  RegExpr, Buttons, StdCtrls, Clipbrd, LCLIntf, LazVersion;
 
 type
 

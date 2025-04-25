@@ -7,7 +7,7 @@ interface
 uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
   ExtCtrls, SynEdit, SynEditTypes, laz.VirtualTrees, RegExpr,
-  SynEditRegexSearch, SynEditMiscClasses, SynEditSearch, extra_controls,
+  SynEditMiscClasses, SynEditSearch, extra_controls,
   Menus, texteditor;
 
 type

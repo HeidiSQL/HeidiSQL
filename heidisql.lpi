@@ -11,6 +11,7 @@
       <UseXPManifest Value="True"/>
       <XPManifest>
         <DpiAware Value="True"/>
+        <AnsiUTF8 Value="True"/>
         <TextName Value="HeidiSQL"/>
         <TextDesc Value="A lightweight, fast and flexible interface to MySQL"/>
       </XPManifest>
@@ -332,6 +333,10 @@
         <Filename Value="source\grideditlinks.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\lazaruscompat.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -362,7 +367,7 @@
     </Linking>
     <Other>
       <CompilerMessages>
-        <IgnoredMessages idx3177="True" idx3175="True"/>
+        <IgnoredMessages idx6058="True" idx5062="True" idx5024="True" idx4104="True" idx4046="True" idx3177="True" idx3175="True"/>
       </CompilerMessages>
     </Other>
   </CompilerOptions>

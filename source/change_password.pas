@@ -7,7 +7,7 @@ interface
 uses
   SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
-  Menus, Clipbrd, ComCtrls, Math, extra_controls;
+  Menus, Clipbrd, ComCtrls, extra_controls, Buttons;
 
 type
   TfrmPasswordChange = class(TExtForm)
@@ -30,7 +30,7 @@ type
     menuDummy3: TMenuItem;
     menuDummy4: TMenuItem;
     menuDummy5: TMenuItem;
-    btnCopyToClipboard: TButton;
+    btnCopyToClipboard: TSpeedButton;
     progressbarPasswordStrength: TProgressBar;
     procedure editPasswordChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -108,11 +108,11 @@ var
 begin
   // Copy new password to clipboard
   Clipboard.TryAsText := editPassword.Text;
-  //OldImageIndex := btnCopyToClipboard.ImageIndex;
-  //btnCopyToClipboard.ImageIndex := 55;
-  //btnCopyToClipboard.Repaint;
-  //Sleep(500);
-  //btnCopyToClipboard.ImageIndex := OldImageIndex;
+  OldImageIndex := btnCopyToClipboard.ImageIndex;
+  btnCopyToClipboard.ImageIndex := 55;
+  btnCopyToClipboard.Repaint;
+  Sleep(500);
+  btnCopyToClipboard.ImageIndex := OldImageIndex;
   Beep;
 end;
 

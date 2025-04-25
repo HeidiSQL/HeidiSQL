@@ -6,9 +6,9 @@ interface
 
 uses
   Classes, SysUtils, Forms, Types, StdCtrls, Clipbrd, apphelpers,
-  Graphics, Dialogs, ImgList, ComCtrls, Generics.Collections, Generics.Defaults,
+  Graphics, Dialogs, ImgList, ComCtrls, Generics.Defaults,
   ExtCtrls, laz.VirtualTrees, RegExpr, Controls, EditBtn, Menus,
-  GraphUtil, Math, LCLIntf;
+  LCLIntf;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -46,7 +46,7 @@ type
       FFilters: TStringList;
       FEncodings: TStringList;
       FEncodingIndex: Cardinal;
-      const idEncodingCombo = 1;
+      //const idEncodingCombo = 1;
       procedure FileOkClickNoOp(Sender: TObject; var CanClose: Boolean);
     protected
       //procedure DoOnExecute; override;
@@ -64,7 +64,7 @@ type
       FFilters: TStringList;
       FLineBreaks: TStringList;
       FLineBreakIndex: TLineBreaks;
-      const idLineBreakCombo = 1;
+      //const idLineBreakCombo = 1;
       procedure FileOkClickNoOp(Sender: TObject; var CanClose: Boolean);
     protected
       //procedure DoOnExecute; override;
@@ -101,6 +101,7 @@ type
       procedure Change; override;
       procedure DropDown; override;
       procedure CloseUp; override;
+    public
       procedure InitiateAction; override;
   end;
 
@@ -174,8 +175,8 @@ end;}
 
 
 class procedure TExtForm.FixControls(ParentComp: TComponent);
-var
-  i: Integer;
+//var
+  //i: Integer;
 
   {procedure ProcessSingleComponent(Cmp: TComponent);
   begin
@@ -445,7 +446,7 @@ var
   i, CurrentImage, CountOriginals: Integer;
   Images: TImageList;
   GrayscaleMode: Integer;
-  IsQueryTab, DoGrayscale: Boolean;
+  IsQueryTab: Boolean;
 begin
   // Unsupported yet. We have no TVirtualImageList, see MainForm.PrepareImageList
   Exit;
@@ -704,6 +705,7 @@ var
   HintWidth, Padding: Integer;
 begin
   inherited;
+  P := Point(0,0);
   if (ItemIndex > -1) and DroppedDown and GetCursorPos(P) then begin
     HintText := Items[ItemIndex];
     HintWidth := Canvas.TextWidth(HintText);

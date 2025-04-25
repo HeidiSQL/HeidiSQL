@@ -6,7 +6,7 @@ interface
 
 uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls, EditBtn, Buttons,
-  ExtCtrls, ToolWin, ClipBrd, Generics.Collections, Generics.Defaults, RegExpr, extra_controls,
+  ExtCtrls, ClipBrd, Generics.Collections, Generics.Defaults, RegExpr, extra_controls,
   dbconnection, dbstructures, dbstructures.mysql, apphelpers, laz.VirtualTrees, Menus;
 
 {$I const.inc}

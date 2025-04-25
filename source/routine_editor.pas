@@ -6,7 +6,7 @@ interface
 
 uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs, SynEdit, StdCtrls,
-  ComCtrls, ToolWin, laz.VirtualTrees, RegExpr, extra_controls,
+  ComCtrls, laz.VirtualTrees, RegExpr, extra_controls,
   dbconnection, apphelpers, Menus, ExtCtrls, Buttons, LCLProc;
 
 type

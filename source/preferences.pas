@@ -14,7 +14,7 @@ uses
   StdCtrls, ComCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, laz.VirtualTrees, SynEditKeyCmds, ActnList, Menus,
   dbstructures, RegExpr, Generics.Collections, EditBtn,
-  extra_controls, {theme_preview,} reformatter, Buttons, ColorBox, LCLProc, LCLIntf;
+  extra_controls, {theme_preview,} reformatter, Buttons, ColorBox, LCLProc, LCLIntf, lazaruscompat;
 
 type
   TShortcutItemData = record
@@ -501,11 +501,11 @@ const
 var
   i: Integer;
   dtc: TDBDatatypeCategoryIndex;
-  Styles: TArray<String>;
+  //Styles: TArray<String>;
   Highlighter: TSynSQLSyn;
   Name: String;
   GridColorsPreset: TGridColorsPreset;
-  IconPack: String;
+  //IconPack: String;
   Reformatter: TfrmReformatter;
 begin
   HasSizeGrip := True;
@@ -1641,9 +1641,9 @@ begin
   AvailLangCodes := TStringList.Create;
   // This requires gnugettext
   //DefaultInstance.GetListOfLanguages('default', AvailLangCodes);
-  //for i:=0 to AvailLangCodes.Count-1 do begin
-  //  AddLang(AvailLangCodes[i]);
-  //end;
+  for i:=0 to AvailLangCodes.Count-1 do begin
+    AddLang(AvailLangCodes[i]);
+  end;
 
   FLanguages.Sort;
   FLanguages.Insert(0, '*** '+f_('Auto detect (%s)', [SysLanguage]));

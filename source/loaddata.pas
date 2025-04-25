@@ -303,11 +303,11 @@ end;
 
 procedure Tloaddataform.btnImportClick(Sender: TObject);
 var
-  StartTickCount: Cardinal;
+  StartTickCount: QWord;
   i: Integer;
 begin
   Screen.Cursor := crHourglass;
-  StartTickCount := GetTickCount;
+  StartTickCount := GetTickCount64;
   MainForm.EnableProgress(ProgressBarSteps);
 
   // Truncate table before importing
@@ -343,7 +343,7 @@ begin
       0: ServerParse(Sender);
       1: ClientParse(Sender);
     end;
-    MainForm.LogSQL(FormatNumber(FRowCount)+' rows imported in '+FormatNumber((GetTickcount-StartTickCount)/1000, 3)+' seconds.');
+    MainForm.LogSQL(FormatNumber(FRowCount)+' rows imported in '+FormatNumber((GetTickcount64-StartTickCount)/1000, 3)+' seconds.');
     // Hint user if zero rows were detected in file
     if FRowCount = 0 then begin
       ErrorDialog(_('No rows were imported'),
@@ -569,6 +569,7 @@ var
       end else begin
         OutStream.Position := 0;
         ChunkSize := OutStream.Size;
+        SA := '';
         SetLength(SA, ChunkSize div SizeOf(AnsiChar));
         OutStream.Read(PAnsiChar(SA)^, ChunkSize);
         OutStream.Size := 0;
@@ -587,8 +588,11 @@ begin
   EnclLen := Length(FEncl);
   LineTermLen := Length(FLineTerm);
 
+  TermTest := '';
   SetLength(TermTest, TermLen);
+  EnclTest := '';
   SetLength(EnclTest, EnclLen);
+  LineTermTest := '';
   SetLength(LineTermTest, LineTermLen);
 
   InEncl := False;

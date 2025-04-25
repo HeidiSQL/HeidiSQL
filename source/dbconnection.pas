@@ -7,8 +7,8 @@ interface
 uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, Graphics, ExtCtrls, StrUtils,
-  Controls, Forms, IniFiles, Variants, Rtti, FileUtil,
-  RegExpr, Process,
+  Controls, Forms, IniFiles, Variants, FileUtil,
+  RegExpr,
   generic_types,
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase;
 
@@ -452,7 +452,7 @@ type
   TDBConnection = class(TComponent)
     private
       FActive: Boolean;
-      FConnectionStarted: Cardinal;
+      FConnectionStarted: QWord;
       FServerUptime: Integer;
       FServerDateTimeOnStartup: String;
       FParameters: TConnectionParameters;
@@ -471,7 +471,7 @@ type
       FServerOS: String;
       FServerVersionUntouched: String;
       FRealHostname: String;
-      FLastQueryDuration, FLastQueryNetworkDuration: Cardinal;
+      FLastQueryDuration, FLastQueryNetworkDuration: QWord;
       FLastQuerySQL: String;
       FIsUnicode: Boolean;
       FIsSSL: Boolean;
@@ -523,8 +523,8 @@ type
       function GetCollationList: TStringList; virtual;
       function GetCharsetTable: TDBQuery; virtual;
       function GetCharsetList: TStringList;
-      function GetConnectionUptime: Integer;
-      function GetServerUptime: Integer;
+      function GetConnectionUptime: Int64;
+      function GetServerUptime: Int64;
       function GetServerNow: TDateTime;
       function GetCurrentUserHostCombination: String;
       function GetAllUserHostCombinations: TStringList;
@@ -586,8 +586,8 @@ type
       function LikeClauseTail: String;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property ThreadId: Int64 read GetThreadId;
-      property ConnectionUptime: Integer read GetConnectionUptime;
-      property ServerUptime: Integer read GetServerUptime;
+      property ConnectionUptime: Int64 read GetConnectionUptime;
+      property ServerUptime: Int64 read GetServerUptime;
       property ServerNow: TDateTime read GetServerNow;
       property CharacterSet: String read GetCharacterSet write SetCharacterSet;
       property LastErrorCode: Cardinal read GetLastErrorCode;
@@ -607,8 +607,8 @@ type
       property RowsAffected: Int64 read FRowsAffected;
       property WarningCount: Cardinal read FWarningCount;
       procedure ShowWarnings; virtual;
-      property LastQueryDuration: Cardinal read FLastQueryDuration;
-      property LastQueryNetworkDuration: Cardinal read FLastQueryNetworkDuration;
+      property LastQueryDuration: QWord read FLastQueryDuration;
+      property LastQueryNetworkDuration: QWord read FLastQueryNetworkDuration;
       property IsUnicode: Boolean read FIsUnicode;
       property IsSSL: Boolean read FIsSSL;
       property AllDatabases: TStringList read GetAllDatabases;
@@ -848,7 +848,7 @@ type
       FEditingPrepared: Boolean;
       FUpdateData: TGridRows;
       FDBObject: TDBObject;
-      FFormatSettings: TFormatSettings;
+      //FFormatSettings: TFormatSettings;
       procedure SetRecNo(Value: Int64); virtual; abstract;
       function ColumnExists(Column: Integer): Boolean; overload;
       function ColumnExists(ColumnName: String): Boolean; overload;
@@ -1066,9 +1066,9 @@ begin
       GetCurrentProcess, WriteHandle,
       GetCurrentProcess, @WriteHandle, 0, True,
       DUPLICATE_CLOSE_SOURCE OR DUPLICATE_SAME_ACCESS
-    );}
+    );
   if not Success then
-    raise EDbError.Create(_('Error creating I/O pipes'));
+    raise EDbError.Create(_('Error creating I/O pipes'));}
 end;
 
 
@@ -2682,7 +2682,7 @@ begin
         end;
       end;
       Log(lcInfo, _('Characterset')+': '+CharacterSet);
-      FConnectionStarted := GetTickCount div 1000;
+      FConnectionStarted := GetTickCount64 div 1000;
       FServerUptime := -1;
       Status := GetResults(GetSQLSpecifity(spGlobalStatus));
       while not Status.Eof do begin
@@ -2973,7 +2973,7 @@ begin
     FActive := True;
     FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
     FServerVersionUntouched := GetVar('SELECT VERSION()');
-    FConnectionStarted := GetTickCount div 1000;
+    FConnectionStarted := GetTickCount64 div 1000;
     Query('SET statement_timeout TO '+IntToStr(Parameters.QueryTimeout*1000));
     try
       FServerUptime := StrToIntDef(GetVar('SELECT EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - pg_postmaster_start_time())::INTEGER'), -1);
@@ -3098,7 +3098,7 @@ begin
 
       FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
       FServerVersionUntouched := GetVar('SELECT sqlite_version()');
-      FConnectionStarted := GetTickCount div 1000;
+      FConnectionStarted := GetTickCount64 div 1000;
       FServerUptime := -1;
 
       // Triggers OnDatabaseChange event for <no db>
@@ -3116,7 +3116,7 @@ begin
       end else begin
         ErrorHint := '';
       end;
-      raise EDbError.Create(LastErrorMsg);
+      raise EDbError.Create(LastErrorMsg, LastErrorCode, ErrorHint);
     end;
   end else begin
     if FHandle <> nil then begin
@@ -3235,9 +3235,6 @@ end;}
 procedure TMySQLConnection.SetOption(Option: Integer; Arg: Pointer);
 var
   SetOptionResult: Integer;
-  RttiContext: TRttiContext;
-  LibType: TRttiType;
-  //LibField: TRttiField;
   FieldName: String;
 begin
   // Set one of the MYSQL_* option and log a warning if that failed
@@ -3845,7 +3842,7 @@ procedure TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogC
 var
   QueryStatus: Integer;
   NativeSQL: AnsiString;
-  TimerStart: Cardinal;
+  TimerStart: QWord;
   QueryResult: PMYSQL_RES;
 begin
   inherited;
@@ -3854,11 +3851,11 @@ begin
     NativeSQL := UTF8Encode(SQL)
   else
     NativeSQL := AnsiString(SQL);
-  TimerStart := GetTickCount;
+  TimerStart := GetTickCount64;
   SetLength(FLastRawResults, 0);
   FStatementNum := 1;
   QueryStatus := FLib.mysql_real_query(FHandle, PAnsiChar(NativeSQL), Length(NativeSQL));
-  FLastQueryDuration := GetTickCount - TimerStart;
+  FLastQueryDuration := GetTickCount64 - TimerStart;
   FLastQueryNetworkDuration := 0;
   if QueryStatus <> 0 then begin
     // Most errors will show up here, some others slightly later, after mysql_store_result()
@@ -3868,9 +3865,9 @@ begin
     // We must call mysql_store_result() + mysql_free_result() to unblock the connection
     // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html
     FWarningCount := FLib.mysql_warning_count(FHandle);
-    TimerStart := GetTickCount;
+    TimerStart := GetTickCount64;
     QueryResult := FLib.mysql_store_result(FHandle);
-    FLastQueryNetworkDuration := GetTickCount - TimerStart;
+    FLastQueryNetworkDuration := GetTickCount64 - TimerStart;
 
     if (QueryResult = nil) and (FLib.mysql_affected_rows(FHandle) = -1) then begin
       // Indicates a late error, e.g. triggered by mysql_store_result(), after selecting a stored
@@ -3904,9 +3901,9 @@ begin
       end;
       // more results? -1 = no, >0 = error, 0 = yes (keep looping)
       Inc(FStatementNum);
-      TimerStart := GetTickCount;
+      TimerStart := GetTickCount64;
       QueryStatus := FLib.mysql_next_result(FHandle);
-      Inc(FLastQueryDuration, GetTickCount - TimerStart);
+      Inc(FLastQueryDuration, GetTickCount64 - TimerStart);
       if QueryStatus = 0 then
         QueryResult := FLib.mysql_store_result(FHandle)
       else if QueryStatus > 0 then begin
@@ -3968,7 +3965,7 @@ end;}
 
 procedure TPGConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 var
-  TimerStart: Cardinal;
+  TimerStart: QWord;
   QueryResult: PPGresult;
   QueryStatus: Integer;
   NativeSQL: AnsiString;
@@ -3979,12 +3976,12 @@ begin
     NativeSQL := UTF8Encode(SQL)
   else
     NativeSQL := AnsiString(SQL);
-  TimerStart := GetTickCount;
+  TimerStart := GetTickCount64;
   SetLength(FLastRawResults, 0);
 
   QueryStatus := FLib.PQsendQuery(FHandle, PAnsiChar(NativeSQL));
 
-  FLastQueryDuration := GetTickCount - TimerStart;
+  FLastQueryDuration := GetTickCount64 - TimerStart;
   FLastQueryNetworkDuration := 0;
   if QueryStatus <> 1 then begin
     Log(lcError, GetLastErrorMsg);
@@ -3992,9 +3989,9 @@ begin
   end else begin
     FRowsAffected := 0;
     FRowsFound := 0;
-    TimerStart := GetTickCount;
+    TimerStart := GetTickCount64;
     QueryResult := FLib.PQgetResult(FHandle);
-    FLastQueryNetworkDuration := GetTickCount - TimerStart;
+    FLastQueryNetworkDuration := GetTickCount64 - TimerStart;
 
     DetectUSEQuery(SQL);
 
@@ -4032,7 +4029,8 @@ end;
 
 procedure TSQLiteConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 var
-  TimerStart, PrepareFlags: Cardinal;
+  TimerStart: QWord;
+  PrepareFlags: Cardinal;
   Rows: TSQLiteGridRows;
   Row: TGridRow;
   Value: TGridValue;
@@ -4045,7 +4043,7 @@ begin
   inherited;
 
   CurrentSQL := PAnsiChar(UTF8Encode(SQL));
-  TimerStart := GetTickCount;
+  TimerStart := GetTickCount64;
   SetLength(FLastRawResults, 0);
   OldRowsAffected := FLib.sqlite3_total_changes(FHandle); // Temporary: substract these later from total num
 
@@ -4055,7 +4053,7 @@ begin
 
   while True do begin
     QueryStatus := FLib.sqlite3_prepare_v3(FHandle, CurrentSQL, -1, PrepareFlags, QueryResult, NextSQL);
-    FLastQueryDuration := GetTickCount - TimerStart;
+    FLastQueryDuration := GetTickCount64 - TimerStart;
     FLastQueryNetworkDuration := 0;
 
     if QueryStatus <> SQLITE_OK then begin
@@ -4098,7 +4096,7 @@ begin
     if Trim(CurrentSQL) = '' then
       Break;
   end;
-  FLastQueryNetworkDuration := GetTickCount - TimerStart;
+  FLastQueryNetworkDuration := GetTickCount64 - TimerStart;
 end;
 
 
@@ -4261,6 +4259,11 @@ begin
     if rx.Exec(AlternativeSelectCode) then begin
       // Put pieces of CREATE VIEW together
       Obj := FindObject(Database, Name);
+      Algorithm := '';
+      Definer := '';
+      SQLSecurity := '';
+      CheckOption := '';
+      SelectCode := '';
       ParseViewStructure(Result, Obj, Algorithm, Definer, SQLSecurity, CheckOption, SelectCode);
       AlternativeSelectCode := UnescapeString(rx.Match[1]);
       Result := 'CREATE ';
@@ -7040,21 +7043,21 @@ begin
 end;
 
 
-function TDBConnection.GetConnectionUptime: Integer;
+function TDBConnection.GetConnectionUptime: Int64;
 begin
   // Return seconds since last connect
   if not FActive then
     Result := 0
   else
-    Result := (GetTickCount div 1000) - FConnectionStarted;
+    Result := (GetTickCount64 div 1000) - FConnectionStarted;
 end;
 
 
-function TDBConnection.GetServerUptime: Integer;
+function TDBConnection.GetServerUptime: Int64;
 begin
   // Return server uptime in seconds. Return -1 if unknown.
   if FServerUptime > 0 then
-    Result := Cardinal(FServerUptime) + ((GetTickCount div 1000) - FConnectionStarted)
+    Result := Cardinal(FServerUptime) + ((GetTickCount64 div 1000) - FConnectionStarted)
   else
     Result := -1;
 end;
@@ -7067,7 +7070,7 @@ begin
   // Return server datetime. Return -1 if unknown.
   if not FServerDateTimeOnStartup.IsEmpty then begin
     d := StrToDateTimeDef(FServerDateTimeOnStartup, 0);
-    Result := IncSecond(d, (GetTickCount div 1000) - FConnectionStarted);
+    Result := IncSecond(d, (GetTickCount64 div 1000) - FConnectionStarted);
   end else
     Result := -1;
 end;
@@ -8813,7 +8816,7 @@ var
   NumRows, WantedLocalRecNo: Int64;
   Row: TGridRow;
   RowFound: Boolean;
-  test: String;
+  //test: String;
 begin
   if Value = FRecNo then
     Exit;
@@ -10088,7 +10091,7 @@ function TDBQuery.TableName: String;
 var
   i: Integer;
   NextTable: String;
-  rx: TRegExpr;
+  //rx: TRegExpr;
 begin
   // Get table name from a result set
   Result := '';

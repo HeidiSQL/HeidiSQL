@@ -10,7 +10,7 @@ uses
   Forms, Graphics, Messages, laz.VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, MaskEdit, DateUtils, Math,
   dbconnection, dbstructures, apphelpers, texteditor, bineditor,
-  StrUtils, UITypes, RegExpr, extra_controls, EditBtn, LCLType, LCLIntf;
+  StrUtils, System.UITypes, RegExpr, extra_controls, EditBtn, LCLType, LCLIntf;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
@@ -328,7 +328,9 @@ begin
   FNode := Node;
   FColumn := Column;
   FCellFont := TFont.Create;
+  FCellTextBounds := Rect(0, 0, 0, 0);
   FTree.GetTextInfo(FNode, FColumn, FCellFont, FCellTextBounds, FCellText);
+  HasNulls := False;
   apphelpers.RemoveNullChars(FCellText, HasNulls);
   if HasNulls and FAllowEdit then begin
     FAllowEdit := False;
@@ -421,6 +423,7 @@ var
 begin
   // Return the cell's rectangle, relative to the parent form.
   f := TFont.Create;
+  TextBounds := Rect(0, 0, 0, 0);
   FTree.GetTextInfo(FNode, FColumn, f, TextBounds, Text);
   CellBounds := FTree.GetDisplayRect(FNode, FColumn, False);
 
@@ -433,6 +436,7 @@ begin
   if Assigned(FTree.Images) and Assigned(FTree.OnGetImageIndex) then begin
     // Reserve space for image
     ImageIndex := -1;
+    Ghosted := False;
     FTree.OnGetImageIndex(FTree, FNode, ikNormal, FColumn, Ghosted, ImageIndex);
     if ImageIndex > -1 then
       Inc(CellBounds.Left, FTree.Images.Width+2);
@@ -449,7 +453,7 @@ begin
   end else begin
     // Recalculate top left corner of rectangle, so it is relative to the parent form (which is FParentForm)
     Result := CellBounds;
-    OffsetRect(Result,
+    Types.OffsetRect(Result,
       FTree.ClientOrigin.X - FParentForm.ClientOrigin.X,
       FTree.ClientOrigin.Y - FParentForm.ClientOrigin.Y
       );

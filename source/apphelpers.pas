@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynEditHighlighter, ComCtrls, SynCompletion, fphttpclient,
-  dbconnection, dbstructures, jsonregistry, fpjson;
+  dbconnection, dbstructures, jsonregistry, fpjson, SynEditKeyCmds;
 
 type
 
@@ -99,8 +99,8 @@ type
       //FOnProgress: TNotifyEvent;
       procedure SetTimeOut(Value: Cardinal);
     public
-      constructor Create(Owner: TComponent);
-      procedure SendRequest(Filename: String);
+      constructor Create(Owner: TComponent); override;
+      procedure SendRequest(Filename: String); overload;
       //property OnProgress: TNotifyEvent read FOnProgress write FOnProgress;
       property URL: String read FURL write FURL;
       property TimeOut: Cardinal read FTimeOut write SetTimeOut;
@@ -176,15 +176,6 @@ type
   TWinControlHelper = class helper for TWinControl
   public
     procedure TrySetFocus;
-  end;
-
-  TSynEditHelper = class helper for TSynEdit
-    public
-      function GetTextLen: Integer;
-  end;
-  TSynHighlighterAttributesHelper = class helper for TSynHighlighterAttributes
-    public
-      procedure AssignColorAndStyle(Source: TSynHighlighterAttributes);
   end;
 
   //TSimpleKeyValuePairs = TDictionary<String, String>;
@@ -479,6 +470,7 @@ var
   buf: AnsiString;
 begin
   buf := AnsiString(text);
+  Result := '';
   SetLength(Result, Length(text) div 2);
   HexToBin(PAnsiChar(buf), @Result[1], Length(Result));
 end;
@@ -487,6 +479,7 @@ function BinToWideHex(bin: AnsiString): String;
 var
   buf: AnsiString;
 begin
+  buf := '';
   SetLength(buf, Length(bin) * 2);
   BinToHex(@bin[1], PAnsiChar(buf), Length(bin));
   Result := String(buf);
@@ -1385,7 +1378,7 @@ end;
 
 function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
 var
-  DataLeft, StartPosition: Int64;
+  DataLeft: Int64;
 begin
   // Read a chunk or the complete contents out of a textfile, opened by OpenTextFile()
   if Stream.Size = 0 then begin
@@ -1393,7 +1386,6 @@ begin
     Exit;
   end;
 
-  StartPosition := Stream.Position;
   DataLeft := Stream.Size - Stream.Position;
   if (ChunkSize = 0) or (ChunkSize > DataLeft) then
     ChunkSize := DataLeft;
@@ -1421,6 +1413,7 @@ begin
   Stream := TFileStream.Create(Filename, fmOpenRead or fmShareDenyNone);
   Stream.Position := 0;
   if (MaxBytes < 1) or (MaxBytes > Stream.Size) then MaxBytes := Stream.Size;
+  Result := '';
   SetLength(Result, MaxBytes);
   Stream.Read(PAnsiChar(Result)^, Length(Result));
   Stream.Free;
@@ -2135,6 +2128,7 @@ const
   Numbers = '123456789';
 begin
   // Create a random, mnemonic password
+  Result := '';
   SetLength(Result, Len);
   for i:=1 to Len do begin
     if Random(4) = 1 then
@@ -3147,8 +3141,6 @@ var
   PacketSize, MaxAllowedPacket: Int64;
   DoStoreResult, ErrorAborted, LogMaxResultsDone: Boolean;
 begin
-  inherited;
-
   MaxAllowedPacket := 0;
   i := 0;
   ResultCount := 0;
@@ -3573,34 +3565,6 @@ begin
 end;
 
 
-function TSynEditHelper.GetTextLen: Integer;
-begin
-  Result := Self.Text.Length;
-end;
-
-procedure TSynHighlighterAttributesHelper.AssignColorAndStyle(Source: TSynHighlighterAttributes);
-var
-  bChanged: Boolean;
-begin
-  bChanged := False;
-  if Background <> Source.Background then
-  begin
-    Background := Source.Background;
-    bChanged := True;
-  end;
-  if Foreground <> Source.Foreground then
-  begin
-    Foreground := Source.Foreground;
-    bChanged := True;
-  end;
-  if Style <> Source.Style then
-  begin
-    Style := Source.Style;
-    bChanged := True;
-  end;
-  if bChanged then
-    Changed;
-end;
 
 { TAppSettings }
 
@@ -4627,6 +4591,7 @@ end;
 
 function TUTF8NoBOMEncoding.GetPreamble: TBytes;
 begin
+  Result := [];
   SetLength(Result, 0);
 end;
 

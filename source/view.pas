@@ -88,6 +88,11 @@ begin
   if Obj.Name <> '' then begin
     // Edit mode
     editName.Text := Obj.Name;
+    Algorithm := '';
+    Definer := '';
+    SQLSecurity := '';
+    CheckOption := '';
+    SelectCode := '';
     Obj.Connection.ParseViewStructure(Obj.CreateCode, Obj, Algorithm, Definer, SQLSecurity, CheckOption, SelectCode);
     comboDefiner.Text := Definer;
     rgAlgorithm.ItemIndex := rgAlgorithm.Items.IndexOf(Algorithm);

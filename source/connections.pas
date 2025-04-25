@@ -12,7 +12,7 @@ interface
 uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   laz.VirtualTrees, Menus, Graphics, extra_controls,
-  dbconnection, RegExpr, Types, GraphUtil, StrUtils, FileUtil,
+  dbconnection, RegExpr, Types, FileUtil,
   Math, ActnList, ComboEx, EditBtn, Buttons, ColorBox;
 
 type
@@ -348,7 +348,7 @@ end;
 procedure Tconnform.RefreshSessions(ParentNode: PVirtualNode);
 var
   SessionNames: TStringList;
-  RegKey: String;
+  RegKey: String='';
   i: Integer;
   Params: TConnectionParameters;
   SessNode: PVirtualNode;
@@ -460,6 +460,7 @@ begin
   FButtonAnimationStep := 0;
   TimerButtonAnimation.Enabled := True;
   Screen.Cursor := crHourglass;
+  Connection := nil;
   if Mainform.InitConnection(Params, True, Connection) then
     ModalResult := mrOK
   else begin
@@ -564,6 +565,7 @@ begin
   // Save session as ...
   newName := _('Enter new session name ...');
   NameOK := False;
+  ParentKey := '';
   SessionNames := NodeSessionNames(ListSessions.FocusedNode.Parent, ParentKey);
   while not NameOK do begin
     if not InputQuery(_('Clone session ...'), _('New session name:'), newName) then
@@ -617,6 +619,7 @@ var
   SiblingSessionNames: TStringList;
 begin
   // Create new session or folder
+  CanProceed := False;
   FinalizeModifications(CanProceed);
   if not CanProceed then
     Exit;
@@ -636,6 +639,7 @@ begin
     else
       ParentNode := ListSessions.FocusedNode.Parent;
   end;
+  ParentPath := '';
   SiblingSessionNames := NodeSessionNames(ParentNode, ParentPath);
 
   NewSess := TConnectionParameters.Create;
@@ -1137,6 +1141,7 @@ begin
   // Note that this is triggered only if the text was effectively changed
   Sess := Sender.GetNodeData(Node);
 
+  ParentKey := '';
   SiblingSessions := NodeSessionNames(Node.Parent, ParentKey);
 
   if SiblingSessions.IndexOf(NewText) > -1 then begin

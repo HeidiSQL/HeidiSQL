@@ -6,7 +6,7 @@ interface
 
 uses
   SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Menus, SynEdit, RegExpr, ComCtrls, ExtCtrls, WideStrUtils,
+  Dialogs, StdCtrls, Menus, SynEdit, RegExpr, ComCtrls, ExtCtrls,
   apphelpers, dbconnection, dbstructures, extra_controls, DateTimePicker, LCLProc;
 
 type

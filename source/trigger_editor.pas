@@ -63,9 +63,9 @@ uses main;
   Create: Restore GUI setup
 }
 constructor TfrmTriggerEditor.Create(AOwner: TComponent);
-var
+//var
   //col: TProposalColumn;
-  i: Integer;
+  //i: Integer;
 begin
   inherited;
   SynMemoBody.Highlighter := Mainform.SynSQLSynUsed;
@@ -262,21 +262,21 @@ end;
 
 
 procedure TfrmTriggerEditor.SynCompletionProposalStatementExecute(Sender: TObject);
-var
+{var
   Proposal: TSynCompletion;
   Token, DisplayText: String;
-  Columns: TDBQuery;
+  Columns: TDBQuery;}
 begin
   // Propose column names from referencing table
-  Proposal := Sender as TSynCompletion;
-  //Proposal.Font.Assign(Font);
-  //Proposal.ItemHeight := TExtForm.ScaleSize(PROPOSAL_ITEM_HEIGHT, Self);
-  //Token := UpperCase(Proposal.PreviousToken);
-  //Proposal.InsertList.Clear;
+  {Proposal := Sender as TSynCompletion;
+  Proposal.Font.Assign(Font);
+  Proposal.ItemHeight := TExtForm.ScaleSize(PROPOSAL_ITEM_HEIGHT, Self);
+  Token := UpperCase(Proposal.PreviousToken);
+  Proposal.InsertList.Clear;
   Proposal.ItemList.Clear;
   if (Token = 'NEW') or (Token = 'OLD') then begin
     if comboTable.Text = '' then
-    //  CanExecute := False
+      CanExecute := False
     else try
       Columns := DBObject.Connection.GetResults('SHOW COLUMNS FROM '+DBObject.Connection.QuoteIdent(comboTable.Text));
       while not Columns.Eof do begin
@@ -286,8 +286,8 @@ begin
       end;
     except
     end;
-  end {else
-    Mainform.SynCompletionProposalExecute(Kind, Sender, CurrentInput, x, y, CanExecute)};
+  end else
+    Mainform.SynCompletionProposalExecute(Kind, Sender, CurrentInput, x, y, CanExecute);}
 end;
 
 

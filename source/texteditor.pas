@@ -4,14 +4,14 @@ interface
 
 uses
   Classes, Graphics, Forms, Controls, StdCtrls, laz.VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils, Menus, ExtDlgs, LCLType,
+  ComCtrls, Dialogs, SysUtils, Menus, LCLType,
   apphelpers, ActnList, extra_controls,
   ExtCtrls, dbconnection, SynEdit, SynEditHighlighter, customize_highlighter,
   reformatter,
 
   SynHighlighterBat,
   SynHighlighterCpp, SynHighlighterCss,
-  SynHighlighterHashEntries, SynHighlighterHtml,
+  SynHighlighterHtml,
   SynHighlighterIni, SynHighlighterJScript,
   SynHighlighterJava,
   SynHighlighterPHP, SynHighlighterPas, SynHighlighterPerl,
