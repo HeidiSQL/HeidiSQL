@@ -4784,6 +4784,7 @@ var
   tab1, tab2: TTabSheet;
   List: TVirtualStringTree;
   OldDbObject: TDBObject;
+  DoProceed: Boolean;
 begin
   // Refresh
   // Force data tab update when appropriate.
@@ -4811,7 +4812,11 @@ begin
     OldDbObject.Assign(FActiveDbObj);
     RefreshTree(OldDbObject);
   end else if tab1 = tabEditor then begin
-    RefreshTree;
+    DoProceed := True;
+    if ActiveObjectEditor.Modified then
+      DoProceed := MessageDialog(_('Discard changes?'), mtConfirmation, [mbCancel, mbOK]) = mrOk;
+    if DoProceed then
+      RefreshTree;
   end else if tab1 = tabData then
     InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
