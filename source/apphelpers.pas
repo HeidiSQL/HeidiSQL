@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynEditHighlighter, ComCtrls, SynCompletion, fphttpclient,
-  dbconnection, dbstructures, jsonregistry, fpjson, SynEditKeyCmds;
+  dbconnection, dbstructures, jsonregistry, fpjson, SynEditKeyCmds, Translations, LazFileUtils, gettext, LazUTF8;
 
 type
 
@@ -416,6 +416,7 @@ type
   //function GetLocaleString(const ResourceId: Integer): WideString;
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
   procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
+  procedure InitMoFile(LangCode: String);
   function _(const Pattern: string): string;
   function f_(const Pattern: string; const Args: array of const): string;
   function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
@@ -449,6 +450,7 @@ type
 
 var
   AppSettings: TAppSettings;
+  AppLanguageMoFile: TMOFile;
   MutexHandle: THandle = 0;
   SystemImageList: TImageList = nil;
   mtCriticalConfirmation: TMsgDlgType = mtCustom;
@@ -2671,10 +2673,41 @@ begin
 end;
 
 
+procedure InitMoFile(LangCode: String);
+var
+  LangId: TLanguageID;
+  LocaleDir, BaseName, MOFileName: String;
+begin
+  // Initialize .mo file in the given language, so we can use that for translating via _()
+  if LangCode.IsEmpty then begin
+    LangId := GetLanguageID;
+    LangCode := LangId.LanguageCode;
+  end;
+  LocaleDir := AppendPathDelim(ExtractFilePath(Application.ExeName)) + AppendPathDelim('locale');
+  BaseName := ExtractFileName(Application.ExeName);
+  BaseName := GetFileNameWithoutExtension(BaseName);
+  MOFileName := '';
+  if not LangCode.IsEmpty then begin
+    MOFileName := LocaleDir + BaseName + '.' + LangCode + '.mo';
+    if not FileExistsUTF8(MOFileName) then
+      MOFileName := '';
+  end;
+  if MOFileName.IsEmpty then begin
+    MOFileName := LocaleDir + BaseName + '.mo';
+  end;
+  if FileExistsUTF8(MOFileName) then begin
+    AppLanguageMoFile := TMOFile.Create(UTF8ToSys(MOFileName));
+  end;
+end;
+
+
 function _(const Pattern: string): string;
 begin
-  // gnugettext not working yet...
-  Result := Pattern;
+  Result := '';
+  if Assigned(AppLanguageMoFile) then
+    Result := AppLanguageMoFile.Translate(Pattern);
+  if Result.IsEmpty then
+    Result := Pattern;
 end;
 
 
@@ -2684,7 +2717,7 @@ var
 begin
   // Helper for translation, replacement for Format(_())
   try
-    TranslatedPattern := Pattern; //_(Pattern);
+    TranslatedPattern := _(Pattern);
     Result := Format(TranslatedPattern, Args);
   except
     on E:Exception do begin
@@ -3037,7 +3070,7 @@ begin
   Result := ExtractFileName(Filename);
   LastDotPos := Result.LastIndexOf('.');
   if LastDotPos > -1 then
-    Result := Result.Substring(0, LastDotPos+1);
+    Result := Result.Substring(0, LastDotPos);
 end;
 
 function GetCommandLine: String;

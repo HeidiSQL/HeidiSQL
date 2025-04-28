@@ -17,6 +17,10 @@
       </XPManifest>
       <Icon Value="0"/>
     </General>
+    <i18n>
+      <EnableI18N Value="True" LFM="False"/>
+      <OutDir Value="po_files"/>
+    </i18n>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <MajorVersionNr Value="12"/>
@@ -367,7 +371,7 @@
     </Linking>
     <Other>
       <CompilerMessages>
-        <IgnoredMessages idx6058="True" idx5062="True" idx5024="True" idx4104="True" idx4046="True" idx3177="True" idx3175="True"/>
+        <IgnoredMessages idx6058="True" idx5071="True" idx5062="True" idx5024="True" idx4104="True" idx4046="True" idx3177="True" idx3175="True"/>
       </CompilerMessages>
     </Other>
   </CompilerOptions>

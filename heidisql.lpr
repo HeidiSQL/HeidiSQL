@@ -11,7 +11,7 @@ uses
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   SysUtils,
-  Forms, printer4lazarus, datetimectrls,
+  Forms, printer4lazarus, datetimectrls, LCLTranslator,
   { you can add units after this }
   main, apphelpers, dbconnection, { gnugettext,}
   dbstructures, dbstructures.mysql, About, generic_types,
@@ -27,6 +27,8 @@ uses
 {$R *.res}
 {.$R resources.rc}
 
+var
+  AppLanguage: String;
 begin
   PostponedLogItems := TDBLogItems.Create(True);
   Application.MainFormOnTaskBar := True;
@@ -40,13 +42,9 @@ begin
 
   AppSettings := TAppSettings.Create;
 
-  {AppLanguage := AppSettings.ReadString(asAppLanguage);
-  // SysLanguage may be zh_CN, while we don't offer such a language, but anyway, this is just the current system language:
-  SysLanguage := gnugettext.DefaultInstance.GetCurrentLocaleName;
-  gnugettext.UseLanguage(AppLanguage);
-  // First time translation via dxgettext.
-  // Issue #3064: Ignore TFont, so "Default" on mainform for WinXP users does not get broken.
-  gnugettext.TP_GlobalIgnoreClass(TFont);}
+  AppLanguage := AppSettings.ReadString(asAppLanguage);
+  LCLTranslator.SetDefaultLang(AppLanguage);
+  InitMoFile(AppLanguage);
 
   // Enable padding in customized tooltips
   //HintWindowClass := TExtHintWindow;
