@@ -789,10 +789,17 @@ object frmTableTools: TfrmTableTools
     Top = 352
     object menuCheckNone: TMenuItem
       Caption = 'Check none'
+      ImageIndex = 65
       OnClick = CheckAllClick
     end
     object menuCheckAll: TMenuItem
       Caption = 'Check all'
+      ImageIndex = 64
+      OnClick = CheckAllClick
+    end
+    object menuInvertCheck: TMenuItem
+      Caption = 'Invert Check'
+      ImageIndex = 138
       OnClick = CheckAllClick
     end
     object menuCheckByType: TMenuItem

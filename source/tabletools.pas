@@ -102,6 +102,7 @@ type
     lblGenerateDataNullAmount: TLabel;
     editGenerateDataNullAmount: TEdit;
     updownGenerateDataNullAmount: TUpDown;
+    menuInvertCheck: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnHelpMaintenanceClick(Sender: TObject);
@@ -2405,11 +2406,13 @@ var
   WantedType: TListNodeType;
   DBObj: PDBObject;
   CheckNone: Boolean;
+  InvertCheck: Boolean;
   CheckedNodes: Int64;
 begin
   // Check all/none/by type via context menu
   WantedType := TListNodeType((Sender as TMenuItem).Tag);
   CheckNone := Sender = menuCheckNone;
+  InvertCheck := Sender = menuInvertCheck;
   case TreeObjects.GetNodeLevel(TreeObjects.FocusedNode) of
     1: DBNode := TreeObjects.FocusedNode;
     2: DBNode := TreeObjects.FocusedNode.Parent;
@@ -2422,6 +2425,12 @@ begin
     DBObj := TreeObjects.GetNodeData(ObjNode);
     if CheckNone then
       TreeObjects.CheckState[ObjNode] := csUncheckedNormal
+    else if InvertCheck then begin
+      if ObjNode.CheckState in CheckedStates then
+        TreeObjects.CheckState[ObjNode] := csUncheckedNormal
+      else
+        TreeObjects.CheckState[ObjNode] := csCheckedNormal;
+    end
     else begin
       if (WantedType = lntNone) or (DBObj.NodeType = WantedType) or (DBObj.GroupType = WantedType) then
         TreeObjects.CheckState[ObjNode] := csCheckedNormal
