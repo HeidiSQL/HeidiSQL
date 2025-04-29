@@ -451,6 +451,7 @@ type
 var
   AppSettings: TAppSettings;
   AppLanguageMoFile: TMOFile;
+  AppLanguageMoBasePath: String;
   MutexHandle: THandle = 0;
   SystemImageList: TImageList = nil;
   mtCriticalConfirmation: TMsgDlgType = mtCustom;
@@ -2675,25 +2676,23 @@ end;
 
 procedure InitMoFile(LangCode: String);
 var
-  LangId: TLanguageID;
   LocaleDir, BaseName, MOFileName: String;
 begin
   // Initialize .mo file in the given language, so we can use that for translating via _()
-  if LangCode.IsEmpty then begin
-    LangId := GetLanguageID;
-    LangCode := LangId.LanguageCode;
-  end;
+  if LangCode.IsEmpty then
+    LangCode := SysLanguage;
   LocaleDir := AppendPathDelim(ExtractFilePath(Application.ExeName)) + AppendPathDelim('locale');
   BaseName := ExtractFileName(Application.ExeName);
   BaseName := GetFileNameWithoutExtension(BaseName);
+  AppLanguageMoBasePath := LocaleDir + BaseName;
   MOFileName := '';
   if not LangCode.IsEmpty then begin
-    MOFileName := LocaleDir + BaseName + '.' + LangCode + '.mo';
+    MOFileName := AppLanguageMoBasePath + '.' + LangCode + '.mo';
     if not FileExistsUTF8(MOFileName) then
       MOFileName := '';
   end;
   if MOFileName.IsEmpty then begin
-    MOFileName := LocaleDir + BaseName + '.mo';
+    MOFileName := AppLanguageMoBasePath + '.mo';
   end;
   if FileExistsUTF8(MOFileName) then begin
     AppLanguageMoFile := TMOFile.Create(UTF8ToSys(MOFileName));

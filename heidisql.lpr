@@ -11,7 +11,7 @@ uses
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   SysUtils,
-  Forms, printer4lazarus, datetimectrls, LCLTranslator,
+  Forms, printer4lazarus, datetimectrls, LCLTranslator, Translations,
   { you can add units after this }
   main, apphelpers, dbconnection, { gnugettext,}
   dbstructures, dbstructures.mysql, About, generic_types,
@@ -43,6 +43,8 @@ begin
   AppSettings := TAppSettings.Create;
 
   AppLanguage := AppSettings.ReadString(asAppLanguage);
+  // SysLanguage may be zh_CN, while we don't offer such a language, but anyway, this is just the current system language:
+  SysLanguage := GetLanguageID.LanguageCode;
   LCLTranslator.SetDefaultLang(AppLanguage);
   InitMoFile(AppLanguage);
 

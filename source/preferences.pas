@@ -14,7 +14,7 @@ uses
   StdCtrls, ComCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, laz.VirtualTrees, SynEditKeyCmds, ActnList, Menus,
   dbstructures, RegExpr, Generics.Collections, EditBtn,
-  extra_controls, {theme_preview,} reformatter, Buttons, ColorBox, LCLProc, LCLIntf, lazaruscompat;
+  extra_controls, {theme_preview,} reformatter, Buttons, ColorBox, LCLProc, LCLIntf, lazaruscompat, FileUtil;
 
 type
   TShortcutItemData = record
@@ -1416,7 +1416,9 @@ end;
 procedure TfrmPreferences.InitLanguages;
 var
   LangNames: String;
+  MoFilePath, LangCode: String;
   AvailLangCodes: TStringList;
+  AvailMoFiles: TStringList;
   i: Integer;
 
   procedure AddLang(LangCode: String);
@@ -1639,8 +1641,18 @@ begin
 
   FLanguages := TStringList.Create;
   AvailLangCodes := TStringList.Create;
-  // This requires gnugettext
-  //DefaultInstance.GetListOfLanguages('default', AvailLangCodes);
+  AvailMoFiles := FindAllFiles(
+    ExtractFilePath(AppLanguageMoBasePath),
+    ExtractFileName(AppLanguageMoBasePath) + '*.mo',
+    False
+    );
+  for MoFilePath in AvailMoFiles do begin
+    LangCode := RegExprGetMatch('\.(\w+)\.\w+$', ExtractFileName(MoFilePath), 1);
+    if not LangCode.IsEmpty then
+      AvailLangCodes.Add(LangCode)
+    else
+      AvailLangCodes.Add('en'); // Default en file has just ".mo" extension, not ".en.mo"
+  end;
   for i:=0 to AvailLangCodes.Count-1 do begin
     AddLang(AvailLangCodes[i]);
   end;
@@ -1648,6 +1660,7 @@ begin
   FLanguages.Sort;
   FLanguages.Insert(0, '*** '+f_('Auto detect (%s)', [SysLanguage]));
 
+  AvailMoFiles.Free;
   AvailLangCodes.Free;
 end;
 
