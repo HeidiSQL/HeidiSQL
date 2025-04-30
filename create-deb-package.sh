@@ -42,7 +42,7 @@ lazbuild heidisql.lpi
 packageDir="$APPNAME-$fullVer"
 echo Creating package directory $packageDir
 cp -R deb-package-skeleton $packageDir
-rm $packageDir/usr/share/heidisql/.gitkeep
+rm $packageDir/usr/share/heidisql/locale/.gitkeep
 rm $packageDir/usr/share/pixmaps/.gitkeep
 cp out/*.ini $packageDir/usr/share/heidisql/
 cp out/heidisql $packageDir/usr/share/heidisql/
