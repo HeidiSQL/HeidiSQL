@@ -23,6 +23,14 @@ buildRevision=`git log | grep -E "^commit\s" -c`
 fullVer="$majorMinorVer.1.$buildRevision"
 echo Full version: $fullVer
 
+echo Pulling translations from Transifex...
+extra/internationalization/tx pull -a
+echo Compiling .po files to .mo files...
+for f in $(find out -type f -iname '*.po'); do
+    langCode=`echo $f | sed -nE 's/.*\/(\w+)\/LC_MESSAGES\/.*$/\1/p'`
+    msgfmt -o "out/locale/heidisql.$langCode.mo" $f
+done
+
 echo Inject version string into .lpi file
 # <BuildNr Value="0"/>
 sed -i "s/<BuildNr Value=\"[0-9]\+\"/<BuildNr Value=\"$buildRevision\"/g" heidisql.lpi
@@ -38,6 +46,7 @@ rm $packageDir/usr/share/heidisql/.gitkeep
 rm $packageDir/usr/share/pixmaps/.gitkeep
 cp out/*.ini $packageDir/usr/share/heidisql/
 cp out/heidisql $packageDir/usr/share/heidisql/
+cp out/heidisql/locale/*.mo $packageDir/usr/share/heidisql/locale/
 cp res/deb-package-icon.png $packageDir/usr/share/pixmaps/heidisql.png
 cp LICENSE $packageDir/usr/share/doc/heidisql/
 
