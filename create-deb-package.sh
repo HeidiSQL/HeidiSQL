@@ -46,7 +46,7 @@ rm $packageDir/usr/share/heidisql/locale/.gitkeep
 rm $packageDir/usr/share/pixmaps/.gitkeep
 cp out/*.ini $packageDir/usr/share/heidisql/
 cp out/heidisql $packageDir/usr/share/heidisql/
-cp out/heidisql/locale/*.mo $packageDir/usr/share/heidisql/locale/
+cp out/locale/*.mo $packageDir/usr/share/heidisql/locale/
 cp res/deb-package-icon.png $packageDir/usr/share/pixmaps/heidisql.png
 cp LICENSE $packageDir/usr/share/doc/heidisql/
 
