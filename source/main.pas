@@ -1265,7 +1265,6 @@ type
     FMatchingBraceForegroundColor: TColor;
     FMatchingBraceBackgroundColor: TColor;
     FSynEditInOnPaintTransient: Boolean;
-    FExactRowCountMode: Boolean;
     //FHelpData: TSimpleKeyValuePairs;
 
     // Host subtabs backend structures
@@ -6201,8 +6200,8 @@ begin
       end
       else begin
         Screen.Cursor := crHourGlass;
-        if (not DBObject.RowsAreExact) or FExactRowCountMode then
-          RowsTotal := DBObject.RowCount(True, FExactRowCountMode)
+        if (not DBObject.RowsAreExact) or menuQueryExactRowCount.Checked then
+          RowsTotal := DBObject.RowCount(True, menuQueryExactRowCount.Checked)
         else
           RowsTotal := DBObject.Rows;
         Screen.Cursor := crDefault;
@@ -6243,7 +6242,6 @@ begin
   end;
   lblDataTop.Caption := cap;
   lblDataTop.Hint := cap;
-  FExactRowCountMode := False;
 end;
 
 
@@ -6251,7 +6249,6 @@ procedure TMainForm.menuQueryExactRowCountClick(Sender: TObject);
 begin
   // Activate exact row count mode and let DisplayRowCountStats do the rest
   // See https://www.heidisql.com/forum.php?t=41310
-  FExactRowCountMode := True;
   DisplayRowCountStats(DataGrid);
 end;
 
@@ -9847,6 +9844,7 @@ begin
         SelectedTableForeignKeys.Clear;
         AppSettings.SessionPath := GetRegKeyTable;
         SelectedTableTimestampColumns.Text := AppSettings.ReadString(asTimestampColumns);
+        menuQueryExactRowCount.Checked := False;
         InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
         try
           if FActiveDbObj.NodeType in [lntTable, lntView] then begin
