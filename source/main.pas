@@ -6192,47 +6192,53 @@ begin
   cap := ActiveDatabase + '.' + DBObject.Name;
   IsLimited := DataGridWantedRowCount <= Datagrid.RootNodeCount;
   IsFiltered := SynMemoFilter.GetTextLen > 0;
-  if DBObject.NodeType = lntTable then begin
-    if (not IsLimited) and (not IsFiltered) then begin
-      RowsTotal := DataGrid.RootNodeCount; // No need to fetch via SHOW TABLE STATUS
-      DBObject.RowsAreExact := True;
-      menuQueryExactRowCount.Enabled := False;
-    end
-    else begin
-      Screen.Cursor := crHourGlass;
-      if (not DBObject.RowsAreExact) or FExactRowCountMode then
-        RowsTotal := DBObject.RowCount(True, FExactRowCountMode)
-      else
-        RowsTotal := DBObject.Rows;
-      Screen.Cursor := crDefault;
-      menuQueryExactRowCount.Enabled := True;
-    end;
-    if RowsTotal > -1 then begin
-      cap := cap + ': ' + FormatNumber(RowsTotal) + ' ' + _('rows total');
-      if DBObject.Engine = 'InnoDB' then begin
-        if DBObject.RowsAreExact then
-          cap := cap + ' ('+_('exact')+')'
+  case DBObject.NodeType of
+    lntTable: begin
+      if (not IsLimited) and (not IsFiltered) then begin
+        RowsTotal := DataGrid.RootNodeCount; // No need to fetch via SHOW TABLE STATUS
+        DBObject.RowsAreExact := True;
+        menuQueryExactRowCount.Enabled := False;
+      end
+      else begin
+        Screen.Cursor := crHourGlass;
+        if (not DBObject.RowsAreExact) or FExactRowCountMode then
+          RowsTotal := DBObject.RowCount(True, FExactRowCountMode)
         else
-          cap := cap + ' ('+_('approximately')+')';
+          RowsTotal := DBObject.Rows;
+        Screen.Cursor := crDefault;
+        menuQueryExactRowCount.Enabled := True;
       end;
-      // Display either LIMIT or WHERE effect, not both at the same time
-      if IsLimited then
-        cap := cap + ', '+_('limited to') + ' ' + FormatNumber(Datagrid.RootNodeCount)
-      else if IsFiltered then begin
-        if Datagrid.RootNodeCount = RowsTotal then
-          cap := cap + ', '+_('all rows match to filter')
-        else
-          cap := cap + ', ' + FormatNumber(Datagrid.RootNodeCount) + ' '+_('rows match to filter');
-      end;
-      // Update cached object reference with new row count, which may enable "Data" option
-      // in table copy dialog. See issue #666
-      if Assigned(DBtree.FocusedNode) then begin
-        ObjInCache := DBtree.GetNodeData(DBtree.FocusedNode);
-        if Assigned(ObjInCache) and ObjInCache.IsSameAs(DBObject) then begin
-          ObjInCache.Rows := RowsTotal;
-          ObjInCache.RowsAreExact := DBObject.RowsAreExact;
+      if RowsTotal > -1 then begin
+        cap := cap + ': ' + FormatNumber(RowsTotal) + ' ' + _('rows total');
+        if DBObject.Engine = 'InnoDB' then begin
+          if DBObject.RowsAreExact then
+            cap := cap + ' ('+_('exact')+')'
+          else
+            cap := cap + ' ('+_('approximately')+')';
+        end;
+        // Display either LIMIT or WHERE effect, not both at the same time
+        if IsLimited then
+          cap := cap + ', '+_('limited to') + ' ' + FormatNumber(Datagrid.RootNodeCount)
+        else if IsFiltered then begin
+          if Datagrid.RootNodeCount = RowsTotal then
+            cap := cap + ', '+_('all rows match to filter')
+          else
+            cap := cap + ', ' + FormatNumber(Datagrid.RootNodeCount) + ' '+_('rows match to filter');
+        end;
+        // Update cached object reference with new row count, which may enable "Data" option
+        // in table copy dialog. See issue #666
+        if Assigned(DBtree.FocusedNode) then begin
+          ObjInCache := DBtree.GetNodeData(DBtree.FocusedNode);
+          if Assigned(ObjInCache) and ObjInCache.IsSameAs(DBObject) then begin
+            ObjInCache.Rows := RowsTotal;
+            ObjInCache.RowsAreExact := DBObject.RowsAreExact;
+          end;
         end;
       end;
+    end;
+
+    lntView: begin
+      cap := cap + ': ' + FormatNumber(DataGrid.RootNodeCount) + ' ' + _('rows');
     end;
   end;
   lblDataTop.Caption := cap;
