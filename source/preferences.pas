@@ -1659,6 +1659,8 @@ begin
 
   FLanguages.Sort;
   FLanguages.Insert(0, '*** '+f_('Auto detect (%s)', [SysLanguage]));
+  if FLanguages.Count <= 1 then
+    FLanguages[0] := 'English only - no .mo files found in ' + ExtractFilePath(AppLanguageMoBasePath);
 
   AvailMoFiles.Free;
   AvailLangCodes.Free;
