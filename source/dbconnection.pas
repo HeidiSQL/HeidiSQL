@@ -6000,6 +6000,7 @@ begin
     Col.Collation := ColQuery.Col('COLLATION_NAME');
     // MSSQL has no expression
     Col.GenerationExpression := ColQuery.Col('GENERATION_EXPRESSION', True);
+    Col.GenerationExpression := UnescapeString(Col.GenerationExpression);
     // PG has no extra:
     ExtraText := ColQuery.Col('EXTRA', True);
 
