@@ -1075,14 +1075,14 @@ var
   TimeStartedMs, WaitedMs, TimeOutMs: Int64;
 begin
   // Check if local port is open
-  {PortChecks := 0;
+  PortChecks := 0;
   while not PortOpen(FConnection.Parameters.SSHLocalPort) do begin
     Inc(PortChecks);
     if PortChecks >= 20 then
       raise EDbError.CreateFmt(_('Could not execute SSH command: Port %d already in use.'), [FConnection.Parameters.SSHLocalPort]);
     FConnection.Log(lcInfo, f_('Port #%d in use. Checking if #%d is available...', [FConnection.Parameters.SSHLocalPort, FConnection.Parameters.SSHLocalPort+1]));
     FConnection.Parameters.SSHLocalPort := FConnection.Parameters.SSHLocalPort + 1;
-  end;}
+  end;
 
   // Build SSH command line
   // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306

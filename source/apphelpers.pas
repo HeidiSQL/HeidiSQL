@@ -425,7 +425,7 @@ type
   //function GetSystemImageIndex(Filename: String): Integer;
   function GetExecutableBits: Byte;
   procedure Help(Sender: TObject; Anchor: String);
-  //function PortOpen(Port: Word): Boolean;
+  function PortOpen(Port: Word): Boolean;
   function IsValidFilePath(FilePath: String): Boolean;
   //function FileIsWritable(FilePath: String): Boolean;
   //function GetProductInfo(dwOSMajorVersion, dwOSMinorVersion, dwSpMajorVersion, dwSpMinorVersion: DWORD; out pdwReturnedProductType: DWORD): BOOL stdcall; external kernel32 delayed;
@@ -2833,29 +2833,22 @@ begin
   ShellExec(APPDOMAIN+'help.php?place='+EncodeURLParam(Place)+Anchor);
 end;
 
-
-{function PortOpen(Port: Word): Boolean;
+function PortOpen(Port: Word): Boolean;
 var
-  client: sockaddr_in;
-  sock: Integer;
-  ret: Integer;
-  wsdata: WSAData;
+  Output: String;
+  CmdResult: Boolean;
 begin
-  Result := True;
-  ret := WSAStartup($0002, wsdata);
-  if ret<>0 then
-    Exit;
-  try
-    client.sin_family := AF_INET;
-    client.sin_port := htons(Port);
-    client.sin_addr.s_addr := inet_addr(PAnsiChar('127.0.0.1'));
-    sock := socket(AF_INET, SOCK_STREAM, 0);
-    Result := connect(sock, client, SizeOf(client)) <> 0;
-  finally
-    WSACleanup;
-  end;
-end;}
-
+  {$IfDef LINUX}
+  // Netcat on Linux
+  CmdResult := RunCommand('nc -w 1 -zv 127.0.0.1 '+Port.ToString, Output);
+  Result := not CmdResult;
+  {$EndIf}
+  {$IfDef WINDOWS}
+  // netstat on Windows
+  CmdResult := RunCommand('netstat -na -p TCP', Output);
+  Result := not Output.Contains(':' + Port.ToString + ' ');
+  {$EndIf}
+end;
 
 function IsValidFilePath(FilePath: String): Boolean;
 var
