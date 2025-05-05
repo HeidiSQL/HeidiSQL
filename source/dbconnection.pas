@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, Graphics, ExtCtrls, StrUtils,
   Controls, Forms, IniFiles, Variants, FileUtil,
-  RegExpr, process,
+  RegExpr, process, Pipes,
   generic_types,
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase;
 
@@ -249,23 +249,11 @@ type
   TGridRows = class(TObjectList<TGridRow>);
 
   // SSH related
-  TProcessPipe = class(TObject)
-    public
-      ReadHandle: THandle;
-      WriteHandle: THandle;
-      constructor Create;
-      destructor Destroy; override;
-  end;
   TSecureShellCmd = class(TObject)
     private
-      //FProcessInfo: TProcessInformation;
-      FInPipe: TProcessPipe;
-      FOutPipe: TProcessPipe;
-      FErrorPipe: TProcessPipe;
+      FProcess: TProcess;
       FConnection: TDBConnection;
-      function ReadPipe(const Pipe: TProcessPipe): String;
-      function AsciiToAnsi(Text: AnsiString): AnsiString;
-      function CleanEscSeq(const Buffer: String): String;
+      function ReadPipe(const Pipe: TInputPipeStream): String;
       procedure SendText(Text: String);
      public
       procedure Connect;
@@ -1047,38 +1035,6 @@ uses apphelpers, loginform, change_password;
 
 
 
-{ TProcessPipe }
-
-constructor TProcessPipe.Create;
-var
-  Success: Boolean;
-begin
-  inherited;
-  {Success := CreatePipe(ReadHandle, WriteHandle, nil, 8192);
-  if Success then
-    Success := DuplicateHandle(
-      GetCurrentProcess, ReadHandle,
-      GetCurrentProcess, @ReadHandle, 0, True,
-      DUPLICATE_CLOSE_SOURCE OR DUPLICATE_SAME_ACCESS
-    );
-  if Success then
-    Success := DuplicateHandle(
-      GetCurrentProcess, WriteHandle,
-      GetCurrentProcess, @WriteHandle, 0, True,
-      DUPLICATE_CLOSE_SOURCE OR DUPLICATE_SAME_ACCESS
-    );
-  if not Success then
-    raise EDbError.Create(_('Error creating I/O pipes'));}
-end;
-
-
-destructor TProcessPipe.Destroy;
-begin
-  //CloseHandle(ReadHandle);
-  //CloseHandle(WriteHandle);
-  inherited;
-end;
-
 
 
 { TSecureShellCmd }
@@ -1087,21 +1043,22 @@ constructor TSecureShellCmd.Create(Connection: TDBConnection);
 begin
   inherited Create;
   FConnection := Connection;
-  FInPipe := TProcessPipe.Create;
-  FOutPipe := TProcessPipe.Create;
-  FErrorPipe := TProcessPipe.Create;
+  FProcess := TProcess.Create(nil);
+  FProcess.Options := [poUsePipes, poNoConsole];
 end;
 
 
 destructor TSecureShellCmd.Destroy;
+var
+  AExitCode: Integer;
 begin
-  {FConnection.Log(lcInfo, f_('Closing SSH process #%d ...', [FProcessInfo.dwProcessId]));
-  TerminateProcess(FProcessInfo.hProcess, 0);
-  CloseHandle(FProcessInfo.hProcess);
-  CloseHandle(FProcessInfo.hThread);}
-  FInPipe.Free;
-  FOutPipe.Free;
-  FErrorPipe.Free;
+  if Assigned(FProcess) then begin
+    if FProcess.Running then begin
+      FConnection.Log(lcInfo, f_('Closing SSH process #%d ...', [FProcess.ProcessID]));
+      FProcess.Terminate(AExitCode);
+    end;
+    FProcess.Free;
+  end;
   inherited;
 end;
 
@@ -1111,12 +1068,11 @@ var
   SshCmd, SshCmdDisplay, DialogTitle: String;
   OutText, ErrorText, AllPipesText, UserInput: String;
   rx: TRegExpr;
-  //StartupInfo: TStartupInfo;
   ExitCode: LongWord;
   PortChecks: Integer;
   CheckIntervalMs: Integer;
   IsPlink: Boolean;
-  TimeStartedMs, WaitedMs, WaitedLeftMs, TimeOutMs: Int64;
+  TimeStartedMs, WaitedMs, TimeOutMs: Int64;
 begin
   // Check if local port is open
   {PortChecks := 0;
@@ -1156,31 +1112,16 @@ begin
   FConnection.Log(lcInfo, f_('Attempt to create SSH process, waiting %ds for response ...', [FConnection.Parameters.SSHTimeout]));
   FConnection.Log(lcInfo, SshCmdDisplay);
 
-  // Prepare process
-  {FillChar(StartupInfo, SizeOf(StartupInfo), 0);
-  StartupInfo.cb := SizeOf(StartupInfo);
-  StartupInfo.dwFlags := STARTF_USESHOWWINDOW or STARTF_USESTDHANDLES;
-  StartupInfo.wShowWindow := SW_HIDE;
-  StartupInfo.hStdInput:= FInPipe.ReadHandle;
-  StartupInfo.hStdError:= FErrorPipe.WriteHandle;
-  StartupInfo.hStdOutput:= FOutPipe.WriteHandle;
-
   // Create plink.exe process
-  FillChar(FProcessInfo, SizeOf(FProcessInfo), 0);
-  if not CreateProcess(
-       nil,
-       PChar(SshCmd),
-       nil,
-       nil,
-       true,
-       CREATE_DEFAULT_ERROR_MODE or CREATE_NEW_CONSOLE or NORMAL_PRIORITY_CLASS,
-       nil,
-       PChar(GetCurrentDir),
-       StartupInfo,
-       FProcessInfo) then begin
-    ErrorText := CRLF + CRLF + SshCmdDisplay + CRLF + CRLF + 'System message: ' + SysErrorMessage(GetLastError);
-    ErrorText := f_('Could not execute SSH command: %s', [ErrorText]);
-    raise EDbError.Create(ErrorText);
+  FProcess.CommandLine := SshCmd;
+  try
+    FProcess.Execute;
+  except
+    on E:EProcess do begin
+      ErrorText := CRLF + CRLF + SshCmdDisplay + CRLF + CRLF + 'System message: ' + SysErrorMessage(GetLastOSError);
+      ErrorText := f_('Could not execute SSH command: %s', [ErrorText]);
+      raise EDbError.Create(ErrorText);
+    end;
   end;
 
   // Wait until timeout has finished.
@@ -1192,22 +1133,16 @@ begin
   CheckIntervalMs := FConnection.Parameters.SSHTimeout * 100;
   TimeStartedMs := GetTickCount64;
   while WaitedMs < TimeOutMs do begin
-    WaitForSingleObject(FProcessInfo.hProcess, CheckIntervalMs);
+    Sleep(CheckIntervalMs);
     WaitedMs := GetTickCount64 - TimeStartedMs;
-    // On Wine, WaitForSingleObject does not really seem to wait. See #1771
-    WaitedLeftMs := TimeStartedMs + WaitedMs - GetTickCount64;
-    if WaitedLeftMs > 0 then begin
-      FConnection.Log(lcDebug, 'Wait additional '+WaitedLeftMs.ToString+'ms (see issue #1771)...');
-      Sleep(WaitedLeftMs);
-    end;
-    GetExitCodeProcess(FProcessInfo.hProcess, ExitCode);
-    if ExitCode <> STILL_ACTIVE then begin
-      FConnection.Log(lcError, 'SSH process exited after '+WaitedMs.ToString+'ms with code '+ExitCode.ToString+'. Should be '+STILL_ACTIVE.ToString+' (STILL_ACTIVE)');
+    ExitCode := FProcess.ExitStatus;
+    if not FProcess.Running then begin
+      FConnection.Log(lcError, 'SSH process exited after '+WaitedMs.ToString+'ms with code '+ExitCode.ToString+'.');
       raise EDbError.CreateFmt(_('SSH exited unexpected. Command line was: %s'), [CRLF+SshCmdDisplay]);
     end;
 
-    OutText := Trim(ReadPipe(FOutPipe));
-    ErrorText := ReadPipe(FErrorPipe);
+    OutText := Trim(ReadPipe(FProcess.Output));
+    ErrorText := ReadPipe(FProcess.Stderr);
     if (OutText <> '') or (ErrorText <> '') then begin
       FConnection.Log(lcDebug, Format('SSH output after %d ms. OutPipe: "%s"  ErrorPipe: "%s"', [WaitedMs, OutText, ErrorText]));
     end;
@@ -1274,130 +1209,41 @@ begin
 
     // Crashes in TMainForm.DBtreeGetText:12, but most likely not required anyway:
     //Application.ProcessMessages;
-  end; }
+  end;
   rx.Free;
 end;
 
 
-function TSecureShellCmd.ReadPipe(const Pipe: TProcessPipe): String;
+function TSecureShellCmd.ReadPipe(const Pipe: TInputPipeStream): String;
 var
-  BufferReadCount, OutLen: Cardinal;
-  BytesRemaining: Cardinal;
-  Buffer: array [0..1023] of AnsiChar;
-  R: AnsiString;
+  BytesAvailable: LongWord;
+  Buffer: String;
+  BytesRead: Int64;
 begin
   Result := '';
-  {if Pipe.ReadHandle = INVALID_HANDLE_VALUE then
+  if Pipe = nil then
     raise EDbError.Create(_('Error reading I/O pipes'));
 
-  // Check if there is data to read from stdout
-  PeekNamedPipe(Pipe.ReadHandle, nil, 0, nil, @BufferReadCount, nil);
-
-  if BufferReadCount <> 0 then begin
-    FillChar(Buffer, sizeof(Buffer), 'z');
-    // Read by 1024 bytes chunks
-    BytesRemaining := BufferReadCount;
-    OutLen := 0;
-    while BytesRemaining >= 1024 do begin
-      // Read stdout pipe
-      ReadFile(Pipe.ReadHandle, Buffer, 1024, BufferReadCount, nil);
-      Dec(BytesRemaining, BufferReadCount);
-
-      SetLength(R, OutLen + BufferReadCount);
-      Move(Buffer, R[OutLen + 1], BufferReadCount);
-      Inc(OutLen, BufferReadCount);
-    end;
-
-    if BytesRemaining > 0 then begin
-      ReadFile(Pipe.ReadHandle, Buffer, BytesRemaining, BufferReadCount, nil);
-      SetLength(R, OutLen + BufferReadCount);
-      Move(Buffer, R[OutLen + 1], BufferReadCount);
-    end;
-
-    R := AsciiToAnsi(R);
-    $WARNINGS OFF
-    Result := AnsiToUtf8(R);
-    $WARNINGS ON
-
-    Result := CleanEscSeq(Result);
-  end;}
+  while True do begin
+    BytesAvailable := Pipe.NumBytesAvailable;
+    if BytesAvailable = 0 then
+      Break;
+    SetLength(Buffer, BytesAvailable);
+    BytesRead := Pipe.Read(Buffer[1], BytesAvailable);
+    Result := Result + Copy(Buffer, 1, BytesRead);
+    if BytesRead = 0 then
+      Break;
+  end;
 
   Result := StringReplace(Result, #13+CRLF, CRLF, [rfReplaceAll]);
 end;
 
 
-function TSecureShellCmd.AsciiToAnsi(Text: AnsiString): AnsiString;
-const
-  cMaxLength = 255;
-var
-  PText: PAnsiChar;
-begin
-  Result := '';
-  {PText := AnsiStrAlloc(cMaxLength);
-  while Text <> '' do begin
-    System.AnsiStrings.StrPCopy(PText, copy(Text, 1, cMaxLength-1));
-    OemToAnsi(PText, PText);
-    Result := Result + System.AnsiStrings.StrPas(PText);
-    Delete(Text, 1, cMaxLength-1);
-  end;
-  System.AnsiStrings.StrDispose(PText);}
-end;
-
-
-function TSecureShellCmd.CleanEscSeq(const Buffer: String): String;
-var
-  i: Integer;
-  chr: Char;
-  EscFlag, Process: Boolean;
-  EscBuffer: String[80];
-begin
-  Result := '';
-  EscFlag := False;
-  for i:=1 to Length(Buffer) do begin
-    chr := buffer[I];
-    if EscFLag then begin
-      Process := False;
-      if (Length(EscBuffer) = 0) and CharInSet(Chr, ['D', 'M', 'E', 'H', '7', '8', '=', '>', '<']) then
-        Process := True
-      else if (Length(EscBuffer) = 1) and (EscBuffer[1] in ['(', ')', '*', '+']) then
-        Process := True
-      else if CharInSet(Chr, ['0'..'9', ';', '?', ' '])
-        or ((Length(EscBuffer) = 0) and CharInSet(chr, ['[', '(', ')', '*', '+']))
-        then begin
-        {$WARNINGS OFF}
-        EscBuffer := EscBuffer + Chr;
-        {$WARNINGS ON}
-        if Length(EscBuffer) >= High(EscBuffer) then begin
-          SysUtils.Beep;
-          EscBuffer := '';
-          EscFlag := FALSE;
-        end;
-      end else
-        Process := True;
-
-      if Process then begin
-        EscBuffer := '';
-        EscFlag := False;
-      end;
-    end else if chr = #27 then begin
-      EscBuffer := '';
-      EscFlag := True;
-    end;
-    Result := Result + chr;
-  end;
-end;
 
 
 procedure TSecureShellCmd.SendText(Text: String);
-var
-  WrittenBytes: Cardinal;
-  TextA: AnsiString;
 begin
-  {$WARNINGS OFF}
-  TextA := Utf8ToAnsi(Text);
-  {$WARNINGS ON}
-  //if TextA <> '' then
-  //  WriteFile(FInPipe.WriteHandle, TextA[1], Length(TextA), WrittenBytes, nil);
+  FProcess.Input.Write(Text[1], Length(Text));
 end;
 
 
