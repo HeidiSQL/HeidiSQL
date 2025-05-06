@@ -28,3 +28,6 @@ lib/
 
 # Application bundle for Mac OS
 *.app/
+
+# Compiled translations
+/out/locale/heidisql.*.mo

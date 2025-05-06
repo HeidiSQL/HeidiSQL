@@ -149,7 +149,7 @@ begin
   // Prepare download
   CheckfileDownload := THttpDownload.Create(Self);
   CheckfileDownload.TimeOut := 5;
-  CheckfileDownload.URL := APPDOMAIN+'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision)+'&bits='+IntToStr(GetExecutableBits)+'&t='+EncodeURLParam(DateTimeToStr(Now));
+  CheckfileDownload.URL := APPDOMAIN+'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision)+'&bits='+IntToStr(GetExecutableBits)+'&os='+EncodeURLParam(GetOS.ToLower)+'&t='+EncodeURLParam(DateTimeToStr(Now));
   CheckFilename := GetTempDir + APPNAME + '_updatecheck.ini';
 
   // Download the check file
@@ -256,9 +256,10 @@ end;
 
 function TfrmUpdateCheck.GetLinkUrl(Sender: TObject; LinkType: String): String;
 var
-  DownloadParam, PlaceParam: String;
+  DownloadParam, PlaceParam, OsParam: String;
 begin
   PlaceParam := 'place='+EncodeURLParam(TWinControl(Sender).Name);
+  OsParam := 'os='+EncodeURLParam(GetOS.ToLower);
 
   if LinkType = SLinkDownloadRelease then begin
     if AppSettings.PortableMode then begin
@@ -269,7 +270,7 @@ begin
     end else begin
       DownloadParam := 'download=installer';
     end;
-    Result := 'download.php?'+DownloadParam+'&'+PlaceParam;
+    Result := 'download.php?'+DownloadParam+'&'+PlaceParam+'&'+OsParam;
   end
 
   else if LinkType = SLinkChangelog then begin

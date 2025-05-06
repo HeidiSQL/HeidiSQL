@@ -39,7 +39,7 @@ echo Build executable...
 lazbuild heidisql.lpi
 
 # create directory and prepare files
-packageDir="$APPNAME-$fullVer"
+packageDir="$APPNAME_$fullVer"
 echo Creating package directory $packageDir
 cp -R deb-package-skeleton $packageDir
 rm $packageDir/usr/share/heidisql/locale/.gitkeep
