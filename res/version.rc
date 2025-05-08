@@ -1,20 +1,29 @@
-1 VERSIONINFO
-  FILEVERSION 12,10,0,0
-  FILEOS VOS__WINDOWS32
-  FILETYPE VFT_APP
-  BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-      BLOCK "040904E4"
-      BEGIN
-        VALUE "FileDescription", "%APPNAME% %APPVER%\000"
-        VALUE "ProductName", "%APPNAME%\000"
-        VALUE "LegalCopyright", "Ansgar Becker, see gpl.txt\000"
-      END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-      VALUE "Translation", 0x0409 0x04E4
-    END 
-  END
+#include <winver.h>
 
+1 VERSIONINFO
+  FILEVERSION     12,10,0,0
+  PRODUCTVERSION  12,10,0,0
+  FILEFLAGSMASK   0x3fL
+  FILEFLAGS       0x0L
+  FILEOS          VOS__WINDOWS32
+  FILETYPE        VFT_APP
+  FILESUBTYPE     0x0L
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    BEGIN
+      VALUE "FileDescription",  "%APPNAME% %APPVER%\000"
+      VALUE "ProductName",      "%APPNAME%\000"
+      VALUE "FileVersion",      "%APPVER%\000"
+      VALUE "ProductVersion",   "%APPVER%\000"
+      VALUE "InternalName",     "%APPNAME%.exe\000"
+      VALUE "OriginalFilename", "%APPNAME%.exe\000"
+      VALUE "LegalCopyright",   "Ansgar Becker, see gpl.txt\000"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 1252
+  END
+END
