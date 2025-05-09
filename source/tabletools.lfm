@@ -672,9 +672,10 @@ object frmTableTools: TfrmTableTools
             BorderSpacing.Around = 6
             DropDownCount = 16
             ItemHeight = 20
-            Style = csDropDownList
+            Style = csOwnerDrawFixed
             TabOrder = 6
             OnChange = comboExportOutputTypeChange
+            OnDrawItem = comboExportOutputTypeDrawItem
           end
           object comboExportOutputTarget: TComboBox
             AnchorSideLeft.Control = tabSQLexport

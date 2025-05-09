@@ -13,10 +13,13 @@ uses
   SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs,
   laz.VirtualTrees, ExtCtrls, Graphics, RegExpr, Math, Generics.Collections, extra_controls,
   dbconnection, apphelpers, Menus, DateUtils, Zipper, StrUtils,
-  SynEdit, ClipBrd, generic_types, fpjson, Variants, EditBtn, LazFileUtils;
+  SynEdit, ClipBrd, generic_types, fpjson, Variants, EditBtn, LazFileUtils, Types, LCLType, GraphUtil;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit, tmGenerateData);
+
+  { TfrmTableTools }
+
   TfrmTableTools = class(TExtForm)
     btnCloseOrCancel: TButton;
     pnlTop: TPanel;
@@ -99,6 +102,8 @@ type
     editGenerateDataNumRows: TEdit;
     lblGenerateDataNullAmount: TLabel;
     editGenerateDataNullAmount: TEdit;
+    procedure comboExportOutputTypeDrawItem(Control: TWinControl;
+      Index: Integer; ARect: TRect; State: TOwnerDrawState);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnHelpMaintenanceClick(Sender: TObject);
@@ -253,6 +258,7 @@ var
   MenuItem: TMenuItem;
   dt: TListNodeType;
   Obj: TDBObject;
+  Params: TConnectionParameters;
 begin
   HasSizeGrip := True;
   OUTPUT_FILE := _('Single .sql file');
@@ -298,8 +304,10 @@ begin
   SessionPaths := TStringList.Create;
   AppSettings.GetSessionPaths('', SessionPaths);
   for i:=0 to SessionPaths.Count-1 do begin
-    if SessionPaths[i] <> Mainform.ActiveConnection.Parameters.SessionPath then
-      comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionPaths[i]);
+    if SessionPaths[i] = Mainform.ActiveConnection.Parameters.SessionPath then
+      Continue;
+    Params := TConnectionParameters.Create(SessionPaths[i]);
+    comboExportOutputType.Items.AddObject(OUTPUT_SERVER+SessionPaths[i], Params);
   end;
   SessionPaths.Free;
   comboExportOutputTarget.Text := '';
@@ -333,6 +341,41 @@ begin
   Width := AppSettings.ReadInt(asTableToolsWindowWidth);
   Height := AppSettings.ReadInt(asTableToolsWindowHeight);
   pnlLeft.Width := AppSettings.ReadInt(asTableToolsTreeWidth);
+end;
+
+
+procedure TfrmTableTools.comboExportOutputTypeDrawItem(Control: TWinControl;
+  Index: Integer; ARect: TRect; State: TOwnerDrawState);
+var
+  Params: TConnectionParameters;
+  Canv: TCanvas;
+  ItemImageIndex: Integer;
+begin
+  Canv := comboExportOutputType.Canvas;
+  if odSelected in State then begin
+    Canv.Brush.Color := clHighlight;
+    Canv.Pen.Color := clHighlightText;
+  end
+  else begin
+    Canv.Brush.Color := clWindow;
+    Canv.Pen.Color := clWindowText;
+  end;
+
+  Params := comboExportOutputType.Items.Objects[Index] as TConnectionParameters;
+  if Assigned(Params) then begin
+    if (Params.SessionColor <> clNone) and (not (odSelected in State)) then begin
+      Canv.Brush.Color := Params.SessionColor;
+      Canv.Pen.Color := clWindowText;
+    end;
+    ItemImageIndex := Params.ImageIndex;
+  end
+  else begin
+    ItemImageIndex := MainForm.actExportTables.ImageIndex;
+  end;
+
+  Canv.FillRect(ARect);
+  Canv.TextRect(ARect, ARect.Left + MainForm.VirtualImageListMain.Width + 4, ARect.Top, comboExportOutputType.Items[Index]);
+  MainForm.VirtualImageListMain.Draw(Canv, ARect.Left + 2, ARect.Top + 2, ItemImageIndex);
 end;
 
 
