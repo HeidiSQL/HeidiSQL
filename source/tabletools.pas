@@ -155,6 +155,8 @@ type
     procedure editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
     procedure editDatabaseTableFilterRightButtonClick(Sender: TObject);
     procedure timerCalcSizeTimer(Sender: TObject);
+    procedure comboExportOutputTypeDrawItem(Control: TWinControl;
+      Index: Integer; Rect: TRect; State: TOwnerDrawState);
   const
     StatusMsg = '%s %s ...';
   private
@@ -257,6 +259,7 @@ var
   MenuItem: TMenuItem;
   dt: TListNodeType;
   Obj: TDBObject;
+  Params: TConnectionParameters;
 begin
   HasSizeGrip := True;
   OUTPUT_FILE := _('Single .sql file');
@@ -302,8 +305,10 @@ begin
   SessionPaths := TStringList.Create;
   AppSettings.GetSessionPaths('', SessionPaths);
   for i:=0 to SessionPaths.Count-1 do begin
-    if SessionPaths[i] <> Mainform.ActiveConnection.Parameters.SessionPath then
-      comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionPaths[i]);
+    if SessionPaths[i] = Mainform.ActiveConnection.Parameters.SessionPath then
+      Continue;
+    Params := TConnectionParameters.Create(SessionPaths[i]);
+    comboExportOutputType.Items.AddObject(OUTPUT_SERVER+SessionPaths[i], Params);
   end;
   SessionPaths.Free;
   comboExportOutputTarget.Text := '';
@@ -332,6 +337,41 @@ begin
     menuCheckByType.Add(MenuItem);
   end;
   Obj.Free;
+end;
+
+
+procedure TfrmTableTools.comboExportOutputTypeDrawItem(Control: TWinControl;
+  Index: Integer; Rect: TRect; State: TOwnerDrawState);
+var
+  Params: TConnectionParameters;
+  Canv: TCanvas;
+  ItemImageIndex: Integer;
+begin
+  Canv := comboExportOutputType.Canvas;
+  if odSelected in State then begin
+    Canv.Brush.Color := clHighlight;
+    Canv.Pen.Color := clHighlightText;
+  end
+  else begin
+    Canv.Brush.Color := clWindow;
+    Canv.Pen.Color := clWindowText;
+  end;
+
+  Params := comboExportOutputType.Items.Objects[Index] as TConnectionParameters;
+  if Assigned(Params) then begin
+    if (Params.SessionColor <> clNone) and (not (odSelected in State)) then begin
+      Canv.Brush.Color := Params.SessionColor;
+      Canv.Pen.Color := clWindowText;
+    end;
+    ItemImageIndex := Params.ImageIndex;
+  end
+  else begin
+    ItemImageIndex := MainForm.actExportTables.ImageIndex;
+  end;
+
+  Canv.FillRect(Rect);
+  Canv.TextRect(Rect, Rect.Left + MainForm.VirtualImageListMain.Width + 4, Rect.Top, comboExportOutputType.Items[Index]);
+  MainForm.VirtualImageListMain.Draw(Canv, Rect.Left + 2, Rect.Top + 2, ItemImageIndex);
 end;
 
 

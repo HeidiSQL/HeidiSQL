@@ -459,11 +459,12 @@ object frmTableTools: TfrmTableTools
             Top = 101
             Width = 448
             Height = 22
-            Style = csDropDownList
+            Style = csOwnerDrawFixed
             Anchors = [akLeft, akTop, akRight]
             DropDownCount = 16
             TabOrder = 7
             OnChange = comboExportOutputTypeChange
+            OnDrawItem = comboExportOutputTypeDrawItem
           end
           object comboExportOutputTarget: TComboBox
             Left = 100
