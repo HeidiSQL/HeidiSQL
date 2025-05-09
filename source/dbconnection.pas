@@ -1870,27 +1870,24 @@ begin
     rx.ModifierI := True;
     case NetTypeGroup of
       ngMySQL:
-        {$IfDef LINUX}
+        {$If defined(LINUX)}
         // libmariadb.so.0 (libc,...) => /lib/x86_64-linux-gnu/libmariadb.so
-        rx.Expression := '^\s*lib(mysqlclient|mariadb)[^=]+=>\s*(\S+)$';
-        {$EndIf}
-        {$IfDef WINDOWS}
+        rx.Expression := '^\s*lib(mysqlclient|mariadb|perconaserverclient)\.[^=]+=>\s*(\S+)$';
+        {$ElseIf defined(WINDOWS)}
         rx.Expression := '^lib(mysql|mariadb).*\.' + GetDynLibExtension;
         {$EndIf}
       ngMSSQL: // Allow unsupported ADODB providers per registry hack
         rx.Expression := IfThen(AppSettings.ReadBool(asAllProviders), '^', '^(MSOLEDBSQL|SQLOLEDB)');
       ngPgSQL:
-        {$IfDef LINUX}
+        {$If defined(LINUX)}
         rx.Expression := '^\s*(libpq)[^=]+=>\s*(\S+)$';
-        {$EndIf}
-        {$IfDef WINDOWS}
+        {$ElseIf defined(WINDOWS)}
         rx.Expression := '^libpq.*\.' + GetDynLibExtension;
         {$EndIf}
       ngSQLite: begin
-        {$IfDef LINUX}
+        {$If defined(LINUX)}
         rx.Expression := '^\s*(libsqlite3)[^=]+=>\s*(\S+)$';
-        {$EndIf}
-        {$IfDef WINDOWS}
+        {$ElseIf defined(WINDOWS)}
         if NetType = ntSQLite then
           rx.Expression := '^sqlite.*\.' + GetDynLibExtension
         else
@@ -1902,7 +1899,7 @@ begin
     end;
     case NetTypeGroup of
       ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
-        {$IfDef LINUX}
+        {$If defined(LINUX)}
         // See https://serverfault.com/a/513938
         Process.RunCommand('/sbin/ldconfig', ['-p'], LibMapOutput);
         LibMapLines := Explode(sLineBreak, LibMapOutput);
@@ -1911,8 +1908,7 @@ begin
             FoundLibs.Add(rx.Match[2]);
           end;
         end;
-        {$EndIf}
-        {$IfDef WINDOWS}
+        {$ElseIf defined(WINDOWS)}
         Dlls := FindAllFiles(ExtractFilePath(ParamStr(0)), '*.' + GetDynLibExtension, False);
         for DllPath in Dlls do begin
           DllFile := ExtractFileName(DllPath);
