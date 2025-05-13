@@ -102,8 +102,6 @@ type
     editGenerateDataNumRows: TEdit;
     lblGenerateDataNullAmount: TLabel;
     editGenerateDataNullAmount: TEdit;
-    procedure comboExportOutputTypeDrawItem(Control: TWinControl;
-      Index: Integer; ARect: TRect; State: TOwnerDrawState);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnHelpMaintenanceClick(Sender: TObject);
@@ -156,6 +154,10 @@ type
     procedure editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
     procedure editDatabaseTableFilterRightButtonClick(Sender: TObject);
     procedure timerCalcSizeTimer(Sender: TObject);
+    procedure comboExportOutputTypeDrawItem(Control: TWinControl;
+      Index: Integer; ARect: TRect; State: TOwnerDrawState);
+    procedure comboExportOutputTypeMeasureItem(Control: TWinControl;
+      Index: Integer; var AHeight: Integer);
   const
     StatusMsg = '%s %s ...';
   private
@@ -374,8 +376,15 @@ begin
   end;
 
   Canv.FillRect(ARect);
-  Canv.TextRect(ARect, ARect.Left + MainForm.VirtualImageListMain.Width + 4, ARect.Top, comboExportOutputType.Items[Index]);
-  MainForm.VirtualImageListMain.Draw(Canv, ARect.Left + 2, ARect.Top + 2, ItemImageIndex);
+  Canv.TextRect(ARect, ARect.Left + Scale96ToForm(MainForm.VirtualImageListMain.Width) + 4, ARect.Top, comboExportOutputType.Items[Index]);
+  MainForm.VirtualImageListMain.DrawForControl(Canv, ARect.Left + 2, ARect.Top + 2, ItemImageIndex, MainForm.VirtualImageListMain.Width, comboExportOutputType);
+end;
+
+
+procedure TfrmTableTools.comboExportOutputTypeMeasureItem(Control: TWinControl;
+  Index: Integer; var AHeight: Integer);
+begin
+  AHeight := Scale96ToForm(MainForm.VirtualImageListMain.Height) + 2;
 end;
 
 
