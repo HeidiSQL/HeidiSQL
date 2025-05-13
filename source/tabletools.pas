@@ -157,6 +157,8 @@ type
     procedure timerCalcSizeTimer(Sender: TObject);
     procedure comboExportOutputTypeDrawItem(Control: TWinControl;
       Index: Integer; Rect: TRect; State: TOwnerDrawState);
+    procedure comboExportOutputTypeMeasureItem(Control: TWinControl;
+      Index: Integer; var Height: Integer);
   const
     StatusMsg = '%s %s ...';
   private
@@ -372,6 +374,13 @@ begin
   Canv.FillRect(Rect);
   Canv.TextRect(Rect, Rect.Left + MainForm.VirtualImageListMain.Width + 4, Rect.Top, comboExportOutputType.Items[Index]);
   MainForm.VirtualImageListMain.Draw(Canv, Rect.Left + 2, Rect.Top + 2, ItemImageIndex);
+end;
+
+
+procedure TfrmTableTools.comboExportOutputTypeMeasureItem(Control: TWinControl;
+  Index: Integer; var Height: Integer);
+begin
+  Height := MainForm.VirtualImageListMain.Height + 2;
 end;
 
 
