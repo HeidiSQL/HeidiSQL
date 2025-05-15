@@ -1757,10 +1757,12 @@ var
   Limit, Offset, ResultCount, MaxInsertSize: Int64;
   StartTime: QWord;
   StrucResult, Data: TDBQuery;
-  ColumnList: TTableColumnList;
+  ColumnList, KeyColumns: TTableColumnList;
+  KeyList: TTableKeyList;
   Column: TTableColumn;
   Quoter: TDBConnection;
   TargetFileName, SetCharsetCode: String;
+  OrderBy: String;
 const
   TempDelim = '//';
   AssumedAvgRowLen = 10000;
@@ -2041,6 +2043,18 @@ begin
         TargetDbAndObject := Quoter.QuoteIdent(FinalDbName) + '.' + TargetDbAndObject;
       Offset := 0;
       RowCount := 0;
+      // Sort by primary key if one exists, see issue #2168
+      ColumnList := DBObj.TableColumns;
+      KeyList := DBObj.TableKeys;
+      KeyColumns := DBObj.Connection.GetKeyColumns(ColumnList, KeyList);
+      OrderBy := '';
+      for i:=0 to KeyColumns.Count-1 do begin
+        if i>0 then
+          OrderBy := OrderBy + ', ';
+        OrderBy := OrderBy + DBObj.Connection.QuoteIdent(KeyColumns[i].Name);
+      end;
+      if not OrderBy.IsEmpty then
+        OrderBy := ' ORDER BY ' + OrderBy;
       // Calculate limit so we select ~100MB per loop
       // Take care of disabled "Get full table status" session setting, where AvgRowLen is 0
       Limit := Round(100 * SIZE_MB / IfThen(DBObj.AvgRowLen>0, DBObj.AvgRowLen, AssumedAvgRowLen));
@@ -2053,7 +2067,7 @@ begin
         Data := DBObj.Connection.GetResults(
           DBObj.Connection.ApplyLimitClause(
             'SELECT',
-            '* FROM '+DBObj.QuotedDbAndTableName,
+            '* FROM '+DBObj.QuotedDbAndTableName + OrderBy,
             Limit,
             Offset)
           );
