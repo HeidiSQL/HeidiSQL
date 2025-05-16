@@ -725,7 +725,7 @@ begin
           ColSpec := Col.SQLCode(OverrideCollation);
           case Col.Status of
             esModified: begin
-              Specs.Add(Format(AlterColBase, [Conn.QuoteIdent(Col.OldName), ColSpec]));
+              Specs.Add(Format(AlterColBase, ['', ColSpec]));
             end;
             esAddedUntouched, esAddedModified: begin
               Specs.Add(Format(AddColBase, [ColSpec]));
