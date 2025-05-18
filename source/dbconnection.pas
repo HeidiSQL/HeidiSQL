@@ -2950,6 +2950,8 @@ begin
     FServerVersionUntouched := GetVar('SELECT VERSION()');
     FConnectionStarted := GetTickCount div 1000;
     Query('SET statement_timeout TO '+IntToStr(Parameters.QueryTimeout*1000));
+    if ServerVersionInt >= 80300 then
+      Query('SET synchronize_seqscans TO off');
     try
       FServerUptime := StrToIntDef(GetVar('SELECT EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - pg_postmaster_start_time())::INTEGER'), -1);
     except
