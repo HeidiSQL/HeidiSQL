@@ -3245,7 +3245,7 @@ var
   UsingPass: String;
   Dialog: TfrmLogin;
 begin
-  // Prompt for password on initial connect
+  // Don't remember prompt values
   if FParameters.LoginPrompt then begin
     Dialog := TfrmLogin.Create(Self);
     Dialog.Caption := APPNAME + ' - ' + FParameters.SessionName;
