@@ -4195,6 +4195,7 @@ begin
         ' WHERE '+QuoteIdent('type')+' IN('+EscapeString('table')+', '+EscapeString('index')+')'+
         ' AND tbl_name='+EscapeString(Obj.Name));
       Result := Implode(';'+sLineBreak, CreateList);
+      CreateList.Free;
     end;
     lntView, lntTrigger: begin
       Result := GetVar('SELECT '+QuoteIdent('sql')+' FROM '+QuoteIdent(Obj.Database)+'.sqlite_master'+
