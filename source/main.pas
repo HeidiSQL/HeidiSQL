@@ -5769,12 +5769,13 @@ procedure TMainForm.AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
   var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
 var
   PaintArea, TextArea, IconArea, SortArea: TRect;
-  SortText, ColCaption: String;
+  SortText, ColCaption, ColIndex: String;
   TextSpace, ColSortIndex, NumCharTop: Integer;
   ColSortDirection: VirtualTrees.TSortDirection;
-  Size: TSize;
-  DC: HDC;
+  TextSize: TSize;
+  DeviceContext: HDC;
   DrawFormat: Cardinal;
+  ColInfo: TTableColumn;
 const
   NumSortChars: Array of Char = ['¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹','⁺'];
 
@@ -5808,13 +5809,33 @@ begin
 
   PaintArea := PaintInfo.PaintRectangle;
   PaintArea.Inflate(-PaintInfo.Column.Margin, 0);
-  DC := PaintInfo.TargetCanvas.Handle;
+  DeviceContext := PaintInfo.TargetCanvas.Handle;
 
   // Draw column name. Code taken from TVirtualTreeColumns.DrawButtonText and modified for our needs
   if hpeText in Elements then begin
+
+    TextArea := PaintArea;
+    SetBkMode(DeviceContext, TRANSPARENT);
+    DrawFormat := DT_TOP or DT_NOPREFIX or DT_LEFT;
+
+    if AppSettings.ReadBool(asShowRowId) and (PaintInfo.Column.Index > 0) then begin
+      // Paint gray column number left to its caption
+      ColIndex := PaintInfo.Column.Index.ToString;
+      if Sender.Treeview = DataGrid then begin
+        ColInfo := SelectedTableColumns.FindByName(PaintInfo.Column.Text);
+        if Assigned(ColInfo) then
+          ColIndex := (SelectedTableColumns.IndexOf(ColInfo) + 1).ToString;
+      end;
+
+      SetTextColor(DeviceContext, ColorToRGB(clGrayText));
+      DrawTextW(DeviceContext, PWideChar(ColIndex), Length(ColIndex), PaintArea, DrawFormat);
+      // Move caption text to right
+      GetTextExtentPoint32W(DeviceContext, PWideChar(ColIndex), Length(ColIndex), TextSize);
+      Inc(TextArea.Left, TextSize.cx + 5);
+    end;
+
     ColCaption := PaintInfo.Column.Text;
     // Leave space for icons
-    TextArea := PaintArea;
     if PaintInfo.Column.ImageIndex > -1 then
       Dec(TextArea.Right, Sender.Images.Width);
     GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
@@ -5823,16 +5844,14 @@ begin
 
     if not (coWrapCaption in PaintInfo.Column.Options) then begin
       // Do we need to shorten the caption due to limited space?
-      GetTextExtentPoint32W(DC, PWideChar(ColCaption), Length(ColCaption), Size);
+      GetTextExtentPoint32W(DeviceContext, PWideChar(ColCaption), Length(ColCaption), TextSize);
       TextSpace := TextArea.Right - TextArea.Left;
-      if TextSpace < Size.cx then
-        ColCaption := VirtualTrees.Utils.ShortenString(DC, ColCaption, TextSpace);
+      if TextSpace < TextSize.cx then
+        ColCaption := VirtualTrees.Utils.ShortenString(DeviceContext, ColCaption, TextSpace);
     end;
 
-    SetBkMode(DC, TRANSPARENT);
-    SetTextColor(DC, ColorToRGB(clWindowText));
-    DrawFormat := DT_TOP or DT_NOPREFIX or DT_LEFT;
-    DrawTextW(DC, PWideChar(ColCaption), Length(ColCaption), TextArea, DrawFormat);
+    SetTextColor(DeviceContext, ColorToRGB(clWindowText));
+    DrawTextW(DeviceContext, PWideChar(ColCaption), Length(ColCaption), TextArea, DrawFormat);
   end;
 
   // Draw image, if any
@@ -5848,9 +5867,9 @@ begin
   // Paint sort icon and number
   if hpeOverlay in Elements then begin
     SortArea := PaintArea;
+    Inc(SortArea.Left, SortArea.Width - Sender.Images.Width);
     GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
     if ColSortIndex > -1 then begin
-      Inc(SortArea.Left, SortArea.Width - Sender.Images.Width);
       // Prepare default font size, also if user selected a bigger one for the grid - we reserved a 16x16 space.
       // Font.Height + Font.Size must be set with these values to get this working, larger or smaller Size/Height
       // result in wrong size for multiple sort columns.
