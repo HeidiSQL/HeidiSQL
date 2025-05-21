@@ -2871,7 +2871,7 @@ object MainForm: TMainForm
             Header.Columns = <>
             Header.Images = ImageListIcons8
             Header.MainColumn = -1
-            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages, hoVisible, hoDisableAnimatedResize]
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoVisible, hoDisableAnimatedResize]
             IncrementalSearch = isInitializedOnly
             PopupMenu = popupDataGrid
             TabOrder = 0
@@ -3550,7 +3550,7 @@ object MainForm: TMainForm
             Header.Columns = <>
             Header.Images = ImageListIcons8
             Header.MainColumn = -1
-            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages, hoDisableAnimatedResize]
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoDisableAnimatedResize]
             Header.PopupMenu = popupListHeader
             IncrementalSearch = isAll
             PopupMenu = popupDataGrid
