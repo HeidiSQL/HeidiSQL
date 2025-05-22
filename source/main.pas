@@ -5086,7 +5086,7 @@ begin
 
   for Obj in Objects do begin
     Tab := GetOrCreateEmptyQueryTab(True);
-    Tab.Memo.Text := Conn.ApplyLimitClause('SELECT', '* FROM '+Obj.QuotedName, 1000, 0);
+    Tab.Memo.Text := Conn.ApplyLimitClause('SELECT', '* FROM '+Obj.QuotedName, AppSettings.ReadInt(asDatagridRowsPerStep), 0);
     actExecuteQueryExecute(Sender);
   end;
 end;
@@ -8014,6 +8014,9 @@ var
   Conn: TDBConnection;
 begin
   // DBtree and ListTables both use popupDB as menu
+  actQueryTable.Caption := f_('Select top %s rows', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
+  actQueryTable.Hint := f_('Selects the first %s rows in a new query tab', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
+
   if PopupComponent(Sender) = DBtree then begin
     Obj := DBTree.GetNodeData(DBTree.FocusedNode);
     IsDb := Obj.NodeType = lntDb;
