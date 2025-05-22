@@ -82,8 +82,8 @@ UsePreviousAppDir=yes
 DirExistsWarning=auto
 PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=commandline dialog
-SignedUninstaller=yes
-SignTool=signtool $f
+;SignedUninstaller=yes
+;SignTool=signtool $f
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Local options:"; MinVersion: 4,4
