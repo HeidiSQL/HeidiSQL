@@ -5070,6 +5070,8 @@ end;
 
 procedure TMainForm.actQueryTableExecute(Sender: TObject);
 var
+  Objects: TDBObjectList;
+  Obj: TDBObject;
   Tab: TQueryTab;
   Conn: TDBConnection;
 begin
@@ -5077,10 +5079,16 @@ begin
   Conn := ActiveConnection;
   if not Assigned(Conn) then
     Exit;
+  Objects := GetFocusedObjects(Sender, [lntTable, lntView]);
 
-  Tab := GetOrCreateEmptyQueryTab(True);
-  Tab.Memo.Text := Conn.ApplyLimitClause('SELECT', '* FROM '+ActiveDbObj.QuotedName, 1000, 0);
-  actExecuteQueryExecute(Sender);
+  if Objects.Count = 0 then
+    ErrorDialog(_('No table selected.'), _('Please select one or more table(s) or view(s).'));
+
+  for Obj in Objects do begin
+    Tab := GetOrCreateEmptyQueryTab(True);
+    Tab.Memo.Text := Conn.ApplyLimitClause('SELECT', '* FROM '+Obj.QuotedName, 1000, 0);
+    actExecuteQueryExecute(Sender);
+  end;
 end;
 
 procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
@@ -8002,7 +8010,7 @@ end;
 procedure TMainForm.popupDBPopup(Sender: TObject);
 var
   Obj: PDBObject;
-  HasFocus, IsDb, IsObject: Boolean;
+  IsDb, IsObject: Boolean;
   Conn: TDBConnection;
 begin
   // DBtree and ListTables both use popupDB as menu
@@ -8027,6 +8035,7 @@ begin
     actDetachDatabase.Enabled := actDetachDatabase.Visible and (Obj.NodeType = lntDb);
     actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
     actEmptyTables.Enabled := Obj.NodeType in [lntTable, lntView];
+    actQueryTable.Enabled := Obj.NodeType in [lntTable, lntView];
     actRunRoutines.Enabled := Obj.NodeType in [lntProcedure, lntFunction];
     menuClearDataTabFilter.Enabled := Obj.NodeType in [lntTable, lntView];
     menuEditObject.Enabled := IsDb or IsObject;
@@ -8035,7 +8044,7 @@ begin
     menuTreeCollapseAll.Enabled := True;
     menuTreeOptions.Enabled := True;
   end else begin
-    HasFocus := Assigned(ListTables.FocusedNode);
+    Obj := ListTables.GetNodeData(ListTables.FocusedNode);
     actCreateDatabase.Enabled := False;
     actConnectionProperties.Enabled := False;
     actAttachDatabase.Visible := False;
@@ -8048,14 +8057,11 @@ begin
     actDropObjects.Enabled := ListTables.SelectedCount > 0;
     actDetachDatabase.Visible := False;
     actEmptyTables.Enabled := True;
+    actQueryTable.Enabled := Assigned(Obj) and (Obj.NodeType in [lntTable, lntView]);
     actRunRoutines.Enabled := True;
     menuClearDataTabFilter.Enabled := False;
-    menuEditObject.Enabled := HasFocus;
-    actCopyTable.Enabled := False;
-    if HasFocus then begin
-      Obj := ListTables.GetNodeData(ListTables.FocusedNode);
-      actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
-    end;
+    menuEditObject.Enabled := Assigned(Obj);
+    actCopyTable.Enabled := Assigned(Obj) and (Obj.NodeType in [lntTable, lntView]);
     menuTreeExpandAll.Enabled := False;
     menuTreeCollapseAll.Enabled := False;
     menuTreeOptions.Enabled := False;
