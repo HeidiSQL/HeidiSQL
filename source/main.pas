@@ -797,6 +797,8 @@ type
     Generatedata2: TMenuItem;
     actCopyGridNodes: TAction;
     actCopyGridNodes1: TMenuItem;
+    actQueryTable: TAction;
+    Selecttop1000rows1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1199,6 +1201,7 @@ type
       const Token: string; TokenType: Integer; Attri: TSynHighlighterAttributes;
       var HintText: string);
     procedure actCopyGridNodesExecute(Sender: TObject);
+    procedure actQueryTableExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -5064,6 +5067,21 @@ begin
   // Weird fix: dummy routine to avoid the sending action getting disabled
 end;
 
+
+procedure TMainForm.actQueryTableExecute(Sender: TObject);
+var
+  Tab: TQueryTab;
+  Conn: TDBConnection;
+begin
+  // Query table data
+  Conn := ActiveConnection;
+  if not Assigned(Conn) then
+    Exit;
+
+  Tab := GetOrCreateEmptyQueryTab(True);
+  Tab.Memo.Text := Conn.ApplyLimitClause('SELECT', '* FROM '+ActiveDbObj.QuotedName, 1000, 0);
+  actExecuteQueryExecute(Sender);
+end;
 
 procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
 begin

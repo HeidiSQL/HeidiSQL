@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2025-04-28 16:35+0200\n"
+"PO-Revision-Date: 2025-05-22 19:50+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -6756,3 +6756,9 @@ msgstr "Export cancelled, file not overwritten: %s"
 
 msgid "Discard changes?"
 msgstr "Discard changes?"
+
+msgid "Select top 1000 rows"
+msgstr "Select top 1000 rows"
+
+msgid "Selects the first 1000 rows in a new query tab"
+msgstr "Selects the first 1000 rows in a new query tab"

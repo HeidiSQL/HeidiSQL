@@ -3379,6 +3379,13 @@ object MainForm: TMainForm
       ImageIndex = 3
       OnExecute = actCopyGridNodesExecute
     end
+    object actQueryTable: TAction
+      Category = 'Database'
+      Caption = 'Select top 1000 rows'
+      Hint = 'Selects the first 1000 rows in a new query tab'
+      ImageIndex = 57
+      OnExecute = actQueryTableExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -3415,6 +3422,9 @@ object MainForm: TMainForm
     end
     object menuEmptyTables: TMenuItem
       Action = actEmptyTables
+    end
+    object Selecttop1000rows1: TMenuItem
+      Action = actQueryTable
     end
     object Runroutines1: TMenuItem
       Action = actRunRoutines
