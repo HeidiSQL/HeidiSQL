@@ -1135,7 +1135,7 @@ begin
   IsPlink := ExecRegExprI('([pk]link|putty)', FConnection.Parameters.SSHExe);
   SshCmd := FConnection.Parameters.SSHExe;
   if IsPlink then
-    SshCmd := SshCmd + ' -ssh';
+    SshCmd := SshCmd + ' -ssh -legacy-stdio-prompts';
   SshCmd := SshCmd + ' ';
   if FConnection.Parameters.SSHUser.Trim <> '' then
     SshCmd := SshCmd + FConnection.Parameters.SSHUser.Trim + '@';
