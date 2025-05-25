@@ -797,6 +797,8 @@ type
     Generatedata2: TMenuItem;
     actCopyGridNodes: TAction;
     actCopyGridNodes1: TMenuItem;
+    actQueryTable: TAction;
+    Selecttop1000rows1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1199,6 +1201,7 @@ type
       const Token: string; TokenType: Integer; Attri: TSynHighlighterAttributes;
       var HintText: string);
     procedure actCopyGridNodesExecute(Sender: TObject);
+    procedure actQueryTableExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1265,7 +1268,6 @@ type
     FMatchingBraceForegroundColor: TColor;
     FMatchingBraceBackgroundColor: TColor;
     FSynEditInOnPaintTransient: Boolean;
-    FExactRowCountMode: Boolean;
     //FHelpData: TSimpleKeyValuePairs;
 
     // Host subtabs backend structures
@@ -4784,6 +4786,7 @@ var
   tab1, tab2: TTabSheet;
   List: TVirtualStringTree;
   OldDbObject: TDBObject;
+  DoProceed: Boolean;
 begin
   // Refresh
   // Force data tab update when appropriate.
@@ -4811,7 +4814,11 @@ begin
     OldDbObject.Assign(FActiveDbObj);
     RefreshTree(OldDbObject);
   end else if tab1 = tabEditor then begin
-    RefreshTree;
+    DoProceed := True;
+    if ActiveObjectEditor.Modified then
+      DoProceed := MessageDialog(_('Discard changes?'), mtConfirmation, [mbCancel, mbOK]) = mrOk;
+    if DoProceed then
+      RefreshTree;
   end else if tab1 = tabData then
     InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
@@ -5060,6 +5067,29 @@ begin
   // Weird fix: dummy routine to avoid the sending action getting disabled
 end;
 
+
+procedure TMainForm.actQueryTableExecute(Sender: TObject);
+var
+  Objects: TDBObjectList;
+  Obj: TDBObject;
+  Tab: TQueryTab;
+  Conn: TDBConnection;
+begin
+  // Query table data
+  Conn := ActiveConnection;
+  if not Assigned(Conn) then
+    Exit;
+  Objects := GetFocusedObjects(Sender, [lntTable, lntView]);
+
+  if Objects.Count = 0 then
+    ErrorDialog(_('No table selected.'), _('Please select one or more table(s) or view(s).'));
+
+  for Obj in Objects do begin
+    Tab := GetOrCreateEmptyQueryTab(True);
+    Tab.Memo.Text := Conn.ApplyLimitClause('SELECT', '* FROM '+Obj.QuotedName, AppSettings.ReadInt(asDatagridRowsPerStep), 0);
+    actExecuteQueryExecute(Sender);
+  end;
+end;
 
 procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
 begin
@@ -5765,12 +5795,13 @@ procedure TMainForm.AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
   var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
 var
   PaintArea, TextArea, IconArea, SortArea: TRect;
-  SortText, ColCaption: String;
+  SortText, ColCaption, ColIndex: String;
   TextSpace, ColSortIndex, NumCharTop: Integer;
   ColSortDirection: VirtualTrees.TSortDirection;
-  Size: TSize;
-  DC: HDC;
+  TextSize: TSize;
+  DeviceContext: HDC;
   DrawFormat: Cardinal;
+  ColInfo: TTableColumn;
 const
   NumSortChars: Array of Char = ['¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹','⁺'];
 
@@ -5804,13 +5835,33 @@ begin
 
   PaintArea := PaintInfo.PaintRectangle;
   PaintArea.Inflate(-PaintInfo.Column.Margin, 0);
-  DC := PaintInfo.TargetCanvas.Handle;
+  DeviceContext := PaintInfo.TargetCanvas.Handle;
 
   // Draw column name. Code taken from TVirtualTreeColumns.DrawButtonText and modified for our needs
   if hpeText in Elements then begin
+
+    TextArea := PaintArea;
+    SetBkMode(DeviceContext, TRANSPARENT);
+    DrawFormat := DT_TOP or DT_NOPREFIX or DT_LEFT;
+
+    if AppSettings.ReadBool(asShowRowId) and (PaintInfo.Column.Index > 0) then begin
+      // Paint gray column number left to its caption
+      ColIndex := PaintInfo.Column.Index.ToString;
+      if Sender.Treeview = DataGrid then begin
+        ColInfo := SelectedTableColumns.FindByName(PaintInfo.Column.Text);
+        if Assigned(ColInfo) then
+          ColIndex := (SelectedTableColumns.IndexOf(ColInfo) + 1).ToString;
+      end;
+
+      SetTextColor(DeviceContext, ColorToRGB(clGrayText));
+      DrawTextW(DeviceContext, PWideChar(ColIndex), Length(ColIndex), PaintArea, DrawFormat);
+      // Move caption text to right
+      GetTextExtentPoint32W(DeviceContext, PWideChar(ColIndex), Length(ColIndex), TextSize);
+      Inc(TextArea.Left, TextSize.cx + 5);
+    end;
+
     ColCaption := PaintInfo.Column.Text;
     // Leave space for icons
-    TextArea := PaintArea;
     if PaintInfo.Column.ImageIndex > -1 then
       Dec(TextArea.Right, Sender.Images.Width);
     GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
@@ -5819,16 +5870,14 @@ begin
 
     if not (coWrapCaption in PaintInfo.Column.Options) then begin
       // Do we need to shorten the caption due to limited space?
-      GetTextExtentPoint32W(DC, PWideChar(ColCaption), Length(ColCaption), Size);
+      GetTextExtentPoint32W(DeviceContext, PWideChar(ColCaption), Length(ColCaption), TextSize);
       TextSpace := TextArea.Right - TextArea.Left;
-      if TextSpace < Size.cx then
-        ColCaption := VirtualTrees.Utils.ShortenString(DC, ColCaption, TextSpace);
+      if TextSpace < TextSize.cx then
+        ColCaption := VirtualTrees.Utils.ShortenString(DeviceContext, ColCaption, TextSpace);
     end;
 
-    SetBkMode(DC, TRANSPARENT);
-    SetTextColor(DC, ColorToRGB(clWindowText));
-    DrawFormat := DT_TOP or DT_NOPREFIX or DT_LEFT;
-    DrawTextW(DC, PWideChar(ColCaption), Length(ColCaption), TextArea, DrawFormat);
+    SetTextColor(DeviceContext, ColorToRGB(clWindowText));
+    DrawTextW(DeviceContext, PWideChar(ColCaption), Length(ColCaption), TextArea, DrawFormat);
   end;
 
   // Draw image, if any
@@ -5844,9 +5893,9 @@ begin
   // Paint sort icon and number
   if hpeOverlay in Elements then begin
     SortArea := PaintArea;
+    Inc(SortArea.Left, SortArea.Width - Sender.Images.Width);
     GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
     if ColSortIndex > -1 then begin
-      Inc(SortArea.Left, SortArea.Width - Sender.Images.Width);
       // Prepare default font size, also if user selected a bigger one for the grid - we reserved a 16x16 space.
       // Font.Height + Font.Size must be set with these values to get this working, larger or smaller Size/Height
       // result in wrong size for multiple sort columns.
@@ -6187,52 +6236,57 @@ begin
   cap := ActiveDatabase + '.' + DBObject.Name;
   IsLimited := DataGridWantedRowCount <= Datagrid.RootNodeCount;
   IsFiltered := SynMemoFilter.GetTextLen > 0;
-  if DBObject.NodeType = lntTable then begin
-    if (not IsLimited) and (not IsFiltered) then begin
-      RowsTotal := DataGrid.RootNodeCount; // No need to fetch via SHOW TABLE STATUS
-      DBObject.RowsAreExact := True;
-      menuQueryExactRowCount.Enabled := False;
-    end
-    else begin
-      Screen.Cursor := crHourGlass;
-      if (not DBObject.RowsAreExact) or FExactRowCountMode then
-        RowsTotal := DBObject.RowCount(True, FExactRowCountMode)
-      else
-        RowsTotal := DBObject.Rows;
-      Screen.Cursor := crDefault;
-      menuQueryExactRowCount.Enabled := True;
-    end;
-    if RowsTotal > -1 then begin
-      cap := cap + ': ' + FormatNumber(RowsTotal) + ' ' + _('rows total');
-      if DBObject.Engine = 'InnoDB' then begin
-        if DBObject.RowsAreExact then
-          cap := cap + ' ('+_('exact')+')'
+  case DBObject.NodeType of
+    lntTable: begin
+      if (not IsLimited) and (not IsFiltered) then begin
+        RowsTotal := DataGrid.RootNodeCount; // No need to fetch via SHOW TABLE STATUS
+        DBObject.RowsAreExact := True;
+        menuQueryExactRowCount.Enabled := False;
+      end
+      else begin
+        Screen.Cursor := crHourGlass;
+        if (not DBObject.RowsAreExact) or menuQueryExactRowCount.Checked then
+          RowsTotal := DBObject.RowCount(True, menuQueryExactRowCount.Checked)
         else
-          cap := cap + ' ('+_('approximately')+')';
+          RowsTotal := DBObject.Rows;
+        Screen.Cursor := crDefault;
+        menuQueryExactRowCount.Enabled := True;
       end;
-      // Display either LIMIT or WHERE effect, not both at the same time
-      if IsLimited then
-        cap := cap + ', '+_('limited to') + ' ' + FormatNumber(Datagrid.RootNodeCount)
-      else if IsFiltered then begin
-        if Datagrid.RootNodeCount = RowsTotal then
-          cap := cap + ', '+_('all rows match to filter')
-        else
-          cap := cap + ', ' + FormatNumber(Datagrid.RootNodeCount) + ' '+_('rows match to filter');
-      end;
-      // Update cached object reference with new row count, which may enable "Data" option
-      // in table copy dialog. See issue #666
-      if Assigned(DBtree.FocusedNode) then begin
-        ObjInCache := DBtree.GetNodeData(DBtree.FocusedNode);
-        if Assigned(ObjInCache) and ObjInCache.IsSameAs(DBObject) then begin
-          ObjInCache.Rows := RowsTotal;
-          ObjInCache.RowsAreExact := DBObject.RowsAreExact;
+      if RowsTotal > -1 then begin
+        cap := cap + ': ' + FormatNumber(RowsTotal) + ' ' + _('rows total');
+        if DBObject.Engine = 'InnoDB' then begin
+          if DBObject.RowsAreExact then
+            cap := cap + ' ('+_('exact')+')'
+          else
+            cap := cap + ' ('+_('approximately')+')';
+        end;
+        // Display either LIMIT or WHERE effect, not both at the same time
+        if IsLimited then
+          cap := cap + ', '+_('limited to') + ' ' + FormatNumber(Datagrid.RootNodeCount)
+        else if IsFiltered then begin
+          if Datagrid.RootNodeCount = RowsTotal then
+            cap := cap + ', '+_('all rows match to filter')
+          else
+            cap := cap + ', ' + FormatNumber(Datagrid.RootNodeCount) + ' '+_('rows match to filter');
+        end;
+        // Update cached object reference with new row count, which may enable "Data" option
+        // in table copy dialog. See issue #666
+        if Assigned(DBtree.FocusedNode) then begin
+          ObjInCache := DBtree.GetNodeData(DBtree.FocusedNode);
+          if Assigned(ObjInCache) and ObjInCache.IsSameAs(DBObject) then begin
+            ObjInCache.Rows := RowsTotal;
+            ObjInCache.RowsAreExact := DBObject.RowsAreExact;
+          end;
         end;
       end;
+    end;
+
+    lntView: begin
+      cap := cap + ': ' + FormatNumber(DataGrid.RootNodeCount) + ' ' + _('rows');
     end;
   end;
   lblDataTop.Caption := cap;
   lblDataTop.Hint := cap;
-  FExactRowCountMode := False;
 end;
 
 
@@ -6240,7 +6294,6 @@ procedure TMainForm.menuQueryExactRowCountClick(Sender: TObject);
 begin
   // Activate exact row count mode and let DisplayRowCountStats do the rest
   // See https://www.heidisql.com/forum.php?t=41310
-  FExactRowCountMode := True;
   DisplayRowCountStats(DataGrid);
 end;
 
@@ -7957,10 +8010,13 @@ end;
 procedure TMainForm.popupDBPopup(Sender: TObject);
 var
   Obj: PDBObject;
-  HasFocus, IsDb, IsObject: Boolean;
+  IsDb, IsObject: Boolean;
   Conn: TDBConnection;
 begin
   // DBtree and ListTables both use popupDB as menu
+  actQueryTable.Caption := f_('Select top %s rows', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
+  actQueryTable.Hint := f_('Selects the first %s rows in a new query tab', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
+
   if PopupComponent(Sender) = DBtree then begin
     Obj := DBTree.GetNodeData(DBTree.FocusedNode);
     IsDb := Obj.NodeType = lntDb;
@@ -7982,6 +8038,7 @@ begin
     actDetachDatabase.Enabled := actDetachDatabase.Visible and (Obj.NodeType = lntDb);
     actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
     actEmptyTables.Enabled := Obj.NodeType in [lntTable, lntView];
+    actQueryTable.Enabled := Obj.NodeType in [lntTable, lntView];
     actRunRoutines.Enabled := Obj.NodeType in [lntProcedure, lntFunction];
     menuClearDataTabFilter.Enabled := Obj.NodeType in [lntTable, lntView];
     menuEditObject.Enabled := IsDb or IsObject;
@@ -7990,7 +8047,7 @@ begin
     menuTreeCollapseAll.Enabled := True;
     menuTreeOptions.Enabled := True;
   end else begin
-    HasFocus := Assigned(ListTables.FocusedNode);
+    Obj := ListTables.GetNodeData(ListTables.FocusedNode);
     actCreateDatabase.Enabled := False;
     actConnectionProperties.Enabled := False;
     actAttachDatabase.Visible := False;
@@ -8003,14 +8060,11 @@ begin
     actDropObjects.Enabled := ListTables.SelectedCount > 0;
     actDetachDatabase.Visible := False;
     actEmptyTables.Enabled := True;
+    actQueryTable.Enabled := Assigned(Obj) and (Obj.NodeType in [lntTable, lntView]);
     actRunRoutines.Enabled := True;
     menuClearDataTabFilter.Enabled := False;
-    menuEditObject.Enabled := HasFocus;
-    actCopyTable.Enabled := False;
-    if HasFocus then begin
-      Obj := ListTables.GetNodeData(ListTables.FocusedNode);
-      actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
-    end;
+    menuEditObject.Enabled := Assigned(Obj);
+    actCopyTable.Enabled := Assigned(Obj) and (Obj.NodeType in [lntTable, lntView]);
     menuTreeExpandAll.Enabled := False;
     menuTreeCollapseAll.Enabled := False;
     menuTreeOptions.Enabled := False;
@@ -9836,6 +9890,7 @@ begin
         SelectedTableForeignKeys.Clear;
         AppSettings.SessionPath := GetRegKeyTable;
         SelectedTableTimestampColumns.Text := AppSettings.ReadString(asTimestampColumns);
+        menuQueryExactRowCount.Checked := False;
         InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
         try
           if FActiveDbObj.NodeType in [lntTable, lntView] then begin

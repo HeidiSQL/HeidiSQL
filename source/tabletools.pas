@@ -102,6 +102,7 @@ type
     lblGenerateDataNullAmount: TLabel;
     editGenerateDataNullAmount: TEdit;
     updownGenerateDataNullAmount: TUpDown;
+    menuInvertCheck: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnHelpMaintenanceClick(Sender: TObject);
@@ -154,6 +155,10 @@ type
     procedure editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
     procedure editDatabaseTableFilterRightButtonClick(Sender: TObject);
     procedure timerCalcSizeTimer(Sender: TObject);
+    procedure comboExportOutputTypeDrawItem(Control: TWinControl;
+      Index: Integer; Rect: TRect; State: TOwnerDrawState);
+    procedure comboExportOutputTypeMeasureItem(Control: TWinControl;
+      Index: Integer; var Height: Integer);
   const
     StatusMsg = '%s %s ...';
   private
@@ -256,6 +261,7 @@ var
   MenuItem: TMenuItem;
   dt: TListNodeType;
   Obj: TDBObject;
+  Params: TConnectionParameters;
 begin
   HasSizeGrip := True;
   OUTPUT_FILE := _('Single .sql file');
@@ -301,8 +307,10 @@ begin
   SessionPaths := TStringList.Create;
   AppSettings.GetSessionPaths('', SessionPaths);
   for i:=0 to SessionPaths.Count-1 do begin
-    if SessionPaths[i] <> Mainform.ActiveConnection.Parameters.SessionPath then
-      comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionPaths[i]);
+    if SessionPaths[i] = Mainform.ActiveConnection.Parameters.SessionPath then
+      Continue;
+    Params := TConnectionParameters.Create(SessionPaths[i]);
+    comboExportOutputType.Items.AddObject(OUTPUT_SERVER+SessionPaths[i], Params);
   end;
   SessionPaths.Free;
   comboExportOutputTarget.Text := '';
@@ -331,6 +339,48 @@ begin
     menuCheckByType.Add(MenuItem);
   end;
   Obj.Free;
+end;
+
+
+procedure TfrmTableTools.comboExportOutputTypeDrawItem(Control: TWinControl;
+  Index: Integer; Rect: TRect; State: TOwnerDrawState);
+var
+  Params: TConnectionParameters;
+  Canv: TCanvas;
+  ItemImageIndex: Integer;
+begin
+  Canv := comboExportOutputType.Canvas;
+  if odSelected in State then begin
+    Canv.Brush.Color := clHighlight;
+    Canv.Pen.Color := clHighlightText;
+  end
+  else begin
+    Canv.Brush.Color := clWindow;
+    Canv.Pen.Color := clWindowText;
+  end;
+
+  Params := comboExportOutputType.Items.Objects[Index] as TConnectionParameters;
+  if Assigned(Params) then begin
+    if (Params.SessionColor <> clNone) and (not (odSelected in State)) then begin
+      Canv.Brush.Color := Params.SessionColor;
+      Canv.Pen.Color := clWindowText;
+    end;
+    ItemImageIndex := Params.ImageIndex;
+  end
+  else begin
+    ItemImageIndex := MainForm.actExportTables.ImageIndex;
+  end;
+
+  Canv.FillRect(Rect);
+  Canv.TextRect(Rect, Rect.Left + MainForm.VirtualImageListMain.Width + 4, Rect.Top, comboExportOutputType.Items[Index]);
+  MainForm.VirtualImageListMain.Draw(Canv, Rect.Left + 2, Rect.Top + 2, ItemImageIndex);
+end;
+
+
+procedure TfrmTableTools.comboExportOutputTypeMeasureItem(Control: TWinControl;
+  Index: Integer; var Height: Integer);
+begin
+  Height := MainForm.VirtualImageListMain.Height + 2;
 end;
 
 
@@ -1711,10 +1761,12 @@ var
   Limit, Offset, ResultCount, MaxInsertSize: Int64;
   StartTime: Cardinal;
   StrucResult, Data: TDBQuery;
-  ColumnList: TTableColumnList;
+  ColumnList, KeyColumns: TTableColumnList;
+  KeyList: TTableKeyList;
   Column: TTableColumn;
   Quoter: TDBConnection;
   TargetFileName, SetCharsetCode: String;
+  OrderBy: String;
 const
   TempDelim = '//';
   AssumedAvgRowLen = 10000;
@@ -1995,6 +2047,18 @@ begin
         TargetDbAndObject := Quoter.QuoteIdent(FinalDbName) + '.' + TargetDbAndObject;
       Offset := 0;
       RowCount := 0;
+      // Sort by primary key if one exists, see issue #2168
+      ColumnList := DBObj.TableColumns;
+      KeyList := DBObj.TableKeys;
+      KeyColumns := DBObj.Connection.GetKeyColumns(ColumnList, KeyList);
+      OrderBy := '';
+      for i:=0 to KeyColumns.Count-1 do begin
+        if i>0 then
+          OrderBy := OrderBy + ', ';
+        OrderBy := OrderBy + DBObj.Connection.QuoteIdent(KeyColumns[i].Name);
+      end;
+      if not OrderBy.IsEmpty then
+        OrderBy := ' ORDER BY ' + OrderBy;
       // Calculate limit so we select ~100MB per loop
       // Take care of disabled "Get full table status" session setting, where AvgRowLen is 0
       Limit := Round(100 * SIZE_MB / IfThen(DBObj.AvgRowLen>0, DBObj.AvgRowLen, AssumedAvgRowLen));
@@ -2007,7 +2071,7 @@ begin
         Data := DBObj.Connection.GetResults(
           DBObj.Connection.ApplyLimitClause(
             'SELECT',
-            '* FROM '+DBObj.QuotedDbAndTableName,
+            '* FROM '+DBObj.QuotedDbAndTableName + OrderBy,
             Limit,
             Offset)
           );
@@ -2405,11 +2469,13 @@ var
   WantedType: TListNodeType;
   DBObj: PDBObject;
   CheckNone: Boolean;
+  InvertCheck: Boolean;
   CheckedNodes: Int64;
 begin
   // Check all/none/by type via context menu
   WantedType := TListNodeType((Sender as TMenuItem).Tag);
   CheckNone := Sender = menuCheckNone;
+  InvertCheck := Sender = menuInvertCheck;
   case TreeObjects.GetNodeLevel(TreeObjects.FocusedNode) of
     1: DBNode := TreeObjects.FocusedNode;
     2: DBNode := TreeObjects.FocusedNode.Parent;
@@ -2422,6 +2488,12 @@ begin
     DBObj := TreeObjects.GetNodeData(ObjNode);
     if CheckNone then
       TreeObjects.CheckState[ObjNode] := csUncheckedNormal
+    else if InvertCheck then begin
+      if ObjNode.CheckState in CheckedStates then
+        TreeObjects.CheckState[ObjNode] := csUncheckedNormal
+      else
+        TreeObjects.CheckState[ObjNode] := csCheckedNormal;
+    end
     else begin
       if (WantedType = lntNone) or (DBObj.NodeType = WantedType) or (DBObj.GroupType = WantedType) then
         TreeObjects.CheckState[ObjNode] := csCheckedNormal

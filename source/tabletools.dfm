@@ -459,11 +459,13 @@ object frmTableTools: TfrmTableTools
             Top = 101
             Width = 448
             Height = 22
-            Style = csDropDownList
+            Style = csOwnerDrawVariable
             Anchors = [akLeft, akTop, akRight]
             DropDownCount = 16
             TabOrder = 7
             OnChange = comboExportOutputTypeChange
+            OnDrawItem = comboExportOutputTypeDrawItem
+            OnMeasureItem = comboExportOutputTypeMeasureItem
           end
           object comboExportOutputTarget: TComboBox
             Left = 100
@@ -789,10 +791,17 @@ object frmTableTools: TfrmTableTools
     Top = 352
     object menuCheckNone: TMenuItem
       Caption = 'Check none'
+      ImageIndex = 65
       OnClick = CheckAllClick
     end
     object menuCheckAll: TMenuItem
       Caption = 'Check all'
+      ImageIndex = 64
+      OnClick = CheckAllClick
+    end
+    object menuInvertCheck: TMenuItem
+      Caption = 'Invert Check'
+      ImageIndex = 138
       OnClick = CheckAllClick
     end
     object menuCheckByType: TMenuItem

@@ -192,7 +192,7 @@ type
       function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
       function SchemaClauseIS(Prefix: String): String;
-      function RowCount(Reload: Boolean; ForceExact: Bool=False): Int64;
+      function RowCount(Reload: Boolean; ForceExact: Boolean=False): Int64;
       function GetCreateCode: String; overload;
       function GetCreateCode(RemoveAutoInc, RemoveDefiner: Boolean): String; overload;
       property ObjType: String read GetObjType;
@@ -460,7 +460,6 @@ type
       FServerDateTimeOnStartup: String;
       FParameters: TConnectionParameters;
       FSecureShellCmd: TSecureShellCmd;
-      FLoginPromptDone: Boolean;
       FDatabase: String;
       FAllDatabases: TStringList;
       FLogPrefix: String;
@@ -532,7 +531,7 @@ type
       function GetCurrentUserHostCombination: String;
       function GetAllUserHostCombinations: TStringList;
       function DecodeAPIString(a: AnsiString): String;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; virtual;
+      function GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64; virtual;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
       procedure KeepAliveTimerEvent(Sender: TObject);
@@ -676,7 +675,7 @@ type
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
       function GetCreateViewCode(Database, Name: String): String;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -708,7 +707,7 @@ type
       function GetAllDatabases: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -748,7 +747,7 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
       property RegClasses: TOidStringPairs read FRegClasses;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
@@ -1136,7 +1135,7 @@ begin
   IsPlink := ExecRegExprI('([pk]link|putty)', FConnection.Parameters.SSHExe);
   SshCmd := FConnection.Parameters.SSHExe;
   if IsPlink then
-    SshCmd := SshCmd + ' -ssh';
+    SshCmd := SshCmd + ' -ssh -legacy-stdio-prompts';
   SshCmd := SshCmd + ' ';
   if FConnection.Parameters.SSHUser.Trim <> '' then
     SshCmd := SshCmd + FConnection.Parameters.SSHUser.Trim + '@';
@@ -2135,7 +2134,6 @@ begin
   FKeyCache := TKeyCache.Create;
   FForeignKeyCache := TForeignKeyCache.Create;
   FCheckConstraintCache := TCheckConstraintCache.Create;
-  FLoginPromptDone := False;
   FCurrentUserHostCombination := '';
   FKeepAliveTimer := TTimer.Create(Self);
   FFavorites := TStringList.Create;
@@ -2950,6 +2948,8 @@ begin
     FServerVersionUntouched := GetVar('SELECT VERSION()');
     FConnectionStarted := GetTickCount div 1000;
     Query('SET statement_timeout TO '+IntToStr(Parameters.QueryTimeout*1000));
+    if ServerVersionInt >= 80300 then
+      Query('SET synchronize_seqscans TO off');
     try
       FServerUptime := StrToIntDef(GetVar('SELECT EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - pg_postmaster_start_time())::INTEGER'), -1);
     except
@@ -3245,8 +3245,8 @@ var
   UsingPass: String;
   Dialog: TfrmLogin;
 begin
-  // Prompt for password on initial connect
-  if FParameters.LoginPrompt and (not FLoginPromptDone) then begin
+  // Don't remember prompt values
+  if FParameters.LoginPrompt then begin
     Dialog := TfrmLogin.Create(Self);
     Dialog.Caption := APPNAME + ' - ' + FParameters.SessionName;
     Dialog.lblPrompt.Caption := f_('Login to %s:', [FParameters.Hostname]);
@@ -3256,7 +3256,6 @@ begin
     FParameters.Username := Dialog.editUsername.Text;
     FParameters.Password := Dialog.editPassword.Text;
     Dialog.Free;
-    FLoginPromptDone := True;
   end;
 
   // Prepare connection
@@ -4180,6 +4179,8 @@ end;
 
 
 function TSQLiteConnection.GetCreateCode(Obj: TDBObject): String;
+var
+  CreateList: TStringList;
 begin
   // PRAGMA table_info(customers):
   // cid name       type         notnull dflt_value pk
@@ -4187,8 +4188,15 @@ begin
   // 1   FirstName  NVARCHAR(40) 1       null       0
   case Obj.NodeType of
     lntTable: begin
+      CreateList := GetCol('SELECT '+QuoteIdent('sql')+' FROM '+QuoteIdent(Obj.Database)+'.sqlite_master'+
+        ' WHERE '+QuoteIdent('type')+' IN('+EscapeString('table')+', '+EscapeString('index')+')'+
+        ' AND tbl_name='+EscapeString(Obj.Name));
+      Result := Implode(';'+sLineBreak, CreateList);
+      CreateList.Free;
+    end;
+    lntView, lntTrigger: begin
       Result := GetVar('SELECT '+QuoteIdent('sql')+' FROM '+QuoteIdent(Obj.Database)+'.sqlite_master'+
-        ' WHERE '+QuoteIdent('type')+'='+EscapeString('table')+
+        ' WHERE '+QuoteIdent('type')+'='+EscapeString(Obj.ObjType.ToLower)+
         ' AND name='+EscapeString(Obj.Name));
     end;
     else begin
@@ -6000,6 +6008,7 @@ begin
     Col.Collation := ColQuery.Col('COLLATION_NAME');
     // MSSQL has no expression
     Col.GenerationExpression := ColQuery.Col('GENERATION_EXPRESSION', True);
+    Col.GenerationExpression := UnescapeString(Col.GenerationExpression);
     // PG has no extra:
     ExtraText := ColQuery.Col('EXTRA', True);
 
@@ -6897,7 +6906,7 @@ begin
 end;
 
 
-function TDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
+function TDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
 var
   Rows: String;
 begin
@@ -6907,7 +6916,7 @@ begin
 end;
 
 
-function TMySQLConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
+function TMySQLConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
 var
   Rows: String;
 begin
@@ -6922,7 +6931,7 @@ begin
 end;
 
 
-function TAdoDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
+function TAdoDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
 var
   Rows: String;
 begin
@@ -6939,7 +6948,7 @@ begin
 end;
 
 
-function TPgConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
+function TPgConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
 var
   Rows: String;
 begin
@@ -10687,7 +10696,7 @@ begin
     Result := Connection.GetSQLSpecifity(spISSchemaCol, [Prefix]) + '=' + Connection.EscapeString(Database);
 end;
 
-function TDBObject.RowCount(Reload: Boolean; ForceExact: Bool=False): Int64;
+function TDBObject.RowCount(Reload: Boolean; ForceExact: Boolean=False): Int64;
 begin
   if (Rows = -1) or Reload then begin
     Rows := Connection.GetRowCount(Self, ForceExact);
@@ -10903,6 +10912,7 @@ end;
 function TTableColumn.SQLCode(OverrideCollation: String=''; Parts: TColumnParts=[cpAll]): String;
 var
   IsVirtual: Boolean;
+  QuoteCollation: Boolean;
 
   function InParts(Part: TColumnPart): Boolean;
   begin
@@ -10940,7 +10950,7 @@ begin
     Result := Result + 'INVISIBLE ';
   end;
 
-  if InParts(cpAllowNull) and (not IsVirtual) then begin
+  if InParts(cpAllowNull) and (not IsVirtual) and (not FConnection.Parameters.IsAnyMSSQL) then begin
     if not AllowNull then
       Result := Result + 'NOT NULL '
     else if not FConnection.Parameters.IsAnyInterbase then
@@ -10997,10 +11007,11 @@ begin
   if InParts(cpCollation) and (not IsVirtual) and (DataType.Index <> dbdtJson) then begin
     if Collation <> '' then begin
       Result := Result + 'COLLATE ';
+      QuoteCollation := not FConnection.Parameters.IsAnyMSSQL;
       if OverrideCollation <> '' then
-        Result := Result + FConnection.EscapeString(OverrideCollation) + ' '
+        Result := Result + IfThen(QuoteCollation, FConnection.EscapeString(OverrideCollation), OverrideCollation) + ' '
       else
-        Result := Result + FConnection.EscapeString(Collation) + ' ';
+        Result := Result + IfThen(QuoteCollation, FConnection.EscapeString(Collation), Collation) + ' ';
     end;
   end;
 
