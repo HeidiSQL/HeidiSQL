@@ -474,42 +474,50 @@ var
   Col, ExcludeCol: TColumnIndex;
   ResultCol: Integer;
   RowNum: PInt64;
-  SelectionSize, AllSize, RowsCalculated: Int64;
+  SelectedSize, AllSize: Int64;
+  CalculatedCount, SelectedCount, AllCount: Int64;
 begin
   GridData := Mainform.GridResult(Grid);
   AllSize := 0;
-  SelectionSize := 0;
+  SelectedSize := 0;
   chkIncludeAutoIncrement.Enabled := GridData.AutoIncrementColumn > -1;
   ExcludeCol := -1;
   if chkIncludeAutoIncrement.Enabled and (not chkIncludeAutoIncrement.Checked) then
     ExcludeCol := GridData.AutoIncrementColumn;
 
   Node := GetNextNode(Grid, nil, False);
-  RowsCalculated := 0;
+  CalculatedCount := 0;
+  AllCount := 0;
+  SelectedCount := 0;
   while Assigned(Node) do begin
-    RowNum := Grid.GetNodeData(Node);
-    GridData.RecNo := RowNum^;
-    Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
-    while Col > NoColumn do begin
-      ResultCol := Col - 1;
-      if Col <> ExcludeCol then begin
-        Inc(AllSize, GridData.ColumnLengths(ResultCol));
-        if vsSelected in Node.States then
-          Inc(SelectionSize, GridData.ColumnLengths(ResultCol));
+    Inc(AllCount);
+    if vsSelected in Node.States then
+      Inc(SelectedCount);
+
+    if CalculatedCount < 1000 then begin
+      // Performance: use first rows only, and interpolate the rest, see issue #804
+      RowNum := Grid.GetNodeData(Node);
+      GridData.RecNo := RowNum^;
+      Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
+      while Col > NoColumn do begin
+        ResultCol := Col - 1;
+        if Col <> ExcludeCol then begin
+          Inc(AllSize, GridData.ColumnLengths(ResultCol));
+          if vsSelected in Node.States then
+            Inc(SelectedSize, GridData.ColumnLengths(ResultCol));
+        end;
+        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
       end;
-      Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      Inc(CalculatedCount);
     end;
-    // Performance: use first rows only, and interpolate the rest, see issue #804
-    Inc(RowsCalculated);
-    if RowsCalculated >= 1000 then
-      Break;
+
     Node := GetNextNode(Grid, Node, False);
   end;
-  if GridData.RecordCount > RowsCalculated then begin
-    AllSize := Round(AllSize / RowsCalculated * GridData.RecordCount);
+  if AllCount > CalculatedCount then begin
+    AllSize := Round(AllSize / CalculatedCount * AllCount);
   end;
-  grpSelection.Items[0] := f_('Selection (%s rows, %s)', [FormatNumber(Grid.SelectedCount), FormatByteNumber(SelectionSize)]);
-  grpSelection.Items[1] := f_('Complete (%s rows, %s)', [FormatNumber(Grid.RootNodeCount), FormatByteNumber(AllSize)]);
+  grpSelection.Items[0] := f_('Selection (%s rows, %s)', [FormatNumber(SelectedCount), FormatByteNumber(SelectedSize)]);
+  grpSelection.Items[1] := f_('Complete (%s rows, %s)', [FormatNumber(AllCount), FormatByteNumber(AllSize)]);
 end;
 
 
