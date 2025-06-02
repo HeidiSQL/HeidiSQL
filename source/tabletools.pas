@@ -1961,7 +1961,7 @@ begin
                 Struc := Struc + sLineBreak + CodeIndent + Column.SQLCode + ',';
               end;
               Delete(Struc, Length(Struc), 1);
-              Struc := Struc + CRLF + ') ENGINE=MyISAM';
+              Struc := Struc + CRLF + ')';
               ColumnList.Free;
             end else begin
               Struc := '';
