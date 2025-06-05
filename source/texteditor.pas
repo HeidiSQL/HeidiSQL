@@ -288,6 +288,9 @@ begin
     AppSettings.SessionPath := MainForm.GetRegKeyTable;
     AppSettings.WriteString(asMemoEditorHighlighter, comboHighlighter.Text, FTableColumn.Name);
   end;
+  // Fixes EAccessViolation under 64-bit when using non-default themes
+  if Assigned(Panel1) then
+    Panel1.Parent := nil;
 end;
 
 
