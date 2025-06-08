@@ -80,6 +80,7 @@ type
       UNIQUE = 'UNIQUE';
       FULLTEXT = 'FULLTEXT';
       SPATIAL = 'SPATIAL';
+      VECTOR = 'VECTOR';
     private
       FConnection: TDBConnection;
       function GetInsideCreateCode: Boolean;
@@ -97,6 +98,7 @@ type
       function IsUnique: Boolean;
       function IsFulltext: Boolean;
       function IsSpatial: Boolean;
+      function IsVector: Boolean;
       function IsExpression(KeyPart: Integer): Boolean;
       procedure Modification(Sender: TObject);
       function SQLCode(TableName: String=''): String;
@@ -6391,6 +6393,8 @@ begin
           NewKey.IndexType := TTableKey.FULLTEXT
         else if CompareText(KeyQuery.Col('Index_type'), TTableKey.SPATIAL) = 0 then
           NewKey.IndexType := TTableKey.SPATIAL
+        else if CompareText(KeyQuery.Col('Index_type'), TTableKey.VECTOR) = 0 then
+          NewKey.IndexType := TTableKey.VECTOR
         else
           NewKey.IndexType := TTableKey.KEY;
         NewKey.OldIndexType := NewKey.IndexType;
@@ -11193,6 +11197,11 @@ begin
   Result := IndexType = SPATIAL;
 end;
 
+function TTableKey.IsVector: Boolean;
+begin
+  Result := IndexType = VECTOR;
+end;
+
 function TTableKey.IsExpression(KeyPart: Integer): Boolean;
 begin
   Result := Columns[KeyPart].StartsWith('(');
@@ -11213,6 +11222,7 @@ begin
   else if IsUnique then Result := ICONINDEX_UNIQUEKEY
   else if IsFulltext then Result := ICONINDEX_FULLTEXTKEY
   else if IsSpatial then Result := ICONINDEX_SPATIALKEY
+  else if IsVector then Result := ICONINDEX_VECTORKEY
   else Result := -1;
 end;
 
