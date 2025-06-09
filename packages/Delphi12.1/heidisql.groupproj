@@ -3,10 +3,10 @@
         <ProjectGuid>{C4296A31-CCFB-4D2F-8BEC-26CD630E9987}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="..\..\components\virtualtreeview\packages\Delphi11.2\VirtualTreesR.dproj">
+        <Projects Include="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesR.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\..\components\virtualtreeview\packages\Delphi11.2\VirtualTreesD.dproj">
+        <Projects Include="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesD.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\..\components\synedit\Packages\Delphi11.2\SynEdit_R.dproj">
@@ -30,22 +30,22 @@
         </BorlandProject>
     </ProjectExtensions>
     <Target Name="VirtualTreesR">
-        <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi11.2\VirtualTreesR.dproj"/>
+        <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesR.dproj"/>
     </Target>
     <Target Name="VirtualTreesR:Clean">
-        <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi11.2\VirtualTreesR.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesR.dproj" Targets="Clean"/>
     </Target>
     <Target Name="VirtualTreesR:Make">
-        <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi11.2\VirtualTreesR.dproj" Targets="Make"/>
+        <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesR.dproj" Targets="Make"/>
     </Target>
     <Target Name="VirtualTreesD">
-        <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi11.2\VirtualTreesD.dproj"/>
+        <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesD.dproj"/>
     </Target>
     <Target Name="VirtualTreesD:Clean">
-        <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi11.2\VirtualTreesD.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesD.dproj" Targets="Clean"/>
     </Target>
     <Target Name="VirtualTreesD:Make">
-        <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi11.2\VirtualTreesD.dproj" Targets="Make"/>
+        <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesD.dproj" Targets="Make"/>
     </Target>
     <Target Name="SynEdit_R">
         <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.2\SynEdit_R.dproj"/>

@@ -44,6 +44,7 @@ uses
 
 type
   IVTAccessibleProvider = interface
+    ['{8B76176B-C1F2-4C5C-99B4-2444FABE495C}']
     function CreateIAccessible(ATree: TBaseVirtualTree): IAccessible;
   end;
 

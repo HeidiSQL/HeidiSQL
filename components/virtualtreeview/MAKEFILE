@@ -33,6 +33,14 @@ clean:
 	DEL /S /Q .\*.DCU
 #TODO: Add demos and package folders
 	 
+12.3: Source\*.pas "Packages\RAD Studio 10.4+\$(PROJECT)R.dpk" "Packages\RAD Studio 10.4+\$(PROJECT)R.dproj" "Packages\RAD Studio 10.4+\$(PROJECT)D.dpk" "Packages\RAD Studio 10.4+\$(PROJECT)D.dproj"
+	SET BDS=$(STUDIO)\23.0
+	$(BUILD) /property:Platform=Win32 "Packages\RAD Studio 10.4+\$(PROJECT)R.dproj"
+	$(BUILD) /property:Platform=Win32 "Packages\RAD Studio 10.4+\$(PROJECT)D.dproj"
+	$(BUILD) /property:Platform=Win64 "Packages\RAD Studio 10.4+\$(PROJECT)R.dproj"
+	$(BUILD) /property:Platform=Win64 "Packages\RAD Studio 10.4+\$(PROJECT)D.dproj"
+	$(MAKE) _samples
+	 
 12.0: Source\*.pas "Packages\RAD Studio 10.4+\$(PROJECT)R.dpk" "Packages\RAD Studio 10.4+\$(PROJECT)R.dproj" "Packages\RAD Studio 10.4+\$(PROJECT)D.dpk" "Packages\RAD Studio 10.4+\$(PROJECT)D.dproj"
 	SET BDS=$(STUDIO)\23.0
 	$(BUILD) "Packages\RAD Studio 10.4+\$(PROJECT)R.dproj"
@@ -62,7 +70,7 @@ clean:
 
 _samples: "Demos\Advanced\Advanced.exe" "Demos\Minimal\Minimal.exe" "Demos\Objects\Objects.exe" "Demos\OLE\OLE.exe"
 	
-_continuousbuilds: clean 12.0
+_continuousbuilds: clean 12.3
 
 _release:
 #This small batch file is intended to create a source code release file of the VirtualTreeView as ZIP archive

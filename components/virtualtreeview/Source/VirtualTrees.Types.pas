@@ -94,6 +94,7 @@ const
   //       to implement optimized moves and other back references.
   CFSTR_VIRTUALTREE        = 'Virtual Tree Data';
   CFSTR_VTREFERENCE        = 'Virtual Tree Reference';
+  CFSTR_VTHEADERREFERENCE  = 'Virtual Tree Header Reference';
   CFSTR_HTML               = 'HTML Format';
   CFSTR_RTF                = 'Rich Text Format';
   CFSTR_RTFNOOBJS          = 'Rich Text Format Without Objects';
@@ -127,14 +128,16 @@ type
 {$IFDEF VT_FMX}
   TDimension = Single;
   PDimension = ^Single;
+  TNodeHeight = Single;
   TVTCursor = TCursor;
   TVTDragDataObject = TDragObject;
   TVTBackground = TBitmap;
   TVTPaintContext = TCanvas;
   TVTBrush = TBrush;
 {$ELSE}
-  TDimension = Integer; // For Firemonkey support, see #841
+  TDimension = Integer; // Introduced for Firemonkey support, see #841
   PDimension = ^Integer;
+  TNodeHeight = NativeInt;
   TVTCursor = HCURSOR;
   IDataObject= WinApi.ActiveX.IDataObject;
   TVTDragDataObject = IDataObject;
@@ -142,7 +145,7 @@ type
   TVTPaintContext = HDC;
   TVTBrush = HBRUSH;
 {$ENDIF}
-  TColumnIndex = type Integer;
+  TColumnIndex = {$if CompilerVersion < 36} type {$endif} Integer; // See issue #1276
   TColumnPosition = type Cardinal;
   PCardinal = ^Cardinal;
 
@@ -157,6 +160,23 @@ type
   // OLE drag'n drop support
   TFormatEtcArray = array of TFormatEtc;
   TFormatArray = array of Word;
+
+  // See issue #1270.
+  // Taken from: https://learn.microsoft.com/en-us/windows/win32/menurc/about-cursors
+  // To be used with: LoadCursor(0, MAKEINTRESOURCE(TPanningCursor.MoveAll))
+  TPanningCursor = (
+    MoveAll = 32654,
+    MoveNS = 32652,
+    MoveEW = 32653,
+    MoveN = 32655,
+    MoveNE = 32660,
+    MoveE = 32658,
+    MoveSE = 32662,
+    MoveS = 32656,
+    MoveSW = 32661,
+    MoveW = 32657,
+    MoveNW = 32659
+  );
 
   TSmartAutoFitType = (
     smaAllColumns,       // consider nodes in view only for all columns
@@ -517,8 +537,7 @@ type
     tsVCLDragging,            // VCL drag'n drop in progress.
     tsVCLDragPending,         // One-shot flag to avoid clearing the current selection on implicit mouse up for VCL drag.
     tsVCLDragFinished,        // Flag to avoid triggering the OnColumnClick event twice
-    tsWheelPanning,           // Wheel mouse panning is active or soon will be.
-    tsWheelScrolling,         // Wheel mouse scrolling is active or soon will be.
+    tsPanning,                // Mouse panning is active.
     tsWindowCreating,         // Set during window handle creation to avoid frequent unnecessary updates.
     tsUseExplorerTheme        // The tree runs under WinVista+ and is using the explorer theme
   );
@@ -705,7 +724,7 @@ type
   TVTButtonFillMode = (
     fmTreeColor,             // solid color, uses the tree's background color
     fmWindowColor,           // solid color, uses clWindow
-    fmShaded,                // color gradient, Windows XP style (legacy code, use toThemeAware on Windows XP instead)
+    fmShaded,                // no longer supported, use toThemeAware for Windows XP and later instead
     fmTransparent            // transparent color, use the item's background color
   );
 
@@ -889,7 +908,7 @@ type
   private
     fIndex: Cardinal;         // index of node with regard to its parent
     fChildCount: Cardinal;    // number of child nodes
-    fNodeHeight: TDimension;  // height in pixels
+    fNodeHeight: TNodeHeight;  // height in pixels
   public
     States: TVirtualNodeStates; // states describing various properties of the node (expanded, initialized etc.)
     Align: Byte;             // line/button alignment
@@ -897,8 +916,7 @@ type
     CheckType: TCheckType;   // indicates which check type shall be used for this node
     Dummy: Byte;             // dummy value to fill DWORD boundary
     TotalCount: Cardinal;    // sum of this node, all of its child nodes and their child nodes etc.
-    TotalHeight: TDimension; // height in pixels this node covers on screen including the height of all of its
-                             // children
+    TotalHeight: TNodeHeight;// height in pixels this node covers on screen including the height of all of its children.
     _Filler: TDWordFiller;   // Ensure 8 Byte alignment of following pointers for 64bit builds. Issue #1136
     // Note: Some copy routines require that all pointers (as well as the data area) in a node are
     //       located at the end of the node! Hence if you want to add new member fields (except pointers to internal
@@ -919,14 +937,14 @@ type
     procedure SetLastChild(const pLastChild: PVirtualNode); inline; //internal method, do not call directly
     procedure SetIndex(const pIndex: Cardinal); inline;       //internal method, do not call directly.
     procedure SetChildCount(const pCount: Cardinal); inline; //internal method, do not call directly.
-    procedure SetNodeHeight(const pNodeHeight: TDimension); inline; //internal method, do not call directly.
+    procedure SetNodeHeight(const pNodeHeight: TNodeHeight); inline; //internal method, do not call directly.
     property Index: Cardinal read fIndex;
     property ChildCount: Cardinal read fChildCount;
     property Parent: PVirtualNode read fParent;
     property PrevSibling: PVirtualNode read fPrevSibling;
     property NextSibling: PVirtualNode read fNextSibling;
     property LastChild: PVirtualNode read fLastChild;
-    property NodeHeight: TDimension read fNodeHeight;
+    property NodeHeight: TNodeHeight read fNodeHeight;
   private
     Data: record end;        // this is a placeholder, each node gets extra data determined by NodeDataSize
   public
@@ -1153,7 +1171,7 @@ begin
   Exit(@Self <> nil);
 end;
 
-procedure TVirtualNode.SetNodeHeight(const pNodeHeight: TDimension);
+procedure TVirtualNode.SetNodeHeight(const pNodeHeight: TNodeHeight);
 begin
   fNodeHeight := pNodeHeight;
 end;
@@ -1345,12 +1363,8 @@ begin
 
         if not (csDesigning in ComponentState) then
         begin
-          if toAcceptOLEDrop in ToBeCleared then
-            RevokeDragDrop(Handle);
           if toFullRepaintOnResize in ToBeSet + ToBeCleared then
             RecreateWnd;
-          if toAcceptOLEDrop in ToBeSet then
-            RegisterDragDrop(Handle, DragManager as IDropTarget);
           if toVariableNodeHeight in ToBeSet then
           begin
             BeginUpdate();

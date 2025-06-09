@@ -32,7 +32,7 @@ type
 
   protected
     function GetHintWindowClass: THintWindowClass; override;
-    function GetTreeFromDataObject(const DataObject: TVTDragDataObject): TBaseVirtualTree; override;
+    class function GetTreeFromDataObject(const DataObject: TVTDragDataObject): TBaseVirtualTree; deprecated 'Use class TVTDragManager.GetTreeFromDataObject() instead';
     function DoRenderOLEData(const FormatEtcIn: TFormatEtc; out Medium: TStgMedium; ForClipboard: Boolean): HRESULT; override;
     property OnRenderOLEData: TVTRenderOLEDataEvent read FOnRenderOLEData write FOnRenderOLEData;
   public //methods
@@ -96,7 +96,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function TVTAncestorVcl.GetTreeFromDataObject(const DataObject: TVTDragDataObject): TBaseVirtualTree;
+class function TVTAncestorVcl.GetTreeFromDataObject(const DataObject: TVTDragDataObject): TBaseVirtualTree;
 
 // Returns the owner/sender of the given data object by means of a special clipboard format
 // or nil if the sender is in another process or no virtual tree at all.
@@ -145,7 +145,7 @@ begin
     else
     begin
       // Try to get the source tree of the operation to optimize the operation.
-      Source := GetTreeFromDataObject(Data);
+      Source := TVTDragManager.GetTreeFromDataObject(Data);
       Result := ProcessOLEData(Source, Data, FocusedNode, DefaultPasteMode, Assigned(Source) and
         (tsCutPending in Source.TreeStates));
       if Assigned(Source) then

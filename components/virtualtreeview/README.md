@@ -5,9 +5,9 @@ Virtual Treeview is a Delphi treeview control built from ground up. Many years o
 I don't use C++ Builder and my experience with it is very limited. This makes it difficult to take care about bugs that are reported in C++ Builder and to maintain the C++ Builder packages. I would be great if someone would volunteer to do this.
 
 ### Downloads
-**V7.6.x** official release for **Delphi XE3 to 11.3** and C++ Buildler 10.1 to 11.3: [JAM Software](https://www.jam-software.com/virtual-treeview/VirtualTreeView.zip) ([Changes](https://github.com/JAM-Software/Virtual-TreeView/releases/latest))
+[**V8** official release](https://github.com/JAM-Software/Virtual-TreeView/releases/latest) for **RAD Studio 10 to 12** which includes some **[breaking changes](https://github.com/JAM-Software/Virtual-TreeView/wiki/Breaking-Changes-in-V8)**.
 
-In the master branch we develop **V8** that includes some **[breaking changes](https://github.com/JAM-Software/Virtual-TreeView/wiki/Breaking-Changes-in-upcoming-V8)**.
+[**V7.6.x**](https://github.com/JAM-Software/Virtual-TreeView/releases/tag/V7.6.6) for **Delphi XE3 to XE8**.
 
 An experimental **FireMonkey** port can be found here: [livius2/Virtual-TreeView](https://github.com/livius2/Virtual-TreeView)
 
@@ -15,9 +15,7 @@ A port to **Lazarus / FPC** can be found here: [blikblum/VirtualTreeView-Lazarus
 
 For a **Delphi XE2** compatible fork see: [Fr0sT-Brutal/VirtualTreeView_mod/tree/fr0st_xe2](https://github.com/Fr0sT-Brutal/VirtualTreeView_mod/tree/fr0st_xe2)
 
-For a **Delphi XE** compatible fork see: [sglienke/Virtual-TreeView](https://github.com/sglienke/Virtual-TreeView)
-
-**V5.5.3** for **Delphi 7 to XE2**: [Download](https://downloads.jam-software.de/virtual-treeview/VirtualTreeViewV5.5.3.zip)
+**V5.5.3** for **Delphi 7 to XE2**: [Download](https://github.com/JAM-Software/Virtual-TreeView/releases/download/V5.5.3/VirtualTreeViewV5.5.3.zip)
 
 **V6 latest stable version** tested on Windows XP/2003 support: [GitHub](https://github.com/Virtual-TreeView/Virtual-TreeView/archive/V6_stable.zip)
 

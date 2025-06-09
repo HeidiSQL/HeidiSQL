@@ -22,8 +22,6 @@
 // (C) 1999-2001 digital publishing AG. All Rights Reserved.
 //----------------------------------------------------------------------------------------------------------------------
 //
-// For a list of recent changes please see file CHANGES.TXT
-//
 // Credits for their valuable assistance and code donations go to:
 //   Freddy Ertl, Marian Aldenhoevel, Thomas Bogenrieder, Jim Kuenemann, Werner Lehmann, Jens Treichler,
 //   Paul Gallagher (IBO tree), Ondrej Kelle, Ronaldo Melo Ferraz, Heri Bender, Roland Beduerftig (BCB)
@@ -61,18 +59,6 @@ interface
 
 {$LEGACYIFEND ON}
 {$WARN UNSUPPORTED_CONSTRUCT      OFF}
-
-{$HPPEMIT '#include <objidl.h>'}
-{$HPPEMIT '#include <oleidl.h>'}
-{$HPPEMIT '#include <oleacc.h>'}
-{$ifdef BCB}
-  {$HPPEMIT '#pragma comment(lib, "VirtualTreesCR")'}
-{$else}
-  {$HPPEMIT '#pragma comment(lib, "VirtualTreesR")'}
-{$endif}
-{$HPPEMIT '#pragma comment(lib, "Shell32")'}
-{$HPPEMIT '#pragma comment(lib, "uxtheme")'}
-{$HPPEMIT '#pragma link "VirtualTrees.Accessibility"'}
 
 uses
   Winapi.Windows, Winapi.Messages, Winapi.ActiveX,
@@ -131,7 +117,7 @@ type
   TVTAutoOption            = VirtualTrees.Types.TVTAutoOption;
   TVTAutoOptions           = VirtualTrees.Types.TVTAutoOptions;
   TVTSelectionOption       = VirtualTrees.Types.TVTSelectionOption;
-  TVstTextType             = VirtualTrees.Types.TVstTextType;
+  TVSTTextType             = VirtualTrees.Types.TVSTTextType;
   TVTHintMode              = VirtualTrees.Types.TVTHintMode;
   TBaseVirtualTree         = VirtualTrees.BaseTree.TBaseVirtualTree;
   IVTEditLink              = VirtualTrees.BaseTree.IVTEditLink;
@@ -348,7 +334,7 @@ type
     property Text[Node: PVirtualNode; Column: TColumnIndex]: string read GetText write SetText;
   end;
 
-  [ComponentPlatformsAttribute(pidWin32 or pidWin64)]
+  [ComponentPlatformsAttribute(pfidWindows)]
   TVirtualStringTree = class(TCustomVirtualStringTree)
   private
     function GetOptions: TStringTreeOptions;
@@ -595,6 +581,7 @@ type
     property OnCanResize;
     property OnGesture;
     property Touch;
+    property OnColumnHeaderSpanning;
   end;
 
 //----------------------------------------------------------------------------------------------------------------------
