@@ -39,6 +39,7 @@ begin
   DefaultFormatSettings.TimeSeparator := ':';
   DefaultFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
   DefaultFormatSettings.LongTimeFormat := 'hh:nn:ss';
+  // Testing issue #2189: DefaultFormatSettings.ThousandSeparator:= chr(160);
 
   AppSettings := TAppSettings.Create;
 
