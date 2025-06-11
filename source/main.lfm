@@ -21000,6 +21000,7 @@ object MainForm: TMainForm
     Left = 418
     Top = 168
     object menuQueryExactRowCount: TMenuItem
+      AutoCheck = True
       Caption = 'Query exact row count'
       OnClick = menuQueryExactRowCountClick
     end
