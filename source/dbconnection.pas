@@ -4040,6 +4040,8 @@ end;
 
 
 function TSQLiteConnection.GetCreateCode(Obj: TDBObject): String;
+var
+  CreateList: TStringList;
 begin
   // PRAGMA table_info(customers):
   // cid name       type         notnull dflt_value pk
@@ -4047,8 +4049,15 @@ begin
   // 1   FirstName  NVARCHAR(40) 1       null       0
   case Obj.NodeType of
     lntTable: begin
+      CreateList := GetCol('SELECT '+QuoteIdent('sql')+' FROM '+QuoteIdent(Obj.Database)+'.sqlite_master'+
+        ' WHERE '+QuoteIdent('type')+' IN('+EscapeString('table')+', '+EscapeString('index')+')'+
+        ' AND tbl_name='+EscapeString(Obj.Name));
+      Result := Implode(';'+sLineBreak, CreateList);
+      CreateList.Free;
+    end;
+    lntView, lntTrigger: begin
       Result := GetVar('SELECT '+QuoteIdent('sql')+' FROM '+QuoteIdent(Obj.Database)+'.sqlite_master'+
-        ' WHERE '+QuoteIdent('type')+'='+EscapeString('table')+
+        ' WHERE '+QuoteIdent('type')+'='+EscapeString(Obj.ObjType.ToLower)+
         ' AND name='+EscapeString(Obj.Name));
     end;
     else begin
