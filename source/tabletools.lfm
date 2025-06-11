@@ -13,6 +13,7 @@ object frmTableTools: TfrmTableTools
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poMainFormCenter
+  LCLVersion = '3.8.0.0'
   object lblCheckedSize: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideBottom.Control = btnSeeResults
@@ -112,7 +113,7 @@ object frmTableTools: TfrmTableTools
         Align = alTop
         AutoSize = True
         Images = MainForm.ImageListIcons8
-        TabIndex = 0
+        TabIndex = 2
         TabOrder = 1
         OnChange = ValidateControls
         object tabMaintenance: TTabSheet
@@ -513,7 +514,7 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrCenter
             Left = 6
             Height = 20
-            Top = 138
+            Top = 137
             Width = 49
             BorderSpacing.Around = 6
             Caption = 'Output:'
@@ -545,7 +546,7 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrCenter
             Left = 6
             Height = 20
-            Top = 172
+            Top = 170
             Width = 63
             BorderSpacing.Around = 6
             Caption = 'Filename:'
@@ -581,7 +582,7 @@ object frmTableTools: TfrmTableTools
             Left = 664
             Height = 26
             Hint = 'Browse filesystem'
-            Top = 169
+            Top = 167
             Width = 29
             Anchors = [akTop, akRight]
             BorderSpacing.Around = 6
@@ -664,7 +665,7 @@ object frmTableTools: TfrmTableTools
             AnchorSideRight.Control = tabSQLexport
             AnchorSideRight.Side = asrBottom
             Left = 156
-            Height = 28
+            Height = 26
             Top = 134
             Width = 537
             Anchors = [akTop, akLeft, akRight]
@@ -685,7 +686,7 @@ object frmTableTools: TfrmTableTools
             AnchorSideRight.Control = btnExportOutputTargetSelect
             Left = 156
             Height = 28
-            Top = 168
+            Top = 166
             Width = 502
             Anchors = [akTop, akLeft, akRight]
             BorderSpacing.Left = 150
@@ -1002,7 +1003,7 @@ object frmTableTools: TfrmTableTools
           item
             Position = 0
             Text = 'Dummy, keeps compatibility to mainform.dbtree'
-            Width = 164
+            Width = 168
           end        
           item
             Alignment = taRightJustify
@@ -1068,10 +1069,17 @@ object frmTableTools: TfrmTableTools
     Top = 440
     object menuCheckNone: TMenuItem
       Caption = 'Check none'
+      ImageIndex = 65
       OnClick = CheckAllClick
     end
     object menuCheckAll: TMenuItem
       Caption = 'Check all'
+      ImageIndex = 64
+      OnClick = CheckAllClick
+    end
+    object menuInvertCheck: TMenuItem
+      Caption = 'Invert Check'
+      ImageIndex = 138
       OnClick = CheckAllClick
     end
     object menuCheckByType: TMenuItem
