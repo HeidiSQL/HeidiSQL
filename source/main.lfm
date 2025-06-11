@@ -1,10 +1,10 @@
 object MainForm: TMainForm
   Left = 549
-  Height = 500
+  Height = 475
   Top = 272
   Width = 998
   Caption = 'MainForm'
-  ClientHeight = 500
+  ClientHeight = 475
   ClientWidth = 998
   DesignTimePPI = 120
   Menu = MainMenu1
@@ -18,7 +18,7 @@ object MainForm: TMainForm
   object StatusBar: TStatusBar
     Left = 0
     Height = 29
-    Top = 471
+    Top = 446
     Width = 998
     Panels = <    
       item
@@ -275,7 +275,7 @@ object MainForm: TMainForm
   inline SynMemoSQLLog: TSynEdit
     Left = 0
     Height = 80
-    Top = 391
+    Top = 366
     Width = 998
     Align = alBottom
     Font.Height = -13
@@ -756,7 +756,7 @@ object MainForm: TMainForm
     Cursor = crVSplit
     Left = 0
     Height = 6
-    Top = 385
+    Top = 360
     Width = 998
     Align = alBottom
     AutoSnap = False
@@ -764,31 +764,31 @@ object MainForm: TMainForm
   end
   object panelTop: TPanel
     Left = 0
-    Height = 355
+    Height = 330
     Top = 30
     Width = 998
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 355
+    ClientHeight = 330
     ClientWidth = 998
     TabOrder = 4
     OnDblClick = panelTopDblClick
     object pnlLeft: TPanel
       Left = 0
-      Height = 355
+      Height = 330
       Top = 0
       Width = 212
       Align = alLeft
       BevelOuter = bvNone
-      ClientHeight = 355
+      ClientHeight = 330
       ClientWidth = 212
       TabOrder = 0
       OnResize = pnlLeftResize
       object pnlPreview: TPanel
         Left = 0
         Height = 147
-        Top = 208
+        Top = 183
         Width = 212
         Align = alBottom
         BevelOuter = bvNone
@@ -867,7 +867,7 @@ object MainForm: TMainForm
         Cursor = crVSplit
         Left = 0
         Height = 6
-        Top = 202
+        Top = 177
         Width = 212
         Align = alBottom
         OnMoved = spltPreviewMoved
@@ -949,7 +949,7 @@ object MainForm: TMainForm
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Side = asrBottom
         Left = 0
-        Height = 172
+        Height = 147
         Top = 30
         Width = 212
         Align = alClient
@@ -999,24 +999,24 @@ object MainForm: TMainForm
     end
     object spltDBtree: TSplitter
       Left = 212
-      Height = 355
+      Height = 330
       Top = 0
       Width = 6
     end
     object pnlRight: TPanel
       Left = 218
-      Height = 355
+      Height = 330
       Top = 0
       Width = 780
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 355
+      ClientHeight = 330
       ClientWidth = 780
       TabOrder = 2
       object pnlFilterVT: TPanel
         Left = 0
         Height = 40
-        Top = 315
+        Top = 290
         Width = 780
         Align = alBottom
         AutoSize = True
@@ -1091,7 +1091,7 @@ object MainForm: TMainForm
       end
       object PageControlMain: TPageControl
         Left = 0
-        Height = 315
+        Height = 290
         Top = 0
         Width = 780
         ActivePage = tabQuery
@@ -1108,12 +1108,12 @@ object MainForm: TMainForm
         OnMouseUp = PageControlMainMouseUp
         object tabHost: TTabSheet
           Caption = 'Host'
-          ClientHeight = 282
+          ClientHeight = 257
           ClientWidth = 772
           ImageIndex = 1
           object PageControlHost: TPageControl
             Left = 0
-            Height = 282
+            Height = 257
             Top = 0
             Width = 772
             ActivePage = tabCommandStats
@@ -1125,12 +1125,12 @@ object MainForm: TMainForm
             OnChange = PageControlHostChange
             object tabDatabases: TTabSheet
               Caption = 'Databases'
-              ClientHeight = 249
+              ClientHeight = 224
               ClientWidth = 764
               ImageIndex = 5
               object ListDatabases: TLazVirtualStringTree
                 Left = 0
-                Height = 249
+                Height = 224
                 Top = 0
                 Width = 764
                 Align = alClient
@@ -1217,12 +1217,12 @@ object MainForm: TMainForm
             end
             object tabVariables: TTabSheet
               Caption = 'Variables'
-              ClientHeight = 249
+              ClientHeight = 224
               ClientWidth = 764
               ImageIndex = 137
               object ListVariables: TLazVirtualStringTree
                 Left = 0
-                Height = 249
+                Height = 224
                 Top = 0
                 Width = 764
                 Align = alClient
@@ -1274,12 +1274,12 @@ object MainForm: TMainForm
             end
             object tabStatus: TTabSheet
               Caption = 'Status'
-              ClientHeight = 249
+              ClientHeight = 224
               ClientWidth = 764
               ImageIndex = 13
               object ListStatus: TLazVirtualStringTree
                 Left = 0
-                Height = 249
+                Height = 224
                 Top = 0
                 Width = 764
                 Align = alClient
@@ -1337,13 +1337,13 @@ object MainForm: TMainForm
             end
             object tabProcesslist: TTabSheet
               Caption = 'Processes'
-              ClientHeight = 249
+              ClientHeight = 224
               ClientWidth = 764
               ImageIndex = 57
               object pnlProcessViewBox: TPanel
                 Left = 0
                 Height = 69
-                Top = 180
+                Top = 155
                 Width = 764
                 Align = alBottom
                 BevelOuter = bvNone
@@ -1841,14 +1841,14 @@ object MainForm: TMainForm
                 Cursor = crVSplit
                 Left = 0
                 Height = 6
-                Top = 174
+                Top = 149
                 Width = 764
                 Align = alBottom
                 ResizeAnchor = akBottom
               end
               object ListProcesses: TLazVirtualStringTree
                 Left = 0
-                Height = 174
+                Height = 149
                 Top = 0
                 Width = 764
                 Align = alClient
@@ -1925,12 +1925,12 @@ object MainForm: TMainForm
             end
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
-              ClientHeight = 249
+              ClientHeight = 224
               ClientWidth = 764
               ImageIndex = 145
               object ListCommandStats: TLazVirtualStringTree
                 Left = 0
-                Height = 249
+                Height = 224
                 Top = 0
                 Width = 764
                 Align = alClient
@@ -1996,12 +1996,12 @@ object MainForm: TMainForm
         end
         object tabDatabase: TTabSheet
           Caption = 'Database'
-          ClientHeight = 282
+          ClientHeight = 257
           ClientWidth = 772
           ImageIndex = 5
           object ListTables: TLazVirtualStringTree
             Left = 0
-            Height = 282
+            Height = 257
             Top = 0
             Width = 772
             Align = alClient
@@ -2156,12 +2156,12 @@ object MainForm: TMainForm
         end
         object tabData: TTabSheet
           Caption = 'Data'
-          ClientHeight = 282
+          ClientHeight = 257
           ClientWidth = 772
           ImageIndex = 41
           object lblSorryNoData: TLabel
             Left = 0
-            Height = 153
+            Height = 128
             Top = 129
             Width = 772
             Align = alClient
@@ -2859,7 +2859,7 @@ object MainForm: TMainForm
           end
           object DataGrid: TLazVirtualStringTree
             Left = 2
-            Height = 149
+            Height = 124
             Top = 131
             Width = 768
             Align = alClient
@@ -2908,7 +2908,7 @@ object MainForm: TMainForm
         end
         object tabQuery: TTabSheet
           Caption = 'Query'
-          ClientHeight = 282
+          ClientHeight = 257
           ClientWidth = 772
           ImageIndex = 57
           object pnlQueryMemo: TPanel
@@ -3539,7 +3539,7 @@ object MainForm: TMainForm
           end
           object QueryGrid: TLazVirtualStringTree
             Left = 0
-            Height = 114
+            Height = 89
             Top = 168
             Width = 772
             Align = alClient
@@ -5062,6 +5062,13 @@ object MainForm: TMainForm
       Caption = 'Copy all lines from listing or tree in CSV format'
       ImageIndex = 3
       OnExecute = actCopyGridNodesExecute
+    end
+    object actQueryTable: TAction
+      Category = 'Database'
+      Caption = 'Select top 1000 rows'
+      Hint = 'Selects the first 1000 rows in a new query tab'
+      ImageIndex = 57
+      OnExecute = actQueryTableExecute
     end
   end
   object ImageListIcons8: TImageList
@@ -20306,6 +20313,9 @@ object MainForm: TMainForm
     end
     object menuEmptyTables: TMenuItem
       Action = actEmptyTables
+    end
+    object Selecttop1000rows1: TMenuItem
+      Action = actQueryTable
     end
     object Runroutines1: TMenuItem
       Action = actRunRoutines

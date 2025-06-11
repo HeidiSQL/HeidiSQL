@@ -784,6 +784,8 @@ type
     Generatedata2: TMenuItem;
     actCopyGridNodes: TAction;
     actCopyGridNodes1: TMenuItem;
+    actQueryTable: TAction;
+    Selecttop1000rows1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure actNextTabExecute(Sender: TObject);
     procedure actPreviousTabExecute(Sender: TObject);
@@ -1192,6 +1194,7 @@ type
     //  var HintText: string);
     procedure actCopyGridNodesExecute(Sender: TObject);
     procedure ApplicationException(Sender: TObject; E: Exception);
+    procedure actQueryTableExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -4990,6 +4993,29 @@ begin
 end;
 
 
+procedure TMainForm.actQueryTableExecute(Sender: TObject);
+var
+  Objects: TDBObjectList;
+  Obj: TDBObject;
+  Tab: TQueryTab;
+  Conn: TDBConnection;
+begin
+  // Query table data
+  Conn := ActiveConnection;
+  if not Assigned(Conn) then
+    Exit;
+  Objects := GetFocusedObjects(Sender, [lntTable, lntView]);
+
+  if Objects.Count = 0 then
+    ErrorDialog(_('No table selected.'), _('Please select one or more table(s) or view(s).'));
+
+  for Obj in Objects do begin
+    Tab := GetOrCreateEmptyQueryTab(True);
+    Tab.Memo.Text := Conn.ApplyLimitClause('SELECT', '* FROM '+Obj.QuotedName, AppSettings.ReadInt(asDatagridRowsPerStep), 0);
+    actExecuteQueryExecute(Sender);
+  end;
+end;
+
 procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
 begin
   // SetupSynEditors applies all customizations to any SynEditor
@@ -7865,10 +7891,13 @@ end;
 procedure TMainForm.popupDBPopup(Sender: TObject);
 var
   Obj: PDBObject;
-  HasFocus, IsDb, IsObject: Boolean;
+  IsDb, IsObject: Boolean;
   Conn: TDBConnection;
 begin
   // DBtree and ListTables both use popupDB as menu
+  actQueryTable.Caption := f_('Select top %s rows', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
+  actQueryTable.Hint := f_('Selects the first %s rows in a new query tab', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
+
   if PopupComponent(Sender) = DBtree then begin
     Obj := DBTree.GetNodeData(DBTree.FocusedNode);
     IsDb := Obj.NodeType = lntDb;
@@ -7890,6 +7919,7 @@ begin
     actDetachDatabase.Enabled := actDetachDatabase.Visible and (Obj.NodeType = lntDb);
     actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
     actEmptyTables.Enabled := Obj.NodeType in [lntTable, lntView];
+    actQueryTable.Enabled := Obj.NodeType in [lntTable, lntView];
     actRunRoutines.Enabled := Obj.NodeType in [lntProcedure, lntFunction];
     menuClearDataTabFilter.Enabled := Obj.NodeType in [lntTable, lntView];
     menuEditObject.Enabled := IsDb or IsObject;
@@ -7898,7 +7928,7 @@ begin
     menuTreeCollapseAll.Enabled := True;
     menuTreeOptions.Enabled := True;
   end else begin
-    HasFocus := Assigned(ListTables.FocusedNode);
+    Obj := ListTables.GetNodeData(ListTables.FocusedNode);
     actCreateDatabase.Enabled := False;
     actConnectionProperties.Enabled := False;
     actAttachDatabase.Visible := False;
@@ -7911,14 +7941,11 @@ begin
     actDropObjects.Enabled := ListTables.SelectedCount > 0;
     actDetachDatabase.Visible := False;
     actEmptyTables.Enabled := True;
+    actQueryTable.Enabled := Assigned(Obj) and (Obj.NodeType in [lntTable, lntView]);
     actRunRoutines.Enabled := True;
     menuClearDataTabFilter.Enabled := False;
-    menuEditObject.Enabled := HasFocus;
-    actCopyTable.Enabled := False;
-    if HasFocus then begin
-      Obj := ListTables.GetNodeData(ListTables.FocusedNode);
-      actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
-    end;
+    menuEditObject.Enabled := Assigned(Obj);
+    actCopyTable.Enabled := Assigned(Obj) and (Obj.NodeType in [lntTable, lntView]);
     menuTreeExpandAll.Enabled := False;
     menuTreeCollapseAll.Enabled := False;
     menuTreeOptions.Enabled := False;
