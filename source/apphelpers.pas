@@ -2898,6 +2898,7 @@ end;
 
 function ThemeIsDark(ThemeName: String=''): Boolean;
 begin
+  // Todo: return true if system dark style is in use?
   Result := False;
 end;
 

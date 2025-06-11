@@ -7,7 +7,6 @@ object frmPreferences: TfrmPreferences
   Caption = 'Preferences'
   ClientHeight = 602
   ClientWidth = 890
-  Color = clBtnFace
   Constraints.MinHeight = 350
   Constraints.MinWidth = 375
   DesignTimePPI = 120
@@ -359,7 +358,6 @@ object frmPreferences: TfrmPreferences
         Sorted = True
         Style = csDropDownList
         TabOrder = 14
-        OnSelect = comboThemeSelect
       end
       object comboIconPack: TComboBox
         AnchorSideTop.Control = comboTheme
@@ -416,7 +414,6 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 6
         Caption = 'Preview'
         TabOrder = 15
-        OnClick = chkThemePreviewClick
       end
     end
     object tabLogging: TTabSheet

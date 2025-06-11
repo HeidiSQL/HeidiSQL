@@ -14,7 +14,7 @@ uses
   StdCtrls, ComCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, laz.VirtualTrees, SynEditKeyCmds, ActnList, Menus,
   dbstructures, RegExpr, Generics.Collections, EditBtn,
-  extra_controls, {theme_preview,} reformatter, Buttons, ColorBox, LCLProc, LCLIntf, lazaruscompat, FileUtil;
+  extra_controls, reformatter, Buttons, ColorBox, LCLProc, LCLIntf, lazaruscompat, FileUtil;
 
 type
   TShortcutItemData = record
@@ -220,8 +220,6 @@ type
     procedure comboEditorColorsPresetChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure comboGridTextColorsPresetSelect(Sender: TObject);
-    procedure comboThemeSelect(Sender: TObject);
-    procedure chkThemePreviewClick(Sender: TObject);
     procedure chkCompletionProposalClick(Sender: TObject);
     procedure HotKeyChange(Sender: TObject);
     procedure btnRemoveHotKeyClick(Sender: TObject);
@@ -234,7 +232,6 @@ type
     FLanguages: TStringList;
     FRestartOptionTouched: Boolean;
     FRestartOptionApplied: Boolean;
-    //FThemePreview: TfrmThemePreview;
     //FHotKey1: TExtSynHotKey;
     //FHotKey2: TExtSynHotKey;
     procedure InitLanguages;
@@ -356,7 +353,6 @@ begin
   else
     AppSettings.WriteString(asGUIFontName, comboGUIFont.Text);
   AppSettings.WriteInt(asGUIFontSize, MakeInt(editGUIFontSize.Text));
-  AppSettings.WriteString(asTheme, comboTheme.Text);
   AppSettings.WriteString(asIconPack, comboIconPack.Text);
   AppSettings.WriteString(asWebSearchBaseUrl, comboWebSearchBaseUrl.Text);
 
@@ -525,11 +521,11 @@ begin
   comboGUIFont.Items.Assign(Screen.Fonts);
   comboGUIFont.Items.Insert(0, '<'+_('Default system font')+'>');
 
-  {Styles := TStyleManager.StyleNames;
-  for i:=Low(Styles) to High(Styles) do begin
-    comboTheme.Items.Add(Styles[i]);
-  end;
-  comboTheme.ItemIndex := comboTheme.Items.IndexOf(AppSettings.GetDefaultString(asTheme));}
+  lblTheme.Enabled := False;
+  comboTheme.Items.Text := 'Themes are not supported in the Lazarus release';
+  comboTheme.ItemIndex := 0;
+  comboTheme.Enabled := False;
+  chkThemePreview.Enabled := False;
 
   // Populate icon pack dropdown from image collections on main form
   comboIconPack.Items.Clear;
@@ -709,7 +705,6 @@ begin
     comboGUIFont.ItemIndex := comboGUIFont.Items.IndexOf(GUIFont);
   editGUIFontSize.Text := AppSettings.ReadInt(asGUIFontSize).ToString;
   comboGUIFont.OnChange(comboGUIFont);
-  comboTheme.ItemIndex := comboTheme.Items.IndexOf(AppSettings.ReadString(asTheme));
   comboIconPack.ItemIndex := comboIconPack.Items.IndexOf(AppSettings.ReadString(asIconPack));
   comboWebSearchBaseUrl.Text := AppSettings.ReadString(asWebSearchBaseUrl);
 
@@ -817,6 +812,7 @@ begin
   AppSettings.WriteInt(asPreferencesWindowWidth, ScaleFormToDesign(Width));
   AppSettings.WriteInt(asPreferencesWindowHeight, ScaleFormToDesign(Height));
 end;
+
 
 
 procedure TfrmPreferences.SQLFontChange(Sender: TObject);
@@ -1082,30 +1078,6 @@ begin
 end;
 
 
-procedure TfrmPreferences.comboThemeSelect(Sender: TObject);
-begin
-  // Select text colors so they fit to the selected theme
-  if ThemeIsDark(comboTheme.Text) then begin
-    comboGridTextColorsPreset.ItemIndex := comboGridTextColorsPreset.Items.IndexOf(_('Dark'));
-    comboGridTextColorsPresetSelect(comboGridTextColorsPreset);
-    comboEditorColorsPreset.ItemIndex := comboEditorColorsPreset.Items.IndexOf(_('Material'));
-    comboEditorColorsPresetChange(comboEditorColorsPreset);
-  end else begin
-    comboGridTextColorsPreset.ItemIndex := comboGridTextColorsPreset.Items.IndexOf(_('Light'));
-    comboGridTextColorsPresetSelect(comboGridTextColorsPreset);
-    comboEditorColorsPreset.ItemIndex := comboEditorColorsPreset.Items.IndexOf(_('Light'));
-    comboEditorColorsPresetChange(comboEditorColorsPreset);
-  end;
-
-  // Update preview window
-  if chkThemePreview.Checked then begin
-    //FThemePreview.LoadTheme(comboTheme.Text);
-  end;
-
-  Modified(Sender);
-end;
-
-
 procedure TfrmPreferences.updownSQLFontSizeClick(Sender: TObject;
   Button: TUDBtnType);
 begin
@@ -1167,20 +1139,6 @@ begin
   FormShow(Sender);
 end;
 
-
-procedure TfrmPreferences.chkThemePreviewClick(Sender: TObject);
-begin
-  // Show or hide theme preview window
-  {if chkThemePreview.Checked then begin
-    FThemePreview := TfrmThemePreview.Create(chkThemePreview);
-    FThemePreview.PopupMode := pmExplicit;
-    FThemePreview.PopupParent := Self;
-    FThemePreview.Show;
-    FThemePreview.LoadTheme(comboTheme.Text);
-  end else begin
-    FThemePreview.Close;
-  end;}
-end;
 
 procedure TfrmPreferences.TreeShortcutItemsFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex);

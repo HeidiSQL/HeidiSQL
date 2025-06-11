@@ -795,7 +795,6 @@ type
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
     //procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
-    //procedure CMStyleChanged(var Msg: TMessage); message CM_STYLECHANGED;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure AfterFormCreate;
@@ -2121,7 +2120,6 @@ begin
   LogSQL(f_('App path: "%s"', [Application.ExeName]), lcDebug);
   LogSQL(f_('Configuration path: %s', [AppSettings.DirnameUserAppData]), lcInfo);
   LogSQL(f_('Version: "%s"', [AppVersion]), lcDebug);
-  //LogSQL(f_('Theme: "%s"', [TStyleManager.ActiveStyle.Name]), lcDebug);
   LogSQL(f_('Pixels per inch on current monitor: %d', [Monitor.PixelsPerInch]), lcDebug);
   LogSQL(f_('Timezone offset: %d', [FTimeZoneOffset]), lcDebug);
 end;
@@ -2181,7 +2179,7 @@ begin
   if AppSettings.ReadBool(asDoUsageStatistics) then begin
     LastStatsCall := StrToDateTimeDef(AppSettings.ReadString(asLastUsageStatisticCall), DateTimeNever);
     if DaysBetween(Now, LastStatsCall) >= 30 then begin
-      // Report used app version, bits, and theme name (so we find mostly unused ones for removal)
+      // Report used app version, bits.
       // Also report environment: WinDesktop, WinUWP or Wine
 
       if IsWine then Environment := 'Wine'
@@ -2191,7 +2189,6 @@ begin
       StatsCall := THttpDownload.Create(Self);
       StatsURL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision) +
         '&bits=' + IntToStr(GetExecutableBits) +
-        '&thm=' + //EncodeURLParam(TStyleManager.ActiveStyle.Name) +
         '&env=' + EncodeURLParam(Environment) +
         '&winver=';
       // Enumerate actively used server versions
@@ -13690,14 +13687,6 @@ begin
   end else
     // Not the right message id
     inherited;
-end;}
-
-
-{procedure TMainForm.CMStyleChanged(var Msg: TMessage);
-begin
-  // Style theme applied, e.g. via preferences dialog
-  // Ensure SynMemo's have fitting colors
-  SetupSynEditors;
 end;}
 
 
