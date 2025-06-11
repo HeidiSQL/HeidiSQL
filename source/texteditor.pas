@@ -1,5 +1,7 @@
 unit texteditor;
 
+{$mode delphi}{$H+}
+
 interface
 
 uses

@@ -1,5 +1,7 @@
 unit data_sorting;
 
+{$mode delphi}{$H+}
+
 interface
 
 uses

@@ -1,5 +1,7 @@
 unit insertfiles;
 
+{$mode delphi}{$H+}
+
 interface
 
 uses
