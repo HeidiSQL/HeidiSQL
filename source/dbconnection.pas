@@ -11098,12 +11098,8 @@ function TTableKey.GetInsideCreateCode: Boolean;
 begin
   case FConnection.Parameters.NetTypeGroup of
     ngMySQL: Result := True;
-    ngSQLite: begin
-      if IsPrimary then
-        Result := True
-      else
-        Result := False;
-    end;
+    ngSQLite: Result := IsPrimary;
+    ngPgSQL: Result := IsPrimary or IsUnique;
     else Result := True;
   end;
 end;
