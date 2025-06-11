@@ -1126,7 +1126,7 @@ begin
   Modified := True;
   // Focus the user name entry box.
   PageControlSettings.ActivePage := tabCredentials;
-  editUserName.SetFocus;
+  editUserName.TrySetFocus;
 end;
 
 
