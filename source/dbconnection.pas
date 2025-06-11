@@ -445,7 +445,6 @@ type
       FServerDateTimeOnStartup: String;
       FParameters: TConnectionParameters;
       FSecureShellCmd: TSecureShellCmd;
-      FLoginPromptDone: Boolean;
       FDatabase: String;
       FAllDatabases: TStringList;
       FLogPrefix: String;
@@ -2000,7 +1999,6 @@ begin
   FKeyCache := TKeyCache.Create;
   FForeignKeyCache := TForeignKeyCache.Create;
   FCheckConstraintCache := TCheckConstraintCache.Create;
-  FLoginPromptDone := False;
   FCurrentUserHostCombination := '';
   FKeepAliveTimer := TTimer.Create(Self);
   FFavorites := TStringList.Create;
@@ -3111,8 +3109,8 @@ var
   UsingPass: String;
   Dialog: TfrmLogin;
 begin
-  // Prompt for password on initial connect
-  if FParameters.LoginPrompt and (not FLoginPromptDone) then begin
+  // Don't remember prompt values
+  if FParameters.LoginPrompt then begin
     Dialog := TfrmLogin.Create(Self);
     Dialog.Caption := APPNAME + ' - ' + FParameters.SessionName;
     Dialog.lblPrompt.Caption := f_('Login to %s:', [FParameters.Hostname]);
@@ -3122,7 +3120,6 @@ begin
     FParameters.Username := Dialog.editUsername.Text;
     FParameters.Password := Dialog.editPassword.Text;
     Dialog.Free;
-    FLoginPromptDone := True;
   end;
 
   // Prepare connection
