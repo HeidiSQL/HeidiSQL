@@ -341,6 +341,12 @@
         <Filename Value="source\lazaruscompat.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\crashdialog.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmCrashDialog"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

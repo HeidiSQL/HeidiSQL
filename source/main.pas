@@ -1423,7 +1423,8 @@ implementation
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
   copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp, updatecheck,
-  insertfiles, texteditor, preferences, table_editor, view, routine_editor, trigger_editor, event_editor, grideditlinks;
+  insertfiles, texteditor, preferences, table_editor, view, routine_editor, trigger_editor, event_editor, grideditlinks,
+  crashdialog;
 
 {$R *.lfm}
 
@@ -14730,18 +14731,23 @@ var
   I: Integer;
   Frames: PPointer;
   Report: string;
+  CrashDlg: TfrmCrashDialog;
 begin
-  Report := 'Call stack: (press Ctrl+C to copy)' + LineEnding + LineEnding;
+  Report := '';
   if E <> nil then begin
-    Report := Report + 'Exception class: ' + E.ClassName + LineEnding + 'Message: ' + E.Message + LineEnding;
+    Report := Report + 'Exception class: ' + E.ClassName + LineEnding + 'Message: ' + E.Message + LineEnding + LineEnding;
   end;
+  Report := Report + 'Callstack:' + LineEnding;
   Report := Report + BackTraceStrFunc(ExceptAddr);
   Frames := ExceptFrames;
   for I := 0 to ExceptFrameCount - 1 do
     Report := Report + LineEnding + BackTraceStrFunc(Frames[I]);
-  if MessageDlg('Exception call stack', Report, mtError, [mbIgnore, mbAbort], 0) = mrAbort then begin
+  CrashDlg := TfrmCrashDialog.Create(Self);
+  CrashDlg.SetDetails(Report);
+  if CrashDlg.ShowModal = mrAbort then begin
     Halt; // End of program execution
   end;
+  CrashDlg.Free;
 end;
 
 

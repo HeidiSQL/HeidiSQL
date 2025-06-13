@@ -1,0 +1,91 @@
+object frmCrashDialog: TfrmCrashDialog
+  Left = 572
+  Height = 302
+  Top = 34
+  Width = 610
+  Caption = 'An exception occurred'
+  ClientHeight = 302
+  ClientWidth = 610
+  DesignTimePPI = 120
+  OnShow = FormShow
+  Position = poOwnerFormCenter
+  object lblHeader: TLabel
+    Left = 6
+    Height = 40
+    Top = 6
+    Width = 598
+    Align = alTop
+    BorderSpacing.Around = 6
+    Caption = 'The application crashed. This should not have happened. Below you see some details, which you may share in order to fix this for the future.'
+    WordWrap = True
+  end
+  object memoDetails: TMemo
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = lblHeader
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = btnIgnore
+    Left = 6
+    Height = 208
+    Top = 52
+    Width = 598
+    Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Around = 6
+    Lines.Strings = (
+      'memoDetails'
+    )
+    ReadOnly = True
+    ScrollBars = ssAutoBoth
+    TabOrder = 0
+    WordWrap = False
+  end
+  object btnIgnore: TButton
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 447
+    Height = 30
+    Top = 266
+    Width = 157
+    Anchors = [akRight, akBottom]
+    AutoSize = True
+    BorderSpacing.Around = 6
+    Cancel = True
+    Caption = 'Ignore and proceed'
+    ModalResult = 5
+    TabOrder = 2
+  end
+  object btnAbort: TButton
+    AnchorSideRight.Control = btnIgnore
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 241
+    Height = 30
+    Top = 266
+    Width = 200
+    Anchors = [akRight, akBottom]
+    AutoSize = True
+    BorderSpacing.Around = 6
+    Caption = 'Abort and exit application'
+    ModalResult = 3
+    TabOrder = 3
+  end
+  object btnCopy: TButton
+    AnchorSideLeft.Control = Owner
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 6
+    Height = 30
+    Top = 266
+    Width = 108
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Around = 6
+    Caption = 'Copy details'
+    TabOrder = 1
+    OnClick = btnCopyClick
+  end
+end

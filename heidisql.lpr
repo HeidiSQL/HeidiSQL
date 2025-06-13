@@ -22,7 +22,7 @@ uses
   connections, jsonregistry, sqlhelp, updatecheck, insertfiles, texteditor,
   customize_highlighter, preferences, table_editor, view, routine_editor,
   trigger_editor, event_editor, tabletools, bineditor, grideditlinks,
-  lazaruscompat;
+  lazaruscompat, crashdialog;
 
 {$R *.res}
 {.$R resources.rc}
