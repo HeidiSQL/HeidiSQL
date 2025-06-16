@@ -2155,8 +2155,10 @@ begin
   if not Assigned(VT) then
     Exit;
   VT.Tag := RefreshTag;
-  if ImmediateRepaint then
-    VT.Repaint
+  if ImmediateRepaint then begin
+    VT.Repaint;
+    VT.Update;
+  end
   else
     VT.Invalidate;
 end;
