@@ -1297,7 +1297,7 @@ type
     function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
     function RunQueryFile(Filename: String; Encoding: TEncoding; Conn: TDBConnection;
       FilesizeSum: Int64; var CurrentPosition: Int64): Boolean;
-    //procedure SetLogToFile(Value: Boolean);
+    procedure SetLogToFile(Value: Boolean);
     procedure StoreLastSessions;
     function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
     function InitTabsIniFile: TIniFile;
@@ -1353,7 +1353,7 @@ type
     property ActiveConnection: TDBConnection read GetActiveConnection;
     property ActiveDatabase: String read GetActiveDatabase;
     property ActiveDbObj: TDBObject read FActiveDbObj write SetActiveDBObj;
-    property LogToFile: Boolean read FLogToFile write FLogToFile; //SetLogToFile;
+    property LogToFile: Boolean read FLogToFile write SetLogToFile;
     procedure RefreshTree(FocusNewObject: TDBObject=nil);
     function GetRootNode(Tree: TVirtualStringTree; Connection: TDBConnection): PVirtualNode;
     function FindDBObjectNode(Tree: TVirtualStringTree; Obj: TDBObject): PVirtualNode;
@@ -8675,7 +8675,7 @@ end;
 }
 procedure TMainForm.menuExploreClick(Sender: TObject);
 begin
-  ShellExec('', AppSettings.DirnameSnippets);
+  OpenDocument(AppSettings.DirnameSnippets);
 end;
 
 
@@ -8810,7 +8810,7 @@ end;
   Start writing logfile.
   Called either in FormShow or after closing preferences dialog
 }
-{procedure TMainForm.SetLogToFile(Value: Boolean);
+procedure TMainForm.SetLogToFile(Value: Boolean);
 var
   LogfilePattern, LogDir: String;
   i : Integer;
@@ -8834,30 +8834,30 @@ begin
     end;
 
     // Create file handle for writing
-    AssignFile( FFileHandleSessionLog, FFileNameSessionLog );}
-    //{$I-} // Supress errors
-    //if FileExists(FFileNameSessionLog) then
-    //  Append(FFileHandleSessionLog)
-    //else
-    //  Rewrite(FFileHandleSessionLog);
-    //{$I+}
-    {if IOResult <> 0 then begin
+    AssignFile( FFileHandleSessionLog, FFileNameSessionLog );
+    {$I-} // Supress errors
+    if FileExists(FFileNameSessionLog) then
+      Append(FFileHandleSessionLog)
+    else
+      Rewrite(FFileHandleSessionLog);
+    {$I+}
+    if IOResult <> 0 then begin
       AppSettings.WriteBool(asLogToFile, False);
       ErrorDialog(_('Error opening session log file'), FFileNameSessionLog+CRLF+CRLF+_('Logging is disabled now.'));
     end else begin
       FLogToFile := Value;
       LogSQL(f_('Writing to session log file now: %s', [FFileNameSessionLog]));
     end;
-  end else begin}
-    //{$I-} // Supress errors
-    //CloseFile(FFileHandleSessionLog);
-    //{$I+}
-    {// Reset IOResult so later checks in ActivateFileLogging doesn't get an old value
+  end else begin
+    {$I-} // Supress errors
+    CloseFile(FFileHandleSessionLog);
+    {$I+}
+    // Reset IOResult so later checks in ActivateFileLogging doesn't get an old value
     IOResult;
     FLogToFile := Value;
     LogSQL(_('Writing to session log file disabled now'));
   end;
-end;}
+end;
 
 
 {**
@@ -8939,7 +8939,7 @@ end;
 }
 procedure TMainForm.menuOpenLogFolderClick(Sender: TObject);
 begin
-  ShellExec('', AppSettings.ReadString(asSessionLogsDirectory));
+  OpenDocument(AppSettings.ReadString(asSessionLogsDirectory));
 end;
 
 
