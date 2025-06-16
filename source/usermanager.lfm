@@ -140,7 +140,7 @@ object UserManagerForm: TUserManagerForm
     object tlbObjects: TToolBar
       Left = 0
       Height = 37
-      Top = 181
+      Top = 175
       Width = 470
       AutoSize = True
       ButtonHeight = 35
@@ -176,8 +176,8 @@ object UserManagerForm: TUserManagerForm
       AnchorSideTop.Control = tlbObjects
       AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 172
-      Top = 218
+      Height = 178
+      Top = 212
       Width = 470
       Align = alClient
       Header.AutoSizeIndex = 0
@@ -199,21 +199,23 @@ object UserManagerForm: TUserManagerForm
     end
     object PageControlSettings: TPageControl
       Left = 0
-      Height = 181
+      Height = 175
       Top = 0
       Width = 470
       ActivePage = tabCredentials
       Align = alTop
-      TabIndex = 0
+      AutoSize = True
+      TabIndex = 2
       TabOrder = 0
       object tabCredentials: TTabSheet
+        AutoSize = True
         Caption = 'Credentials'
-        ClientHeight = 148
+        ClientHeight = 142
         ClientWidth = 462
         object lblUsername: TLabel
-          Left = 4
+          Left = 6
           Height = 20
-          Top = 12
+          Top = 9
           Width = 73
           BorderSpacing.Around = 6
           Caption = 'User &name:'
@@ -221,9 +223,9 @@ object UserManagerForm: TUserManagerForm
         object lblFromHost: TLabel
           AnchorSideTop.Control = editUsername
           AnchorSideTop.Side = asrBottom
-          Left = 4
+          Left = 6
           Height = 20
-          Top = 43
+          Top = 40
           Width = 69
           BorderSpacing.Around = 6
           Caption = 'From &host:'
@@ -232,9 +234,9 @@ object UserManagerForm: TUserManagerForm
         object lblPassword: TLabel
           AnchorSideTop.Control = editFromHost
           AnchorSideTop.Side = asrBottom
-          Left = 4
+          Left = 6
           Height = 20
-          Top = 77
+          Top = 74
           Width = 64
           BorderSpacing.Around = 6
           Caption = '&Password:'
@@ -243,9 +245,9 @@ object UserManagerForm: TUserManagerForm
         object lblRepeatPassword: TLabel
           AnchorSideTop.Control = editPassword
           AnchorSideTop.Side = asrBottom
-          Left = 4
+          Left = 6
           Height = 20
-          Top = 111
+          Top = 108
           Width = 117
           BorderSpacing.Around = 6
           Caption = 'Repeat password:'
@@ -254,10 +256,10 @@ object UserManagerForm: TUserManagerForm
         object editRepeatPassword: TEdit
           AnchorSideTop.Control = editPassword
           AnchorSideTop.Side = asrBottom
-          Left = 220
+          Left = 222
           Height = 28
-          Top = 111
-          Width = 236
+          Top = 108
+          Width = 234
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           EchoMode = emPassword
@@ -268,10 +270,10 @@ object UserManagerForm: TUserManagerForm
         object editPassword: TEditButton
           AnchorSideTop.Control = editFromHost
           AnchorSideTop.Side = asrBottom
-          Left = 220
+          Left = 222
           Height = 28
-          Top = 77
-          Width = 236
+          Top = 74
+          Width = 234
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           ButtonWidth = 29
@@ -288,10 +290,10 @@ object UserManagerForm: TUserManagerForm
         object editFromHost: TEditButton
           AnchorSideTop.Control = editUsername
           AnchorSideTop.Side = asrBottom
-          Left = 220
+          Left = 222
           Height = 28
-          Top = 43
-          Width = 236
+          Top = 40
+          Width = 234
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           ButtonWidth = 29
@@ -305,10 +307,10 @@ object UserManagerForm: TUserManagerForm
           TabOrder = 1
         end
         object editUsername: TEdit
-          Left = 220
+          Left = 222
           Height = 28
-          Top = 9
-          Width = 236
+          Top = 6
+          Width = 234
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           TabOrder = 0
@@ -316,15 +318,16 @@ object UserManagerForm: TUserManagerForm
         end
       end
       object tabLimitations: TTabSheet
+        AutoSize = True
         Caption = 'Limitations'
-        ClientHeight = 148
+        ClientHeight = 142
         ClientWidth = 462
         ImageIndex = 1
         object lblMaxQueries: TLabel
           AnchorSideTop.Control = editMaxQueries
-          Left = 4
+          Left = 6
           Height = 20
-          Top = 15
+          Top = 12
           Width = 113
           BorderSpacing.Around = 6
           Caption = 'Queries per hour:'
@@ -332,9 +335,9 @@ object UserManagerForm: TUserManagerForm
         object lblMaxUpdates: TLabel
           AnchorSideTop.Control = editMaxQueries
           AnchorSideTop.Side = asrBottom
-          Left = 4
+          Left = 6
           Height = 20
-          Top = 43
+          Top = 40
           Width = 118
           BorderSpacing.Around = 6
           Caption = 'Updates per hour:'
@@ -342,9 +345,9 @@ object UserManagerForm: TUserManagerForm
         object lblMaxConnections: TLabel
           AnchorSideTop.Control = editMaxUpdates
           AnchorSideTop.Side = asrBottom
-          Left = 4
+          Left = 6
           Height = 20
-          Top = 77
+          Top = 74
           Width = 144
           BorderSpacing.Around = 6
           Caption = 'Connections per hour:'
@@ -352,18 +355,18 @@ object UserManagerForm: TUserManagerForm
         object lblMaxUserConnections: TLabel
           AnchorSideTop.Control = editMaxConnections
           AnchorSideTop.Side = asrBottom
-          Left = 4
+          Left = 6
           Height = 20
-          Top = 111
+          Top = 108
           Width = 175
           BorderSpacing.Around = 6
           Caption = 'Simultaneous connections:'
         end
         object editMaxQueries: TEdit
-          Left = 220
+          Left = 222
           Height = 28
-          Top = 9
-          Width = 236
+          Top = 6
+          Width = 234
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           NumbersOnly = True
@@ -374,10 +377,10 @@ object UserManagerForm: TUserManagerForm
         object editMaxUpdates: TEdit
           AnchorSideTop.Control = editMaxQueries
           AnchorSideTop.Side = asrBottom
-          Left = 220
+          Left = 222
           Height = 28
-          Top = 43
-          Width = 236
+          Top = 40
+          Width = 234
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           NumbersOnly = True
@@ -388,10 +391,10 @@ object UserManagerForm: TUserManagerForm
         object editMaxConnections: TEdit
           AnchorSideTop.Control = editMaxUpdates
           AnchorSideTop.Side = asrBottom
-          Left = 220
+          Left = 222
           Height = 28
-          Top = 77
-          Width = 236
+          Top = 74
+          Width = 234
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           NumbersOnly = True
@@ -402,10 +405,10 @@ object UserManagerForm: TUserManagerForm
         object editMaxUserConnections: TEdit
           AnchorSideTop.Control = editMaxConnections
           AnchorSideTop.Side = asrBottom
-          Left = 220
+          Left = 222
           Height = 28
-          Top = 111
-          Width = 236
+          Top = 108
+          Width = 234
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           NumbersOnly = True
@@ -415,16 +418,17 @@ object UserManagerForm: TUserManagerForm
         end
       end
       object tabSSL: TTabSheet
+        AutoSize = True
         Caption = 'SSL options'
-        ClientHeight = 148
+        ClientHeight = 142
         ClientWidth = 462
         ImageIndex = 2
         object lblCipher: TLabel
           AnchorSideTop.Control = comboSSL
           AnchorSideTop.Side = asrBottom
-          Left = 4
+          Left = 6
           Height = 20
-          Top = 42
+          Top = 40
           Width = 46
           BorderSpacing.Around = 6
           Caption = '&Cipher:'
@@ -433,9 +437,9 @@ object UserManagerForm: TUserManagerForm
         object lblIssuer: TLabel
           AnchorSideTop.Control = editCipher
           AnchorSideTop.Side = asrBottom
-          Left = 4
+          Left = 6
           Height = 20
-          Top = 76
+          Top = 74
           Width = 40
           BorderSpacing.Around = 6
           Caption = '&Issuer:'
@@ -444,18 +448,18 @@ object UserManagerForm: TUserManagerForm
         object lblSubject: TLabel
           AnchorSideTop.Control = editIssuer
           AnchorSideTop.Side = asrBottom
-          Left = 4
+          Left = 6
           Height = 20
-          Top = 110
+          Top = 108
           Width = 52
           BorderSpacing.Around = 6
           Caption = '&Subject:'
           FocusControl = editSubject
         end
         object lblSSL: TLabel
-          Left = 4
+          Left = 6
           Height = 20
-          Top = 11
+          Top = 9
           Width = 81
           BorderSpacing.Around = 6
           Caption = '&Require SSL:'
@@ -463,10 +467,10 @@ object UserManagerForm: TUserManagerForm
         object editCipher: TEdit
           AnchorSideTop.Control = comboSSL
           AnchorSideTop.Side = asrBottom
-          Left = 220
+          Left = 222
           Height = 28
-          Top = 42
-          Width = 236
+          Top = 40
+          Width = 234
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           TabOrder = 1
@@ -476,10 +480,10 @@ object UserManagerForm: TUserManagerForm
         object editIssuer: TEdit
           AnchorSideTop.Control = editCipher
           AnchorSideTop.Side = asrBottom
-          Left = 220
+          Left = 222
           Height = 28
-          Top = 76
-          Width = 236
+          Top = 74
+          Width = 234
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           TabOrder = 2
@@ -489,10 +493,10 @@ object UserManagerForm: TUserManagerForm
         object editSubject: TEdit
           AnchorSideTop.Control = editIssuer
           AnchorSideTop.Side = asrBottom
-          Left = 220
+          Left = 222
           Height = 28
-          Top = 110
-          Width = 236
+          Top = 108
+          Width = 234
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           TabOrder = 3
@@ -500,10 +504,10 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object comboSSL: TComboBox
-          Left = 220
+          Left = 222
           Height = 28
-          Top = 8
-          Width = 236
+          Top = 6
+          Width = 234
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           ItemHeight = 20
