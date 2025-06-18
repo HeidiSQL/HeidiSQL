@@ -1,11 +1,11 @@
 object frmCrashDialog: TfrmCrashDialog
   Left = 572
-  Height = 302
+  Height = 450
   Top = 34
-  Width = 610
+  Width = 800
   Caption = 'An exception occurred'
-  ClientHeight = 302
-  ClientWidth = 610
+  ClientHeight = 450
+  ClientWidth = 800
   DesignTimePPI = 120
   OnShow = FormShow
   Position = poOwnerFormCenter
@@ -13,7 +13,7 @@ object frmCrashDialog: TfrmCrashDialog
     Left = 6
     Height = 40
     Top = 6
-    Width = 598
+    Width = 788
     Align = alTop
     BorderSpacing.Around = 6
     Caption = 'The application crashed. This should not have happened. Below you see some details, which you may share in order to fix this for the future.'
@@ -27,9 +27,9 @@ object frmCrashDialog: TfrmCrashDialog
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnIgnore
     Left = 6
-    Height = 208
+    Height = 356
     Top = 52
-    Width = 598
+    Width = 788
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Around = 6
@@ -46,9 +46,9 @@ object frmCrashDialog: TfrmCrashDialog
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 447
+    Left = 637
     Height = 30
-    Top = 266
+    Top = 414
     Width = 157
     Anchors = [akRight, akBottom]
     AutoSize = True
@@ -62,14 +62,15 @@ object frmCrashDialog: TfrmCrashDialog
     AnchorSideRight.Control = btnIgnore
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 241
+    Left = 431
     Height = 30
-    Top = 266
+    Top = 414
     Width = 200
     Anchors = [akRight, akBottom]
     AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'Abort and exit application'
+    Default = True
     ModalResult = 3
     TabOrder = 3
   end
@@ -79,7 +80,7 @@ object frmCrashDialog: TfrmCrashDialog
     AnchorSideBottom.Side = asrBottom
     Left = 6
     Height = 30
-    Top = 266
+    Top = 414
     Width = 108
     Anchors = [akLeft, akBottom]
     AutoSize = True
