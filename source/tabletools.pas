@@ -2383,11 +2383,19 @@ begin
               MaxLen := Trunc(Power(2, 16)) -1;
           end;
           TextVal := '';
+          MaxLen := Min(MaxLen, SIZE_KB);
           MaxLen := RandomRange(1, MaxLen+1);
           for j:=1 to MaxLen do begin
-            // Only printable characters
-            TextVal := TextVal + Chr(RandomRange(32, 127));
+            if Random < 0.01 then
+              TextVal := TextVal + #10 // New line
+            else if Random < 0.05 then
+              TextVal := TextVal + ' ' // Space
+            else if Random < 0.1 then
+              TextVal := TextVal + Chr(RandomRange(65, 90)) // Uppercase letters
+            else
+              TextVal := TextVal + Chr(RandomRange(97, 122)); // Lowercase letters
           end;
+          TextVal := Trim(TextVal);
           if Col.DataType.Index in [dbdtJson, dbdtJsonB] then begin
             JsonText := TJSONString.Create(TextVal);
             TextVal := JsonText.ToJSON;
