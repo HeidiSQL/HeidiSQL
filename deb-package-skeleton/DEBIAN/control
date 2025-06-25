@@ -2,7 +2,7 @@ Package: HeidiSQL
 Version: %VERSION%
 Architecture: amd64
 Maintainer: Ansgar Becker <anse@heidisql.com>
-Depends: libgtk2.0-0t64 (>=2.6.0), libmysqlclient21 | libmariadb3, libpq5, sqlite3, openssl, openssh-client
+Depends: libgtk2.0-0t64 (>=2.6.0), libmariadb-dev | libmysqlclient-dev, libpq5, sqlite3, openssl, openssh-client
 Installed-Size: 60000
 Homepage: https://www.heidisql.com/
 Description: A lightweight, fast and flexible interface to MySQL
