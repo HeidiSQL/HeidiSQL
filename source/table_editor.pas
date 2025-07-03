@@ -1552,6 +1552,16 @@ begin
       // Reset length/set for column types which don't support that
       if not Col.DataType.HasLength then
         Col.LengthSet := '';
+      // Remove subpart from indexes where this column is a part of
+      if Col.DataType.Category <> dtcText then begin
+        for Key in FKeys do begin
+          for i:=0 to Key.Columns.Count-1 do begin
+            if Key.Columns[i] = Col.Name then
+              Key.SubParts[i] := '';
+          end;
+        end;
+        treeIndexes.Invalidate;
+      end;
       // Suggest length/set if required
       if (not Col.LengthCustomized) or (Col.DataType.RequiresLength and (Col.LengthSet = '')) then
         Col.LengthSet := Col.DataType.DefLengthSet;
