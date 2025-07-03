@@ -6948,7 +6948,7 @@ begin
   rx := TRegExpr.Create;
 
   // Find token1.token2.token3, while cursor is somewhere in token3
-  Ident := '[^\s,\(\)=\.]';
+  Ident := '[^\s,\(\)=\.\!<>]';
   rx.Expression := '(('+Ident+'+)\.)?('+Ident+'+)\.('+Ident+'*)$';
   LeftPart := Copy(Editor.LineText, 1, Editor.CaretX-1);
   if rx.Exec(LeftPart) then begin
