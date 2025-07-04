@@ -469,18 +469,6 @@ object MainForm: TMainForm
         ShortCut = 24649
       end    
       item
-        Command = ecLineBreak
-        ShortCut = 16461
-      end    
-      item
-        Command = ecInsertLine
-        ShortCut = 16462
-      end    
-      item
-        Command = ecDeleteWord
-        ShortCut = 16468
-      end    
-      item
         Command = ecBlockUnindent
         ShortCut = 24661
       end    
@@ -1565,18 +1553,6 @@ object MainForm: TMainForm
                       ShortCut = 24649
                     end                  
                     item
-                      Command = ecLineBreak
-                      ShortCut = 16461
-                    end                  
-                    item
-                      Command = ecInsertLine
-                      ShortCut = 16462
-                    end                  
-                    item
-                      Command = ecDeleteWord
-                      ShortCut = 16468
-                    end                  
-                    item
                       Command = ecBlockUnindent
                       ShortCut = 24661
                     end                  
@@ -2585,18 +2561,6 @@ object MainForm: TMainForm
                   ShortCut = 24649
                 end              
                 item
-                  Command = ecLineBreak
-                  ShortCut = 16461
-                end              
-                item
-                  Command = ecInsertLine
-                  ShortCut = 16462
-                end              
-                item
-                  Command = ecDeleteWord
-                  ShortCut = 16468
-                end              
-                item
                   Command = ecBlockUnindent
                   ShortCut = 24661
                 end              
@@ -3205,18 +3169,6 @@ object MainForm: TMainForm
                 item
                   Command = ecBlockIndent
                   ShortCut = 24649
-                end              
-                item
-                  Command = ecLineBreak
-                  ShortCut = 16461
-                end              
-                item
-                  Command = ecInsertLine
-                  ShortCut = 16462
-                end              
-                item
-                  Command = ecDeleteWord
-                  ShortCut = 16468
                 end              
                 item
                   Command = ecBlockUnindent
