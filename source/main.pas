@@ -6837,11 +6837,12 @@ var
   i, j, ImageIndex, ColumnsInList: Integer;
   Results: TDBQuery;
   DBObjects: TDBObjectList;
-  CurrentQuery, TableClauses, TableName, LeftPart, Token1, Token2, Token3, Token, Ident: String;
+  CurrentQuery, TableClauses, TableName, LeftPart, Token1, Token2, Token3, Ident: String;
   Tables: TStringList;
   rx: TRegExpr;
-  Start, TokenTypeInt: Integer;
-  Attri: TSynHighlighterAttributes;
+  CaretToken: String;
+  CaretStart, CaretTokenTypeInt: Integer;
+  CaretAttri: TSynHighlighterAttributes;
   Proposal: TSynCompletionProposal;
   Editor: TCustomSynEdit;
   Queries: TSQLBatch;
@@ -6936,9 +6937,9 @@ begin
   Proposal.Columns[1].ColumnWidth := ScaleSize(100);
   Conn := ActiveConnection;
   Editor := Proposal.Form.CurrentEditor;
-  Editor.GetHighlighterAttriAtRowColEx(Editor.PrevWordPos, Token, TokenTypeInt, Start, Attri);
+  Editor.GetHighlighterAttriAtRowColEx(Editor.CaretXY, CaretToken, CaretTokenTypeInt, CaretStart, CaretAttri);
   CanExecute := AppSettings.ReadBool(asCompletionProposal) and
-    (not (TtkTokenKind(TokenTypeInt) in [SynHighlighterSQL.tkString, SynHighlighterSQL.tkComment]));
+    (not (TtkTokenKind(CaretTokenTypeInt) in [SynHighlighterSQL.tkString, SynHighlighterSQL.tkComment]));
   if not CanExecute then
     Exit;
 
