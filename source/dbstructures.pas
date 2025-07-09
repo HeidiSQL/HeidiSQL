@@ -155,6 +155,9 @@ begin
   // Load DLL as is (with or without path)
   inherited Create;
   FDllFile := UsedDllFile;
+  if FDllFile.IsEmpty then begin
+    Raise EdbError.Create(f_('No library selected. Please make sure you have installed %s, e.g. "%s".', ['lib*[-dev]', 'libmariadb-dev']));
+  end;
   if not FileExists(FDllFile) then begin
     msg := f_('File does not exist: %s', [FDllFile]) +
       sLineBreak + sLineBreak +
