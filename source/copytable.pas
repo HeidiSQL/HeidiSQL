@@ -364,12 +364,11 @@ var
   Column: TTableColumn;
   Key: TTableKey;
   ForeignKey: TForeignKey;
-  ClausePattern: String;
+  CreateLines: TStringList;
 begin
   // Compose and run CREATE query
 
   TargetTable := FConnection.QuotedDbAndTableName(comboDatabase.Text, editNewTablename.Text);
-  ClausePattern := CodeIndent + '%s,' + sLineBreak;
 
   // Watch out if target table exists
   try
@@ -414,6 +413,7 @@ begin
   end;
 
   CreateCode := '';
+  CreateLines := TStringList.Create;
   TableHasAutoInc := False;
 
   // Columns code. Remove auto_increment attribute if pkey was unchecked, to overcome
@@ -437,7 +437,7 @@ begin
       end;
     end;
     TableHasAutoInc := TableHasAutoInc or (Column.DefaultType = cdtAutoInc);
-    CreateCode := CreateCode + Format(ClausePattern, [Column.SQLCode]);
+    CreateLines.Add(Column.SQLCode);
     if AutoIncRemoved then
       Column.DefaultType := cdtAutoInc;
     // Use this column for the INSERT..SELECT query only if it's not a virtual one
@@ -446,16 +446,20 @@ begin
   end;
 
   // Indexes code
-  for Key in SelectedKeys do
-    CreateCode := CreateCode + Format(ClausePattern, [Key.SQLCode]);
+  for Key in SelectedKeys do begin
+    CreateLines.Add(Key.SQLCode);
+  end;
 
   // Foreign keys code
-  for ForeignKey in SelectedForeignKeys do
-    CreateCode := CreateCode + Format(ClausePattern, [ForeignKey.SQLCode(False)]);
+  for ForeignKey in SelectedForeignKeys do begin
+    CreateLines.Add(ForeignKey.SQLCode(False));
+  end;
 
   // Finish code
-  Delete(CreateCode, Length(CreateCode)-2, 3);
-  CreateCode := 'CREATE TABLE '+TargetTable+' ('+CRLF+CreateCode+CRLF+')'+CRLF;
+  CreateCode := 'CREATE TABLE ' + TargetTable + ' (' + sLineBreak
+    + CodeIndent + Implode(',' + sLineBreak + CodeIndent, CreateLines) + sLineBreak
+    + ')' + sLineBreak;
+  CreateLines.Free;
 
   // Add collation and engine clauses
   if FDBObj.Collation <> '' then
@@ -500,7 +504,7 @@ begin
       Screen.Cursor := crDefault;
       Msg := E.Message;
       if FConnection.LastErrorCode = ER_WRONG_AUTO_KEY then
-        Msg := Msg + CRLF + CRLF +  f_('Please select the required index for the %s flag.', [AutoIncName]);
+        Msg := Msg + sLineBreak + sLineBreak +  f_('Please select the required index for the %s flag.', [AutoIncName]);
       ErrorDialog(Msg);
       ModalResult := mrNone;
     end;
