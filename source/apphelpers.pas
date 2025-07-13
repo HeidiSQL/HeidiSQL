@@ -313,6 +313,7 @@ type
       property PortableMode: Boolean read FPortableMode;
       property PortableModeReadOnly: Boolean read FPortableModeReadOnly write FPortableModeReadOnly;
       property Writes: Integer read FWrites;
+      function ConvertWindowsToLinuxPath(Path: String): String;
       procedure ImportSettings(Filename: String);
       function ExportSettings(Filename: String): Boolean; overload;
       function ExportSettings: Boolean; overload;
@@ -4426,6 +4427,23 @@ begin
 end;
 
 
+function TAppSettings.ConvertWindowsToLinuxPath(Path: String): String;
+var
+  rx: TRegExpr;
+begin
+  // C:\Users\xyz\AppData\Roaming\HeidiSQL\ => /home/xyz/.config/heidisql/
+  Result := Path;
+  rx := TRegExpr.Create('^C\:\\Users\\[^\\]+\\AppData\\Roaming\\'+APPNAME+'\\');
+  rx.ModifierI := True;
+  if rx.Exec(Path) then begin
+    Result := Copy(Path, rx.MatchLen[0]+1, SIZE_KB);
+    Result := StringReplace(Result, '\', '/', [rfReplaceAll]);
+    Result := AppSettings.DirnameUserAppData + Result;
+  end;
+  rx.Free;
+end;
+
+
 procedure TAppSettings.ImportSettings(Filename: String);
 var
   Content, Name, Value, KeyPath: String;
@@ -4461,6 +4479,9 @@ begin
       1: begin // String
         Value := StringReplace(Value, CHR13REPLACEMENT, #13, [rfReplaceAll]);
         Value := StringReplace(Value, CHR10REPLACEMENT, #10, [rfReplaceAll]);
+        {$IfDef LINUX}
+        Value := ConvertWindowsToLinuxPath(Value);
+        {$EndIf}
         FRegistry.WriteString(Name, Value);
       end;
       3: // Integer (Delphi definition)
