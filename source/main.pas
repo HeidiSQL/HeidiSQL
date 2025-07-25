@@ -16,7 +16,7 @@ uses
   Winapi.CommCtrl, System.Contnrs, System.Generics.Collections, System.Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, System.Math, Vcl.ExtDlgs, System.Win.Registry, Vcl.AppEvnts,
   routine_editor, trigger_editor, event_editor, preferences, EditVar, apphelpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
-  insertfiles, searchreplace, loaddata, copytable, csv_detector, Cromis.DirectoryWatch, SyncDB, gnugettext,
+  insertfiles, searchreplace, loaddata, copytable, csv_detector, Cromis.DirectoryWatch, SyncDB, gnugettext, projectmanager,
   VirtualTrees, VirtualTrees.HeaderPopup, VirtualTrees.Utils, VirtualTrees.Types,
   JumpList, System.Actions, System.UITypes, Vcl.Imaging.pngimage,
   System.ImageList, Vcl.Styles.Utils.Forms,
@@ -503,6 +503,7 @@ type
     pnlRight: TPanel;
     btnCloseFilterPanel: TSpeedButton;
     actFilterPanel: TAction;
+    actProjectManager: TAction;
     actFindInVT1: TMenuItem;
     TimerFilterVT: TTimer;
     actFindTextOnServer: TAction;
@@ -795,6 +796,7 @@ type
     actGenerateData: TAction;
     Generatedata1: TMenuItem;
     Generatedata2: TMenuItem;
+    menuProjectManager: TMenuItem;
     actCopyGridNodes: TAction;
     actCopyGridNodes1: TMenuItem;
     actQueryTable: TAction;
@@ -1007,6 +1009,7 @@ type
     procedure popupMainTabsPopup(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure actFilterPanelExecute(Sender: TObject);
+    procedure actProjectManagerExecute(Sender: TObject);
     procedure TimerFilterVTTimer(Sender: TObject);
     procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure menuQueryHelpersGenerateStatementClick(Sender: TObject);
@@ -1202,6 +1205,7 @@ type
       var HintText: string);
     procedure actCopyGridNodesExecute(Sender: TObject);
     procedure actQueryTableExecute(Sender: TObject);
+    procedure ToggleProjectManager; // Toggle Project Manager Panel visibility
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1311,6 +1315,9 @@ type
     procedure StoreTabs;
     function RestoreTabs: Boolean;
     procedure SetHintFontByControl(Control: TWinControl=nil);
+  private
+    FProjectManagerPanel: TProjectManagerPanel;
+    FSplitterProjectManager: TSplitter;
   public
     QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
@@ -1844,6 +1851,8 @@ begin
   AppSettings.WriteString(asDelimiter, FDelimiter);
   AppSettings.WriteInt(asQuerymemoheight, pnlQueryMemo.Height);
   AppSettings.WriteInt(asQueryhelperswidth, pnlQueryHelpers.Width);
+  if Assigned(FProjectManagerPanel) then
+    AppSettings.WriteInt(asProjectManagerWidth, FProjectManagerPanel.Width);
   AppSettings.WriteInt(asCompletionProposalWidth, SynCompletionProposal.Width);
   AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.NbLinesInWindow);
   AppSettings.WriteInt(asDbtreewidth, pnlLeft.width);
@@ -1852,6 +1861,8 @@ begin
   AppSettings.WriteBool(asDataPreviewEnabled, actDataPreview.Checked);
   AppSettings.WriteInt(asLogHeight, SynMemoSQLLog.Height);
   AppSettings.WriteBool(asFilterPanel, actFilterPanel.Checked);
+  if Assigned(FProjectManagerPanel) then
+    AppSettings.WriteBool(asProjectManagerVisible, FProjectManagerPanel.Visible);
   AppSettings.WriteBool(asWrapLongLines, actQueryWordWrap.Checked);
   AppSettings.WriteBool(asCodeFolding, actCodeFolding.Checked);
   AppSettings.WriteBool(asSingleQueries, actSingleQueries.Checked);
@@ -1871,6 +1882,12 @@ begin
   SaveListSetup(ListProcesses);
   SaveListSetup(ListCommandStats);
   SaveListSetup(ListTables);
+
+  // Prepare Project Manager Panel for shutdown and free it
+  if Assigned(FProjectManagerPanel) then
+    FProjectManagerPanel.PrepareForShutdown;
+  FreeAndNil(FProjectManagerPanel);
+  FreeAndNil(FSplitterProjectManager);
 
   LogToFile := False;
   AppSettings.Free;
@@ -2188,6 +2205,80 @@ begin
   LogSQL(f_('Theme: "%s"', [TStyleManager.ActiveStyle.Name]), lcDebug);
   LogSQL(f_('Pixels per inch on current monitor: %d', [Monitor.PixelsPerInch]), lcDebug);
   LogSQL(f_('Timezone offset: %d', [FTimeZoneOffset]), lcDebug);
+  
+  // Create Project Manager Panel integrated with left panel (database tree area)
+  try
+    FProjectManagerPanel := TProjectManagerPanel.Create(Self);
+    if Assigned(FProjectManagerPanel) then
+    begin
+      // Place in left panel (database tree area) at the bottom
+      FProjectManagerPanel.Parent := pnlLeft;
+      FProjectManagerPanel.Align := alBottom;
+      FProjectManagerPanel.Height := 200;
+      
+      // Create splitter for resizing
+      FSplitterProjectManager := TSplitter.Create(Self);
+      FSplitterProjectManager.Parent := pnlLeft;
+      FSplitterProjectManager.Align := alBottom;
+      FSplitterProjectManager.Height := 4;
+      FSplitterProjectManager.Cursor := crSizeNS;
+      FSplitterProjectManager.ResizeStyle := rsUpdate;
+      
+      // Set initial visibility based on user preference
+      var InitialVisible := AppSettings.ReadBool(asProjectManagerVisible, '', False);
+      FProjectManagerPanel.Visible := InitialVisible;
+      FSplitterProjectManager.Visible := InitialVisible;
+      
+      // Debug logging to track panel creation
+      LogSQL(Format('Project Manager panel created: Visible=%s, Parent=%s, Width=%d, Height=%d, Align=%d', 
+        [BoolToStr(FProjectManagerPanel.Visible, True), FProjectManagerPanel.Parent.Name, 
+         FProjectManagerPanel.Width, FProjectManagerPanel.Height, Ord(FProjectManagerPanel.Align)]), lcDebug);
+      
+      LogSQL('Project Manager panel created successfully in left panel', lcDebug);
+    end;
+  except
+    on E: Exception do
+    begin
+      // Log error and continue without project manager
+      LogSQL('Error creating Project Manager: ' + E.Message, lcError);
+      FProjectManagerPanel := nil;
+      FSplitterProjectManager := nil;
+    end;
+  end;
+  
+  // Create and configure Project Manager action (separately from panel creation)
+  try
+    if not Assigned(actProjectManager) then
+    begin
+      actProjectManager := TAction.Create(Self);
+      actProjectManager.ActionList := ActionList1;
+      actProjectManager.Category := 'View';
+      actProjectManager.Name := 'actProjectManager';
+    end;
+    
+    if Assigned(actProjectManager) then
+    begin
+      actProjectManager.Caption := 'Project &Manager';
+      actProjectManager.Hint := 'Toggle Project Manager panel visibility (F11)';
+      actProjectManager.ShortCut := VK_F11;
+      actProjectManager.OnExecute := actProjectManagerExecute;
+      actProjectManager.Checked := Assigned(FProjectManagerPanel) and FProjectManagerPanel.Visible;
+      
+      // Create menu item in Tools menu
+      if Assigned(MainMenuTools) and not Assigned(menuProjectManager) then
+      begin
+        menuProjectManager := TMenuItem.Create(Self);
+        menuProjectManager.Action := actProjectManager;
+        MainMenuTools.Add(menuProjectManager);
+        LogSQL('Project Manager menu item added to Tools menu', lcDebug);
+      end;
+    end;
+  except
+    on E: Exception do
+    begin
+      LogSQL('Error creating Project Manager action: ' + E.Message, lcError);
+    end;
+  end;
 end;
 
 
@@ -11870,6 +11961,45 @@ begin
 end;
 
 
+procedure TMainForm.ToggleProjectManager;
+begin
+  if Assigned(FProjectManagerPanel) then
+  begin
+    // Toggle Project Manager visibility in left panel
+    if FProjectManagerPanel.Visible then
+    begin
+      // Hide Project Manager
+      FProjectManagerPanel.Visible := False;
+      if Assigned(FSplitterProjectManager) then
+        FSplitterProjectManager.Visible := False;
+      ShowStatusMsg('Project Manager hidden');
+      AppSettings.WriteBool(asProjectManagerVisible, False);
+    end
+    else
+    begin
+      // Show Project Manager
+      FProjectManagerPanel.Visible := True;
+      if Assigned(FSplitterProjectManager) then
+        FSplitterProjectManager.Visible := True;
+      ShowStatusMsg('Project Manager visible');
+      AppSettings.WriteBool(asProjectManagerVisible, True);
+    end;
+    
+    // Debug information after toggle
+    LogSQL(Format('After toggle: ProjectManager.Visible=%s, Width=%d, Height=%d', 
+      [BoolToStr(FProjectManagerPanel.Visible, True), 
+       FProjectManagerPanel.Width, FProjectManagerPanel.Height]), lcDebug);
+    
+    // Update action checked state if assigned
+    if Assigned(actProjectManager) then
+      actProjectManager.Checked := FProjectManagerPanel.Visible;
+  end
+  else
+  begin
+    ShowStatusMsg('Project Manager panel not available');
+  end;
+end;
+
 procedure TMainForm.actCopyGridNodesExecute(Sender: TObject);
 var
   SenderControl: TComponent;
@@ -13317,6 +13447,21 @@ begin
   if pnlFilterVT.Visible and editFilterVT.CanFocus and (Sender <> nil) then
     editFilterVT.SetFocus;
   UpdateFilterPanel(Sender);
+end;
+
+
+procedure TMainForm.actProjectManagerExecute(Sender: TObject);
+begin
+  // Toggle Project Manager panel visibility
+  ToggleProjectManager;
+  
+  // Additional debugging - force visibility if panel seems hidden
+  if Assigned(FProjectManagerPanel) and not FProjectManagerPanel.Visible then
+  begin
+    LogSQL('Project Manager still hidden after toggle - forcing visibility', lcDebug);
+    FProjectManagerPanel.Visible := True;
+    FProjectManagerPanel.BringToFront;
+  end;
 end;
 
 
