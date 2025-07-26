@@ -9,7 +9,7 @@ uses
   ComCtrls, Dialogs, SysUtils, Menus, LCLType,
   apphelpers, ActnList, extra_controls,
   ExtCtrls, dbconnection, SynEdit, SynEditHighlighter, customize_highlighter,
-  reformatter,
+  reformatter, jsonparser,
 
   SynHighlighterBat,
   SynHighlighterCpp, SynHighlighterCss,
@@ -261,7 +261,7 @@ begin
 
   // Define highlighters for which we have a reformatter
   FHighlighterFormatters := TStringList.Create;
-  //FHighlighterFormatters.Add(TSynJSONSyn.ClassName);
+  FHighlighterFormatters.Add(TSynJScriptSyn.ClassName);
   FHighlighterFormatters.Add(TSynSQLSyn.ClassName);
   FHighlighterFormatters.Add(TSynXMLSyn.ClassName);
 
@@ -447,21 +447,21 @@ end;
 
 
 procedure TfrmTextEditor.menuFormatCodeOnceClick(Sender: TObject);
-//var
-  //JsonTmp: TJSONValue;
+var
+  JsonParser: TJSONParser;
   //Xml: TXmlVerySimple;
   //XmlTmp: IXMLDocument;
 begin
   // Reformat code if possible
   try
-    {if FHighlighter is TSynJSONSyn then begin
-      JsonTmp := TJSONObject.ParseJSONValue(MemoText.Text);
-      MemoText.Text := JsonTmp.Format;
-      JsonTmp.Free;
+    if FHighlighter is TSynJScriptSyn then begin
+      JsonParser := TJSONParser.Create(MemoText.Text);
+      MemoText.Text := JsonParser.Parse.FormatJSON();
+      JsonParser.Free;
       MemoText.SelStart := 0;
-      MemoText.SelLength := 0;
+      MemoText.SelEnd := 0;
     end
-    else} if FHighlighter is TSynSQLSyn then begin
+    else if FHighlighter is TSynSQLSyn then begin
       // Prefer old internal formatter here, so the user does not run into request limits
       frmReformatter := TfrmReformatter.Create(Self);
       MemoText.Text := frmReformatter.FormatSqlInternal(MemoText.Text);
