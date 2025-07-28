@@ -12,7 +12,7 @@ uses
   StrUtils, laz.VirtualTrees, laz.VTHeaderPopup, RegExpr,
   Buttons, StdCtrls, fphttpclient, Math, LCLIntf, Generics.Collections,
   Generics.Defaults, opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn,
-  FileUtil, LMessages, jsonconf, DelphiCompat, dbconnection, dbstructures, dbstructures.mysql,
+  FileUtil, LMessages, jsonconf, DelphiCompat, LazStringUtils, dbconnection, dbstructures, dbstructures.mysql,
   generic_types, apphelpers, extra_controls, createdatabase,
   SynEditMarkupBracket, searchreplace, ImgList, IniFiles, LazFileUtils, tabletools, lazaruscompat;
 
@@ -1137,7 +1137,9 @@ type
     procedure StatusBarClick(Sender: TObject);
     procedure AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
-    procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
+    procedure SynCompletionProposalSearchPosition(var APosition: integer);
+    procedure SynMemoQueryProcessCommand(Sender: TObject;
+      var Command: TSynEditorCommand; var AChar: TUTF8Char; Data: pointer);
     procedure filterQueryHelpersChange(Sender: TObject);
     procedure TimerStoreTabsTimer(Sender: TObject);
     procedure actGoToQueryResultsExecute(Sender: TObject);
@@ -1270,6 +1272,8 @@ type
     FCommandStatsQueryCount: Int64;
     FCommandStatsServerUptime: Integer;
     FVariableNames, FSessionVars, FGlobalVars: TStringList;
+    FProposalItems: TStringList;
+    FProposalTriggeredByDot: Boolean;
 
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
@@ -2059,6 +2063,8 @@ begin
   SynCompletionProposal.TimerInterval := AppSettings.ReadInt(asCompletionProposalInterval);}
   SynCompletionProposal.Width := Min(AppSettings.ReadInt(asCompletionProposalWidth), 1000);
   SynCompletionProposal.LinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
+  FProposalItems := TStringList.Create;
+  FProposalTriggeredByDot := False;
 
   // Place progressbar on the statusbar
   //ProgressBarStatus.Parent := StatusBar;
@@ -6775,6 +6781,7 @@ var
   Param: TRoutineParam;
   DisplayText: String;
   SQLFunc: TSQLFunction;
+  DummyPos: Integer;
 
   procedure AddTable(Obj: TDBObject);
   var
@@ -6798,7 +6805,7 @@ var
     end;
 
     DisplayText := SynCompletionProposalPrettyText(Obj.ImageIndex, _(LowerCase(Obj.ObjType)), Obj.Name, FunctionDeclaration);
-    Proposal.ItemList.Add(Obj.Name+FunctionDeclaration);
+    FProposalItems.Add(Obj.Name+FunctionDeclaration);
   end;
 
   procedure AddColumns(const LeftToken: String);
@@ -6841,7 +6848,7 @@ var
           //if CurrentInput.StartsWith(Conn.QuoteChar) then
           //  Proposal.ItemList.Add(Conn.QuoteChar + Col.Name)
           //else
-            Proposal.ItemList.Add(Col.Name);
+            FProposalItems.Add(Col.Name);
           Inc(ColumnsInList);
         end;
         Columns.Free;
@@ -6852,29 +6859,24 @@ var
 
 begin
   Proposal := Sender as TSynCompletion;
-  {Proposal.Font.Assign(Font);
-  Proposal.TitleFont.Size := Proposal.Font.Size;
-  Proposal.ItemHeight := ScaleSize(PROPOSAL_ITEM_HEIGHT);
-  Proposal.ClearList;
-  Proposal.Columns[0].ColumnWidth := ScaleSize(100); // Kind of random value, but fits well
-  Proposal.Columns[1].ColumnWidth := ScaleSize(100);}
+  Proposal.ItemList.Clear;
+  FProposalItems.Clear;
   Conn := ActiveConnection;
   Editor := Proposal.Editor;
-  Editor.GetHighlighterAttriAtRowColEx(Editor.PrevWordPos, Token, TokenTypeInt, Start, Attri);
-  //CanExecute := AppSettings.ReadBool(asCompletionProposal) and
-  //  (not (TtkTokenKind(TokenTypeInt) in [SynHighlighterSQL.tkString, SynHighlighterSQL.tkComment]));
-  //if not CanExecute then
-  //  Exit;
 
   // Work around for issue #2640. See ApplicationDeActivate
-  //Proposal.Form.Enabled := True;
+  Proposal.TheForm.Enabled := True;
 
   rx := TRegExpr.Create;
 
   // Find token1.token2.token3, while cursor is somewhere in token3
   Ident := '[^\s,\(\)=\.]';
   rx.Expression := '(('+Ident+'+)\.)?('+Ident+'+)\.('+Ident+'*)$';
-  LeftPart := Copy(Editor.LineText, 1, Editor.CaretX-1);
+  if FProposalTriggeredByDot then
+    LeftPart := Copy(Editor.LineText+'.', 1, Editor.CaretX)
+  else
+    LeftPart := Copy(Editor.LineText, 1, Editor.CaretX-1);
+  FProposalTriggeredByDot := False;
   if rx.Exec(LeftPart) then begin
     Token1 := Conn.DeQuoteIdent(rx.Match[2]);
     Token2 := Conn.DeQuoteIdent(rx.Match[3]);
@@ -6889,7 +6891,7 @@ begin
       Results := Conn.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
         DisplayText := SynCompletionProposalPrettyText(ICONINDEX_PRIMARYKEY, _('Variable'), Results.Col(0), StringReplace(Results.Col(1), '\', '\\', [rfReplaceAll]));
-        Proposal.ItemList.Add(Results.Col(1));
+        FProposalItems.Add(Results.Col(1));
         Results.Next;
       end;
     except
@@ -6986,7 +6988,7 @@ begin
       // All databases
       for i:=0 to Conn.AllDatabases.Count-1 do begin
         DisplayText := SynCompletionProposalPrettyText(ICONINDEX_DB, _('database'), Conn.AllDatabases[i], '');
-        Proposal.ItemList.Add(Conn.AllDatabases[i]);
+        FProposalItems.Add(Conn.AllDatabases[i]);
       end;
 
       // Tables from current db
@@ -7003,14 +7005,14 @@ begin
       // Functions
       for SQLFunc in Conn.SQLFunctions do begin
         DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FUNCTION, _('function'), SQLFunc.Name, SQLFunc.Declaration);
-        Proposal.ItemList.Add(SQLFunc.Name + SQLFunc.Declaration);
+        FProposalItems.Add(SQLFunc.Name + SQLFunc.Declaration);
       end;
 
 
       // Keywords
       for i:=0 to MySQLKeywords.Count-1 do begin
         DisplayText := SynCompletionProposalPrettyText(ICONINDEX_KEYWORD, _('keyword'), MySQLKeywords[i], '');
-        Proposal.ItemList.Add(MySQLKeywords[i]);
+        FProposalItems.Add(MySQLKeywords[i]);
       end;
 
       // Procedure params
@@ -7022,7 +7024,7 @@ begin
           else if Param.Context = 'INOUT' then ImageIndex := 122
           else ImageIndex := -1;
           DisplayText := SynCompletionProposalPrettyText(ImageIndex, Param.Datatype, Param.Name, '');
-          Proposal.ItemList.Add(Param.Name);
+          FProposalItems.Add(Param.Name);
         end;
       end;
 
@@ -7031,6 +7033,58 @@ begin
   end;
   rx.Free;
 
+  // Filter items to current string:
+  SynCompletionProposalSearchPosition(DummyPos);
+end;
+
+
+procedure TMainForm.SynCompletionProposalSearchPosition(var APosition: integer);
+var
+  Proposal: TSynCompletion;
+  i: Integer;
+  CurrentStr: String;
+  SearchOnMid: Boolean;
+begin
+  Proposal := SynCompletionProposal;
+  Proposal.ItemList.BeginUpdate;
+  Proposal.ItemList.Clear;
+  CurrentStr := Proposal.CurrentString;
+  SearchOnMid := AppSettings.ReadBool(asCompletionProposalSearchOnMid);
+  //logsql('SynCompletionProposalSearchPosition CurrentString:'+CurrentStr+' StartsText:');
+  for i:=0 to FProposalItems.Count-1 do begin
+    if CurrentStr.IsEmpty
+      or (SearchOnMid and LowerCase(FProposalItems[i]).Contains(LowerCase(CurrentStr)))
+      or ((not SearchOnMid) and LazStartsText(CurrentStr, FProposalItems[i]))
+      then
+      Proposal.ItemList.Add(FProposalItems[i]);
+  end;
+  Proposal.ItemList.EndUpdate;
+end;
+
+procedure TMainForm.SynMemoQueryProcessCommand(Sender: TObject;
+  var Command: TSynEditorCommand; var AChar: TUTF8Char; Data: pointer);
+var
+  Editor: TSynMemo;
+  CaretToken: String;
+  CaretStart, CaretTokenTypeInt: Integer;
+  CaretAttri: TSynHighlighterAttributes;
+  Proposal: TSynCompletion;
+  p: TPoint;
+begin
+  if AChar = '.' then begin
+    if not AppSettings.ReadBool(asCompletionProposal) then
+      Exit;
+    Editor := Sender as TSynMemo;
+    Editor.GetHighlighterAttriAtRowColEx(Editor.CaretXY, CaretToken, CaretTokenTypeInt, CaretStart, CaretAttri);
+    if not (TtkTokenKind(CaretTokenTypeInt) in [SynHighlighterSQL.tkString, SynHighlighterSQL.tkComment])
+      then begin
+        Proposal := SynCompletionProposal;
+        p := Editor.ClientToScreen(Point(Editor.CaretXPix, Editor.CaretYPix + Editor.LineHeight + 1));
+        Proposal.Editor := Editor;
+        FProposalTriggeredByDot := True;
+        Proposal.Execute('', p.x, p.y);
+      end;
+  end;
 end;
 
 
@@ -7624,72 +7678,6 @@ begin
       Tab.LoadContents(AFiles[i], False, nil);
     end;
   end;
-end;
-
-
-procedure TMainForm.SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
-{var
-  Editor: TSynMemo;
-  Token, Replacement: String;
-  Attri: TSynHighlighterAttributes;
-  OldCaretXY, StartOfTokenRowCol, EndOfTokenRowCol, CurrentRowCol: TPoint;
-  TokenTypeInt, Start, CurrentCharIndex: Integer;
-  //OldSelStart, OldSelEnd: Integer;
-  LineWithToken: String;
-  TableIndex, ProcIndex: Integer;
-  OldOnChange: TNotifyEvent;
-const
-  WordChars = ['A'..'Z', 'a'..'z', '_'];
-  IgnoreChars = [#8]; // Backspace, and probably more which should not trigger uppercase}
-begin
-  // Uppercase reserved words, functions and data types
-  {if CharInSet(Key, WordChars) or CharInSet(Key, IgnoreChars) then
-    Exit;
-  if not AppSettings.ReadBool(asAutoUppercase) then
-    Exit;
-  Editor := Sender as TSynMemo;
-  CurrentCharIndex := Editor.RowColToCharIndex(Editor.CaretXY);
-  // Go one left on trailing line feed, after which PrevWordPos doesn't work
-  Dec(CurrentCharIndex, 1);
-  CurrentRowCol := Editor.CharIndexToRowCol(CurrentCharIndex);
-  StartOfTokenRowCol := Editor.PrevWordPos;
-  Editor.GetHighlighterAttriAtRowColEx(StartOfTokenRowCol, Token, TokenTypeInt, Start, Attri);
-  Replacement := UpperCase(Token);
-
-  // Check if token is preceded by a dot, so it is most probably a table, column or some alias
-  LineWithToken := Editor.Lines[StartOfTokenRowCol.Y-1];
-  if (StartOfTokenRowCol.X > 1) and (LineWithToken[StartOfTokenRowCol.X-1] = '.') then begin
-    Exit;
-  end;
-
-  // Auto-fix case of known database objects
-  TableIndex := SynSQLSynUsed.TableNames.IndexOf(Token);
-  ProcIndex := SynSQLSynUsed.ProcNames.IndexOf(Token);
-  if TableIndex > -1 then begin
-    Replacement := SynSQLSynUsed.TableNames[TableIndex];
-  end else if ProcIndex > -1 then begin
-    Replacement := SynSQLSynUsed.ProcNames[ProcIndex];
-  end else if not (TtkTokenKind(TokenTypeInt) in [tkDatatype, tkFunction, tkKey]) then begin
-    // Only uppercase certain types of keywords
-    Exit;
-  end;
-
-  if Token <> Replacement then begin
-    OldCaretXY := Editor.CaretXY;
-    //OldSelStart := Editor.SelStart;
-    //OldSelEnd := Editor.SelEnd;
-
-    EndOfTokenRowCol := Editor.WordEndEx(StartOfTokenRowCol);
-    OldOnChange := Editor.OnChange;
-    Editor.OnChange := nil;
-    Editor.InsertBlock(StartOfTokenRowCol, EndOfTokenRowCol, PWideChar(Replacement), True);
-    Editor.OnChange := OldOnChange;
-
-    Editor.CaretXY := OldCaretXY;
-    //Editor.SelStart := OldSelStart; // breaks at least some undo steps
-    //Editor.SelEnd := OldSelEnd;
-  end;}
-
 end;
 
 
@@ -12309,6 +12297,7 @@ begin
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
   QueryTab.Memo.OnKeyPress := SynMemoQuery.OnKeyPress;
   QueryTab.Memo.OnMouseWheel := SynMemoQuery.OnMouseWheel;
+  QueryTab.Memo.OnProcessCommand := SynMemoQuery.OnProcessCommand;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
   //QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
   //QueryTab.Memo.OnTokenHint := SynMemoQuery.OnTokenHint;

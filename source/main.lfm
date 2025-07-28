@@ -8,13 +8,13 @@ object MainForm: TMainForm
   ClientWidth = 998
   DesignTimePPI = 120
   Menu = MainMenu1
+  Position = poMainFormCenter
   OnActivate = FormActivate
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnMouseWheel = FormMouseWheel
   OnShow = FormShow
-  Position = poMainFormCenter
   object StatusBar: TStatusBar
     Left = 0
     Height = 29
@@ -858,9 +858,9 @@ object MainForm: TMainForm
         Top = 177
         Width = 212
         Align = alBottom
-        OnMoved = spltPreviewMoved
         ResizeAnchor = akBottom
         Visible = False
+        OnMoved = spltPreviewMoved
       end
       object ToolBarTree: TPanel
         Left = 0
@@ -885,14 +885,14 @@ object MainForm: TMainForm
           ImageIndex = 191
           MaxLength = 0
           NumGlyphs = 1
-          OnButtonClick = editDatabaseTableFilterLeftButtonClick
-          OnChange = editDatabaseTableFilterChange
-          OnExit = editDatabaseTableFilterExit
-          OnKeyPress = editDatabaseTableFilterKeyPress
           PasswordChar = #0
           Spacing = 0
           TabOrder = 0
           TextHint = 'Database filter'
+          OnButtonClick = editDatabaseTableFilterLeftButtonClick
+          OnChange = editDatabaseTableFilterChange
+          OnExit = editDatabaseTableFilterExit
+          OnKeyPress = editDatabaseTableFilterKeyPress
         end
         object btnTreeFavorites: TSpeedButton
           AnchorSideLeft.Control = editTableFilter
@@ -923,14 +923,14 @@ object MainForm: TMainForm
           ImageIndex = 192
           MaxLength = 0
           NumGlyphs = 1
-          OnButtonClick = editDatabaseTableFilterLeftButtonClick
-          OnChange = editDatabaseTableFilterChange
-          OnExit = editDatabaseTableFilterExit
-          OnKeyPress = editDatabaseTableFilterKeyPress
           PasswordChar = #0
           Spacing = 0
           TabOrder = 1
           TextHint = 'Table filter'
+          OnButtonClick = editDatabaseTableFilterLeftButtonClick
+          OnChange = editDatabaseTableFilterChange
+          OnExit = editDatabaseTableFilterExit
+          OnKeyPress = editDatabaseTableFilterKeyPress
         end
       end
       object DBtree: TLazVirtualStringTree
@@ -1017,7 +1017,7 @@ object MainForm: TMainForm
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = editFilterVT
           AnchorSideTop.Side = asrCenter
-          Left = 32
+          Left = 38
           Height = 20
           Top = 10
           Width = 36
@@ -1028,7 +1028,7 @@ object MainForm: TMainForm
           AnchorSideLeft.Control = lblFilterVT
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = pnlFilterVT
-          Left = 74
+          Left = 80
           Height = 28
           Top = 6
           Width = 237
@@ -1039,21 +1039,21 @@ object MainForm: TMainForm
           ImageIndex = 192
           MaxLength = 0
           NumGlyphs = 1
-          OnButtonClick = editDatabaseTableFilterLeftButtonClick
-          OnChange = editFilterVTChange
-          OnExit = editDatabaseTableFilterExit
-          OnKeyPress = editDatabaseTableFilterKeyPress
           PasswordChar = #0
           Spacing = 0
           TabOrder = 0
           TextHint = 'Regular expression'
+          OnButtonClick = editDatabaseTableFilterLeftButtonClick
+          OnChange = editFilterVTChange
+          OnExit = editDatabaseTableFilterExit
+          OnKeyPress = editDatabaseTableFilterKeyPress
         end
         object lblFilterVTInfo: TLabel
           AnchorSideLeft.Control = editFilterVT
           AnchorSideLeft.Side = asrBottom
           AnchorSideTop.Control = editFilterVT
           AnchorSideTop.Side = asrCenter
-          Left = 317
+          Left = 323
           Height = 20
           Top = 10
           Width = 93
@@ -1066,9 +1066,9 @@ object MainForm: TMainForm
           AnchorSideTop.Side = asrCenter
           AnchorSideRight.Control = lblFilterVT
           Left = 6
-          Height = 20
-          Top = 10
-          Width = 20
+          Height = 26
+          Top = 7
+          Width = 26
           AutoSize = True
           BorderSpacing.Around = 6
           Flat = True
@@ -2163,7 +2163,7 @@ object MainForm: TMainForm
               Left = 3
               Height = 26
               Top = 3
-              Width = 411
+              Width = 381
               Align = alLeft
               Anchors = [akTop, akLeft, akRight, akBottom]
               BorderSpacing.Around = 2
@@ -2174,10 +2174,10 @@ object MainForm: TMainForm
             object tbtnDataNext: TSpeedButton
               AnchorSideTop.Control = pnlDataTop
               AnchorSideRight.Control = tbtnDataShowAll
-              Left = 416
-              Height = 24
+              Left = 386
+              Height = 30
               Top = 3
-              Width = 55
+              Width = 61
               Action = actDataShowNext
               Anchors = [akTop, akRight]
               AutoSize = True
@@ -2189,10 +2189,10 @@ object MainForm: TMainForm
             object tbtnDataShowAll: TSpeedButton
               AnchorSideTop.Control = pnlDataTop
               AnchorSideRight.Control = tbtnDataSorting
-              Left = 473
-              Height = 24
+              Left = 449
+              Height = 30
               Top = 3
-              Width = 80
+              Width = 86
               Action = actDataShowAll
               Anchors = [akTop, akRight]
               AutoSize = True
@@ -2204,10 +2204,10 @@ object MainForm: TMainForm
             object tbtnDataSorting: TSpeedButton
               AnchorSideTop.Control = pnlDataTop
               AnchorSideRight.Control = tbtnDataColumns
-              Left = 555
-              Height = 24
+              Left = 537
+              Height = 30
               Top = 3
-              Width = 72
+              Width = 78
               AllowAllUp = True
               Anchors = [akTop, akRight]
               AutoSize = True
@@ -2221,10 +2221,10 @@ object MainForm: TMainForm
             object tbtnDataColumns: TSpeedButton
               AnchorSideTop.Control = pnlDataTop
               AnchorSideRight.Control = tbtnDataFilter
-              Left = 629
-              Height = 24
+              Left = 617
+              Height = 30
               Top = 3
-              Width = 81
+              Width = 87
               AllowAllUp = True
               Anchors = [akTop, akRight]
               AutoSize = True
@@ -2239,10 +2239,10 @@ object MainForm: TMainForm
               AnchorSideTop.Control = pnlDataTop
               AnchorSideRight.Control = pnlDataTop
               AnchorSideRight.Side = asrBottom
-              Left = 712
-              Height = 24
+              Left = 706
+              Height = 30
               Top = 3
-              Width = 57
+              Width = 63
               AllowAllUp = True
               Anchors = [akTop, akRight]
               AutoSize = True
@@ -2907,12 +2907,12 @@ object MainForm: TMainForm
                 ImageIndex = 193
                 MaxLength = 0
                 NumGlyphs = 1
-                OnButtonClick = buttonedEditClear
-                OnChange = filterQueryHelpersChange
                 PasswordChar = #0
                 Spacing = 0
                 TabOrder = 0
                 TextHint = 'Filter ...'
+                OnButtonClick = buttonedEditClear
+                OnChange = filterQueryHelpersChange
               end
               object treeQueryHelpers: TLazVirtualStringTree
                 AnchorSideTop.Side = asrBottom
@@ -2986,7 +2986,6 @@ object MainForm: TMainForm
               TabOrder = 2
               OnDragDrop = SynMemoQueryDragDrop
               OnDragOver = SynMemoQueryDragOver
-              OnKeyPress = SynMemoQueryKeyPress
               OnMouseWheel = AnySynMemoMouseWheel
               Gutter.Width = 68
               Gutter.MouseActions = <>
@@ -3426,6 +3425,7 @@ object MainForm: TMainForm
               LineHighlightColor.Background = clNone
               LineHighlightColor.Foreground = clNone
               OnDropFiles = SynMemoQueryDropFiles
+              OnProcessCommand = SynMemoQueryProcessCommand
               OnReplaceText = SynMemoQueryReplaceText
               OnSpecialLineColors = SynMemoQuerySpecialLineColors
               OnStatusChange = SynMemoQueryStatusChange
@@ -3485,9 +3485,9 @@ object MainForm: TMainForm
             OnChange = tabsetQueryClick
             OnGetImageIndex = tabsetQueryGetImageIndex
             Align = alTop
+            TabOrder = 2
             OnMouseLeave = tabsetQueryMouseLeave
             OnMouseMove = tabsetQueryMouseMove
-            TabOrder = 2
           end
           object QueryGrid: TLazVirtualStringTree
             Left = 0
@@ -3913,8 +3913,8 @@ object MainForm: TMainForm
       Caption = 'New &window'
       Hint = 'New window...'
       ImageIndex = 37
-      OnExecute = actNewWindowExecute
       ShortCut = 16462
+      OnExecute = actNewWindowExecute
     end
     object actExitApplication: TAction
       Category = 'File'
@@ -3936,17 +3936,17 @@ object MainForm: TMainForm
       Caption = '&Copy'
       Hint = 'Copy|Copy to Clipboard'
       ImageIndex = 3
+      ShortCut = 16451
       OnExecute = actCopyOrCutExecute
       OnUpdate = actCopyUpdate
-      ShortCut = 16451
     end
     object actPaste: TAction
       Category = 'Various'
       Caption = '&Paste'
       Hint = 'Paste|Paste from Clipboard'
       ImageIndex = 4
-      OnExecute = actPasteExecute
       ShortCut = 16470
+      OnExecute = actPasteExecute
     end
     object actUserManager: TAction
       Category = 'Tools'
@@ -3960,8 +3960,8 @@ object MainForm: TMainForm
       Caption = 'Cu&t'
       Hint = 'Cut|Cuts the selection and puts it on the Clipboard'
       ImageIndex = 2
-      OnExecute = actCopyOrCutExecute
       ShortCut = 16472
+      OnExecute = actCopyOrCutExecute
     end
     object actUndo: TEditUndo
       Category = 'Various'
@@ -3975,8 +3975,8 @@ object MainForm: TMainForm
       Category = 'Various'
       Caption = 'Copy with tabs to spaces'
       ImageIndex = 3
-      OnExecute = actCopyTabsToSpacesExecute
       ShortCut = 24643
+      OnExecute = actCopyTabsToSpacesExecute
     end
     object actAboutBox: TAction
       Category = 'Various'
@@ -3997,8 +3997,8 @@ object MainForm: TMainForm
       Caption = 'Find text on server'
       Hint = 'Searches selected tables for text occurences'
       ImageIndex = 146
-      OnExecute = actTableToolsExecute
       ShortCut = 24646
+      OnExecute = actTableToolsExecute
     end
     object actExportData: TAction
       Category = 'Export/Import'
@@ -4013,8 +4013,8 @@ object MainForm: TMainForm
       Caption = 'Print...'
       Hint = 'Print List or Data'
       ImageIndex = 34
-      OnExecute = actPrintListExecute
       ShortCut = 16464
+      OnExecute = actPrintListExecute
     end
     object actCopyTable: TAction
       Category = 'Database'
@@ -4030,8 +4030,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Execute SQL...|Execute SQL-query/queries...'
       ImageIndex = 57
-      OnExecute = actExecuteQueryExecute
       ShortCut = 120
+      OnExecute = actExecuteQueryExecute
     end
     object actExecuteSelection: TAction
       Category = 'SQL'
@@ -4039,8 +4039,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Execute selected SQL...|Execute selected SQL-query/queries...'
       ImageIndex = 104
-      OnExecute = actExecuteQueryExecute
       ShortCut = 16504
+      OnExecute = actExecuteQueryExecute
     end
     object actExecuteCurrentQuery: TAction
       Category = 'SQL'
@@ -4048,8 +4048,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Run current query|Run currently focused SQL query'
       ImageIndex = 105
-      OnExecute = actExecuteQueryExecute
       ShortCut = 24696
+      OnExecute = actExecuteQueryExecute
     end
     object actExplainCurrentQuery: TAction
       Category = 'SQL'
@@ -4083,8 +4083,8 @@ object MainForm: TMainForm
       Caption = 'Load SQL file...'
       Hint = 'Load SQL file...'
       ImageIndex = 51
-      OnExecute = actLoadSQLExecute
       ShortCut = 16463
+      OnExecute = actLoadSQLExecute
     end
     object actRunSQL: TAction
       Category = 'SQL'
@@ -4131,16 +4131,16 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Insert row into table'
       ImageIndex = 45
-      OnExecute = actDataInsertExecute
       ShortCut = 45
+      OnExecute = actDataInsertExecute
     end
     object actDataDuplicateRowWithoutKeys: TAction
       Category = 'Data'
       Caption = 'Duplicate row without keys'
       Enabled = False
       ImageIndex = 45
-      OnExecute = actDataInsertExecute
       ShortCut = 16429
+      OnExecute = actDataInsertExecute
     end
     object actDataDuplicateRowWithKeys: TAction
       Category = 'Data'
@@ -4155,8 +4155,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Delete selected row(s)'
       ImageIndex = 46
-      OnExecute = actDataDeleteExecute
       ShortCut = 16430
+      OnExecute = actDataDeleteExecute
     end
     object actDataPostChanges: TAction
       Category = 'Data'
@@ -4164,8 +4164,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Post'
       ImageIndex = 55
-      OnExecute = actDataPostChangesExecute
       ShortCut = 16397
+      OnExecute = actDataPostChangesExecute
     end
     object actDataCancelChanges: TAction
       Category = 'Data'
@@ -4173,8 +4173,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Cancel editing'
       ImageIndex = 26
-      OnExecute = actDataCancelChangesExecute
       ShortCut = 27
+      OnExecute = actDataCancelChangesExecute
     end
     object actCreateTable: TAction
       Category = 'Database'
@@ -4190,8 +4190,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Delete all rows in selected table(s)'
       ImageIndex = 46
-      OnExecute = actEmptyTablesExecute
       ShortCut = 8238
+      OnExecute = actEmptyTablesExecute
     end
     object actCreateDatabase: TAction
       Category = 'Database'
@@ -4206,16 +4206,16 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'SQL help browser'
       ImageIndex = 31
-      OnExecute = actSQLhelpExecute
       ShortCut = 112
+      OnExecute = actSQLhelpExecute
     end
     object actRefresh: TAction
       Category = 'Various'
       Caption = 'Refresh'
       Hint = 'Refresh'
       ImageIndex = 0
-      OnExecute = actRefreshExecute
       ShortCut = 116
+      OnExecute = actRefreshExecute
     end
     object actFullRefresh: TAction
       Category = 'Various'
@@ -4223,8 +4223,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Get full statistics refresh on table data. Slow on InnoDB tables!'
       ImageIndex = 184
-      OnExecute = actFullRefreshExecute
       ShortCut = 8308
+      OnExecute = actFullRefreshExecute
     end
     object actImportCSV: TAction
       Category = 'Export/Import'
@@ -4335,8 +4335,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Save SQL to a textfile'
       ImageIndex = 10
-      OnExecute = actSaveSQLAsExecute
       ShortCut = 123
+      OnExecute = actSaveSQLAsExecute
     end
     object actSaveSQLselection: TAction
       Category = 'SQL'
@@ -4344,8 +4344,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Save selected text to a file'
       ImageIndex = 10
-      OnExecute = actSaveSQLAsExecute
       ShortCut = 24659
+      OnExecute = actSaveSQLAsExecute
     end
     object actSaveSQLSnippet: TAction
       Category = 'SQL'
@@ -4369,24 +4369,24 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Clear query editor'
       ImageIndex = 58
-      OnExecute = actClearEditorExecute
       ShortCut = 16471
+      OnExecute = actClearEditorExecute
     end
     object actClearFilterEditor: TAction
       Category = 'Data'
       Caption = 'Clear'
       Hint = 'Clear filter editor'
       ImageIndex = 58
-      OnExecute = actClearEditorExecute
       ShortCut = 16471
+      OnExecute = actClearEditorExecute
     end
     object actClearQueryLog: TAction
       Category = 'SQL'
       Caption = 'Clear'
       Hint = 'Clear query log'
       ImageIndex = 58
-      OnExecute = actClearEditorExecute
       ShortCut = 16465
+      OnExecute = actClearEditorExecute
     end
     object actQueryStopOnErrors: TAction
       Category = 'SQL'
@@ -4410,23 +4410,23 @@ object MainForm: TMainForm
       Caption = 'Find text ...'
       Hint = 'Find text ...'
       ImageIndex = 30
-      OnExecute = actQueryFindReplaceExecute
       ShortCut = 16454
+      OnExecute = actQueryFindReplaceExecute
     end
     object actQueryReplace: TAction
       Category = 'SQL'
       Caption = 'Replace text ...'
       Hint = 'Replace text ...'
       ImageIndex = 59
-      OnExecute = actQueryFindReplaceExecute
       ShortCut = 16466
+      OnExecute = actQueryFindReplaceExecute
     end
     object actQueryFindAgain: TAction
       Category = 'SQL'
       Caption = 'Find or replace again'
       ImageIndex = 142
-      OnExecute = actQueryFindAgainExecute
       ShortCut = 114
+      OnExecute = actQueryFindAgainExecute
     end
     object actSetDelimiter: TAction
       Category = 'SQL'
@@ -4440,8 +4440,8 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Apply filter'
       ImageIndex = 55
-      OnExecute = actApplyFilterExecute
       ShortCut = 120
+      OnExecute = actApplyFilterExecute
     end
     object actRemoveFilter: TAction
       Category = 'Data'
@@ -4454,25 +4454,25 @@ object MainForm: TMainForm
       Caption = '&Previous tab'
       Hint = 'Previous tab|Go back to the previous tab'
       ImageIndex = 117
-      OnExecute = actPreviousTabExecute
       ShortCut = 24585
+      OnExecute = actPreviousTabExecute
     end
     object actNextTab: TAction
       Category = 'Tools'
       Caption = '&Next tab'
       Hint = 'Next tab|Go to the next tab'
       ImageIndex = 116
-      OnExecute = actNextTabExecute
       ShortCut = 16393
+      OnExecute = actNextTabExecute
     end
     object actSelectAll: TAction
       Category = 'Various'
       Caption = 'Select all'
       Hint = 'Select all|Select all items or text'
       ImageIndex = 118
+      ShortCut = 16449
       OnExecute = actSelectAllExecute
       OnUpdate = ValidateControls
-      ShortCut = 16449
     end
     object actCreateProcedure: TAction
       Category = 'Database'
@@ -4486,8 +4486,8 @@ object MainForm: TMainForm
       Caption = 'New query tab'
       Hint = 'Open a blank query tab'
       ImageIndex = 132
-      OnExecute = actNewQueryTabExecute
       ShortCut = 16468
+      OnExecute = actNewQueryTabExecute
     end
     object actNewQueryTabNofocus: TAction
       Category = 'File'
@@ -4499,15 +4499,15 @@ object MainForm: TMainForm
       Caption = 'Close query tab'
       Enabled = False
       ImageIndex = 133
-      OnExecute = actCloseQueryTabExecute
       ShortCut = 16499
+      OnExecute = actCloseQueryTabExecute
     end
     object actSelectInverse: TAction
       Category = 'Various'
       Caption = 'Invert selection'
       ImageIndex = 138
-      OnExecute = actSelectInverseExecute
       ShortCut = 16457
+      OnExecute = actSelectInverseExecute
     end
     object actFilterPanel: TAction
       Category = 'Various'
@@ -4515,8 +4515,8 @@ object MainForm: TMainForm
       Caption = 'Filter panel'
       Hint = 'Activates the filter panel'
       ImageIndex = 30
-      OnExecute = actFilterPanelExecute
       ShortCut = 49222
+      OnExecute = actFilterPanelExecute
     end
     object actBulkTableEdit: TAction
       Category = 'Tools'
@@ -4544,23 +4544,23 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Save SQL to file'
       ImageIndex = 10
-      OnExecute = actSaveSQLExecute
       ShortCut = 16467
+      OnExecute = actSaveSQLExecute
     end
     object actDataResetSorting: TAction
       Category = 'Data'
       Caption = 'Reset sorting'
       ImageIndex = 139
-      OnExecute = actDataResetSortingExecute
       ShortCut = 32851
+      OnExecute = actDataResetSortingExecute
     end
     object actReformatSQL: TAction
       Category = 'SQL'
       Caption = 'Reformat SQL'
       Hint = 'Automatically reformat disordered SQL in active editor to make it more readable'
       ImageIndex = 140
-      OnExecute = actReformatSQLExecute
       ShortCut = 16503
+      OnExecute = actReformatSQLExecute
     end
     object actBlobAsText: TAction
       Category = 'Data'
@@ -4575,16 +4575,16 @@ object MainForm: TMainForm
       Caption = 'Next'
       Hint = 'Next X rows'
       ImageIndex = 79
-      OnExecute = actDataShowNextExecute
       ShortCut = 49186
+      OnExecute = actDataShowNextExecute
     end
     object actDataShowAll: TAction
       Category = 'Data'
       Caption = 'Show all'
       Hint = 'Show all rows'
       ImageIndex = 143
-      OnExecute = actDataShowAllExecute
       ShortCut = 49187
+      OnExecute = actDataShowAllExecute
     end
     object actRunRoutines: TAction
       Category = 'Database'
@@ -4606,8 +4606,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Set focused cell to NULL'
       ImageIndex = 92
-      OnExecute = actDataSetNullExecute
       ShortCut = 24654
+      OnExecute = actDataSetNullExecute
     end
     object actDataSaveBlobToFile: TAction
       Category = 'Data'
@@ -4645,8 +4645,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Cancel running operation'
       ImageIndex = 159
-      OnExecute = actCancelOperationExecute
       ShortCut = 27
+      OnExecute = actCancelOperationExecute
     end
     object actToggleComment: TAction
       Category = 'SQL'
@@ -4672,8 +4672,8 @@ object MainForm: TMainForm
       Caption = 'SQL function'
       Hint = 'Insert SQL function call in this grid cell, e.g. NOW()'
       ImageIndex = 13
-      OnExecute = actGridEditFunctionExecute
       ShortCut = 16497
+      OnExecute = actGridEditFunctionExecute
     end
     object actLogHorizontalScrollbar: TAction
       Category = 'Various'
@@ -4706,78 +4706,78 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Previous result tab'
       ImageIndex = 117
-      OnExecute = actPreviousResultExecute
       ShortCut = 32805
+      OnExecute = actPreviousResultExecute
     end
     object actNextResult: TAction
       Category = 'Data'
       Caption = 'Next result tab'
       ImageIndex = 116
-      OnExecute = actNextResultExecute
       ShortCut = 32807
+      OnExecute = actNextResultExecute
     end
     object actSaveSynMemoToTextfile: TAction
       Category = 'Various'
       Caption = 'Save as textfile...'
       Hint = 'Save contents to a textfile'
       ImageIndex = 10
+      ShortCut = 16467
       OnExecute = actSaveSynMemoToTextfileExecute
       OnUpdate = ValidateControls
-      ShortCut = 16467
     end
     object actGotoDbTree: TAction
       Category = 'Various'
       Caption = 'Database tree'
-      OnExecute = actGotoDbTreeExecute
       ShortCut = 16452
+      OnExecute = actGotoDbTreeExecute
     end
     object actGotoFilter: TAction
       Category = 'Various'
       Caption = 'Table filter'
-      OnExecute = actGotoFilterExecute
       ShortCut = 16453
+      OnExecute = actGotoFilterExecute
     end
     object actGotoTab1: TAction
       Category = 'Various'
       Caption = 'Tab 1'
-      OnExecute = actGotoTabNumberExecute
       ShortCut = 16433
+      OnExecute = actGotoTabNumberExecute
     end
     object actGotoTab2: TAction
       Category = 'Various'
       Caption = 'Tab 2'
-      OnExecute = actGotoTabNumberExecute
       ShortCut = 16434
+      OnExecute = actGotoTabNumberExecute
     end
     object actGotoTab3: TAction
       Category = 'Various'
       Caption = 'Tab 3'
-      OnExecute = actGotoTabNumberExecute
       ShortCut = 16435
+      OnExecute = actGotoTabNumberExecute
     end
     object actGotoTab4: TAction
       Category = 'Various'
       Caption = 'Tab 4'
-      OnExecute = actGotoTabNumberExecute
       ShortCut = 16436
+      OnExecute = actGotoTabNumberExecute
     end
     object actGotoTab5: TAction
       Category = 'Various'
       Caption = 'Tab 5'
-      OnExecute = actGotoTabNumberExecute
       ShortCut = 16437
+      OnExecute = actGotoTabNumberExecute
     end
     object actGoToQueryResults: TAction
       Category = 'Various'
       Caption = 'Switch to query/results'
-      OnExecute = actGoToQueryResultsExecute
       ShortCut = 117
+      OnExecute = actGoToQueryResultsExecute
     end
     object actGoToDataMultiFilter: TAction
       Category = 'Various'
       Caption = 'Multi column filter'
-      OnExecute = actGoToDataMultiFilterExecute
       ShortCut = 118
+      OnExecute = actGoToDataMultiFilterExecute
     end
     object actDataOpenUrl: TAction
       Category = 'Data'
@@ -4792,8 +4792,8 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Detach attached database'
       ImageIndex = 100
-      OnExecute = actDetachDatabaseExecute
       Visible = False
+      OnExecute = actDetachDatabaseExecute
     end
     object actAttachDatabase: TAction
       Category = 'Database'
@@ -4801,28 +4801,28 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Attach new or existing database file'
       ImageIndex = 101
-      OnExecute = actAttachDatabaseExecute
       Visible = False
+      OnExecute = actAttachDatabaseExecute
     end
     object actSynEditCompletionPropose: TAction
       Category = 'SQL'
       Caption = 'Show SQL completion proposal'
-      OnExecute = actSynEditCompletionProposeExecute
       ShortCut = 16416
+      OnExecute = actSynEditCompletionProposeExecute
     end
     object actQuickFilterFocused1: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column = Focused'
       ImageIndex = 61
-      OnExecute = QuickFilterClick
       ShortCut = 24625
+      OnExecute = QuickFilterClick
     end
     object actQuickFilterFocused2: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column != Focused'
       ImageIndex = 61
-      OnExecute = QuickFilterClick
       ShortCut = 24626
+      OnExecute = QuickFilterClick
     end
     object actQuickFilterFocused3: TAction
       Category = 'Data'
@@ -4858,15 +4858,15 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Quick filter: Column = Prompt'
       ImageIndex = 58
-      OnExecute = QuickFilterClick
       ShortCut = 24627
+      OnExecute = QuickFilterClick
     end
     object actQuickFilterPrompt2: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column != Prompt'
       ImageIndex = 58
-      OnExecute = QuickFilterClick
       ShortCut = 24628
+      OnExecute = QuickFilterClick
     end
     object actQuickFilterPrompt3: TAction
       Category = 'Data'
@@ -4902,15 +4902,15 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Quick filter: Column = Clipboard'
       ImageIndex = 4
-      OnExecute = QuickFilterClick
       ShortCut = 24629
+      OnExecute = QuickFilterClick
     end
     object actQuickFilterClipboard2: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column != Clipboard'
       ImageIndex = 4
-      OnExecute = QuickFilterClick
       ShortCut = 24630
+      OnExecute = QuickFilterClick
     end
     object actQuickFilterClipboard3: TAction
       Category = 'Data'
@@ -4985,22 +4985,22 @@ object MainForm: TMainForm
       Category = 'SQL'
       Caption = 'Move line down'
       ImageIndex = 75
-      OnExecute = actSynMoveDownExecute
       ShortCut = 32808
+      OnExecute = actSynMoveDownExecute
     end
     object actSynMoveUp: TAction
       Category = 'SQL'
       Caption = 'Move line up'
       ImageIndex = 74
-      OnExecute = actSynMoveUpExecute
       ShortCut = 32806
+      OnExecute = actSynMoveUpExecute
     end
     object actSequalSuggest: TAction
       Category = 'Tools'
       Caption = 'Sequal Suggest'
       ImageIndex = 206
-      OnExecute = actSequalSuggestExecute
       Visible = False
+      OnExecute = actSequalSuggestExecute
     end
     object actResetPanelDimensions: TAction
       Category = 'Tools'
@@ -20231,11 +20231,13 @@ object MainForm: TMainForm
     OnExecute = SynCompletionProposalExecute
     Position = -1
     LinesInWindow = 6
+    OnSearchPosition = SynCompletionProposalSearchPosition
     OnPositionChanged = SynCompletionProposalChange
     SelectedColor = clHighlight
     CaseSensitive = False
     Width = 262
-    AutoUseSingleIdent = True
+    ShowSizeDrag = True
+    AutoUseSingleIdent = False
     ShortCut = 16416
     EndOfTokenChr = '()[].'
     OnCodeCompletion = SynCompletionProposalCodeCompletion
