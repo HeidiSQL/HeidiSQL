@@ -161,15 +161,15 @@ constructor TProjectManagerPanel.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   
-  // Basic panel setup - positioned in left panel at bottom
-  Align := alBottom; // Position at bottom of left panel
+  // Basic panel setup - positioned in right panel at bottom
+  Align := alBottom; // Position at bottom of right panel
   Caption := ''; // No caption to avoid visual clutter
   BevelOuter := bvNone; // Remove border to match other panels
   BevelInner := bvNone; // Remove inner border
   BorderStyle := bsNone; // Remove border completely
   Color := GetThemeColor(clWindow); // Use theme-appropriate background
   Width := 300; // Force minimum width
-  Height := 200; // Force minimum height for left panel
+  Height := 200; // Force minimum height for right panel
   Visible := True; // Default visible
   
   // Initialize project folders list
@@ -1654,7 +1654,7 @@ begin
     for i := 0 to Parent.ControlCount - 1 do
     begin
       if (Parent.Controls[i] is TSplitter) and 
-         (TSplitter(Parent.Controls[i]).Align = alRight) then // Back to alRight
+         (TSplitter(Parent.Controls[i]).Align = alBottom) then
       begin
         TSplitter(Parent.Controls[i]).Visible := Visible;
         Break;

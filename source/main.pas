@@ -102,6 +102,10 @@ type
       pnlMemo: TPanel;
       Memo: TSynMemo;
       pnlHelpers: TPanel;
+      pcHelpers: TPageControl;  // PageControl für Helpers und Project Manager
+      tabHelpers: TTabSheet;    // Tab für die ursprünglichen Helpers
+      tabProjectManager: TTabSheet; // Tab für den Project Manager
+      projectManagerPanel: TProjectManagerPanel; // Project Manager Instance pro Tab
       filterHelpers: TButtonedEdit;
       treeHelpers: TVirtualStringTree;
       MemoFileRenamed: Boolean;
@@ -1316,8 +1320,6 @@ type
     function RestoreTabs: Boolean;
     procedure SetHintFontByControl(Control: TWinControl=nil);
   private
-    FProjectManagerPanel: TProjectManagerPanel;
-    FSplitterProjectManager: TSplitter;
   public
     QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
@@ -1851,8 +1853,6 @@ begin
   AppSettings.WriteString(asDelimiter, FDelimiter);
   AppSettings.WriteInt(asQuerymemoheight, pnlQueryMemo.Height);
   AppSettings.WriteInt(asQueryhelperswidth, pnlQueryHelpers.Width);
-  if Assigned(FProjectManagerPanel) then
-    AppSettings.WriteInt(asProjectManagerWidth, FProjectManagerPanel.Width);
   AppSettings.WriteInt(asCompletionProposalWidth, SynCompletionProposal.Width);
   AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.NbLinesInWindow);
   AppSettings.WriteInt(asDbtreewidth, pnlLeft.width);
@@ -1861,8 +1861,6 @@ begin
   AppSettings.WriteBool(asDataPreviewEnabled, actDataPreview.Checked);
   AppSettings.WriteInt(asLogHeight, SynMemoSQLLog.Height);
   AppSettings.WriteBool(asFilterPanel, actFilterPanel.Checked);
-  if Assigned(FProjectManagerPanel) then
-    AppSettings.WriteBool(asProjectManagerVisible, FProjectManagerPanel.Visible);
   AppSettings.WriteBool(asWrapLongLines, actQueryWordWrap.Checked);
   AppSettings.WriteBool(asCodeFolding, actCodeFolding.Checked);
   AppSettings.WriteBool(asSingleQueries, actSingleQueries.Checked);
@@ -1882,12 +1880,6 @@ begin
   SaveListSetup(ListProcesses);
   SaveListSetup(ListCommandStats);
   SaveListSetup(ListTables);
-
-  // Prepare Project Manager Panel for shutdown and free it
-  if Assigned(FProjectManagerPanel) then
-    FProjectManagerPanel.PrepareForShutdown;
-  FreeAndNil(FProjectManagerPanel);
-  FreeAndNil(FSplitterProjectManager);
 
   LogToFile := False;
   AppSettings.Free;
@@ -2025,6 +2017,49 @@ begin
   QueryTab.Uid := TQueryTab.GenerateUid;
   QueryTab.pnlMemo := pnlQueryMemo;
   QueryTab.pnlHelpers := pnlQueryHelpers;
+  
+  // Convert the first tab to use the new PageControl system
+  // Create PageControl for the existing pnlQueryHelpers
+  QueryTab.pcHelpers := TPageControl.Create(QueryTab.pnlHelpers);
+  QueryTab.pcHelpers.Name := 'pcHelpers0';
+  QueryTab.pcHelpers.Parent := QueryTab.pnlHelpers;
+  QueryTab.pcHelpers.Align := alClient;
+  QueryTab.pcHelpers.TabPosition := tpTop;
+  QueryTab.pcHelpers.Style := tsButtons;
+
+  // Create "Helpers" tab and move existing components
+  QueryTab.tabHelpers := TTabSheet.Create(QueryTab.pcHelpers);
+  QueryTab.tabHelpers.Name := 'tabHelpers0';
+  QueryTab.tabHelpers.Caption := 'Helpers';
+  QueryTab.tabHelpers.PageControl := QueryTab.pcHelpers;
+  
+  // Move existing components to the Helpers tab
+  filterQueryHelpers.Parent := QueryTab.tabHelpers;
+  treeQueryHelpers.Parent := QueryTab.tabHelpers;
+
+  // Create "Project Manager" tab
+  QueryTab.tabProjectManager := TTabSheet.Create(QueryTab.pcHelpers);
+  QueryTab.tabProjectManager.Name := 'tabProjectManager0';
+  QueryTab.tabProjectManager.Caption := 'Project Manager';
+  QueryTab.tabProjectManager.PageControl := QueryTab.pcHelpers;
+
+  // Create Project Manager in the Project Manager tab
+  try
+    QueryTab.projectManagerPanel := TProjectManagerPanel.Create(QueryTab.tabProjectManager);
+    QueryTab.projectManagerPanel.Parent := QueryTab.tabProjectManager;
+    QueryTab.projectManagerPanel.Align := alClient;
+    LogSQL('Project Manager panel created successfully in main query tab', lcDebug);
+  except
+    on E: Exception do
+    begin
+      LogSQL('Error creating Project Manager in main query tab: ' + E.Message, lcError);
+      QueryTab.projectManagerPanel := nil;
+    end;
+  end;
+
+  // Set default active tab (Helpers)
+  QueryTab.pcHelpers.ActivePage := QueryTab.tabHelpers;
+
   QueryTab.filterHelpers := filterQueryHelpers;
   QueryTab.treeHelpers := treeQueryHelpers;
   QueryTab.Memo := SynMemoQuery;
@@ -2205,48 +2240,8 @@ begin
   LogSQL(f_('Theme: "%s"', [TStyleManager.ActiveStyle.Name]), lcDebug);
   LogSQL(f_('Pixels per inch on current monitor: %d', [Monitor.PixelsPerInch]), lcDebug);
   LogSQL(f_('Timezone offset: %d', [FTimeZoneOffset]), lcDebug);
-  
-  // Create Project Manager Panel integrated with left panel (database tree area)
-  try
-    FProjectManagerPanel := TProjectManagerPanel.Create(Self);
-    if Assigned(FProjectManagerPanel) then
-    begin
-      // Place in left panel (database tree area) at the bottom
-      FProjectManagerPanel.Parent := pnlLeft;
-      FProjectManagerPanel.Align := alBottom;
-      FProjectManagerPanel.Height := 200;
-      
-      // Create splitter for resizing
-      FSplitterProjectManager := TSplitter.Create(Self);
-      FSplitterProjectManager.Parent := pnlLeft;
-      FSplitterProjectManager.Align := alBottom;
-      FSplitterProjectManager.Height := 4;
-      FSplitterProjectManager.Cursor := crSizeNS;
-      FSplitterProjectManager.ResizeStyle := rsUpdate;
-      
-      // Set initial visibility based on user preference
-      var InitialVisible := AppSettings.ReadBool(asProjectManagerVisible, '', False);
-      FProjectManagerPanel.Visible := InitialVisible;
-      FSplitterProjectManager.Visible := InitialVisible;
-      
-      // Debug logging to track panel creation
-      LogSQL(Format('Project Manager panel created: Visible=%s, Parent=%s, Width=%d, Height=%d, Align=%d', 
-        [BoolToStr(FProjectManagerPanel.Visible, True), FProjectManagerPanel.Parent.Name, 
-         FProjectManagerPanel.Width, FProjectManagerPanel.Height, Ord(FProjectManagerPanel.Align)]), lcDebug);
-      
-      LogSQL('Project Manager panel created successfully in left panel', lcDebug);
-    end;
-  except
-    on E: Exception do
-    begin
-      // Log error and continue without project manager
-      LogSQL('Error creating Project Manager: ' + E.Message, lcError);
-      FProjectManagerPanel := nil;
-      FSplitterProjectManager := nil;
-    end;
-  end;
-  
-  // Create and configure Project Manager action (separately from panel creation)
+
+  // Create and configure Project Manager action for tab switching
   try
     if not Assigned(actProjectManager) then
     begin
@@ -2259,19 +2254,12 @@ begin
     if Assigned(actProjectManager) then
     begin
       actProjectManager.Caption := 'Project &Manager';
-      actProjectManager.Hint := 'Toggle Project Manager panel visibility (F11)';
+      actProjectManager.Hint := 'Toggle Project Manager tab in query helpers (F11)';
       actProjectManager.ShortCut := VK_F11;
       actProjectManager.OnExecute := actProjectManagerExecute;
-      actProjectManager.Checked := Assigned(FProjectManagerPanel) and FProjectManagerPanel.Visible;
+      actProjectManager.Checked := False; // Will be updated when tabs are switched
       
-      // Create menu item in Tools menu
-      if Assigned(MainMenuTools) and not Assigned(menuProjectManager) then
-      begin
-        menuProjectManager := TMenuItem.Create(Self);
-        menuProjectManager.Action := actProjectManager;
-        MainMenuTools.Add(menuProjectManager);
-        LogSQL('Project Manager menu item added to Tools menu', lcDebug);
-      end;
+      LogSQL('Project Manager action configured for tab switching', lcDebug);
     end;
   except
     on E: Exception do
@@ -11962,42 +11950,40 @@ end;
 
 
 procedure TMainForm.ToggleProjectManager;
+var
+  CurrentTab: TQueryTab;
 begin
-  if Assigned(FProjectManagerPanel) then
+  // Toggle Project Manager tab in current query tab
+  if not QueryTabs.HasActiveTab then
   begin
-    // Toggle Project Manager visibility in left panel
-    if FProjectManagerPanel.Visible then
-    begin
-      // Hide Project Manager
-      FProjectManagerPanel.Visible := False;
-      if Assigned(FSplitterProjectManager) then
-        FSplitterProjectManager.Visible := False;
-      ShowStatusMsg('Project Manager hidden');
-      AppSettings.WriteBool(asProjectManagerVisible, False);
-    end
-    else
-    begin
-      // Show Project Manager
-      FProjectManagerPanel.Visible := True;
-      if Assigned(FSplitterProjectManager) then
-        FSplitterProjectManager.Visible := True;
-      ShowStatusMsg('Project Manager visible');
-      AppSettings.WriteBool(asProjectManagerVisible, True);
-    end;
-    
-    // Debug information after toggle
-    LogSQL(Format('After toggle: ProjectManager.Visible=%s, Width=%d, Height=%d', 
-      [BoolToStr(FProjectManagerPanel.Visible, True), 
-       FProjectManagerPanel.Width, FProjectManagerPanel.Height]), lcDebug);
-    
-    // Update action checked state if assigned
-    if Assigned(actProjectManager) then
-      actProjectManager.Checked := FProjectManagerPanel.Visible;
+    ShowStatusMsg('No active query tab available');
+    Exit;
+  end;
+  
+  CurrentTab := QueryTabs.ActiveTab;
+  if not Assigned(CurrentTab.pcHelpers) then
+  begin
+    ShowStatusMsg('Project Manager not available in this tab');
+    Exit;
+  end;
+  
+  // Switch to Project Manager tab
+  if CurrentTab.pcHelpers.ActivePage = CurrentTab.tabProjectManager then
+  begin
+    // Switch back to Helpers tab
+    CurrentTab.pcHelpers.ActivePage := CurrentTab.tabHelpers;
+    ShowStatusMsg('Switched to Helpers');
   end
   else
   begin
-    ShowStatusMsg('Project Manager panel not available');
+    // Switch to Project Manager tab
+    CurrentTab.pcHelpers.ActivePage := CurrentTab.tabProjectManager;
+    ShowStatusMsg('Switched to Project Manager');
   end;
+  
+  // Update action checked state
+  if Assigned(actProjectManager) then
+    actProjectManager.Checked := (CurrentTab.pcHelpers.ActivePage = CurrentTab.tabProjectManager);
 end;
 
 procedure TMainForm.actCopyGridNodesExecute(Sender: TObject);
@@ -12583,10 +12569,31 @@ begin
   else
     QueryTab.pnlHelpers.Width := AppSettings.GetDefaultInt(asQueryhelperswidth);
 
-  QueryTab.filterHelpers := TButtonedEdit.Create(QueryTab.pnlHelpers);
+  // Create PageControl for Helpers and Project Manager tabs
+  QueryTab.pcHelpers := TPageControl.Create(QueryTab.pnlHelpers);
+  QueryTab.pcHelpers.Name := 'pcHelpers' + i.ToString;
+  QueryTab.pcHelpers.Parent := QueryTab.pnlHelpers;
+  QueryTab.pcHelpers.Align := alClient;
+  QueryTab.pcHelpers.TabPosition := tpTop;
+  QueryTab.pcHelpers.Style := tsButtons;
+
+  // Create "Helpers" tab
+  QueryTab.tabHelpers := TTabSheet.Create(QueryTab.pcHelpers);
+  QueryTab.tabHelpers.Name := 'tabHelpers' + i.ToString;
+  QueryTab.tabHelpers.Caption := 'Helpers';
+  QueryTab.tabHelpers.PageControl := QueryTab.pcHelpers;
+
+  // Create "Project Manager" tab
+  QueryTab.tabProjectManager := TTabSheet.Create(QueryTab.pcHelpers);
+  QueryTab.tabProjectManager.Name := 'tabProjectManager' + i.ToString;
+  QueryTab.tabProjectManager.Caption := 'Project Manager';
+  QueryTab.tabProjectManager.PageControl := QueryTab.pcHelpers;
+
+  // Move filter and tree to Helpers tab
+  QueryTab.filterHelpers := TButtonedEdit.Create(QueryTab.tabHelpers);
   QueryTab.filterHelpers.Name := filterQueryHelpers.Name + i.ToString;
   QueryTab.filterHelpers.Text := '';
-  QueryTab.filterHelpers.Parent := QueryTab.pnlHelpers;
+  QueryTab.filterHelpers.Parent := QueryTab.tabHelpers;
   QueryTab.filterHelpers.Align := filterQueryHelpers.Align;
   QueryTab.filterHelpers.TextHint := filterQueryHelpers.TextHint;
   QueryTab.filterHelpers.Images := filterQueryHelpers.Images;
@@ -12597,9 +12604,9 @@ begin
   QueryTab.filterHelpers.OnChange := filterQueryHelpers.OnChange;
   QueryTab.filterHelpers.OnRightButtonClick := filterQueryHelpers.OnRightButtonClick;
 
-  QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.pnlHelpers);
+  QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.tabHelpers);
   QueryTab.treeHelpers.Name := treeQueryHelpers.Name + i.ToString;
-  QueryTab.treeHelpers.Parent := QueryTab.pnlHelpers;
+  QueryTab.treeHelpers.Parent := QueryTab.tabHelpers;
   QueryTab.treeHelpers.Align := treeQueryHelpers.Align;
   QueryTab.treeHelpers.Left := treeQueryHelpers.Left;
   QueryTab.treeHelpers.Constraints.MinWidth := treeQueryHelpers.Constraints.MinWidth;
@@ -12634,6 +12641,25 @@ begin
   QueryTab.treeHelpers.RootNodeCount := treeQueryHelpers.RootNodeCount;
   QueryTab.treeHelpers.TextMargin := treeQueryHelpers.TextMargin;
   FixVT(QueryTab.treeHelpers);
+
+  // Create Project Manager in Project Manager tab
+  try
+    QueryTab.projectManagerPanel := TProjectManagerPanel.Create(QueryTab.tabProjectManager);
+    QueryTab.projectManagerPanel.Parent := QueryTab.tabProjectManager;
+    QueryTab.projectManagerPanel.Align := alClient;
+    
+    // Initialize Project Manager if needed
+    LogSQL('Project Manager panel created successfully in query tab ' + i.ToString, lcDebug);
+  except
+    on E: Exception do
+    begin
+      LogSQL('Error creating Project Manager in query tab: ' + E.Message, lcError);
+      QueryTab.projectManagerPanel := nil;
+    end;
+  end;
+
+  // Set default active tab (Helpers)
+  QueryTab.pcHelpers.ActivePage := QueryTab.tabHelpers;
 
   QueryTab.spltQuery := TSplitter.Create(QueryTab.TabSheet);
   QueryTab.spltQuery.Parent := QueryTab.TabSheet;
@@ -13452,16 +13478,8 @@ end;
 
 procedure TMainForm.actProjectManagerExecute(Sender: TObject);
 begin
-  // Toggle Project Manager panel visibility
+  // Toggle Project Manager tab visibility in current query tab
   ToggleProjectManager;
-  
-  // Additional debugging - force visibility if panel seems hidden
-  if Assigned(FProjectManagerPanel) and not FProjectManagerPanel.Visible then
-  begin
-    LogSQL('Project Manager still hidden after toggle - forcing visibility', lcDebug);
-    FProjectManagerPanel.Visible := True;
-    FProjectManagerPanel.BringToFront;
-  end;
 end;
 
 
@@ -15222,6 +15240,13 @@ end;
 
 destructor TQueryTab.Destroy;
 begin
+  // Clean up Project Manager if it exists
+  if Assigned(projectManagerPanel) then
+  begin
+    projectManagerPanel.PrepareForShutdown;
+    FreeAndNil(projectManagerPanel);
+  end;
+  
   ResultTabs.Clear;
   DirectoryWatch.Free;
   ListBindParams.Free;
