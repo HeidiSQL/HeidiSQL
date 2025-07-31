@@ -6872,10 +6872,9 @@ begin
   // Find token1.token2.token3, while cursor is somewhere in token3
   Ident := '[^\s,\(\)=\.]';
   rx.Expression := '(('+Ident+'+)\.)?('+Ident+'+)\.('+Ident+'*)$';
-  if FProposalTriggeredByDot then
-    LeftPart := Copy(Editor.LineText+'.', 1, Editor.CaretX)
-  else
-    LeftPart := Copy(Editor.LineText, 1, Editor.CaretX-1);
+  LeftPart := Copy(Editor.LineText, 1, Editor.CaretX-1);
+  if FProposalTriggeredByDot then // LineText does not yet contain pressed dot key, see SynMemoQueryProcessCommand
+    LeftPart := LeftPart + '.';
   FProposalTriggeredByDot := False;
   if rx.Exec(LeftPart) then begin
     Token1 := Conn.DeQuoteIdent(rx.Match[2]);
