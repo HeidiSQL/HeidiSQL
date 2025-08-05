@@ -36,7 +36,7 @@ type
       property AsText: String read GetAsText write SetAsText;
   end;
   TBindParamComparer = class(TComparer<TBindParam>)
-    function Compare(constref Left, Right: TBindParam): Integer; override;
+    function Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TBindParam): Integer; override;
   end;
 
   // Query tabs and contained components
@@ -157,7 +157,7 @@ type
       property MaxDuration: Cardinal read FMaxDuration;
   end;
   TQueryHistoryItemComparer = class(TComparer<TQueryHistoryItem>)
-    function Compare(constref Left, Right: TQueryHistoryItem): Integer; override;
+    function Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TQueryHistoryItem): Integer; override;
   end;
 
   {ITaskbarList = interface(IUnknown)
@@ -1351,7 +1351,7 @@ type
     procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
     procedure SessionConnect(Sender: TObject);
     function InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
-    procedure ConnectionsNotify(Sender: TObject; constref Item: TDBConnection; Action: TCollectionNotification);
+    procedure ConnectionsNotify(Sender: TObject; {$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Item: TDBConnection; Action: TCollectionNotification);
     function ActiveGrid: TVirtualStringTree;
     function GridResult(Grid: TBaseVirtualTree): TDBQuery;
     property ActiveConnection: TDBConnection read GetActiveConnection;
@@ -2604,7 +2604,7 @@ begin
 end;
 
 
-procedure TMainForm.ConnectionsNotify(Sender: TObject; constref Item: TDBConnection; Action: TCollectionNotification);
+procedure TMainForm.ConnectionsNotify(Sender: TObject; {$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Item: TDBConnection; Action: TCollectionNotification);
 var
   Results: TDBQuery;
   Tab: TQueryTab;
@@ -7547,7 +7547,7 @@ var
   Seconds: Extended;
 begin
   // set interval for autorefresh-timer
-  SecondsStr := FloatToStr(TimerRefresh.interval div 1000);
+  SecondsStr := FloatToStr(TimerRefresh.Interval / 1000);
   if InputQuery(_('Auto refresh'),_('Refresh list every ... second(s):'), SecondsStr) then begin
     Seconds := StrToFloatDef(SecondsStr, 0);
     if Seconds > 0 then begin
@@ -15568,7 +15568,7 @@ begin
 end;
 
 
-function TQueryHistoryItemComparer.Compare(constref Left, Right: TQueryHistoryItem): Integer;
+function TQueryHistoryItemComparer.Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TQueryHistoryItem): Integer;
 begin
   // Simple sort method for a TDBObjectList
   if Left.Time > Right.Time then
@@ -15646,7 +15646,7 @@ end;
 
 { TBindParamComparer }
 
-function TBindParamComparer.Compare(constref Left, Right: TBindParam): Integer;
+function TBindParamComparer.Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TBindParam): Integer;
 begin
   // Simple sort method for a TDBObjectList
   Result := CompareText(Left.Name, Right.Name);

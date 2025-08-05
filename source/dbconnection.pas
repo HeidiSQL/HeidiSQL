@@ -226,10 +226,10 @@ type
   end;
   TDatabaseCache = class(TObjectList<TDBObjectList>); // A list of db object lists, used for caching
   TDBObjectComparer = class(TComparer<TDBObject>)
-    function Compare(constref Left, Right: TDBObject): Integer; override;
+    function Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TDBObject): Integer; override;
   end;
   TDBObjectDropComparer = class(TComparer<TDBObject>)
-    function Compare(constref Left, Right: TDBObject): Integer; override;
+    function Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TDBObject): Integer; override;
   end;
 
   TOidStringPairs = TDictionary<POid, String>;
@@ -10225,14 +10225,14 @@ end;
 
 { TDBObjectComparer }
 
-function TDBObjectComparer.Compare(constref Left, Right: TDBObject): Integer;
+function TDBObjectComparer.Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TDBObject): Integer;
 begin
   // Simple sort method for a TDBObjectList
   Result := CompareAnyNode(Left.Schema+'.'+Left.Name, Right.Schema+'.'+Right.Name);
 end;
 
 
-function TDBObjectDropComparer.Compare(constref Left, Right: TDBObject): Integer;
+function TDBObjectDropComparer.Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TDBObject): Integer;
 begin
   // Sorting a TDBObject items so that dropping them does not trap in SQL errors
   if (Left.NodeType = lntTrigger) and (Right.NodeType <> lntTrigger) then

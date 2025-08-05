@@ -10,22 +10,12 @@ uses
   athreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  SysUtils,
+  SysUtils, Dialogs,
   Forms, printer4lazarus, datetimectrls, LCLTranslator, Translations,
   { you can add units after this }
-  main, apphelpers, dbconnection, { gnugettext,}
-  dbstructures, dbstructures.mysql, About, generic_types,
-  dbstructures.interbase, dbstructures.mssql, dbstructures.postgresql,
-  dbstructures.sqlite, change_password, loginform, data_sorting, extra_controls,
-  column_selection, loaddata, csv_detector, createdatabase, editvar, copytable,
-  exportgrid, usermanager, selectdbobject, reformatter, searchreplace,
-  connections, jsonregistry, sqlhelp, updatecheck, insertfiles, texteditor,
-  customize_highlighter, preferences, table_editor, view, routine_editor,
-  trigger_editor, event_editor, tabletools, bineditor, grideditlinks,
-  lazaruscompat, crashdialog;
+  main, apphelpers, dbconnection;
 
 {$R *.res}
-{.$R resources.rc}
 
 var
   AppLanguage: String;
@@ -39,7 +29,8 @@ begin
   DefaultFormatSettings.TimeSeparator := ':';
   DefaultFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
   DefaultFormatSettings.LongTimeFormat := 'hh:nn:ss';
-  // Testing issue #2189: DefaultFormatSettings.ThousandSeparator:= chr(160);
+  // Testing issue #2189:
+  // DefaultFormatSettings.ThousandSeparator:= chr(160);
 
   AppSettings := TAppSettings.Create;
 
