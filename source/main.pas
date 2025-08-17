@@ -2268,8 +2268,8 @@ begin
     
     if Assigned(actProjectManager) then
     begin
-      actProjectManager.Caption := 'Project &Manager';
-      actProjectManager.Hint := 'Toggle Project Manager tab in query helpers (F11)';
+      actProjectManager.Caption := _('Project &Manager');
+      actProjectManager.Hint := _('Toggle Project Manager tab in query helpers (F11)');
       actProjectManager.ShortCut := VK_F11;
       actProjectManager.OnExecute := actProjectManagerExecute;
       actProjectManager.Checked := FProjectManagerTabActive; // Reflect global state
