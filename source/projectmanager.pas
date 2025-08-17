@@ -27,6 +27,25 @@ type
     DisplayName: string;           // Display text
   end;
 
+const
+  // UI Layout Constants
+  HEADER_PANEL_HEIGHT = 26;
+  TOOLBAR_HEIGHT = 28;
+  TOOLBAR_BUTTON_HEIGHT = 21;
+  TOOLBAR_BUTTON_WIDTH = 22;
+  DEFAULT_PANEL_WIDTH = 300;
+  DEFAULT_PANEL_HEIGHT = 200;
+  DEFAULT_NODE_HEIGHT = 20;
+  HEADER_LABEL_LEFT = 8;
+  HEADER_LABEL_TOP = 6;
+  
+  // File handling
+  MAX_FILES_PER_FOLDER = 100;
+  
+  // System icons (using HeidiSQL's VirtualImageListMain indices)
+  ICON_ADD_PROJECT = 45;        // Same as actDataInsert
+  ICON_REMOVE_PROJECT = 46;     // Same as actDataDelete
+
   // Project Manager Panel - rechts positioniert wie andere Tool-Panels
   TProjectManagerPanel = class(TPanel)
   private
@@ -168,8 +187,8 @@ begin
   BevelInner := bvNone; // Remove inner border
   BorderStyle := bsNone; // Remove border completely
   Color := GetThemeColor(clWindow); // Use theme-appropriate background
-  Width := 300; // Force minimum width
-  Height := 200; // Force minimum height for right panel
+  Width := DEFAULT_PANEL_WIDTH; // Use constant
+  Height := DEFAULT_PANEL_HEIGHT; // Use constant
   Visible := True; // Default visible
   
   // Initialize project folders list
@@ -209,7 +228,7 @@ begin
     // Clear tree view safely before destroying
     if Assigned(FTreeView) then
     begin
-      FTreeView.Clear;
+      // First, disconnect all event handlers to prevent callbacks during destruction
       FTreeView.OnGetText := nil;
       FTreeView.OnGetHint := nil;
       FTreeView.OnInitNode := nil;
@@ -219,15 +238,44 @@ begin
       FTreeView.OnDblClick := nil;
       FTreeView.OnKeyPress := nil;
       FTreeView.OnPaintText := nil;
+      
+      // Clear the tree content before destroying
+      FTreeView.Clear;
+      
+      // Ensure parent relationship is cleared
+      if Assigned(FTreeView.Parent) then
+        FTreeView.Parent := nil;
     end;
     
     // Clean up project folders - TObjectList will free objects automatically
     FreeAndNil(FProjectFolders);
+    
+    // Disconnect from parent to avoid double-free issues
+    if Assigned(Parent) then
+      Parent := nil;
+      
   except
-    // Suppress any errors during destruction to prevent access violations
+    on E: Exception do
+    begin
+      // Suppress any errors during destruction to prevent access violations
+      // but in debug mode, we might want to know about them
+      {$IFDEF DEBUG}
+      OutputDebugString(PChar('Error in TProjectManagerPanel.Destroy: ' + E.Message));
+      {$ENDIF}
+    end;
   end;
   
-  inherited Destroy;
+  try
+    inherited Destroy;
+  except
+    on E: Exception do
+    begin
+      // Final safety net - log but don't re-raise
+      {$IFDEF DEBUG}
+      OutputDebugString(PChar('Error in inherited Destroy: ' + E.Message));
+      {$ENDIF}
+    end;
+  end;
 end;
 
 procedure TProjectManagerPanel.PrepareForShutdown;
@@ -262,7 +310,7 @@ begin
   FHeaderPanel := TPanel.Create(Self);
   FHeaderPanel.Parent := Self;
   FHeaderPanel.Align := alTop;
-  FHeaderPanel.Height := 26;
+  FHeaderPanel.Height := HEADER_PANEL_HEIGHT;
   FHeaderPanel.BevelOuter := bvNone;
   FHeaderPanel.BevelInner := bvNone;
   FHeaderPanel.BorderStyle := bsNone;
@@ -271,8 +319,8 @@ begin
   
   FHeaderLabel := TLabel.Create(Self);
   FHeaderLabel.Parent := FHeaderPanel;
-  FHeaderLabel.Left := 8;
-  FHeaderLabel.Top := 6;
+  FHeaderLabel.Left := HEADER_LABEL_LEFT;
+  FHeaderLabel.Top := HEADER_LABEL_TOP;
   FHeaderLabel.Caption := _('Project Manager');
   FHeaderLabel.Font.Style := [fsBold];
   FHeaderLabel.Font.Size := 9;

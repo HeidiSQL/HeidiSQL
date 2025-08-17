@@ -1003,6 +1003,9 @@ type
     procedure actCloseQueryTabExecute(Sender: TObject);
     procedure menuCloseQueryTabClick(Sender: TObject);
     procedure CloseQueryTab(PageIndex: Integer);
+    function GetQueryTabBackupFilename(Tab: TQueryTab): String;
+    procedure SaveQueryTabBackupToIni(Tab: TQueryTab; const BackupFilename: String);
+    function ShouldCreateQueryTabBackup(Tab: TQueryTab): Boolean;
     procedure CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     function GetMainTabAt(X, Y: Integer): Integer;
@@ -12858,6 +12861,8 @@ procedure TMainForm.CloseQueryTab(PageIndex: Integer);
 var
   NewPageIndex: Integer;
   Grid: TVirtualStringTree;
+  QueryTab: TQueryTab;
+  BackupFilename: String;
 begin
   // Special case: the very first tab gets cleared but not closed
   if PageIndex = tabQuery.PageIndex then begin
@@ -12866,6 +12871,30 @@ begin
   end;
   if not IsQueryTab(PageIndex, False) then
     Exit;
+    
+  // Get the query tab before we destroy it
+  QueryTab := QueryTabs.TabByControl(PageControlMain.Pages[PageIndex]);
+  
+  // Create automatic backup if needed
+  if Assigned(QueryTab) and ShouldCreateQueryTabBackup(QueryTab) then
+  begin
+    try
+      BackupFilename := GetQueryTabBackupFilename(QueryTab);
+      if BackupFilename <> '' then
+      begin
+        QueryTab.Memo.Lines.SaveToFile(BackupFilename, TEncoding.UTF8);
+        SaveQueryTabBackupToIni(QueryTab, BackupFilename);
+        LogSQL(f_('Query tab content backed up to: %s', [BackupFilename]), lcInfo);
+      end;
+    except
+      on E: Exception do
+      begin
+        // Don't prevent tab closing due to backup errors, but log them
+        LogSQL(f_('Error creating query tab backup: %s', [E.Message]), lcError);
+      end;
+    end;
+  end;
+  
   // Cancel cell editor if active, preventing crash. See issue #2040
   Grid := ActiveGrid;
   if Assigned(Grid) and Grid.IsEditing then
@@ -12881,11 +12910,14 @@ begin
     Dec(NewPageIndex);
   // Avoid excessive flicker:
   LockWindowUpdate(PageControlMain.Handle);
-  PageControlMain.Pages[PageIndex].Free;
-  QueryTabs.Delete(PageIndex-tabQuery.PageIndex);
-  PageControlMain.ActivePageIndex := NewPageIndex;
-  FixQueryTabCloseButtons;
-  LockWindowUpdate(0);
+  try
+    PageControlMain.Pages[PageIndex].Free;
+    QueryTabs.Delete(PageIndex-tabQuery.PageIndex);
+    PageControlMain.ActivePageIndex := NewPageIndex;
+    FixQueryTabCloseButtons;
+  finally
+    LockWindowUpdate(0);
+  end;
   PageControlMain.OnChange(PageControlMain);
 end;
 
@@ -13118,10 +13150,23 @@ var
 begin
   // Asynchronous timer for mousedown event on query tab close button
   TimerCloseTabByButton.Enabled := False;
-  for i:=0 to QueryTabs.Count-1 do begin
-    if QueryTabs[i].CloseButton = FLastMouseDownCloseButton then begin
-      CloseQueryTab(QueryTabs[i].TabSheet.PageIndex);
-      break;
+  
+  try
+    for i:=0 to QueryTabs.Count-1 do begin
+      if QueryTabs[i].CloseButton = FLastMouseDownCloseButton then begin
+        CloseQueryTab(QueryTabs[i].TabSheet.PageIndex);
+        break;
+      end;
+    end;
+  except
+    on E: Exception do
+    begin
+      // Stop timer on errors to prevent cascading issues
+      TimerCloseTabByButton.Enabled := False;
+      LogSQL(f_('Error in TimerCloseTabByButtonTimer: %s', [E.Message]), lcError);
+      
+      // Reset the close button reference to prevent further issues
+      FLastMouseDownCloseButton := nil;
     end;
   end;
 end;
@@ -15240,18 +15285,68 @@ end;
 
 destructor TQueryTab.Destroy;
 begin
-  // Clean up Project Manager if it exists
-  if Assigned(projectManagerPanel) then
-  begin
-    projectManagerPanel.PrepareForShutdown;
-    FreeAndNil(projectManagerPanel);
+  try
+    // Clean up Project Manager if it exists
+    if Assigned(projectManagerPanel) then
+    begin
+      try
+        projectManagerPanel.PrepareForShutdown;
+      except
+        // Ignore exceptions during shutdown preparation
+      end;
+      FreeAndNil(projectManagerPanel);
+    end;
+    
+    // Clean up tab components safely
+    if Assigned(ResultTabs) then
+    begin
+      ResultTabs.Clear;
+      FreeAndNil(ResultTabs);
+    end;
+    
+    // Free other components with error handling
+    try
+      if Assigned(DirectoryWatch) then
+        FreeAndNil(DirectoryWatch);
+    except
+      // Ignore DirectoryWatch cleanup errors
+    end;
+    
+    if Assigned(ListBindParams) then
+      FreeAndNil(ListBindParams);
+      
+    if Assigned(TimerLastChange) then
+    begin
+      TimerLastChange.Enabled := False;
+      FreeAndNil(TimerLastChange);
+    end;
+    
+    if Assigned(TimerStatusUpdate) then
+    begin
+      TimerStatusUpdate.Enabled := False;
+      FreeAndNil(TimerStatusUpdate);
+    end;
+    
+  except
+    on E: Exception do
+    begin
+      // Log but don't re-raise exceptions during destruction
+      {$IFDEF DEBUG}
+      OutputDebugString(PChar('Error in TQueryTab.Destroy: ' + E.Message));
+      {$ENDIF}
+    end;
   end;
   
-  ResultTabs.Clear;
-  DirectoryWatch.Free;
-  ListBindParams.Free;
-  TimerLastChange.Free;
-  TimerStatusUpdate.Free;
+  try
+    inherited Destroy;
+  except
+    on E: Exception do
+    begin
+      {$IFDEF DEBUG}
+      OutputDebugString(PChar('Error in TQueryTab.inherited Destroy: ' + E.Message));
+      {$ENDIF}
+    end;
+  end;
 end;
 
 
@@ -15914,6 +16009,104 @@ function TBindParamComparer.Compare(const Left, Right: TBindParam): Integer;
 begin
   // Simple sort method for a TDBObjectList
   Result := CompareText(Left.Name, Right.Name);
+end;
+
+
+{ TMainForm - Query Tab Backup Methods }
+
+function TMainForm.GetQueryTabBackupFilename(Tab: TQueryTab): String;
+var
+  BackupDir, Timestamp, SafeCaption: String;
+begin
+  Result := '';
+  if not Assigned(Tab) then
+    Exit;
+    
+  try
+    // Create backup directory if it doesn't exist
+    if AppSettings.PortableMode then
+      BackupDir := ExtractFilePath(Application.ExeName) + 'Backups\'
+    else
+      BackupDir := AppSettings.DirnameUserAppData + 'Backups\';
+      
+    if not DirectoryExists(BackupDir) then
+      ForceDirectories(BackupDir);
+    
+    // Create safe filename from tab caption
+    SafeCaption := Tab.TabSheet.Caption;
+    SafeCaption := StringReplace(SafeCaption, ' ', '_', [rfReplaceAll]);
+    SafeCaption := StringReplace(SafeCaption, '*', '', [rfReplaceAll]);
+    // Remove non-alphanumeric characters
+    SafeCaption := ReplaceRegExpr('[^\w]', SafeCaption, '_', True);
+    
+    // Generate unique filename with timestamp
+    Timestamp := FormatDateTime('yyyymmdd_hhnnss', Now);
+    Result := BackupDir + 'query_' + SafeCaption + '_' + Timestamp + '_' + IntToStr(GetTickCount64) + '.sql';
+  except
+    on E: Exception do
+    begin
+      LogSQL(f_('Error generating backup filename: %s', [E.Message]), lcError);
+      Result := '';
+    end;
+  end;
+end;
+
+procedure TMainForm.SaveQueryTabBackupToIni(Tab: TQueryTab; const BackupFilename: String);
+var
+  TabsIni: TIniFile;
+  TabSection: String;
+begin
+  if not Assigned(Tab) or (BackupFilename = '') then
+    Exit;
+    
+  try
+    TabsIni := InitTabsIniFile;
+    try
+      TabSection := 'Tab' + IntToStr(Tab.Number);
+      TabsIni.WriteString(TabSection, 'BackupFile', BackupFilename);
+      TabsIni.WriteString(TabSection, 'BackupTimestamp', DateTimeToStr(Now));
+      TabsIni.WriteString(TabSection, 'BackupReason', 'AutoBackupOnClose');
+    finally
+      TabsIni.Free;
+    end;
+  except
+    on E: Exception do
+    begin
+      LogSQL(f_('Error saving backup info to tabs.ini: %s', [E.Message]), lcError);
+    end;
+  end;
+end;
+
+function TMainForm.ShouldCreateQueryTabBackup(Tab: TQueryTab): Boolean;
+var
+  QueryText: String;
+begin
+  Result := False;
+  
+  if not Assigned(Tab) or not Assigned(Tab.Memo) then
+    Exit;
+    
+  // Only backup if content has been modified and is not empty
+  if not Tab.Memo.Modified then
+    Exit;
+    
+  QueryText := Trim(Tab.Memo.Text);
+  if Length(QueryText) = 0 then
+    Exit;
+    
+  // Don't backup very short queries (probably just typos)
+  if Length(QueryText) < 10 then
+    Exit;
+    
+  // Don't backup if it's just whitespace or common single commands
+  if (Pos(#13#10, QueryText) = 0) and 
+     (LowerCase(QueryText) = 'select') or 
+     (LowerCase(QueryText) = 'show') or
+     (LowerCase(QueryText) = 'desc') or
+     (LowerCase(QueryText) = 'describe') then
+    Exit;
+    
+  Result := True;
 end;
 
 end.
