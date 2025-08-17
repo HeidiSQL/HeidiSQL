@@ -46,6 +46,7 @@ const
   ICON_ADD_PROJECT = 45;        // Same as actDataInsert
   ICON_REMOVE_PROJECT = 46;     // Same as actDataDelete
 
+type
   // Project Manager Panel - rechts positioniert wie andere Tool-Panels
   TProjectManagerPanel = class(TPanel)
   private
@@ -194,7 +195,7 @@ begin
   // Initialize project folders list
   FProjectFolders := TObjectList<TProjectFolder>.Create(True); // True = owns objects
   
-  // Komponenten werden in CreateWnd erstellt, wenn das Handle verfügbar ist
+  // Components will be created in CreateWnd when the handle is available
   FControlsCreated := False;
 end;
 
@@ -202,7 +203,7 @@ procedure TProjectManagerPanel.CreateWnd;
 begin
   inherited CreateWnd;
   
-  // Erstelle Unterkomponenten erst nach der Handle-Erstellung
+  // Create sub-components only after handle creation
   if not FControlsCreated then begin
     try
       CreateControls;

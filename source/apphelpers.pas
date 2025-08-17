@@ -182,7 +182,7 @@ type
     asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asColumnHeaderClick, asReuseEditorConfiguration,
     asLogToFile, asMainWinMaximized, asMainWinLeft, asMainWinTop, asMainWinWidth,
     asMainWinHeight, asMainWinOnMonitor, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asToolbarShowCaptions, asQuerymemoheight, asDbtreewidth,
-    asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asProjectManagerWidth, asProjectManagerVisible, asStopOnErrorsInBatchMode,
+    asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asProjectManagerWidth, asProjectManagerVisible, asProjectManagerTabActive, asStopOnErrorsInBatchMode,
     asWrapLongLines, asCodeFolding, asDisplayBLOBsAsText, asSingleQueries, asMemoEditorWidth, asMemoEditorHeight, asMemoEditorMaximized,
     asMemoEditorWrap, asMemoEditorHighlighter, asMemoEditorAlwaysFormatCode, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
     asSQLHelpWindowHeight, asSQLHelpPnlLeftWidth, asSQLHelpPnlRightTopHeight, asHost,
@@ -3795,6 +3795,7 @@ begin
   InitSetting(asQueryhelperswidth,                'queryhelperswidth',                     200);
   InitSetting(asProjectManagerWidth,              'projectmanagerwidth',                   260);
   InitSetting(asProjectManagerVisible,            'projectmanagervisible',                 0, True);
+  InitSetting(asProjectManagerTabActive,          'projectmanagertabactive',               0, False);
   InitSetting(asStopOnErrorsInBatchMode,          'StopOnErrorsInBatchMode',               0, True);
   InitSetting(asWrapLongLines,                    'WrapLongLines',                         0, False);
   InitSetting(asCodeFolding,                      'CodeFolding',                           0, True);

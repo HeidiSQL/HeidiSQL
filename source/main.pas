@@ -102,9 +102,9 @@ type
       pnlMemo: TPanel;
       Memo: TSynMemo;
       pnlHelpers: TPanel;
-      pcHelpers: TPageControl;  // PageControl für Helpers und Project Manager
-      tabHelpers: TTabSheet;    // Tab für die ursprünglichen Helpers
-      tabProjectManager: TTabSheet; // Tab für den Project Manager
+      pcHelpers: TPageControl;  // PageControl for Helpers and Project Manager
+      tabHelpers: TTabSheet;    // Tab for the original Helpers
+      tabProjectManager: TTabSheet; // Tab for the Project Manager
       projectManagerPanel: TProjectManagerPanel; // Project Manager Instance pro Tab
       filterHelpers: TButtonedEdit;
       treeHelpers: TVirtualStringTree;
@@ -1213,7 +1213,13 @@ type
     procedure actCopyGridNodesExecute(Sender: TObject);
     procedure actQueryTableExecute(Sender: TObject);
     procedure ToggleProjectManager; // Toggle Project Manager Panel visibility
+    procedure ApplyProjectManagerStateToActiveTab; // Apply global Project Manager state to active tab
+    procedure HelpersPageControlChange(Sender: TObject); // Handle manual tab changes in helpers PageControl
+    procedure SynchronizeAllQueryTabsToGlobalState(ExcludeTab: TQueryTab = nil); // Sync all tabs to global state
   private
+    // Project Manager global state
+    FProjectManagerTabActive: Boolean; // Global state: should Project Manager tab be active?
+    
     // Executable file details
     FAppVerMajor: Integer;
     FAppVerMinor: Integer;
@@ -1864,6 +1870,7 @@ begin
   AppSettings.WriteBool(asDataPreviewEnabled, actDataPreview.Checked);
   AppSettings.WriteInt(asLogHeight, SynMemoSQLLog.Height);
   AppSettings.WriteBool(asFilterPanel, actFilterPanel.Checked);
+  AppSettings.WriteBool(asProjectManagerTabActive, FProjectManagerTabActive);
   AppSettings.WriteBool(asWrapLongLines, actQueryWordWrap.Checked);
   AppSettings.WriteBool(asCodeFolding, actCodeFolding.Checked);
   AppSettings.WriteBool(asSingleQueries, actSingleQueries.Checked);
@@ -2029,6 +2036,7 @@ begin
   QueryTab.pcHelpers.Align := alClient;
   QueryTab.pcHelpers.TabPosition := tpTop;
   QueryTab.pcHelpers.Style := tsButtons;
+  QueryTab.pcHelpers.OnChange := HelpersPageControlChange; // Event handler for tab changes
 
   // Create "Helpers" tab and move existing components
   QueryTab.tabHelpers := TTabSheet.Create(QueryTab.pcHelpers);
@@ -2060,8 +2068,12 @@ begin
     end;
   end;
 
-  // Set default active tab (Helpers)
-  QueryTab.pcHelpers.ActivePage := QueryTab.tabHelpers;
+  // Set initial active tab based on global Project Manager state (loaded from settings)
+  FProjectManagerTabActive := AppSettings.ReadBool(asProjectManagerTabActive, '', False);
+  if FProjectManagerTabActive then
+    QueryTab.pcHelpers.ActivePage := QueryTab.tabProjectManager
+  else
+    QueryTab.pcHelpers.ActivePage := QueryTab.tabHelpers;
 
   QueryTab.filterHelpers := filterQueryHelpers;
   QueryTab.treeHelpers := treeQueryHelpers;
@@ -2260,7 +2272,7 @@ begin
       actProjectManager.Hint := 'Toggle Project Manager tab in query helpers (F11)';
       actProjectManager.ShortCut := VK_F11;
       actProjectManager.OnExecute := actProjectManagerExecute;
-      actProjectManager.Checked := False; // Will be updated when tabs are switched
+      actProjectManager.Checked := FProjectManagerTabActive; // Reflect global state
       
       LogSQL('Project Manager action configured for tab switching', lcDebug);
     end;
@@ -6441,6 +6453,11 @@ begin
       QueryTabs.ActiveMemo.WordWrap := actQueryWordWrap.Checked;
       SynMemoQueryStatusChange(QueryTabs.ActiveMemo, [scCaretX]);
     end;
+  end;
+
+  // Apply global Project Manager state to newly active query tab (always, not just on manual clicks)
+  if IsQueryTab(tab.PageIndex, True) then begin
+    ApplyProjectManagerStateToActiveTab;
   end;
 
   // Filter panel has one text per tab, which we need to update
@@ -11953,40 +11970,26 @@ end;
 
 
 procedure TMainForm.ToggleProjectManager;
-var
-  CurrentTab: TQueryTab;
 begin
-  // Toggle Project Manager tab in current query tab
-  if not QueryTabs.HasActiveTab then
-  begin
-    ShowStatusMsg('No active query tab available');
-    Exit;
-  end;
+  // Toggle global Project Manager state
+  FProjectManagerTabActive := not FProjectManagerTabActive;
   
-  CurrentTab := QueryTabs.ActiveTab;
-  if not Assigned(CurrentTab.pcHelpers) then
-  begin
-    ShowStatusMsg('Project Manager not available in this tab');
-    Exit;
-  end;
+  {$IFDEF DEBUG}
+  LogSQL(Format('Toggled Project Manager state to: %s', [BoolToStr(FProjectManagerTabActive, True)]), lcDebug);
+  {$ENDIF}
   
-  // Switch to Project Manager tab
-  if CurrentTab.pcHelpers.ActivePage = CurrentTab.tabProjectManager then
-  begin
-    // Switch back to Helpers tab
-    CurrentTab.pcHelpers.ActivePage := CurrentTab.tabHelpers;
-    ShowStatusMsg('Switched to Helpers');
-  end
-  else
-  begin
-    // Switch to Project Manager tab
-    CurrentTab.pcHelpers.ActivePage := CurrentTab.tabProjectManager;
-    ShowStatusMsg('Switched to Project Manager');
-  end;
+  // Apply the state to all existing query tabs
+  SynchronizeAllQueryTabsToGlobalState;
   
   // Update action checked state
   if Assigned(actProjectManager) then
-    actProjectManager.Checked := (CurrentTab.pcHelpers.ActivePage = CurrentTab.tabProjectManager);
+    actProjectManager.Checked := FProjectManagerTabActive;
+    
+  // Show status message
+  if FProjectManagerTabActive then
+    ShowStatusMsg('Project Manager activated for all query tabs')
+  else
+    ShowStatusMsg('Helpers activated for all query tabs');
 end;
 
 procedure TMainForm.actCopyGridNodesExecute(Sender: TObject);
@@ -12579,6 +12582,7 @@ begin
   QueryTab.pcHelpers.Align := alClient;
   QueryTab.pcHelpers.TabPosition := tpTop;
   QueryTab.pcHelpers.Style := tsButtons;
+  QueryTab.pcHelpers.OnChange := HelpersPageControlChange; // Event handler for tab changes
 
   // Create "Helpers" tab
   QueryTab.tabHelpers := TTabSheet.Create(QueryTab.pcHelpers);
@@ -12661,8 +12665,11 @@ begin
     end;
   end;
 
-  // Set default active tab (Helpers)
-  QueryTab.pcHelpers.ActivePage := QueryTab.tabHelpers;
+  // Set active tab based on global Project Manager state
+  if FProjectManagerTabActive then
+    QueryTab.pcHelpers.ActivePage := QueryTab.tabProjectManager
+  else
+    QueryTab.pcHelpers.ActivePage := QueryTab.tabHelpers;
 
   QueryTab.spltQuery := TSplitter.Create(QueryTab.TabSheet);
   QueryTab.spltQuery.Parent := QueryTab.TabSheet;
@@ -16107,6 +16114,104 @@ begin
     Exit;
     
   Result := True;
+end;
+
+procedure TMainForm.ApplyProjectManagerStateToActiveTab;
+var
+  CurrentTab: TQueryTab;
+begin
+  // Apply global Project Manager state to the currently active query tab
+  if QueryTabs.HasActiveTab then
+  begin
+    CurrentTab := QueryTabs.ActiveTab;
+    if Assigned(CurrentTab.pcHelpers) then
+    begin
+      // Only change if different from current state to avoid unnecessary updates
+      if FProjectManagerTabActive and (CurrentTab.pcHelpers.ActivePage <> CurrentTab.tabProjectManager) then
+      begin
+        CurrentTab.pcHelpers.ActivePage := CurrentTab.tabProjectManager;
+        {$IFDEF DEBUG}
+        LogSQL('Applied Project Manager tab state to query tab', lcDebug);
+        {$ENDIF}
+      end
+      else if not FProjectManagerTabActive and (CurrentTab.pcHelpers.ActivePage <> CurrentTab.tabHelpers) then
+      begin
+        CurrentTab.pcHelpers.ActivePage := CurrentTab.tabHelpers;
+        {$IFDEF DEBUG}
+        LogSQL('Applied Helpers tab state to query tab', lcDebug);
+        {$ENDIF}
+      end;
+    end;
+  end;
+end;
+
+procedure TMainForm.HelpersPageControlChange(Sender: TObject);
+var
+  PageControl: TPageControl;
+  CurrentTab: TQueryTab;
+begin
+  // Handle manual tab changes in helpers PageControl
+  PageControl := Sender as TPageControl;
+  
+  // Find which query tab this PageControl belongs to
+  CurrentTab := nil;
+  if QueryTabs.HasActiveTab then
+    CurrentTab := QueryTabs.ActiveTab;
+    
+  // Only update global state if this is the active query tab
+  if Assigned(CurrentTab) and (CurrentTab.pcHelpers = PageControl) then
+  begin
+    // Update global state based on which tab is now active
+    if PageControl.ActivePage = CurrentTab.tabProjectManager then
+    begin
+      if not FProjectManagerTabActive then
+      begin
+        FProjectManagerTabActive := True;
+        // Apply to all other query tabs
+        SynchronizeAllQueryTabsToGlobalState(CurrentTab);
+        // Update action state
+        if Assigned(actProjectManager) then
+          actProjectManager.Checked := True;
+        {$IFDEF DEBUG}
+        LogSQL('Project Manager manually activated - synchronized to all tabs', lcDebug);
+        {$ENDIF}
+      end;
+    end
+    else if PageControl.ActivePage = CurrentTab.tabHelpers then
+    begin
+      if FProjectManagerTabActive then
+      begin
+        FProjectManagerTabActive := False;
+        // Apply to all other query tabs
+        SynchronizeAllQueryTabsToGlobalState(CurrentTab);
+        // Update action state
+        if Assigned(actProjectManager) then
+          actProjectManager.Checked := False;
+        {$IFDEF DEBUG}
+        LogSQL('Helpers manually activated - synchronized to all tabs', lcDebug);
+        {$ENDIF}
+      end;
+    end;
+  end;
+end;
+
+procedure TMainForm.SynchronizeAllQueryTabsToGlobalState(ExcludeTab: TQueryTab);
+var
+  i: Integer;
+  Tab: TQueryTab;
+begin
+  // Apply global state to all query tabs except the one that triggered the change
+  for i := 0 to QueryTabs.Count - 1 do
+  begin
+    Tab := QueryTabs[i];
+    if (Tab <> ExcludeTab) and Assigned(Tab.pcHelpers) then
+    begin
+      if FProjectManagerTabActive then
+        Tab.pcHelpers.ActivePage := Tab.tabProjectManager
+      else
+        Tab.pcHelpers.ActivePage := Tab.tabHelpers;
+    end;
+  end;
 end;
 
 end.
