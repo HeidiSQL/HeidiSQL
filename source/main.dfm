@@ -155,7 +155,6 @@ object MainForm: TMainForm
         DragMode = dmAutomatic
         DragType = dtVCL
         Header.AutoSizeIndex = 0
-        Header.Height = 18
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag]
         HintMode = hmTooltip
         HotCursor = crHandPoint
@@ -191,7 +190,7 @@ object MainForm: TMainForm
           item
             Position = 0
             Text = 'Name'
-            Width = 169
+            Width = 165
           end
           item
             Alignment = taRightJustify
@@ -432,7 +431,6 @@ object MainForm: TMainForm
                 Height = 195
                 Align = alClient
                 Header.AutoSizeIndex = 0
-                Header.Height = 18
                 Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
@@ -516,7 +514,7 @@ object MainForm: TMainForm
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 2
-                Header.Height = 18
+                Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
@@ -559,7 +557,7 @@ object MainForm: TMainForm
                   item
                     Position = 2
                     Text = 'Global'
-                    Width = 316
+                    Width = 312
                   end>
               end
             end
@@ -574,7 +572,7 @@ object MainForm: TMainForm
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
-                Header.Height = 18
+                Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
@@ -611,7 +609,7 @@ object MainForm: TMainForm
                     Alignment = taRightJustify
                     Position = 1
                     Text = 'Value'
-                    Width = 316
+                    Width = 312
                   end
                   item
                     Alignment = taRightJustify
@@ -646,7 +644,7 @@ object MainForm: TMainForm
                 Height = 122
                 Align = alClient
                 Header.AutoSizeIndex = 7
-                Header.Height = 18
+                Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
@@ -713,7 +711,7 @@ object MainForm: TMainForm
                   item
                     Position = 7
                     Text = 'Info'
-                    Width = 186
+                    Width = 182
                   end>
               end
               object pnlProcessViewBox: TPanel
@@ -795,7 +793,7 @@ object MainForm: TMainForm
                 Height = 195
                 Align = alClient
                 Header.AutoSizeIndex = 4
-                Header.Height = 18
+                Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 1
@@ -850,7 +848,7 @@ object MainForm: TMainForm
                   item
                     Position = 4
                     Text = 'Percentage'
-                    Width = 256
+                    Width = 252
                   end>
               end
             end
@@ -867,7 +865,7 @@ object MainForm: TMainForm
             Align = alClient
             EditDelay = 500
             Header.AutoSizeIndex = -1
-            Header.Height = 18
+            Header.Height = 20
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
             Header.PopupMenu = popupListHeader
             Header.SortColumn = 0
@@ -1029,8 +1027,6 @@ object MainForm: TMainForm
             Caption = 'No data available for this item.'
             Layout = tlCenter
             WordWrap = True
-            ExplicitWidth = 165
-            ExplicitHeight = 14
           end
           object pnlDataTop: TPanel
             Left = 0
@@ -1242,7 +1238,7 @@ object MainForm: TMainForm
             AutoScrollDelay = 50
             EditDelay = 0
             Header.AutoSizeIndex = -1
-            Header.Height = 14
+            Header.Height = 20
             Header.Images = VirtualImageListMain
             Header.MainColumn = -1
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
@@ -1404,7 +1400,6 @@ object MainForm: TMainForm
                 DragMode = dmAutomatic
                 DragType = dtVCL
                 Header.AutoSizeIndex = 0
-                Header.Height = 18
                 Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
                 Images = VirtualImageListMain
                 IncrementalSearch = isVisibleOnly
@@ -1437,7 +1432,7 @@ object MainForm: TMainForm
                   item
                     Position = 0
                     Text = 'Main column'
-                    Width = 85
+                    Width = 64
                   end
                   item
                     Position = 1
@@ -1471,7 +1466,7 @@ object MainForm: TMainForm
             AutoScrollDelay = 50
             EditDelay = 0
             Header.AutoSizeIndex = -1
-            Header.Height = 14
+            Header.Height = 20
             Header.Images = VirtualImageListMain
             Header.MainColumn = -1
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoDisableAnimatedResize, hoAutoResizeInclCaption]

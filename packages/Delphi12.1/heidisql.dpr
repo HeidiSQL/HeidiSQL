@@ -58,8 +58,7 @@ uses
   customize_highlighter in '..\..\source\customize_highlighter.pas' {frmCustomizeHighlighter},
   Xml.VerySimple in '..\..\source\Xml.VerySimple.pas',
   Sequal.Suggest in '..\..\source\Sequal.Suggest.pas' {SequalSuggestForm},
-  reformatter in '..\..\source\reformatter.pas' {frmReformatter},
-  projectmanager in '..\..\source\projectmanager.pas';
+  reformatter in '..\..\source\reformatter.pas' {frmReformatter};
 
 {.$R *.RES}
 {$R ..\..\res\icon.RES}

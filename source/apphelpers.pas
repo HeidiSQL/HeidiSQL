@@ -182,7 +182,7 @@ type
     asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asColumnHeaderClick, asReuseEditorConfiguration,
     asLogToFile, asMainWinMaximized, asMainWinLeft, asMainWinTop, asMainWinWidth,
     asMainWinHeight, asMainWinOnMonitor, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asToolbarShowCaptions, asQuerymemoheight, asDbtreewidth,
-    asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asProjectManagerWidth, asProjectManagerVisible, asProjectManagerTabActive, asStopOnErrorsInBatchMode,
+    asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asStopOnErrorsInBatchMode,
     asWrapLongLines, asCodeFolding, asDisplayBLOBsAsText, asSingleQueries, asMemoEditorWidth, asMemoEditorHeight, asMemoEditorMaximized,
     asMemoEditorWrap, asMemoEditorHighlighter, asMemoEditorAlwaysFormatCode, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
     asSQLHelpWindowHeight, asSQLHelpPnlLeftWidth, asSQLHelpPnlRightTopHeight, asHost,
@@ -236,7 +236,6 @@ type
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
     asReformatter, asReformatterNoDialog, asAlwaysGenerateFilter,
     asGenerateDataNumRows, asGenerateDataNullAmount, asWebOnceAction,
-    asProjectManagerHeight,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -528,10 +527,10 @@ begin
     Exit;
   if FromLeft then begin
     SetLength(Result, MaxLen);
-    Result[MaxLen] := '.';
+    Result[MaxLen] := '…';
   end else begin
     Result := Copy(Result, Length(Result)-MaxLen, Length(Result));
-    Result := 'â€¦' + Result;
+    Result := '…' + Result;
   end;
 end;
 
@@ -854,7 +853,7 @@ end;
 
 function RoundCommercial(e: Extended): Int64;
 begin
-  // "KaufmÃ¤nnisch runden"
+  // "Kaufmännisch runden"
   // In contrast to Delphi's Round() which rounds *.5 to the next even number
   Result := Trunc(e);
   if Frac(e) >= 0.5 then
@@ -3793,9 +3792,6 @@ begin
   InitSetting(asDataPreviewEnabled,               'DataPreviewEnabled',                    0, False);
   InitSetting(asLogHeight,                        'sqloutheight',                          80);
   InitSetting(asQueryhelperswidth,                'queryhelperswidth',                     200);
-  InitSetting(asProjectManagerWidth,              'projectmanagerwidth',                   260);
-  InitSetting(asProjectManagerVisible,            'projectmanagervisible',                 0, True);
-  InitSetting(asProjectManagerTabActive,          'projectmanagertabactive',               0, False);
   InitSetting(asStopOnErrorsInBatchMode,          'StopOnErrorsInBatchMode',               0, True);
   InitSetting(asWrapLongLines,                    'WrapLongLines',                         0, False);
   InitSetting(asCodeFolding,                      'CodeFolding',                           0, True);
@@ -4056,7 +4052,6 @@ begin
   InitSetting(asCreateDbCollation,                'CreateDbCollation',                     0, False, '');
   InitSetting(asRealTrailingZeros,                'RealTrailingZeros',                     1);
   InitSetting(asWebOnceAction,                    'WebOnceAction',                         0, False, DateToStr(DateTimeNever));
-  InitSetting(asProjectManagerHeight,             'ProjectManagerHeight',                 200);
 
   // Initialization values
   FRestoreTabsInitValue := ReadBool(asRestoreTabs);

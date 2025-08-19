@@ -265,7 +265,6 @@
             <Form>frmReformatter</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="..\..\source\projectmanager.pas"/>
         <None Include="..\..\source\const.inc"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

@@ -16,7 +16,7 @@ uses
   Winapi.CommCtrl, System.Contnrs, System.Generics.Collections, System.Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, System.Math, Vcl.ExtDlgs, System.Win.Registry, Vcl.AppEvnts,
   routine_editor, trigger_editor, event_editor, preferences, EditVar, apphelpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
-  insertfiles, searchreplace, loaddata, copytable, csv_detector, Cromis.DirectoryWatch, SyncDB, gnugettext, projectmanager,
+  insertfiles, searchreplace, loaddata, copytable, csv_detector, Cromis.DirectoryWatch, SyncDB, gnugettext,
   VirtualTrees, VirtualTrees.HeaderPopup, VirtualTrees.Utils, VirtualTrees.Types,
   JumpList, System.Actions, System.UITypes, Vcl.Imaging.pngimage,
   System.ImageList, Vcl.Styles.Utils.Forms,
@@ -102,10 +102,6 @@ type
       pnlMemo: TPanel;
       Memo: TSynMemo;
       pnlHelpers: TPanel;
-      pcHelpers: TPageControl;  // PageControl for Helpers and Project Manager
-      tabHelpers: TTabSheet;    // Tab for the original Helpers
-      tabProjectManager: TTabSheet; // Tab for the Project Manager
-      projectManagerPanel: TProjectManagerPanel; // Project Manager Instance pro Tab
       filterHelpers: TButtonedEdit;
       treeHelpers: TVirtualStringTree;
       MemoFileRenamed: Boolean;
@@ -507,7 +503,6 @@ type
     pnlRight: TPanel;
     btnCloseFilterPanel: TSpeedButton;
     actFilterPanel: TAction;
-    actProjectManager: TAction;
     actFindInVT1: TMenuItem;
     TimerFilterVT: TTimer;
     actFindTextOnServer: TAction;
@@ -800,7 +795,6 @@ type
     actGenerateData: TAction;
     Generatedata1: TMenuItem;
     Generatedata2: TMenuItem;
-    menuProjectManager: TMenuItem;
     actCopyGridNodes: TAction;
     actCopyGridNodes1: TMenuItem;
     actQueryTable: TAction;
@@ -1003,9 +997,6 @@ type
     procedure actCloseQueryTabExecute(Sender: TObject);
     procedure menuCloseQueryTabClick(Sender: TObject);
     procedure CloseQueryTab(PageIndex: Integer);
-    function GetQueryTabBackupFilename(Tab: TQueryTab): String;
-    procedure SaveQueryTabBackupToIni(Tab: TQueryTab; const BackupFilename: String);
-    function ShouldCreateQueryTabBackup(Tab: TQueryTab): Boolean;
     procedure CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     function GetMainTabAt(X, Y: Integer): Integer;
@@ -1016,7 +1007,6 @@ type
     procedure popupMainTabsPopup(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure actFilterPanelExecute(Sender: TObject);
-    procedure actProjectManagerExecute(Sender: TObject);
     procedure TimerFilterVTTimer(Sender: TObject);
     procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure menuQueryHelpersGenerateStatementClick(Sender: TObject);
@@ -1212,14 +1202,7 @@ type
       var HintText: string);
     procedure actCopyGridNodesExecute(Sender: TObject);
     procedure actQueryTableExecute(Sender: TObject);
-    procedure ToggleProjectManager; // Toggle Project Manager Panel visibility
-    procedure ApplyProjectManagerStateToActiveTab; // Apply global Project Manager state to active tab
-    procedure HelpersPageControlChange(Sender: TObject); // Handle manual tab changes in helpers PageControl
-    procedure SynchronizeAllQueryTabsToGlobalState(ExcludeTab: TQueryTab = nil); // Sync all tabs to global state
   private
-    // Project Manager global state
-    FProjectManagerTabActive: Boolean; // Global state: should Project Manager tab be active?
-    
     // Executable file details
     FAppVerMajor: Integer;
     FAppVerMinor: Integer;
@@ -1328,7 +1311,6 @@ type
     procedure StoreTabs;
     function RestoreTabs: Boolean;
     procedure SetHintFontByControl(Control: TWinControl=nil);
-  private
   public
     QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
@@ -1870,7 +1852,6 @@ begin
   AppSettings.WriteBool(asDataPreviewEnabled, actDataPreview.Checked);
   AppSettings.WriteInt(asLogHeight, SynMemoSQLLog.Height);
   AppSettings.WriteBool(asFilterPanel, actFilterPanel.Checked);
-  AppSettings.WriteBool(asProjectManagerTabActive, FProjectManagerTabActive);
   AppSettings.WriteBool(asWrapLongLines, actQueryWordWrap.Checked);
   AppSettings.WriteBool(asCodeFolding, actCodeFolding.Checked);
   AppSettings.WriteBool(asSingleQueries, actSingleQueries.Checked);
@@ -2027,54 +2008,6 @@ begin
   QueryTab.Uid := TQueryTab.GenerateUid;
   QueryTab.pnlMemo := pnlQueryMemo;
   QueryTab.pnlHelpers := pnlQueryHelpers;
-  
-  // Convert the first tab to use the new PageControl system
-  // Create PageControl for the existing pnlQueryHelpers
-  QueryTab.pcHelpers := TPageControl.Create(QueryTab.pnlHelpers);
-  QueryTab.pcHelpers.Name := 'pcHelpers0';
-  QueryTab.pcHelpers.Parent := QueryTab.pnlHelpers;
-  QueryTab.pcHelpers.Align := alClient;
-  QueryTab.pcHelpers.TabPosition := tpTop;
-  QueryTab.pcHelpers.Style := tsButtons;
-  QueryTab.pcHelpers.OnChange := HelpersPageControlChange; // Event handler for tab changes
-
-  // Create "Helpers" tab and move existing components
-  QueryTab.tabHelpers := TTabSheet.Create(QueryTab.pcHelpers);
-  QueryTab.tabHelpers.Name := 'tabHelpers0';
-  QueryTab.tabHelpers.Caption := 'Helpers';
-  QueryTab.tabHelpers.PageControl := QueryTab.pcHelpers;
-  
-  // Move existing components to the Helpers tab
-  filterQueryHelpers.Parent := QueryTab.tabHelpers;
-  treeQueryHelpers.Parent := QueryTab.tabHelpers;
-
-  // Create "Project Manager" tab
-  QueryTab.tabProjectManager := TTabSheet.Create(QueryTab.pcHelpers);
-  QueryTab.tabProjectManager.Name := 'tabProjectManager0';
-  QueryTab.tabProjectManager.Caption := 'Project Manager';
-  QueryTab.tabProjectManager.PageControl := QueryTab.pcHelpers;
-
-  // Create Project Manager in the Project Manager tab
-  try
-    QueryTab.projectManagerPanel := TProjectManagerPanel.Create(QueryTab.tabProjectManager);
-    QueryTab.projectManagerPanel.Parent := QueryTab.tabProjectManager;
-    QueryTab.projectManagerPanel.Align := alClient;
-    LogSQL('Project Manager panel created successfully in main query tab', lcDebug);
-  except
-    on E: Exception do
-    begin
-      LogSQL('Error creating Project Manager in main query tab: ' + E.Message, lcError);
-      QueryTab.projectManagerPanel := nil;
-    end;
-  end;
-
-  // Set initial active tab based on global Project Manager state (loaded from settings)
-  FProjectManagerTabActive := AppSettings.ReadBool(asProjectManagerTabActive, '', False);
-  if FProjectManagerTabActive then
-    QueryTab.pcHelpers.ActivePage := QueryTab.tabProjectManager
-  else
-    QueryTab.pcHelpers.ActivePage := QueryTab.tabHelpers;
-
   QueryTab.filterHelpers := filterQueryHelpers;
   QueryTab.treeHelpers := treeQueryHelpers;
   QueryTab.Memo := SynMemoQuery;
@@ -2255,33 +2188,6 @@ begin
   LogSQL(f_('Theme: "%s"', [TStyleManager.ActiveStyle.Name]), lcDebug);
   LogSQL(f_('Pixels per inch on current monitor: %d', [Monitor.PixelsPerInch]), lcDebug);
   LogSQL(f_('Timezone offset: %d', [FTimeZoneOffset]), lcDebug);
-
-  // Create and configure Project Manager action for tab switching
-  try
-    if not Assigned(actProjectManager) then
-    begin
-      actProjectManager := TAction.Create(Self);
-      actProjectManager.ActionList := ActionList1;
-      actProjectManager.Category := 'View';
-      actProjectManager.Name := 'actProjectManager';
-    end;
-    
-    if Assigned(actProjectManager) then
-    begin
-      actProjectManager.Caption := _('Project &Manager');
-      actProjectManager.Hint := _('Toggle Project Manager tab in query helpers (F11)');
-      actProjectManager.ShortCut := VK_F11;
-      actProjectManager.OnExecute := actProjectManagerExecute;
-      actProjectManager.Checked := FProjectManagerTabActive; // Reflect global state
-      
-      LogSQL('Project Manager action configured for tab switching', lcDebug);
-    end;
-  except
-    on E: Exception do
-    begin
-      LogSQL('Error creating Project Manager action: ' + E.Message, lcError);
-    end;
-  end;
 end;
 
 
@@ -6453,11 +6359,6 @@ begin
       QueryTabs.ActiveMemo.WordWrap := actQueryWordWrap.Checked;
       SynMemoQueryStatusChange(QueryTabs.ActiveMemo, [scCaretX]);
     end;
-  end;
-
-  // Apply global Project Manager state to newly active query tab (always, not just on manual clicks)
-  if IsQueryTab(tab.PageIndex, True) then begin
-    ApplyProjectManagerStateToActiveTab;
   end;
 
   // Filter panel has one text per tab, which we need to update
@@ -11969,29 +11870,6 @@ begin
 end;
 
 
-procedure TMainForm.ToggleProjectManager;
-begin
-  // Toggle global Project Manager state
-  FProjectManagerTabActive := not FProjectManagerTabActive;
-  
-  {$IFDEF DEBUG}
-  LogSQL(Format('Toggled Project Manager state to: %s', [BoolToStr(FProjectManagerTabActive, True)]), lcDebug);
-  {$ENDIF}
-  
-  // Apply the state to all existing query tabs
-  SynchronizeAllQueryTabsToGlobalState;
-  
-  // Update action checked state
-  if Assigned(actProjectManager) then
-    actProjectManager.Checked := FProjectManagerTabActive;
-    
-  // Show status message
-  if FProjectManagerTabActive then
-    ShowStatusMsg('Project Manager activated for all query tabs')
-  else
-    ShowStatusMsg('Helpers activated for all query tabs');
-end;
-
 procedure TMainForm.actCopyGridNodesExecute(Sender: TObject);
 var
   SenderControl: TComponent;
@@ -12575,32 +12453,10 @@ begin
   else
     QueryTab.pnlHelpers.Width := AppSettings.GetDefaultInt(asQueryhelperswidth);
 
-  // Create PageControl for Helpers and Project Manager tabs
-  QueryTab.pcHelpers := TPageControl.Create(QueryTab.pnlHelpers);
-  QueryTab.pcHelpers.Name := 'pcHelpers' + i.ToString;
-  QueryTab.pcHelpers.Parent := QueryTab.pnlHelpers;
-  QueryTab.pcHelpers.Align := alClient;
-  QueryTab.pcHelpers.TabPosition := tpTop;
-  QueryTab.pcHelpers.Style := tsButtons;
-  QueryTab.pcHelpers.OnChange := HelpersPageControlChange; // Event handler for tab changes
-
-  // Create "Helpers" tab
-  QueryTab.tabHelpers := TTabSheet.Create(QueryTab.pcHelpers);
-  QueryTab.tabHelpers.Name := 'tabHelpers' + i.ToString;
-  QueryTab.tabHelpers.Caption := 'Helpers';
-  QueryTab.tabHelpers.PageControl := QueryTab.pcHelpers;
-
-  // Create "Project Manager" tab
-  QueryTab.tabProjectManager := TTabSheet.Create(QueryTab.pcHelpers);
-  QueryTab.tabProjectManager.Name := 'tabProjectManager' + i.ToString;
-  QueryTab.tabProjectManager.Caption := 'Project Manager';
-  QueryTab.tabProjectManager.PageControl := QueryTab.pcHelpers;
-
-  // Move filter and tree to Helpers tab
-  QueryTab.filterHelpers := TButtonedEdit.Create(QueryTab.tabHelpers);
+  QueryTab.filterHelpers := TButtonedEdit.Create(QueryTab.pnlHelpers);
   QueryTab.filterHelpers.Name := filterQueryHelpers.Name + i.ToString;
   QueryTab.filterHelpers.Text := '';
-  QueryTab.filterHelpers.Parent := QueryTab.tabHelpers;
+  QueryTab.filterHelpers.Parent := QueryTab.pnlHelpers;
   QueryTab.filterHelpers.Align := filterQueryHelpers.Align;
   QueryTab.filterHelpers.TextHint := filterQueryHelpers.TextHint;
   QueryTab.filterHelpers.Images := filterQueryHelpers.Images;
@@ -12611,9 +12467,9 @@ begin
   QueryTab.filterHelpers.OnChange := filterQueryHelpers.OnChange;
   QueryTab.filterHelpers.OnRightButtonClick := filterQueryHelpers.OnRightButtonClick;
 
-  QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.tabHelpers);
+  QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.pnlHelpers);
   QueryTab.treeHelpers.Name := treeQueryHelpers.Name + i.ToString;
-  QueryTab.treeHelpers.Parent := QueryTab.tabHelpers;
+  QueryTab.treeHelpers.Parent := QueryTab.pnlHelpers;
   QueryTab.treeHelpers.Align := treeQueryHelpers.Align;
   QueryTab.treeHelpers.Left := treeQueryHelpers.Left;
   QueryTab.treeHelpers.Constraints.MinWidth := treeQueryHelpers.Constraints.MinWidth;
@@ -12648,28 +12504,6 @@ begin
   QueryTab.treeHelpers.RootNodeCount := treeQueryHelpers.RootNodeCount;
   QueryTab.treeHelpers.TextMargin := treeQueryHelpers.TextMargin;
   FixVT(QueryTab.treeHelpers);
-
-  // Create Project Manager in Project Manager tab
-  try
-    QueryTab.projectManagerPanel := TProjectManagerPanel.Create(QueryTab.tabProjectManager);
-    QueryTab.projectManagerPanel.Parent := QueryTab.tabProjectManager;
-    QueryTab.projectManagerPanel.Align := alClient;
-    
-    // Initialize Project Manager if needed
-    LogSQL('Project Manager panel created successfully in query tab ' + i.ToString, lcDebug);
-  except
-    on E: Exception do
-    begin
-      LogSQL('Error creating Project Manager in query tab: ' + E.Message, lcError);
-      QueryTab.projectManagerPanel := nil;
-    end;
-  end;
-
-  // Set active tab based on global Project Manager state
-  if FProjectManagerTabActive then
-    QueryTab.pcHelpers.ActivePage := QueryTab.tabProjectManager
-  else
-    QueryTab.pcHelpers.ActivePage := QueryTab.tabHelpers;
 
   QueryTab.spltQuery := TSplitter.Create(QueryTab.TabSheet);
   QueryTab.spltQuery.Parent := QueryTab.TabSheet;
@@ -12868,8 +12702,6 @@ procedure TMainForm.CloseQueryTab(PageIndex: Integer);
 var
   NewPageIndex: Integer;
   Grid: TVirtualStringTree;
-  QueryTab: TQueryTab;
-  BackupFilename: String;
 begin
   // Special case: the very first tab gets cleared but not closed
   if PageIndex = tabQuery.PageIndex then begin
@@ -12878,30 +12710,6 @@ begin
   end;
   if not IsQueryTab(PageIndex, False) then
     Exit;
-    
-  // Get the query tab before we destroy it
-  QueryTab := QueryTabs.TabByControl(PageControlMain.Pages[PageIndex]);
-  
-  // Create automatic backup if needed
-  if Assigned(QueryTab) and ShouldCreateQueryTabBackup(QueryTab) then
-  begin
-    try
-      BackupFilename := GetQueryTabBackupFilename(QueryTab);
-      if BackupFilename <> '' then
-      begin
-        QueryTab.Memo.Lines.SaveToFile(BackupFilename, TEncoding.UTF8);
-        SaveQueryTabBackupToIni(QueryTab, BackupFilename);
-        LogSQL(f_('Query tab content backed up to: %s', [BackupFilename]), lcInfo);
-      end;
-    except
-      on E: Exception do
-      begin
-        // Don't prevent tab closing due to backup errors, but log them
-        LogSQL(f_('Error creating query tab backup: %s', [E.Message]), lcError);
-      end;
-    end;
-  end;
-  
   // Cancel cell editor if active, preventing crash. See issue #2040
   Grid := ActiveGrid;
   if Assigned(Grid) and Grid.IsEditing then
@@ -12917,14 +12725,11 @@ begin
     Dec(NewPageIndex);
   // Avoid excessive flicker:
   LockWindowUpdate(PageControlMain.Handle);
-  try
-    PageControlMain.Pages[PageIndex].Free;
-    QueryTabs.Delete(PageIndex-tabQuery.PageIndex);
-    PageControlMain.ActivePageIndex := NewPageIndex;
-    FixQueryTabCloseButtons;
-  finally
-    LockWindowUpdate(0);
-  end;
+  PageControlMain.Pages[PageIndex].Free;
+  QueryTabs.Delete(PageIndex-tabQuery.PageIndex);
+  PageControlMain.ActivePageIndex := NewPageIndex;
+  FixQueryTabCloseButtons;
+  LockWindowUpdate(0);
   PageControlMain.OnChange(PageControlMain);
 end;
 
@@ -13157,23 +12962,10 @@ var
 begin
   // Asynchronous timer for mousedown event on query tab close button
   TimerCloseTabByButton.Enabled := False;
-  
-  try
-    for i:=0 to QueryTabs.Count-1 do begin
-      if QueryTabs[i].CloseButton = FLastMouseDownCloseButton then begin
-        CloseQueryTab(QueryTabs[i].TabSheet.PageIndex);
-        break;
-      end;
-    end;
-  except
-    on E: Exception do
-    begin
-      // Stop timer on errors to prevent cascading issues
-      TimerCloseTabByButton.Enabled := False;
-      LogSQL(f_('Error in TimerCloseTabByButtonTimer: %s', [E.Message]), lcError);
-      
-      // Reset the close button reference to prevent further issues
-      FLastMouseDownCloseButton := nil;
+  for i:=0 to QueryTabs.Count-1 do begin
+    if QueryTabs[i].CloseButton = FLastMouseDownCloseButton then begin
+      CloseQueryTab(QueryTabs[i].TabSheet.PageIndex);
+      break;
     end;
   end;
 end;
@@ -13525,13 +13317,6 @@ begin
   if pnlFilterVT.Visible and editFilterVT.CanFocus and (Sender <> nil) then
     editFilterVT.SetFocus;
   UpdateFilterPanel(Sender);
-end;
-
-
-procedure TMainForm.actProjectManagerExecute(Sender: TObject);
-begin
-  // Toggle Project Manager tab visibility in current query tab
-  ToggleProjectManager;
 end;
 
 
@@ -15292,68 +15077,11 @@ end;
 
 destructor TQueryTab.Destroy;
 begin
-  try
-    // Clean up Project Manager if it exists
-    if Assigned(projectManagerPanel) then
-    begin
-      try
-        projectManagerPanel.PrepareForShutdown;
-      except
-        // Ignore exceptions during shutdown preparation
-      end;
-      FreeAndNil(projectManagerPanel);
-    end;
-    
-    // Clean up tab components safely
-    if Assigned(ResultTabs) then
-    begin
-      ResultTabs.Clear;
-      FreeAndNil(ResultTabs);
-    end;
-    
-    // Free other components with error handling
-    try
-      if Assigned(DirectoryWatch) then
-        FreeAndNil(DirectoryWatch);
-    except
-      // Ignore DirectoryWatch cleanup errors
-    end;
-    
-    if Assigned(ListBindParams) then
-      FreeAndNil(ListBindParams);
-      
-    if Assigned(TimerLastChange) then
-    begin
-      TimerLastChange.Enabled := False;
-      FreeAndNil(TimerLastChange);
-    end;
-    
-    if Assigned(TimerStatusUpdate) then
-    begin
-      TimerStatusUpdate.Enabled := False;
-      FreeAndNil(TimerStatusUpdate);
-    end;
-    
-  except
-    on E: Exception do
-    begin
-      // Log but don't re-raise exceptions during destruction
-      {$IFDEF DEBUG}
-      OutputDebugString(PChar('Error in TQueryTab.Destroy: ' + E.Message));
-      {$ENDIF}
-    end;
-  end;
-  
-  try
-    inherited Destroy;
-  except
-    on E: Exception do
-    begin
-      {$IFDEF DEBUG}
-      OutputDebugString(PChar('Error in TQueryTab.inherited Destroy: ' + E.Message));
-      {$ENDIF}
-    end;
-  end;
+  ResultTabs.Clear;
+  DirectoryWatch.Free;
+  ListBindParams.Free;
+  TimerLastChange.Free;
+  TimerStatusUpdate.Free;
 end;
 
 
@@ -16016,202 +15744,6 @@ function TBindParamComparer.Compare(const Left, Right: TBindParam): Integer;
 begin
   // Simple sort method for a TDBObjectList
   Result := CompareText(Left.Name, Right.Name);
-end;
-
-
-{ TMainForm - Query Tab Backup Methods }
-
-function TMainForm.GetQueryTabBackupFilename(Tab: TQueryTab): String;
-var
-  BackupDir, Timestamp, SafeCaption: String;
-begin
-  Result := '';
-  if not Assigned(Tab) then
-    Exit;
-    
-  try
-    // Create backup directory if it doesn't exist
-    if AppSettings.PortableMode then
-      BackupDir := ExtractFilePath(Application.ExeName) + 'Backups\'
-    else
-      BackupDir := AppSettings.DirnameUserAppData + 'Backups\';
-      
-    if not DirectoryExists(BackupDir) then
-      ForceDirectories(BackupDir);
-    
-    // Create safe filename from tab caption
-    SafeCaption := Tab.TabSheet.Caption;
-    SafeCaption := StringReplace(SafeCaption, ' ', '_', [rfReplaceAll]);
-    SafeCaption := StringReplace(SafeCaption, '*', '', [rfReplaceAll]);
-    // Remove non-alphanumeric characters
-    SafeCaption := ReplaceRegExpr('[^\w]', SafeCaption, '_', True);
-    
-    // Generate unique filename with timestamp
-    Timestamp := FormatDateTime('yyyymmdd_hhnnss', Now);
-    Result := BackupDir + 'query_' + SafeCaption + '_' + Timestamp + '_' + IntToStr(GetTickCount64) + '.sql';
-  except
-    on E: Exception do
-    begin
-      LogSQL(f_('Error generating backup filename: %s', [E.Message]), lcError);
-      Result := '';
-    end;
-  end;
-end;
-
-procedure TMainForm.SaveQueryTabBackupToIni(Tab: TQueryTab; const BackupFilename: String);
-var
-  TabsIni: TIniFile;
-  TabSection: String;
-begin
-  if not Assigned(Tab) or (BackupFilename = '') then
-    Exit;
-    
-  try
-    TabsIni := InitTabsIniFile;
-    try
-      TabSection := 'Tab' + IntToStr(Tab.Number);
-      TabsIni.WriteString(TabSection, 'BackupFile', BackupFilename);
-      TabsIni.WriteString(TabSection, 'BackupTimestamp', DateTimeToStr(Now));
-      TabsIni.WriteString(TabSection, 'BackupReason', 'AutoBackupOnClose');
-    finally
-      TabsIni.Free;
-    end;
-  except
-    on E: Exception do
-    begin
-      LogSQL(f_('Error saving backup info to tabs.ini: %s', [E.Message]), lcError);
-    end;
-  end;
-end;
-
-function TMainForm.ShouldCreateQueryTabBackup(Tab: TQueryTab): Boolean;
-var
-  QueryText: String;
-begin
-  Result := False;
-  
-  if not Assigned(Tab) or not Assigned(Tab.Memo) then
-    Exit;
-    
-  // Only backup if content has been modified and is not empty
-  if not Tab.Memo.Modified then
-    Exit;
-    
-  QueryText := Trim(Tab.Memo.Text);
-  if Length(QueryText) = 0 then
-    Exit;
-    
-  // Don't backup very short queries (probably just typos)
-  if Length(QueryText) < 10 then
-    Exit;
-    
-  // Don't backup if it's just whitespace or common single commands
-  if (Pos(#13#10, QueryText) = 0) and 
-     (LowerCase(QueryText) = 'select') or 
-     (LowerCase(QueryText) = 'show') or
-     (LowerCase(QueryText) = 'desc') or
-     (LowerCase(QueryText) = 'describe') then
-    Exit;
-    
-  Result := True;
-end;
-
-procedure TMainForm.ApplyProjectManagerStateToActiveTab;
-var
-  CurrentTab: TQueryTab;
-begin
-  // Apply global Project Manager state to the currently active query tab
-  if QueryTabs.HasActiveTab then
-  begin
-    CurrentTab := QueryTabs.ActiveTab;
-    if Assigned(CurrentTab.pcHelpers) then
-    begin
-      // Only change if different from current state to avoid unnecessary updates
-      if FProjectManagerTabActive and (CurrentTab.pcHelpers.ActivePage <> CurrentTab.tabProjectManager) then
-      begin
-        CurrentTab.pcHelpers.ActivePage := CurrentTab.tabProjectManager;
-        {$IFDEF DEBUG}
-        LogSQL('Applied Project Manager tab state to query tab', lcDebug);
-        {$ENDIF}
-      end
-      else if not FProjectManagerTabActive and (CurrentTab.pcHelpers.ActivePage <> CurrentTab.tabHelpers) then
-      begin
-        CurrentTab.pcHelpers.ActivePage := CurrentTab.tabHelpers;
-        {$IFDEF DEBUG}
-        LogSQL('Applied Helpers tab state to query tab', lcDebug);
-        {$ENDIF}
-      end;
-    end;
-  end;
-end;
-
-procedure TMainForm.HelpersPageControlChange(Sender: TObject);
-var
-  PageControl: TPageControl;
-  CurrentTab: TQueryTab;
-begin
-  // Handle manual tab changes in helpers PageControl
-  PageControl := Sender as TPageControl;
-  
-  // Find which query tab this PageControl belongs to
-  CurrentTab := nil;
-  if QueryTabs.HasActiveTab then
-    CurrentTab := QueryTabs.ActiveTab;
-    
-  // Only update global state if this is the active query tab
-  if Assigned(CurrentTab) and (CurrentTab.pcHelpers = PageControl) then
-  begin
-    // Update global state based on which tab is now active
-    if PageControl.ActivePage = CurrentTab.tabProjectManager then
-    begin
-      if not FProjectManagerTabActive then
-      begin
-        FProjectManagerTabActive := True;
-        // Apply to all other query tabs
-        SynchronizeAllQueryTabsToGlobalState(CurrentTab);
-        // Update action state
-        if Assigned(actProjectManager) then
-          actProjectManager.Checked := True;
-        {$IFDEF DEBUG}
-        LogSQL('Project Manager manually activated - synchronized to all tabs', lcDebug);
-        {$ENDIF}
-      end;
-    end
-    else if PageControl.ActivePage = CurrentTab.tabHelpers then
-    begin
-      if FProjectManagerTabActive then
-      begin
-        FProjectManagerTabActive := False;
-        // Apply to all other query tabs
-        SynchronizeAllQueryTabsToGlobalState(CurrentTab);
-        // Update action state
-        if Assigned(actProjectManager) then
-          actProjectManager.Checked := False;
-        {$IFDEF DEBUG}
-        LogSQL('Helpers manually activated - synchronized to all tabs', lcDebug);
-        {$ENDIF}
-      end;
-    end;
-  end;
-end;
-
-procedure TMainForm.SynchronizeAllQueryTabsToGlobalState(ExcludeTab: TQueryTab);
-var
-  i: Integer;
-  Tab: TQueryTab;
-begin
-  // Apply global state to all query tabs except the one that triggered the change
-  for i := 0 to QueryTabs.Count - 1 do
-  begin
-    Tab := QueryTabs[i];
-    if (Tab <> ExcludeTab) and Assigned(Tab.pcHelpers) then
-    begin
-      if FProjectManagerTabActive then
-        Tab.pcHelpers.ActivePage := Tab.tabProjectManager
-      else
-        Tab.pcHelpers.ActivePage := Tab.tabHelpers;
-    end;
-  end;
 end;
 
 end.
