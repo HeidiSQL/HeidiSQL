@@ -11051,7 +11051,7 @@ begin
       if Source[i] = '''' then
         InLiteral := not InLiteral;
     end;
-    LengthSet := Copy(Source, ParenthLeft+1, i-2);
+    LengthSet := Copy(Source, ParenthLeft+1, i-1-ParenthLeft);
     if LengthSet = DataType.DefaultSize.ToString then
       LengthSet := '';
   end else begin
