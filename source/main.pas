@@ -1204,10 +1204,7 @@ type
     procedure actQueryTableExecute(Sender: TObject);
   private
     // Executable file details
-    FAppVerMajor: Integer;
-    FAppVerMinor: Integer;
-    FAppVerRelease: Integer;
-    FAppVerRevision: Integer;
+    FAppVerMajor, FAppVerMinor, FAppVerRelease, FAppVerRevision: Word;
     FAppVersion: String;
 
     FLastHintMousepos: TPoint;
@@ -1339,7 +1336,7 @@ type
     TaskbarList3: ITaskbarList3;
     TaskbarList4: ITaskbarList4;
 
-    property AppVerRevision: Integer read FAppVerRevision;
+    property AppVerRevision: Word read FAppVerRevision;
     property AppVersion: String read FAppVersion;
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
@@ -1890,11 +1887,6 @@ var
   QueryTab: TQueryTab;
   Action, CopyAsAction: TAction;
   ExportFormat: TGridExportFormat;
-  dwInfoSize,           // Size of VERSIONINFO structure
-  dwVerSize,            // Size of Version Info Data
-  dwWnd: DWORD;         // Handle for the size call.
-  FI: PVSFixedFileInfo; // Delphi structure; see WINDOWS.PAS
-  ptrVerBuf: Pointer;
   CopyAsMenu, CommandMenu: TMenuItem;
   TZI: TTimeZoneInformation;
   dti: TDBDatatypeCategoryIndex;
@@ -1932,16 +1924,8 @@ begin
   end;
 
   // Detect version
-  dwInfoSize := GetFileVersionInfoSize(PChar(Application.ExeName), dwWnd);
-  GetMem(ptrVerBuf, dwInfoSize);
-  GetFileVersionInfo(PChar(Application.ExeName), dwWnd, dwInfoSize, ptrVerBuf);
-  VerQueryValue(ptrVerBuf, '\', Pointer(FI), dwVerSize );
-  FAppVerMajor := HiWord(FI.dwFileVersionMS);
-  FAppVerMinor := LoWord(FI.dwFileVersionMS);
-  FAppVerRelease := HiWord(FI.dwFileVersionLS);
-  FAppVerRevision := LoWord(FI.dwFileVersionLS);
+  GetExecutableVersion(Application.ExeName, FAppVerMajor, FAppVerMinor, FAppVerRelease, FAppVerRevision);
   FAppVersion := Format('%d.%d.%d.%d', [FAppVerMajor, FAppVerMinor, FAppVerRelease, FAppVerRevision]);
-  FreeMem(ptrVerBuf);
 
   // Taskbar button interface for Windows 7
   // Possibly fails. See http://www.heidisql.com/forum.php?t=22451

@@ -411,6 +411,7 @@ type
   function GetSystemImageList: TImageList;
   function GetSystemImageIndex(Filename: String): Integer;
   function GetExecutableBits: Byte;
+  procedure GetExecutableVersion(FileName: String; var MajorVer, MinorVer, ReleaseVer, RevisionVer: Word);
   procedure Help(Sender: TObject; Anchor: String);
   function PortOpen(Port: Word): Boolean;
   function IsValidFilePath(FilePath: String): Boolean;
@@ -2880,6 +2881,34 @@ begin
   {$ELSE}
   Result := 32;
   {$ENDIF}
+end;
+
+procedure GetExecutableVersion(FileName: String; var MajorVer, MinorVer, ReleaseVer, RevisionVer: Word);
+var
+  dwInfoSize,           // Size of VERSIONINFO structure
+  dwVerSize,            // Size of Version Info Data
+  dwWnd: DWORD;         // Handle for the size call.
+  FI: PVSFixedFileInfo; // Delphi structure; see WINDOWS.PAS
+  ptrVerBuf: Pointer;
+begin
+  // Detect version of given executable or library
+  MajorVer := 0;
+  MinorVer := 0;
+  ReleaseVer := 0;
+  RevisionVer := 0;
+  try
+    dwInfoSize := GetFileVersionInfoSize(PChar(FileName), dwWnd);
+    GetMem(ptrVerBuf, dwInfoSize);
+    GetFileVersionInfo(PChar(FileName), dwWnd, dwInfoSize, ptrVerBuf);
+    VerQueryValue(ptrVerBuf, '\', Pointer(FI), dwVerSize );
+    MajorVer := HiWord(FI.dwFileVersionMS);
+    MinorVer := LoWord(FI.dwFileVersionMS);
+    ReleaseVer := HiWord(FI.dwFileVersionLS);
+    RevisionVer := LoWord(FI.dwFileVersionLS);
+    FreeMem(ptrVerBuf);
+  except
+    // Silence any error
+  end;
 end;
 
 

@@ -1121,6 +1121,7 @@ var
   CheckIntervalMs: Integer;
   IsPlink: Boolean;
   TimeStartedMs, WaitedMs, WaitedLeftMs, TimeOutMs: Int64;
+  PlinkVerMajor, PlinkVerMinor, PlinkVerRelease, PlinkVerRevision: Word;
 begin
   // Check if local port is open
   PortChecks := 0;
@@ -1136,8 +1137,12 @@ begin
   // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
   IsPlink := ExecRegExprI('([pk]link|putty)', FConnection.Parameters.SSHExe);
   SshCmd := FConnection.Parameters.SSHExe;
-  if IsPlink then
-    SshCmd := SshCmd + ' -ssh -legacy-stdio-prompts';
+  if IsPlink then begin
+    SshCmd := SshCmd + ' -ssh';
+    GetExecutableVersion(FConnection.Parameters.SSHExe, PlinkVerMajor, PlinkVerMinor, PlinkVerRelease, PlinkVerRevision);
+    if (PlinkVerMajor = 0) and (PlinkVerMinor >= 82) then
+      SshCmd := SshCmd + ' -legacy-stdio-prompts';
+  end;
   SshCmd := SshCmd + ' ';
   if FConnection.Parameters.SSHUser.Trim <> '' then
     SshCmd := SshCmd + FConnection.Parameters.SSHUser.Trim + '@';
