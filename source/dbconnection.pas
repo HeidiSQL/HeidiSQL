@@ -1253,9 +1253,9 @@ begin
         // Prompt user with question
         case MessageDialog(Trim(rx.Match[1]), Copy(ErrorText, 1, Length(ErrorText)-rx.MatchLen[2]), mtConfirmation, [mbYes, mbNo, mbCancel]) of
           mrYes:
-            SendText('y');
+            SendText('y'+CRLF);
           mrNo:
-            SendText('n');
+            SendText('n'+CRLF);
           mrCancel: begin
             Destroy;
             raise EDbError.Create(_('SSH command cancelled'));
