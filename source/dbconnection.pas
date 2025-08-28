@@ -45,7 +45,7 @@ type
       Name, OldName: String;
       DataType, OldDataType: TDBDatatype;
       LengthSet: String;
-      Unsigned, AllowNull, ZeroFill, LengthCustomized, Invisible: Boolean;
+      Unsigned, AllowNull, ZeroFill, LengthCustomized, Invisible, Compressed: Boolean;
       DefaultType: TColumnDefaultType;
       DefaultText: String;
       OnUpdateType: TColumnDefaultType;
@@ -452,7 +452,7 @@ type
     frShowCharset, frIntegerDisplayWidth, frShowFunctionStatus, frShowProcedureStatus,
     frShowTriggers, frShowEvents, frColumnDefaultParentheses, frForeignKeyChecksVar,
     frHelpKeyword, frEditVariables, frCreateView, frCreateProcedure, frCreateFunction,
-    frCreateTrigger, frCreateEvent, frInvisibleColumns);
+    frCreateTrigger, frCreateEvent, frInvisibleColumns, frCompressedColumns);
 
   TDBConnection = class(TComponent)
     private
@@ -6911,6 +6911,7 @@ begin
         frCreateEvent: Result := ServerVersionInt >= 50100;
         frInvisibleColumns: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100303)) or
           (FParameters.IsMySQL(True) and (ServerVersionInt >= 80023));
+        frCompressedColumns: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100301));
       end;
     else Result := False;
   end;
@@ -10834,6 +10835,7 @@ begin
   SRID := FromSerialized('SRID', '0').ToInteger;
   NumVal := FromSerialized('Status', Integer(esUntouched).ToString);
   FStatus := TEditingStatus(NumVal.ToInteger);
+  Compressed := FromSerialized('Compressed', '0').ToInteger.ToBoolean;
 
   Attributes.Free;
 end;
@@ -10869,6 +10871,7 @@ begin
     Virtuality := s.Virtuality;
     Invisible := s.Invisible;
     SRID := s.SRID;
+    Compressed := s.Compressed;
     FStatus := s.FStatus;
   end else
     inherited;
@@ -10902,6 +10905,8 @@ begin
   s.AddPair('GenerationExpression', GenerationExpression);
   s.AddPair('Virtuality', Virtuality);
   s.AddPair('Invisible', Invisible.ToInteger.ToString);
+  s.AddPair('SRID', SRID.ToString);
+  s.AddPair('Compressed', Compressed.ToInteger.ToString);
   s.AddPair('Status', Integer(FStatus).ToString);
 
   Result := Implode(DELIMITER, s);
@@ -10954,6 +10959,8 @@ begin
       Result := Result + ' UNSIGNED';
     if (DataType.Category in [dtcInteger, dtcReal]) and ZeroFill then
       Result := Result + ' ZEROFILL';
+    if Compressed and FConnection.Parameters.IsMariaDB then
+      Result := Result + ' /*!100301 COMPRESSED*/';
     Result := Result + ' '; // Add space after each part
   end;
 
@@ -11066,6 +11073,7 @@ begin
   end;
   Unsigned :=  ExecRegExpr('\bunsigned\b', Source.ToLowerInvariant);
   ZeroFill := ExecRegExpr('\bzerofill\b', Source.ToLowerInvariant);
+  Compressed := ExecRegExpr('\bcompressed\W', Source.ToLowerInvariant);
 end;
 
 

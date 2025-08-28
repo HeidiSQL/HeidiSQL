@@ -227,7 +227,8 @@ type
     const ColNumVirtuality = 11;
     const ColNumSrid = 12;
     const ColNumInvisible = 13;
-    const ColNumsCheckboxes = [ColNumUnsigned, ColNumAllownull, ColNumZerofill, ColNumInvisible];
+    const ColNumCompressed = 14;
+    const ColNumsCheckboxes = [ColNumUnsigned, ColNumAllownull, ColNumZerofill, ColNumInvisible, ColNumCompressed];
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
@@ -311,8 +312,9 @@ begin
   comboInsertMethod.Width := comboCollation.Width;
   if DBObject.Connection.Parameters.IsMariaDB then begin
     with listColumns.Header do begin
-      Columns[10].Options := Columns[10].Options + [coVisible];
-      Columns[11].Options := Columns[11].Options + [coVisible];
+      Columns[ColNumExpression].Options := Columns[ColNumExpression].Options + [coVisible];
+      Columns[ColNumVirtuality].Options := Columns[ColNumVirtuality].Options + [coVisible];
+      Columns[ColNumCompressed].Options := Columns[ColNumCompressed].Options + [coVisible];
     end;
   end;
   listColumns.BeginUpdate;
@@ -1273,7 +1275,9 @@ begin
     Checked := (Col.Unsigned and (Column=ColNumUnsigned))
       or (Col.AllowNull and (Column=ColNumAllownull))
       or (Col.ZeroFill and (Column = ColNumZerofill))
-      or (Col.Invisible and (Column = ColNumInvisible));
+      or (Col.Invisible and (Column = ColNumInvisible))
+      or (Col.Compressed and (Column = ColNumCompressed))
+      ;
     if CellEditingAllowed(Node, Column) then begin
       if Checked then ImageIndex := 128
       else ImageIndex := 127;
@@ -1383,6 +1387,8 @@ begin
 
     ColNumInvisible: Result := DBObject.Connection.Has(frInvisibleColumns);
 
+    ColNumCompressed: Result := DBObject.Connection.Has(frCompressedColumns);
+
     else Result := True;
   end;
 
@@ -1423,7 +1429,8 @@ begin
     ColNumUnsigned,
     ColNumAllownull,
     ColNumZerofill,
-    ColNumInvisible: CellText := ''; // Checkbox
+    ColNumInvisible,
+    ColNumCompressed: CellText := ''; // Checkbox
 
     ColNumDefault: begin
       case Col.DefaultType of
@@ -1717,6 +1724,13 @@ begin
 
       ColNumInvisible: begin
         Col.Invisible := not Col.Invisible;
+        Col.Status := esModified;
+        Modification(Sender);
+        VT.InvalidateNode(Node);
+      end;
+
+      ColNumCompressed: begin
+        Col.Compressed := not Col.Compressed;
         Col.Status := esModified;
         Modification(Sender);
         VT.InvalidateNode(Node);
