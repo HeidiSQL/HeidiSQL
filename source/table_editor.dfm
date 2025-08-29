@@ -884,6 +884,12 @@ object frmTableEditor: TfrmTableEditor
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 13
         Text = 'Invisible'
+      end
+      item
+        Hint = 'Storage-Engine Independent Column Compression'
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+        Position = 14
+        Text = 'Compressed'
       end>
   end
   object btnSave: TButton
