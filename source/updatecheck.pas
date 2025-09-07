@@ -290,8 +290,8 @@ begin
     if not FileExists(DownloadFilename) then
       Raise Exception.CreateFmt(_('Downloaded file not found: %s'), [DownloadFilename]);
     BuildSizeDownloaded := _GetFileSize(DownloadFilename);
-    if (Download.ContentLength > 0) and (BuildSizeDownloaded < Download.ContentLength) then
-      Raise Exception.CreateFmt(_('Downloaded file corrupted: %s (Size is %d and should be %d)'), [DownloadFilename, BuildSizeDownloaded, Download.ContentLength]);
+    if BuildSizeDownloaded < SIZE_MB then
+      Raise Exception.CreateFmt(_('Downloaded file corrupted: %s (Size is %d / too small)'), [DownloadFilename, BuildSizeDownloaded]);
 
     Status(_('Update in progress')+' ...');
     ResInfoblockHandle := FindResource(HInstance, 'UPDATER', 'EXE');
@@ -342,7 +342,7 @@ begin
   if FLastStatusUpdate > GetTickCount-200 then
     Exit;
   Download := Sender as THttpDownload;
-  Status(f_('Downloading: %s / %s', [FormatByteNumber(Download.BytesRead), FormatByteNumber(Download.ContentLength)]) + ' ...');
+  Status(f_('Downloading: %s', [FormatByteNumber(Download.BytesRead)]) + ' ...');
   FLastStatusUpdate := GetTickCount;
 end;
 

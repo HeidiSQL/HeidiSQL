@@ -5391,8 +5391,8 @@ msgid "Update in progress"
 msgstr "Update in progress"
 
 #: updatecheck.pas:264
-msgid "Downloading: %s / %s"
-msgstr "Downloading: %s / %s"
+msgid "Downloading: %s"
+msgstr "Downloading: %s"
 
 #: usermanager.pas:435
 msgid "Save modified user?"

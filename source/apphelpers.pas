@@ -93,7 +93,6 @@ type
       FURL: String;
       FLastContent: String;
       FBytesRead: Integer;
-      FContentLength: Integer;
       FTimeOut: Cardinal;
       FOnProgress: TNotifyEvent;
     public
@@ -103,7 +102,6 @@ type
       property URL: String read FURL write FURL;
       property TimeOut: Cardinal read FTimeOut write FTimeOut;
       property BytesRead: Integer read FBytesRead;
-      property ContentLength: Integer read FContentLength;
       property LastContent: String read FLastContent;
   end;
 
@@ -3510,7 +3508,6 @@ end;
 constructor THttpDownload.Create(Owner: TComponent);
 begin
   FBytesRead := -1;
-  FContentLength := -1;
   FOwner := Owner;
   FTimeOut := 10;
 end;
@@ -3548,14 +3545,6 @@ begin
     if not Assigned(UrlHandle) then begin
       raise Exception.CreateFmt(_('Could not open %s (%s)'), [FURL, SysErrorMessage(GetLastError)]);
     end;
-
-    // Detect content length
-    HeadSize := SizeOf(Head);
-    Reserved := 0;
-    if HttpQueryInfo(UrlHandle, HTTP_QUERY_CONTENT_LENGTH, @Head, HeadSize, Reserved) then
-      FContentLength := StrToIntDef(Head, -1)
-    else
-      raise Exception.CreateFmt(_('Server did not send required "Content-Length" header: %s'), [FURL]);
 
     // Check if we got HTTP status 200
     HeadSize := SizeOf(Head);

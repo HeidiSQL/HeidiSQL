@@ -107,7 +107,7 @@ begin
   if FLastStatusUpdate > GetTickCount-200 then
     Exit;
   Download := Sender as THttpDownload;
-  StatusBarMain.SimpleText := f_('Downloading: %s / %s', [FormatByteNumber(Download.BytesRead), FormatByteNumber(Download.ContentLength)]) + ' ...';
+  StatusBarMain.SimpleText := f_('Downloading: %s', [FormatByteNumber(Download.BytesRead)]) + ' ...';
   FLastStatusUpdate := GetTickCount;
 end;
 
