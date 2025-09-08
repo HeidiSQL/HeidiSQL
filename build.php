@@ -1,0 +1,250 @@
+<?php
+
+$start_dir = getcwd();
+
+const DS = DIRECTORY_SEPARATOR;
+const BASE_DIR = __DIR__ . DS;
+const PACKAGE_DIR = 'Delphi12.3';
+const PACKAGE_DIRS_COMPONENTS = [PACKAGE_DIR, 'RAD Studio 10.4+'];
+const STUDIO_DIR = 'C:\\Program Files (x86)\\Embarcadero\\Studio\\23.0\\';
+const COMPILER_DIR = STUDIO_DIR . 'bin\\';
+const LIB_DIR = STUDIO_DIR . 'lib\\';
+const MAD_DIR = 'C:\\Program Files (x86)\\madCollection\\';
+const INNOSETUP_DIR = 'C:\\Program Files (x86)\\Inno Setup 6\\';
+const SIGNTOOL_DIR = 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\x64\\';
+
+
+function dumpMessage(string $text = '', bool $blankLineAbove = false): void
+{
+    if ($blankLineAbove)
+        dumpMessage();
+    $prefix = date('H:i:s') . ' ';
+    echo $prefix . $text . PHP_EOL;
+}
+
+function compilerCommand(int $bit, string $outputNameExtension): string
+{
+    $params = [
+        //'-$O-', // disable optimization
+        '-$W+', // Generate stack frames
+        '--no-config', // do not load default dcc64/32.cfg file
+        //'-M', // Modifizierte Units erzeugen
+        '-Q', // Quiet compile, workaround for avoiding error D21153 - see http://qc.borland.com/wc/qcmain.aspx?d=44731
+        '-TX.'.$outputNameExtension, // Erweiterung des Ausgabenamens
+        '-I"'.BASE_DIR.'source"', // include directories
+        '-LE"..\..\build\Win'.$bit.'"', // package .bpl output directory
+        '-LN"..\..\build\Win'.$bit.'"', // package .dcp output directory
+        '-N0"..\..\build\Win'.$bit.'"', // unit .obj output directory
+        '-NS"' // "Namespace search path" (or "Unit scope names" in IDE), used by SynEdit and probably VirtualTrees
+            .'Vcl;'
+            .'System;'
+            .'Winapi;'
+            .'System.Win;'
+            .'Data;'
+            .'"',
+        '-R"' // Resource directories
+            .BASE_DIR.'components\synedit\Source;'
+            .BASE_DIR.'components\virtualtreeview\Source'
+            .'"',
+        '-U"' // Unit directories
+            .LIB_DIR.'win'.$bit.'\release;'
+            .BASE_DIR.'components\virtualtreeview\Source;'
+            .BASE_DIR.'components\synedit\Source;'
+            .BASE_DIR.'source\detours\Source;'
+            .BASE_DIR.'source\vcl-styles-utils;'
+            .BASE_DIR.'source\sizegrip;'
+            .MAD_DIR.'madExcept\BDS23\win'.$bit.';'
+            .MAD_DIR.'madDisAsm\BDS23\win'.$bit.';'
+            .MAD_DIR.'madBasic\BDS23\win'.$bit.';'
+            .'"',
+        //'-K00400000', // Image-Basisadresse
+        '-DmadExcept;DEBUG', // define conditionals
+        '-GD', // detailed map file
+        '--high-entropy-va:off', // ASLR, error on startup, no main form, then crash
+        //'--dynamic-base:off', // ASLR since Vista, works here
+        '-W-SYMBOL_PLATFORM', // disable output of some warning messages
+        '-W-UNIT_PLATFORM',
+        '-W-DUPLICATE_CTOR_DTOR',
+        '-B', // build all units
+        ];
+    return '"'.COMPILER_DIR . 'dcc'.$bit.'.exe" ' . implode(' ', $params);
+}
+
+
+/**
+ * Call the compiler for a component package
+ */
+function compileComponent($componentDir, $packageFile, $bit): bool
+{
+    dumpMessage('Compiling component '.$componentDir.', package '.$packageFile.'...', true);
+    foreach(PACKAGE_DIRS_COMPONENTS as $dir) {
+        $fullDir = BASE_DIR . 'components\\' . $componentDir . '\\packages\\' . $dir;
+        if(file_exists($fullDir)) {
+            chdir($fullDir);
+            return execCommand(compilerCommand($bit, 'bpl').' '.$packageFile);
+        }
+    }
+    throw new \Exception('Could not find package folder for '.$componentDir.' component.');
+}
+
+
+/**
+ * Sign file with code sign certificate
+ */
+function sign_file($filename): bool
+{
+    dumpMessage('Skip signing');
+    return false;
+    dumpMessage('Sign '.basename($filename).'...', true);
+    return execCommand('"'.SIGNTOOL_DIR.'signtool.exe" '
+        .'sign '
+        .'/fd SHA256 '
+        .'/a '
+        .'/t http://timestamp.comodoca.com/authenticode '
+        .$filename
+        );
+}
+
+
+/**
+ * Run a command line, displays its output, then returns true/false on success or error,
+ * or an array of strings if returnOutput is true
+ */
+function execCommand(string $command, bool $returnOutput=false): array|bool
+{
+    $output = [];
+    $resultCode = 0;
+    dumpMessage(getcwd().'>> '.$command);
+    exec($command.' 2>&1', $output, $resultCode);
+    if(!$returnOutput) {
+        foreach ($output as $oline) {
+            dumpMessage('# ' . ($resultCode ? 'Error: ' : '') . $oline);
+        }
+    }
+    $success = $resultCode == 0;
+    if(!$success) {
+        die('Last command failed, terminating.');
+    }
+    return $returnOutput ? $output : $success;
+}
+
+
+/**
+ * Return file names from given directory, recursively
+ * @param string $path file path
+ * @param string $filepattern file pattern, e.g. "*.xml"
+ * @return array files
+ */
+function globRecursive(string $path, string $filepattern): array
+{
+    static $filecount=0;
+    $path = rtrim($path, '/\\');
+
+    // Find files in path
+    $files = glob($path . DS . $filepattern, GLOB_BRACE);
+    $filecount += count($files);
+
+    // Find subdirectories in path, and do recursion
+    $dirs = glob($path . DS . '*', GLOB_ONLYDIR);
+    foreach($dirs as $d)
+    {
+        $files = array_merge($files, globRecursive($d, $filepattern));
+    }
+
+    return $files;
+}
+
+
+
+$gitCommits = execCommand('git log --pretty=oneline', true);
+if(empty($gitCommits)) {
+    die('No commits found.');
+}
+$lastCommitRevision = count($gitCommits) + 671; // The number of earlier Subversion commits which I could not migrate to Git
+$lastCommitHash = substr($gitCommits[0], 0, strpos($gitCommits[0], ' '));
+
+// start the build process
+dumpMessage('Compiling commit '.$lastCommitHash.' (revision '.$lastCommitRevision.')', true);
+chdir(BASE_DIR);
+
+dumpMessage('Removing unversioned files...');
+execCommand('git clean -dfx');
+
+dumpMessage('Downloading fresh translation files ...', true);
+execCommand('extra\\internationalization\\tx.exe pull -a');
+
+dumpMessage('Compiling .po translation files...');
+$po_files = globRecursive('out\\locale\\', '*.po');
+foreach($po_files as $po_file)
+{
+    $mo_file = preg_replace('#\.po$#', '.mo', $po_file);
+    execCommand('"extra\\internationalization\\msgfmt.exe" -o '.$mo_file.' '.$po_file);
+}
+
+$compileBits = ['32', '64'];
+
+foreach($compileBits as $bit)
+{
+    dumpMessage('********* Compiling '.$bit.' bit executable *********', true);
+    chdir(BASE_DIR);
+
+    compileComponent('synedit', 'SynEdit_R.dpk', $bit);
+
+    compileComponent('virtualtreeview', 'VirtualTreesR.dpk', $bit);
+
+
+    chdir(BASE_DIR);
+    $versionFile = realpath('res\\version.rc');
+    dumpMessage('Reverting version resource file...', true);
+    execCommand('git checkout '.$versionFile);
+    dumpMessage('Modify version resource file...');
+    $versionOriginal = file_get_contents($versionFile);
+    $versionRevision = preg_replace('#(FILEVERSION\s+\d+,\d+,\d+,)(\d+)(\b)#i', '${1}'.$lastCommitRevision.'$3', $versionOriginal);
+    $versionRevision = str_replace('%APPNAME%', 'HeidiSQL', $versionRevision);
+    preg_match('#FILEVERSION\s+(\d+),(\d+),(\d+),(\d+)\b#i', $versionRevision, $matches);
+    $shortVersion = $matches[1].'.'.$matches[2].'.'.$matches[3].'.'.$matches[4];
+    $fullVersion = $shortVersion.' '.$bit.' Bit';
+    $versionRevision = str_replace('%APPVER%', $fullVersion, $versionRevision);
+    file_put_contents($versionFile, $versionRevision);
+
+    dumpMessage('Processing resource files...', true);
+    execCommand('"'.COMPILER_DIR . 'brcc32.exe" '.$versionFile);
+    execCommand('"'.COMPILER_DIR . 'cgrc.exe" res\\icon.rc');
+    execCommand('"'.COMPILER_DIR . 'brcc32.exe" res\\icon-question.rc');
+    execCommand('"'.COMPILER_DIR . 'brcc32.exe" res\\manifest.rc');
+    execCommand('"'.COMPILER_DIR . 'brcc32.exe" res\\updater.rc');
+    execCommand('"'.COMPILER_DIR . 'cgrc.exe" res\\styles.rc');
+    execCommand('"'.COMPILER_DIR . 'brcc32.exe" source\\vcl-styles-utils\\AwesomeFont.rc');
+    execCommand('"'.COMPILER_DIR . 'brcc32.exe" source\\vcl-styles-utils\\AwesomeFont_zip.rc');
+
+    dumpMessage('Compiling main project...', true);
+    chdir(BASE_DIR.'packages\\'.PACKAGE_DIR);
+    execCommand(compilerCommand($bit, 'exe').' -E"'.BASE_DIR.'out" heidisql.dpr');
+
+    dumpMessage('Patch executable with .mo files...', true);
+    // Must be done before madExcept writes a new crc header, otherwise it will complain about a corrupt .exe
+    // See http://tech.dir.groups.yahoo.com/group/dxgettext/message/3623
+    chdir(BASE_DIR);
+    execCommand('extra\\internationalization\\assemble.exe out\\heidisql.exe --dxgettext');
+
+    dumpMessage('Patching executable with exception handler...', true);
+    chdir(BASE_DIR.'packages\\'.PACKAGE_DIR);
+    execCommand('"'.MAD_DIR.'madExcept\\Tools\\madExceptPatch.exe" "'.BASE_DIR.'out\\heidisql.exe" heidisql.mes');
+
+    dumpMessage('Renaming executable...', true);
+    chdir(BASE_DIR.'out');
+    rename('heidisql.exe', 'heidisql'.$bit.'.exe');
+    sign_file('heidisql'.$bit.'.exe');
+
+    dumpMessage('*****************************************************', true);
+}
+
+dumpMessage('Creating universal installer...', true);
+execCommand('"'.INNOSETUP_DIR.'ISCC.exe" /Qp /finstaller "' . BASE_DIR . 'out\\heidisql.iss"');
+// Signing is done within InnoSetup
+sign_file('installer.exe');
+
+
+
+chdir($start_dir);
+
