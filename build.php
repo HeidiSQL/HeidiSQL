@@ -2,6 +2,8 @@
 
 $start_dir = getcwd();
 
+const APPNAME = 'HeidiSQL';
+const BIN_NAME = 'heidisql'; // file name of main executable
 const DS = DIRECTORY_SEPARATOR;
 const BASE_DIR = __DIR__ . DS;
 const PACKAGE_DIR = 'Delphi12.3';
@@ -11,7 +13,6 @@ const COMPILER_DIR = STUDIO_DIR . 'bin\\';
 const LIB_DIR = STUDIO_DIR . 'lib\\';
 const MAD_DIR = 'C:\\Program Files (x86)\\madCollection\\';
 const INNOSETUP_DIR = 'C:\\Program Files (x86)\\Inno Setup 6\\';
-const SIGNTOOL_DIR = 'C:\\Program Files (x86)\\Windows Kits\\10\\bin\\10.0.26100.0\\x64\\';
 
 
 function dumpMessage(string $text = '', bool $blankLineAbove = false): void
@@ -89,24 +90,6 @@ function compileComponent($componentDir, $packageFile, $bit): bool
 
 
 /**
- * Sign file with code sign certificate
- */
-function sign_file($filename): bool
-{
-    dumpMessage('Skip signing');
-    return false;
-    dumpMessage('Sign '.basename($filename).'...', true);
-    return execCommand('"'.SIGNTOOL_DIR.'signtool.exe" '
-        .'sign '
-        .'/fd SHA256 '
-        .'/a '
-        .'/t http://timestamp.comodoca.com/authenticode '
-        .$filename
-        );
-}
-
-
-/**
  * Run a command line, displays its output, then returns true/false on success or error,
  * or an array of strings if returnOutput is true
  */
@@ -123,7 +106,8 @@ function execCommand(string $command, bool $returnOutput=false): array|bool
     }
     $success = $resultCode == 0;
     if(!$success) {
-        die('Last command failed, terminating.');
+        dumpMessage('Last command failed, terminating.');
+        exit(1);
     }
     return $returnOutput ? $output : $success;
 }
@@ -155,7 +139,7 @@ function globRecursive(string $path, string $filepattern): array
 }
 
 
-
+chdir(BASE_DIR);
 $gitCommits = execCommand('git log --pretty=oneline', true);
 if(empty($gitCommits)) {
     die('No commits found.');
@@ -200,7 +184,7 @@ foreach($compileBits as $bit)
     dumpMessage('Modify version resource file...');
     $versionOriginal = file_get_contents($versionFile);
     $versionRevision = preg_replace('#(FILEVERSION\s+\d+,\d+,\d+,)(\d+)(\b)#i', '${1}'.$lastCommitRevision.'$3', $versionOriginal);
-    $versionRevision = str_replace('%APPNAME%', 'HeidiSQL', $versionRevision);
+    $versionRevision = str_replace('%APPNAME%', APPNAME, $versionRevision);
     preg_match('#FILEVERSION\s+(\d+),(\d+),(\d+),(\d+)\b#i', $versionRevision, $matches);
     $shortVersion = $matches[1].'.'.$matches[2].'.'.$matches[3].'.'.$matches[4];
     $fullVersion = $shortVersion.' '.$bit.' Bit';
@@ -225,26 +209,31 @@ foreach($compileBits as $bit)
     // Must be done before madExcept writes a new crc header, otherwise it will complain about a corrupt .exe
     // See http://tech.dir.groups.yahoo.com/group/dxgettext/message/3623
     chdir(BASE_DIR);
-    execCommand('extra\\internationalization\\assemble.exe out\\heidisql.exe --dxgettext');
+    execCommand('extra\\internationalization\\assemble.exe out\\'.BIN_NAME.'.exe --dxgettext');
 
     dumpMessage('Patching executable with exception handler...', true);
     chdir(BASE_DIR.'packages\\'.PACKAGE_DIR);
-    execCommand('"'.MAD_DIR.'madExcept\\Tools\\madExceptPatch.exe" "'.BASE_DIR.'out\\heidisql.exe" heidisql.mes');
+    execCommand('"'.MAD_DIR.'madExcept\\Tools\\madExceptPatch.exe" "'.BASE_DIR.'out\\'.BIN_NAME.'.exe" heidisql.mes');
 
-    dumpMessage('Renaming executable...', true);
-    chdir(BASE_DIR.'out');
-    rename('heidisql.exe', 'heidisql'.$bit.'.exe');
-    sign_file('heidisql'.$bit.'.exe');
+    chdir(BASE_DIR);
+    $renameTo = sprintf('out\\%s%d.exe', BIN_NAME, $bit);
+    dumpMessage('Rename to '.$renameTo.'...', true);
+    rename('out\\'.BIN_NAME.'.exe', $renameTo);
 
     dumpMessage('*****************************************************', true);
 }
 
-dumpMessage('Creating universal installer...', true);
-execCommand('"'.INNOSETUP_DIR.'ISCC.exe" /Qp /finstaller "' . BASE_DIR . 'out\\heidisql.iss"');
-// Signing is done within InnoSetup
-sign_file('installer.exe');
+// HeidiSQL_12.11.0.7065_Setup.exe
+$installerName = sprintf('%s_%s_Setup', APPNAME, $shortVersion);
+dumpMessage('Creating universal installer '.$installerName.'...', true);
+execCommand('"'.INNOSETUP_DIR.'ISCC.exe" /Q /F"'.$installerName.'" "' . BASE_DIR . 'out\\heidisql.iss"');
 
-
+dumpMessage('Renaming executables again...', true);
+foreach($compileBits as $bit) {
+    $renameTo = sprintf('out\\%s%d.r%d.exe', BIN_NAME, $bit, $lastCommitRevision);
+    dumpMessage('  '.$renameTo);
+    rename('out\\' . BIN_NAME . $bit . '.exe', $renameTo);
+}
 
 chdir($start_dir);
 
