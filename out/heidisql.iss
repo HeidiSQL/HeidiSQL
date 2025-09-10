@@ -14,7 +14,7 @@
 #define ProgVerRevision
 #define ProgVerBuild
 #define ProgVersion GetVersionComponents(AddBackslash(SourcePath) + ProgNameLower + "64.exe", ProgVerMajor, ProgVerMinor, ProgVerRevision, ProgVerBuild)
-#define ProgShortVersion Str(ProgVerMajor) + "." + Str(ProgVerMinor)
+#define ProgVersionStr Str(ProgVerMajor) + "." + Str(ProgVerMinor) + "." + Str(ProgVerRevision) + "." + Str(ProgVerBuild)
 
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
@@ -53,7 +53,7 @@ AppName={#ProgName}
 AppVerName={#ProgName} {#ProgVersion}
 VersionInfoVersion={#ProgVersion}
 ; Displayed on the "Support" dialog of the Add/Remove Programs Control Panel applet:
-AppVersion={#ProgShortVersion}
+AppVersion={#ProgVersionStr}
 AppPublisher=Ansgar Becker
 AppPublisherURL={#WebSite}
 AppSupportURL={#WebSite}forum.php
@@ -73,7 +73,7 @@ WizardStyle=modern
 WizardImageFile={#ResourceDir}installer-logo.bmp
 WizardSmallImageFile={#ResourceDir}installer-small-logo.bmp
 OutputDir={#OutDir}
-OutputBaseFilename={#ProgName}_{#ProgShortVersion}_Setup
+OutputBaseFilename={#ProgName}_{#ProgVersionStr}_Setup
 UninstallDisplayIcon={app}\{#ProgExeName}
 SetupIconFile={#ResourceDir}mainicon.ico
 ArchitecturesAllowed=x64compatible

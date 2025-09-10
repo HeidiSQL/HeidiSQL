@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * Script for building HeidiSQL main executable, in 32 bit and 64 bit
+ * Syntax:
+ *   php build.php
+ *
+ * The compiled binaries will include
+ * - version number with Git revision, e.g. 12.11.0.7000
+ * - compiled resource files
+ * - translations downloaded from Transifex
+ * - madExcept exception handler
+ *
+ * After successful compiling, you may load the .iss file in InnoSetup to create an installer
+ *
+ * @todo convert code from PHP to PowerShell
+ */
+
 $start_dir = getcwd();
 
 const APPNAME = 'HeidiSQL';
@@ -12,7 +28,6 @@ const STUDIO_DIR = 'C:\\Program Files (x86)\\Embarcadero\\Studio\\23.0\\';
 const COMPILER_DIR = STUDIO_DIR . 'bin\\';
 const LIB_DIR = STUDIO_DIR . 'lib\\';
 const MAD_DIR = 'C:\\Program Files (x86)\\madCollection\\';
-const INNOSETUP_DIR = 'C:\\Program Files (x86)\\Inno Setup 6\\';
 
 
 function dumpMessage(string $text = '', bool $blankLineAbove = false): void
@@ -77,7 +92,7 @@ function compilerCommand(int $bit, string $outputNameExtension): string
  */
 function compileComponent($componentDir, $packageFile, $bit): bool
 {
-    dumpMessage('Compiling component '.$componentDir.', package '.$packageFile.'...', true);
+    dumpMessage('Compile component '.$componentDir.', package '.$packageFile.'...', true);
     foreach(PACKAGE_DIRS_COMPONENTS as $dir) {
         $fullDir = BASE_DIR . 'components\\' . $componentDir . '\\packages\\' . $dir;
         if(file_exists($fullDir)) {
@@ -140,6 +155,7 @@ function globRecursive(string $path, string $filepattern): array
 
 
 chdir(BASE_DIR);
+dumpMessage('Detect Git revision...');
 $gitCommits = execCommand('git log --pretty=oneline', true);
 if(empty($gitCommits)) {
     die('No commits found.');
@@ -148,16 +164,16 @@ $lastCommitRevision = count($gitCommits) + 671; // The number of earlier Subvers
 $lastCommitHash = substr($gitCommits[0], 0, strpos($gitCommits[0], ' '));
 
 // start the build process
-dumpMessage('Compiling commit '.$lastCommitHash.' (revision '.$lastCommitRevision.')', true);
+dumpMessage('Compile commit '.$lastCommitHash.' (revision '.$lastCommitRevision.')', true);
 chdir(BASE_DIR);
 
-dumpMessage('Removing unversioned files...');
+dumpMessage('Remove unversioned files...');
 execCommand('git clean -dfx');
 
-dumpMessage('Downloading fresh translation files ...', true);
+dumpMessage('Download fresh translation files ...', true);
 execCommand('extra\\internationalization\\tx.exe pull -a');
 
-dumpMessage('Compiling .po translation files...');
+dumpMessage('Compile .po translation files...');
 $po_files = globRecursive('out\\locale\\', '*.po');
 foreach($po_files as $po_file)
 {
@@ -169,7 +185,7 @@ $compileBits = ['32', '64'];
 
 foreach($compileBits as $bit)
 {
-    dumpMessage('********* Compiling '.$bit.' bit executable *********', true);
+    dumpMessage('********* Compile '.$bit.' bit executable', true);
     chdir(BASE_DIR);
 
     compileComponent('synedit', 'SynEdit_R.dpk', $bit);
@@ -179,7 +195,7 @@ foreach($compileBits as $bit)
 
     chdir(BASE_DIR);
     $versionFile = realpath('res\\version.rc');
-    dumpMessage('Reverting version resource file...', true);
+    dumpMessage('Revert version resource file...', true);
     execCommand('git checkout '.$versionFile);
     dumpMessage('Modify version resource file...');
     $versionOriginal = file_get_contents($versionFile);
@@ -191,7 +207,7 @@ foreach($compileBits as $bit)
     $versionRevision = str_replace('%APPVER%', $fullVersion, $versionRevision);
     file_put_contents($versionFile, $versionRevision);
 
-    dumpMessage('Processing resource files...', true);
+    dumpMessage('Compile resource files...', true);
     execCommand('"'.COMPILER_DIR . 'brcc32.exe" '.$versionFile);
     execCommand('"'.COMPILER_DIR . 'cgrc.exe" res\\icon.rc');
     execCommand('"'.COMPILER_DIR . 'brcc32.exe" res\\icon-question.rc');
@@ -201,7 +217,7 @@ foreach($compileBits as $bit)
     execCommand('"'.COMPILER_DIR . 'brcc32.exe" source\\vcl-styles-utils\\AwesomeFont.rc');
     execCommand('"'.COMPILER_DIR . 'brcc32.exe" source\\vcl-styles-utils\\AwesomeFont_zip.rc');
 
-    dumpMessage('Compiling main project...', true);
+    dumpMessage('Compile main project...', true);
     chdir(BASE_DIR.'packages\\'.PACKAGE_DIR);
     execCommand(compilerCommand($bit, 'exe').' -E"'.BASE_DIR.'out" heidisql.dpr');
 
@@ -211,7 +227,7 @@ foreach($compileBits as $bit)
     chdir(BASE_DIR);
     execCommand('extra\\internationalization\\assemble.exe out\\'.BIN_NAME.'.exe --dxgettext');
 
-    dumpMessage('Patching executable with exception handler...', true);
+    dumpMessage('Patch executable with exception handler...', true);
     chdir(BASE_DIR.'packages\\'.PACKAGE_DIR);
     execCommand('"'.MAD_DIR.'madExcept\\Tools\\madExceptPatch.exe" "'.BASE_DIR.'out\\'.BIN_NAME.'.exe" heidisql.mes');
 
@@ -220,20 +236,8 @@ foreach($compileBits as $bit)
     dumpMessage('Rename to '.$renameTo.'...', true);
     rename('out\\'.BIN_NAME.'.exe', $renameTo);
 
-    dumpMessage('*****************************************************', true);
 }
 
-// HeidiSQL_12.11.0.7065_Setup.exe
-$installerName = sprintf('%s_%s_Setup', APPNAME, $shortVersion);
-dumpMessage('Creating universal installer '.$installerName.'...', true);
-execCommand('"'.INNOSETUP_DIR.'ISCC.exe" /Q /F"'.$installerName.'" "' . BASE_DIR . 'out\\heidisql.iss"');
-
-dumpMessage('Renaming executables again...', true);
-foreach($compileBits as $bit) {
-    $renameTo = sprintf('out\\%s%d.r%d.exe', BIN_NAME, $bit, $lastCommitRevision);
-    dumpMessage('  '.$renameTo);
-    rename('out\\' . BIN_NAME . $bit . '.exe', $renameTo);
-}
 
 chdir($start_dir);
 
