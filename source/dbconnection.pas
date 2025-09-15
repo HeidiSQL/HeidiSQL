@@ -1159,7 +1159,7 @@ begin
   if FConnection.Parameters.SSHPrivateKey <> '' then
     SshCmd := SshCmd + ' -i "' + FConnection.Parameters.SSHPrivateKey + '"';
   if not IsPlink then
-    SshCmd := SshCmd + ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
+    SshCmd := SshCmd + ' -o StrictHostKeyChecking=no';
   SshCmd := SshCmd + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port);
   rx := TRegExpr.Create;
   rx.Expression := '(-pw\s+")[^"]*(")';
