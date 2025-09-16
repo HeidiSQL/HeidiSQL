@@ -334,7 +334,9 @@ type
     property Text[Node: PVirtualNode; Column: TColumnIndex]: string read GetText write SetText;
   end;
 
+  {$if CompilerVersion >= 33}
   [ComponentPlatformsAttribute(pfidWindows)]
+  {$ifend}
   TVirtualStringTree = class(TCustomVirtualStringTree)
   private
     function GetOptions: TStringTreeOptions;

@@ -34,7 +34,11 @@ const
   NoColumn                 = - 1;
   InvalidColumn            = - 2;
 
-  // Indices for check state images used for checking.
+  // General constants for imagelists
+  NoImage                  = -1; // No image is avalable
+  EmptyImage               = -2; // an empty image used as place holder
+
+  // Indices for check state images in the imagelist used for displaying check-marks.
   ckEmpty                  = 0;    // an empty image used as place holder
   // radio buttons
   ckRadioUncheckedNormal   = 1;
@@ -139,8 +143,7 @@ type
   PDimension = ^Integer;
   TNodeHeight = NativeInt;
   TVTCursor = HCURSOR;
-  IDataObject= WinApi.ActiveX.IDataObject;
-  TVTDragDataObject = IDataObject;
+  TVTDragDataObject = WinApi.ActiveX.IDataObject;
   TVTBackground = TPicture;
   TVTPaintContext = HDC;
   TVTBrush = HBRUSH;

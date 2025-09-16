@@ -5786,9 +5786,9 @@ begin
       inherited
     else
     begin
-      // We need an extra check for the control drag object as there might be other objects not derived from
-      // this class (e.g. TActionDragObject).
-      if not (tsUserDragObject in FStates) and (S is TBaseDragControlObject) then
+      // We need an extra check for the control drag object as there might be other objects not derived from this class (e.g. TActionDragObject).
+      // Original line of code (see issue #1295): if not (tsUserDragObject in FStates) and (S is TBaseDragControlObject) then
+      if (S.ClassName = TDragControlObject.ClassName) or (S.ClassName = TDragControlObjectEx.ClassName) then  // see issue #1295
         S := (S as TBaseDragControlObject).Control;
       case DragMessage of
         dmDragEnter, dmDragLeave, dmDragMove:
@@ -6481,7 +6481,7 @@ begin
   if not Assigned(PopupMenu) then begin
     // convert screen coordinates to client
     pt := ScreenToClient(Point(Message.XPos, Message.YPos));
-    GetHitTestInfoAt(Message.XPos, Message.YPos, True, HitInfo); // ShiftState is not used anyway here
+    GetHitTestInfoAt(pt.x, pt.y, True, HitInfo); // ShiftState is not used anyway here
     DoPopupMenu(HitInfo.HitNode, HitInfo.HitColumn, pt);
   end;
 
@@ -9932,6 +9932,7 @@ begin
   if Assigned(FFocusedNode) and not (vsDisabled in FFocusedNode.States) and
     not (toReadOnly in FOptions.MiscOptions) and (FEditLink = nil) then
   begin
+    InternalSetFocusedColumn(FEditColumn);
     ScrollIntoView(FFocusedNode, toCenterScrollIntoView in FOptions.SelectionOptions, not (toDisableAutoscrollOnEdit in FOptions.AutoOptions));
     FEditLink := DoCreateEditor(FFocusedNode, FEditColumn);
     if Assigned(FEditLink) then
@@ -11833,7 +11834,7 @@ begin
   Index := -1;
   Ghosted := False;
   lImageList := DoGetImageIndex(Node, Kind, Column, Ghosted, Index);
-  if Index >= 0 then begin
+  if (Index > NoImage) or (Index = EmptyImage) then begin
     if IncludePadding then
       Result.cx := lImageList.Width + ScaledPixels(2)
     else
@@ -12606,7 +12607,7 @@ begin
       if NeedChangeEvent then
       begin
         Invalidate;
-        Change(nil);
+        Change(HitInfo.HitNode);
       end;
     end
     else if (toAlwaysSelectNode in Self.TreeOptions.SelectionOptions) then
@@ -20628,7 +20629,6 @@ begin
                             ((Column = FEditColumn) or not UseColumns)) then
                             DoPaintNode(PaintInfo);
 
-                          Canvas.Brush.Color := FColors.BackGroundColor; // Set useful background color, see issue #1264
                           DoAfterCellPaint(Canvas, Node, Column, CellRect);
                         end;
                       end;

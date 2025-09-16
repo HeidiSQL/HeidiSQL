@@ -1,7 +1,7 @@
 {
   "metadata": {
     "id": "JAM.VirtualTreeView",
-    "version": "8.0.0-alpha1",
+    "version": "8.1.2",
     "description": "Virtual TreeView VCL Component",
     "authors": "Joachim Marder",
     "projectUrl": "https://github.com/JAM-Software/Virtual-TreeView",
@@ -10,54 +10,6 @@
     "tags": "VCL, TreeView"
   },
   "targetPlatforms": [
-    {
-      "compiler": "XE3",
-      "platforms": "Win32, Win64",
-      "template": "default",
-      "variables" : {
-        "libsuffix" : "170"
-      }
-    },
-    {
-      "compiler": "XE4",
-      "platforms": "Win32, Win64",
-      "template": "default",
-      "variables" : {
-        "libsuffix" : "180"
-      }
-    },
-    {
-      "compiler": "XE5",
-      "platforms": "Win32, Win64",
-      "template": "default",
-      "variables" : {
-        "libsuffix" : "190"
-      }
-    },
-    {
-      "compiler": "XE6",
-      "platforms": "Win32, Win64",
-      "template": "default",
-      "variables" : {
-        "libsuffix" : "200"
-      }
-    },
-    {
-      "compiler": "XE7",
-      "platforms": "Win32, Win64",
-      "template": "default",
-      "variables" : {
-        "libsuffix" : "210"
-      }
-    },
-    {
-      "compiler": "XE8",
-      "platforms": "Win32, Win64",
-      "template": "default",
-      "variables" : {
-        "libsuffix" : "220"
-      }
-    },
     {
       "compiler": "10.0",
       "platforms": "Win32, Win64",
@@ -105,6 +57,14 @@
       "template": "10.4+",
       "variables" : {
         "libsuffix" : "280"
+      }
+    }	
+    {
+      "compiler": "12.0",
+      "platforms": "Win32, Win64",
+      "template": "10.4+",
+      "variables" : {
+        "libsuffix" : "290"
       }
     }	
   ],
