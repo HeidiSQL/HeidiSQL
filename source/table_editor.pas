@@ -272,6 +272,10 @@ begin
   editName.MaxLength := NAME_LEN;
   FAlterRestrictedMessageDisplayed := False;
   btnSave.Hint := ShortCutToText(MainForm.actSaveSQL.ShortCut);
+  FixVT(listColumns);
+  FixVT(treeIndexes);
+  FixVT(listForeignKeys);
+  FixVT(listCheckConstraints);
 end;
 
 
@@ -283,10 +287,6 @@ begin
   inherited;
   FLoaded := False;
 
-  FixVT(listColumns);
-  FixVT(treeIndexes);
-  FixVT(listForeignKeys);
-  FixVT(listCheckConstraints);
   // Try the best to auto fit various column widths, respecting a custom DPI setting and a pulldown arrow
   listColumns.Header.Columns[2].Width := Mainform.Canvas.TextWidth('GEOMETRYCOLLECTION') + 6*listColumns.TextMargin;
   listColumns.Header.Columns[7].Width := Mainform.Canvas.TextWidth('AUTO_INCREMENT') + 4*listColumns.TextMargin;

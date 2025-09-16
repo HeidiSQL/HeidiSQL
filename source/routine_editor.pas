@@ -118,6 +118,7 @@ begin
   editName.MaxLength := NAME_LEN;
   FMainSynMemo := SynMemoBody;
   btnSave.Hint := ShortCutToText(MainForm.actSaveSQL.ShortCut);
+  FixVT(listParameters);
 end;
 
 
@@ -126,7 +127,6 @@ var
   i: Integer;
 begin
   inherited;
-  FixVT(listParameters);
   TExtForm.RestoreListSetup(listParameters);
   if Obj.NodeType = lntProcedure then FAlterRoutineType := 'PROCEDURE'
   else FAlterRoutineType := 'FUNCTION';
@@ -588,3 +588,4 @@ end;
 
 
 end.
+

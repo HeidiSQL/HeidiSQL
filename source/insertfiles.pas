@@ -119,6 +119,8 @@ begin
   HasSizeGrip := True;
   ListFiles.Images := GetSystemImageList;
   DragAcceptFiles(Handle, True);
+  FixVT(ListFiles);
+  FixVT(ListColumns);
 end;
 
 
@@ -137,8 +139,6 @@ begin
   Height := AppSettings.ReadIntDpiAware(asFileImportWindowHeight, Self);
   RestoreListSetup(ListColumns);
   RestoreListSetup(ListFiles);
-  FixVT(ListFiles);
-  FixVT(ListColumns);
   FConnection := Mainform.ActiveConnection;
   Caption := FConnection.Parameters.SessionName + ' - ' + MainForm.actInsertFiles.Caption;
   comboDBs.Items.Clear;

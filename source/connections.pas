@@ -285,6 +285,7 @@ begin
   HasSizeGrip := True;
   Caption := GetWindowCaption;
 
+  FixVT(ListSessions);
   ListSessions.OnCompareNodes := MainForm.AnyGridCompareNodes;
   ListSessions.OnHeaderClick := MainForm.AnyGridHeaderClick;
   ListSessions.OnHeaderDraggedOut := MainForm.AnyGridHeaderDraggedOut;
@@ -398,7 +399,6 @@ begin
   MakeFullyVisible;
   pnlLeft.Width := AppSettings.ReadIntDpiAware(asSessionManagerListWidth, Self);
   splitterMain.OnMoved(Sender);
-  FixVT(ListSessions);
   RestoreListSetup(ListSessions);
 
   // Init sessions tree

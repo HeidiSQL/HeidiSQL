@@ -219,6 +219,8 @@ begin
   PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER,'+
     'BINLOG ADMIN,BINLOG REPLAY,CONNECTION ADMIN,FEDERATED ADMIN,READ_ONLY ADMIN,REPLICATION MASTER ADMIN,'+
     'REPLICATION SLAVE ADMIN,SET USER,SLAVE MONITOR');
+  FixVT(listUsers);
+  FixVT(treePrivs);
 end;
 
 
@@ -252,8 +254,6 @@ begin
   Width := AppSettings.ReadIntDpiAware(asUsermanagerWindowWidth, Self);
   Height := AppSettings.ReadIntDpiAware(asUsermanagerWindowHeight, Self);
   pnlLeft.Width := AppSettings.ReadIntDpiAware(asUsermanagerListWidth, Self);
-  FixVT(listUsers);
-  FixVT(treePrivs);
   RestoreListSetup(listUsers);
   FColorReadPriv := clGreen;
   FColorWritePriv := clMaroon;
