@@ -953,7 +953,7 @@ begin
     Delete(SQL, Length(SQL)-2, 3);
 
   SQL := SQL + CRLF + ')' + CRLF;
-  if memoComment.Text <> '' then
+  if (memoComment.Text <> '') and (not DBObject.Connection.Parameters.IsAnyPostgreSQL) then
     SQL := SQL + 'COMMENT='+DBObject.Connection.EscapeString(memoComment.Text) + CRLF;
   if comboCollation.Text <> '' then
     SQL := SQL + 'COLLATE='+DBObject.Connection.EscapeString(comboCollation.Text) + CRLF;
@@ -984,6 +984,10 @@ begin
   // Separate queries from here on
 
   if DBObject.Connection.Parameters.IsAnyPostgreSQL then begin
+    if memoComment.Text <> '' then begin
+      SQL := SQL + 'COMMENT ON TABLE '+DBObject.Connection.QuoteIdent(editName.Text)+
+        ' IS '+DBObject.Connection.EscapeString(memoComment.Text) + ';' + sLineBreak;
+    end;
     Node := listColumns.GetFirst;
     while Assigned(Node) do begin
       Col := listColumns.GetNodeData(Node);
