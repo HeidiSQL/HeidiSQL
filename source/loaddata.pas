@@ -526,9 +526,9 @@ var
       for i:=0 to chkListColumns.Items.Count-1 do
       begin
         if chkListColumns.Checked[i] then  // column was already counted
-        Inc(ValuesCounted);                // increase number of counted columns
+          Inc(ValuesCounted);              // increase number of counted columns
         if ValuesCounted = ValueCount then // did we count all included columns up to the current column?
-        Break;
+          Break;
         Inc(ColumnIndex);                  // if all columns (until the current column) are checked, ColumnIndex is ValueCount-1, like before this patch
       end;
 
@@ -536,7 +536,7 @@ var
         if chkLocalNumbers.Checked and (FColumns[ColumnIndex].DataType.Category in [dtcInteger, dtcReal]) then
           Value := UnformatNumber(Value)
         else
-          Value := FConnection.EscapeString(Value);
+          Value := FConnection.EscapeString(Value, FColumns[ColumnIndex].DataType);
       end;
       SQL := SQL + Value + ', ';
     end;

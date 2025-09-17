@@ -5308,6 +5308,11 @@ begin
     end;
   end;
   Result := EscapeString(Text, False, DoQuote);
+
+  // Support international characters with National prefix on MSSQL, see #1115 and #2250.
+  // Previously only done in some callers of the other version of EscapeString(), and only for column types dbdtNchar, dbdtNvarchar, dbdtNtext.
+  if FParameters.IsAnyMSSQL and (Datatype.Category = dtcText) then
+    Result := 'N' + Result;
 end;
 
 
@@ -9908,14 +9913,10 @@ begin
         end;
         dtcBinary, dtcSpatial:
           Val := FConnection.EscapeBin(Cell.NewText);
-        else begin
-          if Datatype(i).Index in [dbdtNchar, dbdtNvarchar, dbdtNtext] then
-            Val := 'N' + Connection.EscapeString(Cell.NewText)
-          else if Datatype(i).Category = dtcTemporal then
-            Val := Connection.EscapeString(Connection.GetDateTimeValue(Cell.NewText, Datatype(i).Index))
-          else
-            Val := Connection.EscapeString(Cell.NewText);
-        end;
+        dtcTemporal:
+          Val := Connection.EscapeString(Connection.GetDateTimeValue(Cell.NewText, Datatype(i).Index))
+        else
+          Val := Connection.EscapeString(Cell.NewText, Datatype(i));
       end;
       sqlUpdate := sqlUpdate + Connection.QuoteIdent(FColumnOrgNames[i]) + '=' + Val;
       sqlInsertColumns := sqlInsertColumns + Connection.QuoteIdent(FColumnOrgNames[i]);
@@ -10301,13 +10302,7 @@ begin
           Result := Result + '=' + FConnection.EscapeBin(ColVal);
         else begin
           // Any other data type goes here, including text:
-          case DataType(j).Index of
-            // Support international characters with N-prefix on MSSQL, see #1115:
-            dbdtNchar, dbdtNvarchar, dbdtNtext:
-              Result := Result + '=N' + Connection.EscapeString(ColVal);
-            else
-              Result := Result + '=' + Connection.EscapeString(ColVal);
-          end;
+          Result := Result + '=' + Connection.EscapeString(ColVal, DataType(j));
         end;
       end;
     end;
