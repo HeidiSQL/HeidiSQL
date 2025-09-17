@@ -284,9 +284,12 @@ begin
   if btnWrap.Enabled then begin
     AppSettings.WriteBool(asMemoEditorWrap, btnWrap.Down);
   end;
-  if Assigned(FTableColumn) and (comboHighlighter.Text <> AppSettings.GetDefaultString(asMemoEditorHighlighter)) then begin
+  if Assigned(FTableColumn) then begin
     AppSettings.SessionPath := MainForm.GetRegKeyTable;
-    AppSettings.WriteString(asMemoEditorHighlighter, comboHighlighter.Text, FTableColumn.Name);
+    if comboHighlighter.Text <> AppSettings.GetDefaultString(asMemoEditorHighlighter) then
+      AppSettings.WriteString(asMemoEditorHighlighter, comboHighlighter.Text, FTableColumn.Name)
+    else
+      AppSettings.DeleteValue(asMemoEditorHighlighter, FTableColumn.Name);
   end;
   // Fixes EAccessViolation under 64-bit when using non-default themes
   if Assigned(Panel1) then
