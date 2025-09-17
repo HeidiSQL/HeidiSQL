@@ -5282,6 +5282,11 @@ begin
   if DoQuote then begin
     // Add surrounding single quotes
     Result := FStringQuoteChar + Result + FStringQuoteChar;
+
+    // Support international characters with National prefix on MSSQL, see #1115, #2250, #41.
+    // Previously only done in some callers of EscapeString(), and only for column types dbdtNchar, dbdtNvarchar, dbdtNtext.
+    if FParameters.IsAnyMSSQL and (ServerVersionInt >= 1100) then
+      Result := 'N' + Result;
   end;
 end;
 
@@ -5308,11 +5313,6 @@ begin
     end;
   end;
   Result := EscapeString(Text, False, DoQuote);
-
-  // Support international characters with National prefix on MSSQL, see #1115 and #2250.
-  // Previously only done in some callers of the other version of EscapeString(), and only for column types dbdtNchar, dbdtNvarchar, dbdtNtext.
-  if FParameters.IsAnyMSSQL and (Datatype.Category = dtcText) then
-    Result := 'N' + Result;
 end;
 
 
