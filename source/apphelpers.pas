@@ -1499,11 +1499,15 @@ end;
 
 procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
 var
+  SingleLineHeight: Integer;
   Node: PVirtualNode;
 begin
   // This is called either in some early stage, or from preferences dialog
   VT.BeginUpdate;
+  SingleLineHeight := GetTextHeight(VT.Font) + 7;
   // Multiline nodes?
+  VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
+  VT.Header.Height := SingleLineHeight;
   // Apply new height to multi line grid nodes
   Node := VT.GetFirstInitialized;
   while Assigned(Node) do begin
