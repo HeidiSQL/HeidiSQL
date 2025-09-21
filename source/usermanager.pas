@@ -13,20 +13,6 @@ uses
 
 
 type
-  TUserProblem = (upNone, upEmptyPassword, upInvalidPasswordLen, upSkipNameResolve, upUnknown);
-
-  TUser = class(TObject)
-    Username, Host, Password, Cipher, Issuer, Subject: String;
-    MaxQueries, MaxUpdates, MaxConnections, MaxUserConnections, SSL: Integer;
-    Problem: TUserProblem;
-    public
-      constructor Create;
-      function HostRequiresNameResolve: Boolean;
-      procedure ParseSSLSettings(GrantOrCreate: String);
-  end;
-  PUser = ^TUser;
-  TUserList = TObjectList<TUser>;
-
   TPrivObj = class(TObject)
     GrantCode: String;
     DBObj: TDBObject;
@@ -41,6 +27,20 @@ type
   TPrivComparer = class(TComparer<TPrivObj>)
     function Compare(const Left, Right: TPrivObj): Integer; override;
   end;
+
+  TUserProblem = (upNone, upEmptyPassword, upInvalidPasswordLen, upSkipNameResolve, upUnknown);
+
+  TUser = class(TObject)
+    Username, Host, Password, Cipher, Issuer, Subject: String;
+    MaxQueries, MaxUpdates, MaxConnections, MaxUserConnections, SSL: Integer;
+    Problem: TUserProblem;
+    public
+      constructor Create;
+      function HostRequiresNameResolve: Boolean;
+      procedure ParseSettings(GrantOrCreate: String; Priv: TPrivObj);
+  end;
+  PUser = ^TUser;
+  TUserList = TObjectList<TUser>;
 
   EInputError = class(Exception);
 
@@ -695,32 +695,7 @@ begin
 
         end;
 
-        User.ParseSSLSettings(rxGrant.Match[11]);
-
-        // WITH .. GRANT OPTION
-        // MAX_QUERIES_PER_HOUR 20 MAX_UPDATES_PER_HOUR 10 MAX_CONNECTIONS_PER_HOUR 5 MAX_USER_CONNECTIONS 2
-        rxTemp.Expression := '\sWITH\s+(.+)';
-        if rxTemp.Exec(rxGrant.Match[11]) then begin
-          WithClause := rxTemp.Match[1];
-          if ExecRegExpr('\bGRANT\s+OPTION\b', WithClause) then
-            P.OrgPrivs.Add('GRANT');
-          rxTemp.Expression := '\bMAX_QUERIES_PER_HOUR\s+(\d+)\b';
-          if rxTemp.Exec(WithClause) then
-            User.MaxQueries := MakeInt(rxTemp.Match[1]);
-          rxTemp.Expression := '\bMAX_UPDATES_PER_HOUR\s+(\d+)\b';
-          if rxTemp.Exec(WithClause) then
-            User.MaxUpdates := MakeInt(rxTemp.Match[1]);
-          rxTemp.Expression := '\bMAX_CONNECTIONS_PER_HOUR\s+(\d+)\b';
-          if rxTemp.Exec(WithClause) then
-            User.MaxConnections := MakeInt(rxTemp.Match[1]);
-          rxTemp.Expression := '\bMAX_USER_CONNECTIONS\s+(\d+)\b';
-          if rxTemp.Exec(WithClause) then
-            User.MaxUserConnections := MakeInt(rxTemp.Match[1]);
-          udMaxQueries.Position := User.MaxQueries;
-          udMaxUpdates.Position := User.MaxUpdates;
-          udMaxConnections.Position := User.MaxConnections;
-          udMaxUserConnections.Position := User.MaxUserConnections;
-        end;
+        User.ParseSettings(rxGrant.Match[11], P);
 
         if (P.OrgPrivs.Count = 0) and (P.DBObj.NodeType = lntTable) then
           FPrivObjects.Remove(P);
@@ -731,11 +706,15 @@ begin
     CreateUser := '';
     try
       CreateUser := FConnection.GetVar('SHOW CREATE USER '+UserHost);
-      User.ParseSSLSettings(CreateUser);
+      User.ParseSettings(CreateUser, nil);
     except
       on E:EDbError do;
     end;
 
+    udMaxQueries.Position := User.MaxQueries;
+    udMaxUpdates.Position := User.MaxUpdates;
+    udMaxConnections.Position := User.MaxConnections;
+    udMaxUserConnections.Position := User.MaxUserConnections;
     comboSSL.ItemIndex := User.SSL;
     comboSSL.OnChange(comboSSL);
     editCipher.Text := User.Cipher;
@@ -1178,7 +1157,7 @@ var
   Tables, WithClauses: TStringList;
   P: TPrivObj;
   i: Integer;
-  PasswordSet: Boolean;
+  PasswordSet, WithGrant: Boolean;
 
   function GetObjectType(ObjType: String): String;
   begin
@@ -1286,51 +1265,38 @@ begin
         Grant := 'USAGE';
       Grant := 'GRANT ' + Grant + ' ON ' + OnObj + ' TO ' + OrgUserHost;
 
-      // SSL options
-      if P.DBObj.NodeType = lntNone then begin
-        RequireClause := ' REQUIRE ';
-        case comboSSL.ItemIndex of
-          0: RequireClause := RequireClause + 'NONE';
-          1: RequireClause := RequireClause + 'SSL';
-          2: RequireClause := RequireClause + 'X509';
-          3: RequireClause := RequireClause + 'CIPHER '+FConnection.EscapeString(editCipher.Text)+' AND ISSUER '+FConnection.EscapeString(editIssuer.Text)+' AND SUBJECT '+FConnection.EscapeString(editSubject.Text);
-        end;
-        if (FocusedUser.SSL = comboSSL.ItemIndex)
-          and (FocusedUser.Cipher = editCipher.Text)
-          and (FocusedUser.Issuer = editIssuer.Text)
-          and (FocusedUser.Subject = editSubject.Text)
-          then begin
-          RequireClause := '';
-        end;
-        if not RequireClause.IsEmpty then begin
-          FConnection.Query('ALTER USER ' + UserHost + RequireClause);
-          FConnection.ShowWarnings;
-        end;
-      end;
+      WithGrant := P.AddedPrivs.IndexOf('GRANT') > -1;
+      if WithGrant then
+        Grant := Grant + ' WITH GRANT OPTION';
 
-      WithClauses := TStringList.Create;
-      if P.AddedPrivs.IndexOf('GRANT') > -1 then
-        WithClauses.Add('GRANT OPTION');
-      if P.DBObj.NodeType = lntNone then begin
-        // Apply resource limits only to global privilege
-        if udMaxQueries.Position <> FocusedUser.MaxQueries then
-          WithClauses.Add('MAX_QUERIES_PER_HOUR '+IntToStr(udMaxQueries.Position));
-        if udMaxUpdates.Position <> FocusedUser.MaxUpdates then
-          WithClauses.Add('MAX_UPDATES_PER_HOUR '+IntToStr(udMaxUpdates.Position));
-        if udMaxConnections.Position <> FocusedUser.MaxConnections then
-          WithClauses.Add('MAX_CONNECTIONS_PER_HOUR '+IntToStr(udMaxConnections.Position));
-        if udMaxUserConnections.Position <> FocusedUser.MaxUserConnections then
-          WithClauses.Add('MAX_USER_CONNECTIONS '+IntToStr(udMaxUserConnections.Position));
-      end;
-      if WithClauses.Count > 0 then
-        Grant := Grant + ' WITH ' + Implode(' ', WithClauses);
-
-      if P.Added or (P.AddedPrivs.Count > 0) or (WithClauses.Count > 0) then begin
+      if P.Added or (P.AddedPrivs.Count > 0) or WithGrant then begin
         FConnection.Query(Grant);
         FConnection.ShowWarnings;
       end;
 
-      WithClauses.Free;
+      // Global options
+      if P.DBObj.NodeType = lntNone then begin
+        // SSL
+        case comboSSL.ItemIndex of
+          1: RequireClause := 'SSL';
+          2: RequireClause := 'X509';
+          3: RequireClause := 'CIPHER '+FConnection.EscapeString(editCipher.Text)+' AND ISSUER '+FConnection.EscapeString(editIssuer.Text)+' AND SUBJECT '+FConnection.EscapeString(editSubject.Text);
+          else RequireClause := 'NONE';
+        end;
+        FConnection.Query('ALTER USER ' + UserHost + ' REQUIRE ' + RequireClause);
+        FConnection.ShowWarnings;
+
+        // Resource limits, with 0 by default
+        WithClauses := TStringList.Create;
+        WithClauses.Add('MAX_QUERIES_PER_HOUR '+IntToStr(udMaxQueries.Position));
+        WithClauses.Add('MAX_UPDATES_PER_HOUR '+IntToStr(udMaxUpdates.Position));
+        WithClauses.Add('MAX_CONNECTIONS_PER_HOUR '+IntToStr(udMaxConnections.Position));
+        WithClauses.Add('MAX_USER_CONNECTIONS '+IntToStr(udMaxUserConnections.Position));
+        FConnection.Query('ALTER USER ' + UserHost + ' WITH ' + Implode(' ', WithClauses));
+        FConnection.ShowWarnings;
+        WithClauses.Free;
+      end;
+
     end;
 
     // Set password
@@ -1555,10 +1521,10 @@ begin
   rx.Free;
 end;
 
-procedure TUser.ParseSSLSettings(GrantOrCreate: String);
+procedure TUser.ParseSettings(GrantOrCreate: String; Priv: TPrivObj);
 var
   rx: TRegExpr;
-  RequireClause: String;
+  RequireClause, WithClause: String;
 begin
   // REQUIRE SSL X509 ISSUER '456' SUBJECT '789' CIPHER '123' NONE
   rx := TRegExpr.Create;
@@ -1587,6 +1553,26 @@ begin
       Subject := rx.Match[1];
     if IsNotEmpty(Cipher) or IsNotEmpty(Issuer) or IsNotEmpty(Subject) then
       SSL := 3;
+  end;
+  // WITH .. GRANT OPTION
+  // MAX_QUERIES_PER_HOUR 20 MAX_UPDATES_PER_HOUR 10 MAX_CONNECTIONS_PER_HOUR 5 MAX_USER_CONNECTIONS 2
+  rx.Expression := '\sWITH\s+(.+)';
+  if rx.Exec(GrantOrCreate) then begin
+    WithClause := rx.Match[1];
+    if ExecRegExpr('\bGRANT\s+OPTION\b', WithClause) and Assigned(Priv) then
+      Priv.OrgPrivs.Add('GRANT');
+    rx.Expression := '\bMAX_QUERIES_PER_HOUR\s+(\d+)\b';
+    if rx.Exec(WithClause) then
+      MaxQueries := MakeInt(rx.Match[1]);
+    rx.Expression := '\bMAX_UPDATES_PER_HOUR\s+(\d+)\b';
+    if rx.Exec(WithClause) then
+      MaxUpdates := MakeInt(rx.Match[1]);
+    rx.Expression := '\bMAX_CONNECTIONS_PER_HOUR\s+(\d+)\b';
+    if rx.Exec(WithClause) then
+      MaxConnections := MakeInt(rx.Match[1]);
+    rx.Expression := '\bMAX_USER_CONNECTIONS\s+(\d+)\b';
+    if rx.Exec(WithClause) then
+      MaxUserConnections := MakeInt(rx.Match[1]);
   end;
 end;
 
