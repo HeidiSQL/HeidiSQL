@@ -2366,13 +2366,13 @@ begin
     if Datatypes[i].NativeTypes = '?' then begin
       // PG oid is set to be populated via '?'
       Datatypes[i].NativeTypes := '';
-      try
-        TypeOid := GetVar('SELECT '+EscapeString(Datatypes[i].Name.ToLower)+'::regtype::oid');
-        if IsNumeric(TypeOid) then begin
-          Datatypes[i].NativeTypes := TypeOid;
-          Log(lcInfo, 'Found oid/NativeTypes of '+Datatypes[i].Name+' data type: '+Datatypes[i].NativeTypes);
-        end;
-      except
+      TypeOid := GetVar('SELECT oid FROM '+QuoteIdent('pg_type')+' WHERE '+QuoteIdent('typname')+' = '+EscapeString(Datatypes[i].Name.ToLower));
+      if IsNumeric(TypeOid) then begin
+        Datatypes[i].NativeTypes := TypeOid;
+        Log(lcInfo, 'Found oid/NativeTypes of '+Datatypes[i].Name+' data type: '+Datatypes[i].NativeTypes);
+      end
+      else begin
+        Log(lcInfo, 'No support for '+Datatypes[i].Name+' data type on this server.');
       end;
     end;
     // Skip if native ids / oid's are (still) empty
