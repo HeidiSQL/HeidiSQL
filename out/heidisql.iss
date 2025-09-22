@@ -108,17 +108,13 @@ Source: "libmysql64.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Flags: ign
 Source: "libmysql-6.1-64.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; Flags: ignoreversion
 Source: "libmysql-8.4.0-64.dll"; DestDir: "{app}"; DestName: "libmysql-8.4.0.dll"; Flags: ignoreversion
 ; PostgreSQL:
-Source: "libpq-10-64.dll"; DestDir: "{app}"; DestName: "libpq-10.dll"; Flags: ignoreversion
-Source: "libpq-12-64.dll"; DestDir: "{app}"; DestName: "libpq-12.dll"; Flags: ignoreversion
 Source: "libpq-15-64.dll"; DestDir: "{app}"; DestName: "libpq-15.dll"; Flags: ignoreversion
 Source: "libpq-17-64.dll"; DestDir: "{app}"; DestName: "libpq-17.dll"; Flags: ignoreversion
-Source: "libintl-8-64.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Flags: ignoreversion
 Source: "libintl-9-64.dll"; DestDir: "{app}"; DestName: "libintl-9.dll"; Flags: ignoreversion
 Source: "libssl-3-x64.dll"; DestDir: "{app}"; DestName: "libssl-3-x64.dll"; Flags: ignoreversion
 Source: "libcrypto-3-x64.dll"; DestDir: "{app}"; DestName: "libcrypto-3-x64.dll"; Flags: ignoreversion
 Source: "LICENSE-openssl"; DestDir: "{app}"; Flags: ignoreversion
 Source: "libiconv-2-64.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Flags: ignoreversion
-Source: "libwinpthread-1-64.dll"; DestDir: "{app}"; DestName: "libwinpthread-1.dll"; Flags: ignoreversion
 ; SQLite:
 Source: "sqlite3-64.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Flags: ignoreversion
 Source: "sqlite3mc-64.dll"; DestDir: "{app}"; DestName: "sqlite3mc.dll"; Flags: ignoreversion
