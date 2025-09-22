@@ -114,9 +114,7 @@ Source: "libpq-15-64.dll"; DestDir: "{app}"; DestName: "libpq-15.dll"; Flags: ig
 Source: "libpq-17-64.dll"; DestDir: "{app}"; DestName: "libpq-17.dll"; Flags: ignoreversion
 Source: "libintl-8-64.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Flags: ignoreversion
 Source: "libintl-9-64.dll"; DestDir: "{app}"; DestName: "libintl-9.dll"; Flags: ignoreversion
-Source: "libssl-1_1-x64.dll"; DestDir: "{app}"; DestName: "libssl-1_1-x64.dll"; Flags: ignoreversion
 Source: "libssl-3-x64.dll"; DestDir: "{app}"; DestName: "libssl-3-x64.dll"; Flags: ignoreversion
-Source: "libcrypto-1_1-x64.dll"; DestDir: "{app}"; DestName: "libcrypto-1_1-x64.dll"; Flags: ignoreversion
 Source: "libcrypto-3-x64.dll"; DestDir: "{app}"; DestName: "libcrypto-3-x64.dll"; Flags: ignoreversion
 Source: "LICENSE-openssl"; DestDir: "{app}"; Flags: ignoreversion
 Source: "libiconv-2-64.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Flags: ignoreversion
