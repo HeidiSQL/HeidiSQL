@@ -919,8 +919,12 @@ function TEnumEditorLink.EndEdit: Boolean; stdcall;
 var
   NewText: String;
 begin
-  if AllowCustomText and FAllowEdit and (not ItemMustExist) then
-    NewText := FCombo.Text
+  if AllowCustomText and FAllowEdit then begin
+    if (not ItemMustExist) or ValueList.Contains(FCombo.Text) then
+      NewText := FCombo.Text
+    else
+      NewText := '';
+  end
   else if (ValueList.Count > 0) and (FCombo.ItemIndex > -1) then
     NewText := ValueList[FCombo.ItemIndex]
   else
