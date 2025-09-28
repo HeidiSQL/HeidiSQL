@@ -107,6 +107,7 @@ Source: "libmariadb64.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Flags:
 Source: "libmysql64.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Flags: ignoreversion
 Source: "libmysql-6.1-64.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; Flags: ignoreversion
 Source: "libmysql-8.4.0-64.dll"; DestDir: "{app}"; DestName: "libmysql-8.4.0.dll"; Flags: ignoreversion
+Source: "libmysql-9.4.0-64.dll"; DestDir: "{app}"; DestName: "libmysql-9.4.0.dll"; Flags: ignoreversion
 ; PostgreSQL:
 Source: "libpq-15-64.dll"; DestDir: "{app}"; DestName: "libpq-15.dll"; Flags: ignoreversion
 Source: "libpq-17-64.dll"; DestDir: "{app}"; DestName: "libpq-17.dll"; Flags: ignoreversion
