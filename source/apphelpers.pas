@@ -1507,6 +1507,7 @@ begin
   SingleLineHeight := GetTextHeight(VT.Font) + 7;
   // Multiline nodes?
   VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
+  VT.Header.MinHeight := SingleLineHeight;
   VT.Header.Height := SingleLineHeight;
   // Apply new height to multi line grid nodes
   Node := VT.GetFirstInitialized;
