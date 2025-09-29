@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Script for building HeidiSQL main executable, in 32 bit and 64 bit
+ * Script for building HeidiSQL main executable, in 64 bit
  * Syntax:
  *   php build.php
  *
@@ -43,7 +43,7 @@ function compilerCommand(int $bit, string $outputNameExtension): string
     $params = [
         //'-$O-', // disable optimization
         '-$W+', // Generate stack frames
-        '--no-config', // do not load default dcc64/32.cfg file
+        '--no-config', // do not load default dcc64.cfg file
         //'-M', // Modifizierte Units erzeugen
         '-Q', // Quiet compile, workaround for avoiding error D21153 - see http://qc.borland.com/wc/qcmain.aspx?d=44731
         '-TX.'.$outputNameExtension, // Erweiterung des Ausgabenamens
@@ -181,7 +181,7 @@ foreach($po_files as $po_file)
     execCommand('"extra\\internationalization\\msgfmt.exe" -o '.$mo_file.' '.$po_file);
 }
 
-$compileBits = ['32', '64'];
+$compileBits = ['64'];
 
 foreach($compileBits as $bit)
 {
