@@ -103,8 +103,8 @@ Source: "plink-64.exe"; DestDir: "{app}"; DestName: "plink.exe"; Flags: ignoreve
 Source: "libeay32-64.dll"; DestDir: "{app}"; DestName: "libeay32.dll"; Flags: ignoreversion
 Source: "ssleay32-64.dll"; DestDir: "{app}"; DestName: "ssleay32.dll"; Flags: ignoreversion
 ; MySQL + MariaDB:
-Source: "libmariadb64.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Flags: ignoreversion
-Source: "libmysql64.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Flags: ignoreversion
+Source: "libmariadb-64.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Flags: ignoreversion
+Source: "libmysql-64.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Flags: ignoreversion
 Source: "libmysql-6.1-64.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; Flags: ignoreversion
 Source: "libmysql-8.4.0-64.dll"; DestDir: "{app}"; DestName: "libmysql-8.4.0.dll"; Flags: ignoreversion
 Source: "libmysql-9.4.0-64.dll"; DestDir: "{app}"; DestName: "libmysql-9.4.0.dll"; Flags: ignoreversion
