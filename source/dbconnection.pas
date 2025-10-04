@@ -10959,10 +10959,6 @@ begin
     Result := Result + ' '; // Add space after each part
   end;
 
-  if InParts(cpInvisible) and Invisible and FConnection.Has(frInvisibleColumns) then begin
-    Result := Result + 'INVISIBLE ';
-  end;
-
   if InParts(cpAllowNull) and (not IsVirtual) and (not FConnection.Parameters.IsAnyMSSQL) then begin
     if not AllowNull then
       Result := Result + 'NOT NULL '
@@ -11010,6 +11006,10 @@ begin
 
   if InParts(cpVirtuality) and IsVirtual then begin
     Result := Result + 'AS ('+GenerationExpression+') ' + Virtuality + ' ';
+  end;
+
+  if InParts(cpInvisible) and Invisible and FConnection.Has(frInvisibleColumns) then begin
+    Result := Result + 'INVISIBLE ';
   end;
 
   if InParts(cpComment) then begin
