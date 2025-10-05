@@ -66,8 +66,6 @@ begin
   inherited;
   SynMemoBody.Highlighter := Mainform.SynSQLSynUsed;
   editName.MaxLength := NAME_LEN;
-  comboTiming.Items.Text := 'BEFORE'+CRLF+'AFTER';
-  comboEvent.Items.Text := 'INSERT'+CRLF+'UPDATE'+CRLF+'DELETE';
   for i:=0 to Mainform.SynCompletionProposal.Columns.Count-1 do begin
     col := SynCompletionProposalStatement.Columns.Add;
     col.ColumnWidth := Mainform.SynCompletionProposal.Columns[i].ColumnWidth;
@@ -88,7 +86,7 @@ var
   DBObjects: TDBObjectList;
   i: Integer;
   Found: Boolean;
-  Body: String;
+  Body, QuoteCharsRx, QuotedWordRx: String;
   rx: TRegExpr;
 begin
   inherited;
@@ -97,7 +95,14 @@ begin
   comboDefiner.TextHint := f_('Current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
   comboDefiner.Hint := f_('Leave empty for current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
   SynMemoBody.Text := 'BEGIN'+CRLF+CRLF+'END';
+  comboEvent.Items.Text := 'INSERT'+CRLF+'UPDATE'+CRLF+'DELETE';
   comboEvent.ItemIndex := 0;
+  case Obj.Connection.Parameters.NetTypeGroup of
+    ngSQLite:
+      comboTiming.Items.Text := 'BEFORE' + sLineBreak + 'AFTER' + sLineBreak + 'INSTEAD OF';
+    else
+      comboTiming.Items.Text := 'BEFORE' + sLineBreak + 'AFTER';
+  end;
   comboTiming.ItemIndex := 0;
   DBObjects := MainForm.ActiveConnection.GetDBObjects(Mainform.ActiveDatabase);
   comboTable.Items.Clear;
@@ -107,51 +112,44 @@ begin
   end;
   if comboTable.Items.Count > 0 then
     comboTable.ItemIndex := 0;
+
   if ObjectExists then begin
     // Edit mode
     editName.Text := DBObject.Name;
-    Definitions := MainForm.ActiveConnection.GetResults('SHOW TRIGGERS FROM '+Obj.Connection.QuoteIdent(Mainform.ActiveDatabase));
-    Found := False;
-    while not Definitions.Eof do begin
-      if Definitions.Col('Trigger') = DBObject.Name then begin
-        // "Definer" column available since MySQL 5.0.17
-        comboDefiner.Text := Definitions.Col('Definer', True);
-        comboTable.ItemIndex := comboTable.Items.IndexOf(Definitions.Col('Table'));
-        comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(Definitions.Col('Timing')));
-        comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(Definitions.Col('Event')));
-        // "Statement" column from SHOW TRIGGERS does not escape single quotes where required.
-        // See http://www.heidisql.com/forum.php?t=16501
-        // But SHOW CREATE TRIGGER was introduced in MySQL 5.1.21
-        // See http://www.heidisql.com/forum.php?t=16662
-        if DBObject.Connection.ServerVersionInt < 50121 then begin
-          Body := Definitions.Col('Statement');
-        end else begin
-          rx := TRegExpr.Create;
-          rx.ModifierI := True;
-          rx.Expression := 'FOR\s+EACH\s+ROW\s+(.+)$';
-          try
-            Body := DBObject.Connection.GetCreateCode(DBObject);
-            if rx.Exec(Body) then
-              Body := rx.Match[1]
-            else
-              raise EDbError.CreateFmt(_('Result from previous query does not contain expected pattern: %s'), [rx.Expression]);
-          except
-            on E:EDbError do begin
-              DBObject.Connection.Log(lcError, E.Message);
-              Body := Definitions.Col('Statement');
-            end;
-          end;
-        end;
-        SynMemoBody.Text := Body;
-        SynMemoBody.TopLine := FMainSynMemoPreviousTopLine;
-        Found := True;
-        break;
+
+    // MariaDB: CREATE DEFINER=`root`@`localhost` TRIGGER `trg`         BEFORE INSERT ON `tbl`    FOR EACH ROW BEGIN .. END
+    // SQLite:  CREATE                            TRIGGER "test_delete" AFTER  INSERT ON "albums" FOR EACH ROW BEGIN .. END
+    rx := TRegExpr.Create;
+    rx.ModifierI := True;
+    QuoteCharsRx := QuoteRegExprMetaChars(DBObject.Connection.QuoteChars);
+    QuotedWordRx := '['+QuoteCharsRx+'][^'+QuoteCharsRx+']+['+QuoteCharsRx+']';
+    rx.Expression := '(\sDEFINER=('+QuotedWordRx+'@'+QuotedWordRx+'))?' +
+      '\s+TRIGGER\s+'+QuotedWordRx +
+      '\s+('+Implode('|', comboTiming.Items)+')' +
+      '\s+('+Implode('|', comboEvent.Items)+')' +
+      '\s+ON\s+('+QuotedWordRx+')' +
+      '\s+FOR\s+EACH\s+ROW\s+(.+)$';
+    try
+      Body := DBObject.Connection.GetCreateCode(DBObject);
+      if rx.Exec(Body) then begin
+        comboDefiner.Text := DBObject.Connection.DeQuoteIdent(rx.Match[2], '@');
+        comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(rx.Match[3]));
+        comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(rx.Match[4]));
+        comboTable.ItemIndex := comboTable.Items.IndexOf(DBObject.Connection.DeQuoteIdent(rx.Match[5]));
+        Body := rx.Match[6];
+      end
+      else
+        raise EDbError.CreateFmt(_('Result from previous query does not contain expected pattern: %s'), [rx.Expression]);
+    except
+      on E:EDbError do begin
+        DBObject.Connection.Log(lcError, E.Message);
+        Body := '';
       end;
-      Definitions.Next;
     end;
-    FreeAndNil(Definitions);
-    if not Found then
-      Raise Exception.Create(_('Trigger definition not found!'));
+
+    SynMemoBody.Text := Body;
+    SynMemoBody.TopLine := FMainSynMemoPreviousTopLine;
+
   end else begin
     editName.Text := '';
     if MainForm.FocusedTables.Count > 0 then begin
@@ -164,6 +162,7 @@ begin
       end;
     end;
   end;
+
   // Buttons are randomly moved, since VirtualTree update, see #440
   btnSave.Top := Height - btnSave.Height - 3;
   btnHelp.Top := btnSave.Top;
