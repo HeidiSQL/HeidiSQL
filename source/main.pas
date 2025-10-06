@@ -11004,7 +11004,10 @@ begin
   if not (coVisible in Col.Options) then
     Exit;
   ColTextWidth := Tree.Canvas.TextWidth(Col.Text);
-  // Add space for sort glyph
+  // Add space for column id ...
+  if (Column > 0) and AppSettings.ReadBool(asShowRowId) then
+    ColTextWidth := ColTextWidth + Tree.Canvas.TextWidth(IntToStr(Column)) + 5;
+  // ... and sort glyph
   if Col.ImageIndex > -1 then
     ColTextWidth := ColTextWidth + 20;
   Node := Tree.GetFirstVisible;
