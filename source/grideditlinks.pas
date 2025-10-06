@@ -49,6 +49,7 @@ type
     procedure DoEndEdit(Sender: TObject);
     procedure AsyncEndEdit(Data: PtrInt);
     procedure DoCancelEdit(Sender: TObject);
+    procedure AsyncCancelEdit(Data: PtrInt);
     function GetCellRect(InnerTextBounds: Boolean): TRect;
   public
     // The table column of the cell being edited. Mostly used in data grids.
@@ -468,9 +469,9 @@ begin
   FLastShiftState := Shift;
   case Key of
     // Cancel by Escape
-    VK_ESCAPE: FTree.CancelEditNode;
+    VK_ESCAPE: DoCancelEdit(Sender);
     // Apply changes and end editing by [Ctrl +] Enter or Tab
-    VK_RETURN, VK_TAB: FTree.EndEditNode;
+    VK_RETURN, VK_TAB: DoEndEdit(Sender);
   end;
 end;
 
@@ -486,9 +487,13 @@ end;
 
 procedure TBaseGridEditorLink.DoCancelEdit(Sender: TObject);
 begin
-  FTree.CancelEditNode;
+  Application.QueueAsyncCall(AsyncCancelEdit, PtrInt(FTree));
 end;
 
+procedure TBaseGridEditorLink.AsyncCancelEdit(Data: PtrInt);
+begin
+  TVirtualStringTree(Data).CancelEditNode;
+end;
 
 
 
