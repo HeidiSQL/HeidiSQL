@@ -408,8 +408,8 @@ object frmTableEditor: TfrmTableEditor
           Top = 2
           Caption = 'Add'
           ImageIndex = 45
-          OnClick = btnAddIndexClick
           Wrap = True
+          OnClick = btnAddIndexClick
         end
         object btnRemoveIndex: TToolButton
           Left = 1
@@ -417,8 +417,8 @@ object frmTableEditor: TfrmTableEditor
           Top = 37
           Caption = 'Remove'
           ImageIndex = 46
-          OnClick = btnRemoveIndexClick
           Wrap = True
+          OnClick = btnRemoveIndexClick
         end
         object btnClearIndexes: TToolButton
           Left = 1
@@ -426,8 +426,8 @@ object frmTableEditor: TfrmTableEditor
           Top = 72
           Caption = 'Clear'
           ImageIndex = 26
-          OnClick = btnClearIndexesClick
           Wrap = True
+          OnClick = btnClearIndexesClick
         end
         object btnMoveUpIndex: TToolButton
           Left = 1
@@ -435,8 +435,8 @@ object frmTableEditor: TfrmTableEditor
           Top = 107
           Caption = 'Up'
           ImageIndex = 74
-          OnClick = btnMoveUpIndexClick
           Wrap = True
+          OnClick = btnMoveUpIndexClick
         end
         object btnMoveDownIndex: TToolButton
           Left = 1
@@ -472,8 +472,8 @@ object frmTableEditor: TfrmTableEditor
           Top = 2
           Caption = 'Add'
           ImageIndex = 45
-          OnClick = btnAddForeignKeyClick
           Wrap = True
+          OnClick = btnAddForeignKeyClick
         end
         object btnRemoveForeignKey: TToolButton
           Left = 1
@@ -481,8 +481,8 @@ object frmTableEditor: TfrmTableEditor
           Caption = 'Remove'
           Enabled = False
           ImageIndex = 46
-          OnClick = btnRemoveForeignKeyClick
           Wrap = True
+          OnClick = btnRemoveForeignKeyClick
         end
         object btnClearForeignKeys: TToolButton
           Left = 1
@@ -536,7 +536,7 @@ object frmTableEditor: TfrmTableEditor
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 5
             Text = 'On DELETE'
-            Width = 110
+            Width = 114
           end>
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
@@ -581,8 +581,8 @@ object frmTableEditor: TfrmTableEditor
           Top = 2
           Caption = 'Add'
           ImageIndex = 45
-          OnClick = btnAddCheckConstraintClick
           Wrap = True
+          OnClick = btnAddCheckConstraintClick
         end
         object btnRemoveCheckConstraint: TToolButton
           Left = 1
@@ -590,8 +590,8 @@ object frmTableEditor: TfrmTableEditor
           Caption = 'Remove'
           Enabled = False
           ImageIndex = 46
-          OnClick = btnRemoveCheckConstraintClick
           Wrap = True
+          OnClick = btnRemoveCheckConstraintClick
         end
         object btnClearCheckConstraints: TToolButton
           Left = 1
@@ -621,7 +621,7 @@ object frmTableEditor: TfrmTableEditor
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus, coEditable]
             Position = 1
             Text = 'Check clause'
-            Width = 530
+            Width = 534
           end>
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
@@ -1082,6 +1082,12 @@ object frmTableEditor: TfrmTableEditor
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 13
         Text = 'Invisible'
+      end
+      item
+        Hint = 'Storage-Engine Independent Column Compression'
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+        Position = 14
+        Text = 'Compressed'
       end>
     Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible, hoDisableAnimatedResize]
     Header.PopupMenu = MainForm.popupListHeader
