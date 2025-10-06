@@ -47,6 +47,7 @@ type
     //procedure TempWindowProc(var Message: TMessage);
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoEndEdit(Sender: TObject);
+    procedure AsyncEndEdit(Data: PtrInt);
     procedure DoCancelEdit(Sender: TObject);
     function GetCellRect(InnerTextBounds: Boolean): TRect;
   public
@@ -475,7 +476,12 @@ end;
 
 procedure TBaseGridEditorLink.DoEndEdit(Sender: TObject);
 begin
-  FTree.EndEditNode;
+  Application.QueueAsyncCall(AsyncEndEdit, PtrInt(FTree));
+end;
+
+procedure TBaseGridEditorLink.AsyncEndEdit(Data: PtrInt);
+begin
+  TVirtualStringTree(Data).EndEditNode;
 end;
 
 procedure TBaseGridEditorLink.DoCancelEdit(Sender: TObject);
