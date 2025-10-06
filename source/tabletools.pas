@@ -1819,7 +1819,7 @@ begin
     DbDir := IncludeTrailingPathDelimiter(GetOutputFilename(comboExportOutputTarget.Text, DBObj)) + DBObj.Database + '\';
     if not DirectoryExists(DbDir) then
       ForceDirectories(DbDir);
-    ExportStream := TFileStream.Create(DbDir + DBObj.Name+'.sql', fmCreate or fmOpenWrite);
+    ExportStream := TFileStream.Create(DbDir + DBObj.ObjType.ToLower + '-' + DBObj.Name+'.sql', fmCreate or fmOpenWrite);
     FHeaderCreated := False;
   end;
   if not Assigned(ExportStream) then begin
