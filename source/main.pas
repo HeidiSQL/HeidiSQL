@@ -10857,9 +10857,9 @@ begin
               EnumEditor.ValueList.Add(ForeignResults.Col(0));
             if TextCol <> '' then begin
               if DisplayHex then
-                EnumEditor.DisplayList.Add(ForeignResults.HexValue(0)+': '+ForeignResults.Col(1))
+                EnumEditor.DisplayList.Add(ForeignResults.Col(1) + ' (' + ForeignResults.HexValue(0) + ')')
               else
-                EnumEditor.DisplayList.Add(ForeignResults.Col(0)+': '+ForeignResults.Col(1));
+                EnumEditor.DisplayList.Add(ForeignResults.Col(1) + ' (' + ForeignResults.Col(0) + ')');
             end;
             ForeignResults.Next;
           end;
