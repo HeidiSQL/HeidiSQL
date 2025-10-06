@@ -99,6 +99,7 @@ Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "plugins64\*.dll"; DestDir: "{app}\plugins"; Flags: ignoreversion
 Source: "Snippets\*.sql"; DestDir: "{#SnippetsDir}"; Tasks: install_snippets
 Source: "plink-64.exe"; DestDir: "{app}"; DestName: "plink.exe"; Flags: ignoreversion
+Source: "plink-0.81-64.exe"; DestDir: "{app}"; DestName: "plink-0.81.exe"; Flags: ignoreversion
 ; OpenSSL libraries, used by Indy HTTP:
 Source: "libeay32-64.dll"; DestDir: "{app}"; DestName: "libeay32.dll"; Flags: ignoreversion
 Source: "ssleay32-64.dll"; DestDir: "{app}"; DestName: "ssleay32.dll"; Flags: ignoreversion
