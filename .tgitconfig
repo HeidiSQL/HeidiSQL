@@ -1,0 +1,3 @@
+[bugtraq]
+	url = https://github.com/HeidiSQL/HeidiSQL/issues/%BUGID%
+	logregex = "#\\d{1,5}\n\\d+"
