@@ -1450,16 +1450,18 @@ begin
   SingleLineHeight := GetTextHeight(VT.Font) + 7;
   // Multiline nodes?
   VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
+  VT.Header.MinHeight := SingleLineHeight;
   VT.Header.Height := SingleLineHeight;
   // Apply new height to multi line grid nodes
   Node := VT.GetFirstInitialized;
   while Assigned(Node) do begin
-    VT.NodeHeight[Node] := VT.DefaultNodeHeight;
     // Nodes have vsMultiLine through InitNode event
     VT.MultiLine[Node] := MultiLineCount > 1;
     Node := VT.GetNextInitialized(Node);
   end;
   VT.EndUpdate;
+  VT.TextMargin := 6;
+  VT.Margin := 2;
   // Disable hottracking in non-Vista mode, looks ugly in XP, but nice in Vista
   if (toUseExplorerTheme in VT.TreeOptions.PaintOptions) {$IfDef WINDOWS} and true {$EndIf} then
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]

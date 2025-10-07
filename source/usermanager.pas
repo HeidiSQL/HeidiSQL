@@ -225,6 +225,8 @@ begin
   PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER,'+
     'BINLOG ADMIN,BINLOG REPLAY,CONNECTION ADMIN,FEDERATED ADMIN,READ_ONLY ADMIN,REPLICATION MASTER ADMIN,'+
     'REPLICATION SLAVE ADMIN,SET USER,SLAVE MONITOR');
+  FixVT(listUsers);
+  FixVT(treePrivs);
 end;
 
 procedure TUserManagerForm.FormDestroy(Sender: TObject);
@@ -279,8 +281,6 @@ var
   end;
 
 begin
-  FixVT(listUsers);
-  FixVT(treePrivs);
   RestoreListSetup(listUsers);
   FColorReadPriv := clGreen;
   FColorWritePriv := clMaroon;

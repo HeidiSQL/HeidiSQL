@@ -2109,6 +2109,16 @@ begin
   // Detect timezone offset in seconds, once
   FTimeZoneOffset := GetLocalTimeOffset * 60;
 
+  // Fix node height on Virtual Trees
+  FixVT(DBTree);
+  FixVT(ListDatabases);
+  FixVT(ListVariables);
+  FixVT(ListStatus);
+  FixVT(ListProcesses);
+  FixVT(ListCommandStats);
+  FixVT(ListTables);
+  FixVT(treeQueryHelpers);
+
   // Set noderoot for query helpers box
   treeQueryHelpers.RootNodeCount := 7;
 
@@ -2804,16 +2814,6 @@ begin
   RestoreListSetup(ListProcesses);
   RestoreListSetup(ListCommandStats);
   RestoreListSetup(ListTables);
-
-  // Fix node height on Virtual Trees for current DPI settings
-  FixVT(DBTree);
-  FixVT(ListDatabases);
-  FixVT(ListVariables);
-  FixVT(ListStatus);
-  FixVT(ListProcesses);
-  FixVT(ListCommandStats);
-  FixVT(ListTables);
-  FixVT(treeQueryHelpers);
 
   // Manually set focus to tree - otherwise the database filter as the first
   // control catches focus on startup, which is ugly.

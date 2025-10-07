@@ -296,6 +296,7 @@ begin
   HasSizeGrip := True;
   Caption := GetWindowCaption;
 
+  FixVT(ListSessions);
   ListSessions.OnCompareNodes := MainForm.AnyGridCompareNodes;
   ListSessions.OnHeaderClick := MainForm.AnyGridHeaderClick;
   ListSessions.OnHeaderDraggedOut := MainForm.AnyGridHeaderDraggedOut;
@@ -399,7 +400,6 @@ var
   PSess: PConnectionParameters;
   Node: PVirtualNode;
 begin
-  FixVT(ListSessions);
   RestoreListSetup(ListSessions);
 
   // Init sessions tree
