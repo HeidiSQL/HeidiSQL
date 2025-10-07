@@ -1371,6 +1371,7 @@ begin
       Item.OnClick := MenuCiphersClick;
       FPopupCiphers.Items.Add(Item);
     end;
+    Lib.Free;
 
   end;
 
