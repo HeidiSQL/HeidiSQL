@@ -2844,7 +2844,7 @@ begin
   {$IfDef WINDOWS}
   // netstat on Windows
   CmdResult := RunCommand('netstat -na -p TCP', Output);
-  Result := not Output.Contains(':' + Port.ToString + ' ');
+  Result := (not CmdResult) or (not Output.Contains(':' + Port.ToString + ' '));
   {$EndIf}
 end;
 
