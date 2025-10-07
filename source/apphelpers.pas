@@ -90,23 +90,14 @@ type
 
   THttpDownload = class(TFPHttpClient)
     private
-      //FOwner: TComponent;
       FURL: String;
-      //FLastContent: String;
-      //FBytesRead: Integer;
-      //FContentLength: Integer;
       FTimeOut: Cardinal;
-      //FOnProgress: TNotifyEvent;
       procedure SetTimeOut(Value: Cardinal);
     public
       constructor Create(Owner: TComponent); override;
       procedure SendRequest(Filename: String); overload;
-      //property OnProgress: TNotifyEvent read FOnProgress write FOnProgress;
       property URL: String read FURL write FURL;
       property TimeOut: Cardinal read FTimeOut write SetTimeOut;
-      //property BytesRead: Integer read FBytesRead;
-      //property ContentLength: Integer read FContentLength;
-      //property LastContent: String read FLastContent;
   end;
 
   // Extended string list with support for empty values
