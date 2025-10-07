@@ -940,7 +940,7 @@ var
   NewText: String;
 begin
   if AllowCustomText and FAllowEdit then begin
-    if (not ItemMustExist) or ValueList.Contains(FCombo.Text) then
+    if (not ItemMustExist) or (ValueList.IndexOf(FCombo.Text)>-1) then
       NewText := FCombo.Text
     else
       NewText := '';

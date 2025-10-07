@@ -10788,6 +10788,7 @@ end;
 function TTableColumn.SQLCode(OverrideCollation: String=''; Parts: TColumnParts=[cpAll]): String;
 var
   IsVirtual: Boolean;
+  QuoteCollation: Boolean;
 
   function InParts(Part: TColumnPart): Boolean;
   begin
@@ -10823,11 +10824,7 @@ begin
     Result := Result + ' '; // Add space after each part
   end;
 
-  if InParts(cpInvisible) and Invisible and FConnection.Has(frInvisibleColumns) then begin
-    Result := Result + 'INVISIBLE ';
-  end;
-
-  if InParts(cpAllowNull) and (not IsVirtual) then begin
+  if InParts(cpAllowNull) and (not IsVirtual) and (not FConnection.Parameters.IsAnyMSSQL) then begin
     if not AllowNull then
       Result := Result + 'NOT NULL '
     else if not FConnection.Parameters.IsAnyInterbase then
@@ -10876,6 +10873,10 @@ begin
     Result := Result + 'AS ('+GenerationExpression+') ' + Virtuality + ' ';
   end;
 
+  if InParts(cpInvisible) and Invisible and FConnection.Has(frInvisibleColumns) then begin
+    Result := Result + 'INVISIBLE ';
+  end;
+
   if InParts(cpComment) then begin
     if (Comment <> '') and FConnection.Parameters.IsAnyMySQL then
       Result := Result + 'COMMENT ' + FConnection.EscapeString(Comment) + ' ';
@@ -10884,10 +10885,11 @@ begin
   if InParts(cpCollation) and (not IsVirtual) and (DataType.Index <> dbdtJson) then begin
     if Collation <> '' then begin
       Result := Result + 'COLLATE ';
+      QuoteCollation := not FConnection.Parameters.IsAnyMSSQL;
       if OverrideCollation <> '' then
-        Result := Result + FConnection.EscapeString(OverrideCollation) + ' '
+        Result := Result + IfThen(QuoteCollation, FConnection.EscapeString(OverrideCollation), OverrideCollation) + ' '
       else
-        Result := Result + FConnection.EscapeString(Collation) + ' ';
+        Result := Result + IfThen(QuoteCollation, FConnection.EscapeString(Collation), Collation) + ' ';
     end;
   end;
 
