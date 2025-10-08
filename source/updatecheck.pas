@@ -274,7 +274,7 @@ begin
   end
 
   else if LinkType = SLinkChangelog then begin
-    Result := 'download.php?'+PlaceParam+'#nightlybuilds';
+    Result := 'changes-lazarus';
   end;
 
   Result := APPDOMAIN + Result;

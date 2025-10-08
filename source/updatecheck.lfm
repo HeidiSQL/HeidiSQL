@@ -10,11 +10,11 @@ object frmUpdateCheck: TfrmUpdateCheck
   Constraints.MinHeight = 500
   Constraints.MinWidth = 375
   DesignTimePPI = 120
+  Position = poOwnerFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  Position = poOwnerFormCenter
   object lblStatus: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = groupBuild
@@ -111,6 +111,8 @@ object frmUpdateCheck: TfrmUpdateCheck
       ReadOnly = True
       ScrollBars = ssVertical
       TabOrder = 0
+      Visible = False
+      WordWrap = False
     end
     object btnChangelog: TButton
       AnchorSideLeft.Control = groupBuild
