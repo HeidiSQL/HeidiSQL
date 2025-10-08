@@ -264,7 +264,7 @@ type
       procedure SetSessionPath(Value: String);
       procedure PrepareRegistry;
       procedure Read(Index: TAppSettingIndex; FormatName: String;
-        DataType: TAppSettingDataType; var I: Integer; var B: Boolean; var S: String;
+        DataType: TAppSettingDataType; out I: Integer; out B: Boolean; out S: String;
         DI: Integer; DB: Boolean; DS: String);
       procedure Write(Index: TAppSettingIndex; FormatName: String;
         DataType: TAppSettingDataType; I: Integer; B: Boolean; S: String);
@@ -2840,12 +2840,12 @@ var
 begin
   {$IfDef LINUX}
   // Netcat on Linux
-  CmdResult := RunCommand('nc -w 1 -zv 127.0.0.1 '+Port.ToString, Output);
+  CmdResult := Process.RunCommandInDir('', 'nc', ['-w 1 -zv 127.0.0.1 '+Port.ToString], Output);
   Result := not CmdResult;
   {$EndIf}
   {$IfDef WINDOWS}
   // netstat on Windows
-  CmdResult := RunCommand('netstat -na -p TCP', Output);
+  CmdResult := Process.RunCommandInDir('', 'netstat', ['-na -p TCP'], Output);
   Result := (not CmdResult) or (not Output.Contains(':' + Port.ToString + ' '));
   {$EndIf}
 end;
@@ -4209,7 +4209,7 @@ end;
 
 
 procedure TAppSettings.Read(Index: TAppSettingIndex; FormatName: String;
-  DataType: TAppSettingDataType; var I: Integer; var B: Boolean; var S: String;
+  DataType: TAppSettingDataType; out I: Integer; out B: Boolean; out S: String;
   DI: Integer; DB: Boolean; DS: String);
 var
   ValueName: String;

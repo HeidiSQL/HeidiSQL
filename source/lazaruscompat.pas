@@ -1,6 +1,6 @@
 unit lazaruscompat;
 
-{$mode Delphi}
+{$mode delphi}{$H+}
 
 interface
 
@@ -119,13 +119,13 @@ const
     (Value: ecSetMarker7; Name: 'ecSetMarker7'),
     (Value: ecSetMarker8; Name: 'ecSetMarker8'),
     (Value: ecSetMarker9; Name: 'ecSetMarker9'),
-    (Value: ecUpperCase; Name: 'ecUpperCase'),
-    (Value: ecLowerCase; Name: 'ecLowerCase'),
-    (Value: ecToggleCase; Name: 'ecToggleCase'),
-    (Value: ecTitleCase; Name: 'ecTitleCase'),
-    (Value: ecUpperCaseBlock; Name: 'ecUpperCaseBlock'),
-    (Value: ecLowerCaseBlock; Name: 'ecLowerCaseBlock'),
-    (Value: ecToggleCaseBlock; Name: 'ecToggleCaseBlock'),
+    (Value: {%H-}ecUpperCase; Name: 'ecUpperCase'),
+    (Value: {%H-}ecLowerCase; Name: 'ecLowerCase'),
+    (Value: {%H-}ecToggleCase; Name: 'ecToggleCase'),
+    (Value: {%H-}ecTitleCase; Name: 'ecTitleCase'),
+    (Value: {%H-}ecUpperCaseBlock; Name: 'ecUpperCaseBlock'),
+    (Value: {%H-}ecLowerCaseBlock; Name: 'ecLowerCaseBlock'),
+    (Value: {%H-}ecToggleCaseBlock; Name: 'ecToggleCaseBlock'),
     //(Value: ecTitleCaseBlock; Name: 'ecTitleCaseBlock'),
 {$IFDEF SYN_CodeFolding}
     (Value: ecString; Name:'ecString'),

@@ -1908,7 +1908,7 @@ begin
       ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
         {$If defined(LINUX)}
         // See https://serverfault.com/a/513938
-        Process.RunCommand('/sbin/ldconfig', ['-p'], LibMapOutput);
+        Process.RunCommandInDir('', '/sbin/ldconfig', ['-p'], LibMapOutput);
         LibMapLines := Explode(sLineBreak, LibMapOutput);
         for LibMap in LibMapLines do begin
           if rx.Exec(LibMap) then begin

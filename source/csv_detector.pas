@@ -62,7 +62,7 @@ var
   GridRows: TGridRows;
   GridRow: TGridRow;
   GridValue: TGridValue;
-  Term, Encl, Escp, LineTerm: String;
+  Term, Encl, {Escp,} LineTerm: String;
   RowNum, IgnoreLines: Integer;
   P, ContentLen, ProgressCharsPerStep, ProgressChars: Integer;
   EnclLen, TermLen, LineTermLen: Integer;
@@ -134,7 +134,7 @@ begin
   Term := FConnection.UnescapeString(FLoadDataFrm.editFieldTerminator.Text);
   Encl := FConnection.UnescapeString(FLoadDataFrm.editFieldEncloser.Text);
   LineTerm := FConnection.UnescapeString(FLoadDataFrm.editLineTerminator.Text);
-  Escp := FConnection.UnescapeString(FLoadDataFrm.editFieldEscaper.Text);
+  //Escp := FConnection.UnescapeString(FLoadDataFrm.editFieldEscaper.Text);
   RowNum := 0;
 
   TermLen := Length(Term);
@@ -224,7 +224,6 @@ var
   i, j, k: Integer;
   UnknownTypeYet, IsInteger, IsFloat, IsDate, IsDatetime, IsText: Boolean;
   ValueSize, TypeSize: Int64;
-  FloatValue: Extended;
   LoopType: TDBDatatype;
 const
   FloatChars = ['0'..'9', '.'];
@@ -263,7 +262,6 @@ begin
 
       IsInteger := IntToStr(StrToInt64Def(Value.OldText, -1)) = Value.OldText;
 
-      FloatValue := StrToFloatDef(Value.OldText, -1, MainForm.FormatSettings);
       IsFloat := Value.OldText.Contains('.');
       if IsFloat then begin
         for k:=1 to Length(Value.OldText) do begin

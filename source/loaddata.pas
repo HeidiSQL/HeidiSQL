@@ -667,7 +667,6 @@ end;
 procedure Tloaddataform.btnOpenFileClick(Sender: TObject);
 var
   Dialog: TExtFileOpenDialog;
-  TestStream: TFileStream;
 begin
   AppSettings.ResetPath;
   Dialog := TExtFileOpenDialog.Create(Self);

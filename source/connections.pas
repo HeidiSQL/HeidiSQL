@@ -1367,7 +1367,7 @@ begin
     Lib := TSQLiteLib.CreateWithMultipleCipherFunctions(LibraryPath, Params.DefaultLibrary);
     for i:=1 to Lib.sqlite3mc_cipher_count() do begin
       Item := TMenuItem.Create(FPopupCiphers);
-      Item.Caption := Utf8ToString(Lib.sqlite3mc_cipher_name(i));
+      Item.Caption := AnsiToUtf8(Lib.sqlite3mc_cipher_name(i));
       Item.OnClick := MenuCiphersClick;
       FPopupCiphers.Items.Add(Item);
     end;

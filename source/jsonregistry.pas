@@ -1,6 +1,6 @@
 unit jsonregistry;
 
-{$mode Delphi}{$H+}
+{$mode delphi}{$H+}
 
 interface
 

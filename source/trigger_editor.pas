@@ -86,10 +86,8 @@ end;
 
 procedure TfrmTriggerEditor.Init(Obj: TDBObject);
 var
-  Definitions: TDBQuery;
   DBObjects: TDBObjectList;
   i: Integer;
-  Found: Boolean;
   Body, QuoteCharsRx, QuotedWordRx: String;
   rx: TRegExpr;
 begin

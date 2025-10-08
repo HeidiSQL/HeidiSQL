@@ -3934,7 +3934,7 @@ end;
 // Load SQL-file, make sure that SheetQuery is activated
 procedure TMainForm.actLoadSQLExecute(Sender: TObject);
 var
-  i, ProceedResult: Integer;
+  i: Integer;
   Dialog: TExtFileOpenDialog;
   Encoding: TEncoding;
   Tab: TQueryTab;
@@ -5724,7 +5724,7 @@ var
 const
   NumSortChars: Array of String = ['¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹','⁺'];
 
-  procedure GetSortIndex(Column: TVirtualTreeColumn; var SortIndex: Integer; var SortDirection: laz.VirtualTrees.TSortDirection);
+  procedure GetSortIndex(Column: TVirtualTreeColumn; out SortIndex: Integer; out SortDirection: laz.VirtualTrees.TSortDirection);
   var
     SortItem: TSortItem;
   begin
@@ -6756,11 +6756,9 @@ var
   i, j, ImageIndex, ColumnsInList: Integer;
   Results: TDBQuery;
   DBObjects: TDBObjectList;
-  CurrentQuery, TableClauses, TableName, LeftPart, Token1, Token2, Token3, Token, Ident: String;
+  CurrentQuery, TableClauses, TableName, LeftPart, Token1, Token2, Ident: String;
   Tables: TStringList;
   rx: TRegExpr;
-  Start, TokenTypeInt: Integer;
-  Attri: TSynHighlighterAttributes;
   Proposal: TSynCompletion;
   Editor: TCustomSynEdit;
   Queries: TSQLBatch;
@@ -6868,7 +6866,7 @@ begin
   if rx.Exec(LeftPart) then begin
     Token1 := Conn.DeQuoteIdent(rx.Match[2]);
     Token2 := Conn.DeQuoteIdent(rx.Match[3]);
-    Token3 := Conn.DeQuoteIdent(rx.Match[4]);
+    //Token3 := Conn.DeQuoteIdent(rx.Match[4]);
   end;
 
   // Server variables, s'il vous plait?
@@ -11271,7 +11269,7 @@ begin
   Grid := Sender as TVirtualStringTree;
   if not Assigned(Grid.FocusedNode) then
     Exit;
-  Grid.GetHitTestInfoAt(X, Y, False, Hit);
+  Grid.GetHitTestInfoAt(X, Y, False, {%H-}Hit);
   if (Hit.HitNode = nil) or (Hit.HitColumn = NoColumn) or (Hit.HitColumn = InvalidColumn) then begin
     Results := GridResult(Grid);
     if Results.Modified then begin

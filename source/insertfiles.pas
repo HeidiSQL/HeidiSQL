@@ -253,7 +253,7 @@ var
 begin
   // Handle click event
   Grid := Sender as TVirtualStringTree;
-  Grid.GetHitTestInfoAt(Mouse.CursorPos.X-Grid.ClientOrigin.X, Mouse.CursorPos.Y-Grid.ClientOrigin.Y, True, Click);
+  Grid.GetHitTestInfoAt(Mouse.CursorPos.X-Grid.ClientOrigin.X, Mouse.CursorPos.Y-Grid.ClientOrigin.Y, True, {%H-}Click);
   GridHandleClickOrKeyPress(Grid, Click.HitNode, Click.HitColumn, Click.HitPositions);
 end;
 
