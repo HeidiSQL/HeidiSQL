@@ -4385,7 +4385,7 @@ var
 begin
   ResetPath;
   CurPath := FBasePath + AppendDelimiter(REGKEY_SESSIONS) + ParentPath;
-  FRegistry.OpenKey(CurPath, False);
+  FRegistry.OpenKey(CurPath, True);
   Result := TStringList.Create;
   FRegistry.GetKeyNames(Result);
   for i:=Result.Count-1 downto 0 do begin
