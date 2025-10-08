@@ -134,7 +134,7 @@ type
     sqlite3_next_stmt: function(ppDb: Psqlite3; pStmt: Psqlite3_stmt): Psqlite3_stmt; cdecl;
     sqlite3_table_column_metadata: function(ppDb: Psqlite3;
       zDbName, zTableName, zColumnName: PAnsiChar;
-      var pzDataType, pzCollSeq: PAnsiChar; var pNotNull, pPrimaryKey, pAutoinc: Integer
+      out pzDataType, pzCollSeq: PAnsiChar; out pNotNull, pPrimaryKey, pAutoinc: Integer
       ): Integer; cdecl;
     sqlite3_collation_needed: function(ppDb: Psqlite3; userData: Pointer; Func: TSQLiteCollationNeededCallback): Integer; cdecl;
     sqlite3_create_collation: function(ppDb: Psqlite3; const zName: PAnsiChar; eTextRep: Integer; pArg: Pointer; xCompare: TSQLiteCollation): Integer; cdecl;

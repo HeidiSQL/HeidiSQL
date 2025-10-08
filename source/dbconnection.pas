@@ -1050,13 +1050,11 @@ end;
 
 
 destructor TSecureShellCmd.Destroy;
-var
-  AExitCode: Integer;
 begin
   if Assigned(FProcess) then begin
     if FProcess.Running then begin
       FConnection.Log(lcInfo, f_('Closing SSH process #%d ...', [FProcess.ProcessID]));
-      FProcess.Terminate(AExitCode);
+      FProcess.Terminate(0);
     end;
     FProcess.Free;
   end;
@@ -1858,10 +1856,16 @@ end;
 function TConnectionParameters.GetLibraries: TStringList;
 var
   rx: TRegExpr;
+  FoundLibs: TStringList;
+  {$IfDef WINDOWS}
   DllPath, DllFile: String;
-  Dlls, FoundLibs, Providers: TStringList;
-  Provider, Env, LibMapOutput, LibMap: String;
+  Dlls {, Providers}: TStringList;
+  {Provider: String;}
+  {$EndIf}
+  {$IfDef LINUX}
+  LibMapOutput, LibMap: String;
   LibMapLines: TStringList;
+  {$EndIf}
 begin
   if not Assigned(FLibraries) then begin
     FLibraries := TNetTypeLibs.Create;
@@ -2308,7 +2312,7 @@ var
   PluginDir, TlsVersions: AnsiString;
   Status: TDBQuery;
   PasswordChangeDialog: TfrmPasswordChange;
-  UserNameSize: DWORD;
+  {UserNameSize: DWORD;}
 begin
   if Value and (FHandle = nil) then begin
 
@@ -2930,7 +2934,7 @@ begin
       // Override "main" database name with custom one
       FMainDbName := GetFileNameWithoutExtension(MainFile);
       if FLib.sqlite3_db_config(FHandle, SQLITE_DBCONFIG_MAINDBNAME, PAnsiChar(FMainDbName)) <> SQLITE_OK then begin
-        Log(lcError, 'Could not set custom name of "main" database to "' + UTF8ToString(FMainDbName) + '"');
+        Log(lcError, Format('Could not set custom name of "main" database to "%s"', [FMainDbName]));
       end;
       // Attach additional databases
       for i:=1 to FileNames.Count-1 do begin
@@ -7723,7 +7727,7 @@ end;
 function TDBConnection.DecodeAPIString(a: AnsiString): String;
 begin
   if IsUnicode then
-    Result := Utf8ToString(a)
+    Result := AnsiToUtf8(a)
   else
     Result := String(a);
 end;
@@ -9662,6 +9666,7 @@ begin
   Result := True;
   if Refresh or (not HasFullData) then try
     PrepareEditing;
+    sql := '';
     for i:=0 to FColumnOrgNames.Count-1 do begin
       if sql <> '' then
         sql := sql + ', ';
@@ -11412,7 +11417,6 @@ end;
 
 function mysql_authentication_dialog_ask;
 var
-  Username, Password: String;
   Dialog: TfrmLogin;
 begin
   {
@@ -11437,8 +11441,6 @@ begin
     INSTALL PLUGIN three_attempts SONAME 'dialog.dll';
     CREATE USER test_dialog IDENTIFIED VIA three_attempts USING 'SECRET';
   }
-  Username := '';
-  Password := '';
   Dialog := TfrmLogin.Create(nil);
   Dialog.lblPrompt.Caption := String(prompt);
   Dialog.editUsername.Width := Dialog.editUsername.Width + (Dialog.editUsername.Left - Dialog.lblUsername.Left);

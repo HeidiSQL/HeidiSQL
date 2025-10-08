@@ -21,7 +21,7 @@ var
   AppLanguage: String;
 begin
   PostponedLogItems := TDBLogItems.Create(True);
-  Application.MainFormOnTaskBar := True;
+  Application.{%H-}MainFormOnTaskBar := True; // hide warning: Symbol "MainFormOnTaskBar" is not portable
 
   // Use MySQL standard format for date/time variables: YYYY-MM-DD HH:MM:SS
   // Be aware that Delphi internally converts the slashes in ShortDateFormat to the DateSeparator
