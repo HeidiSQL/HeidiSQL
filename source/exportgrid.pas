@@ -7,7 +7,7 @@ interface
 uses
   SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, laz.VirtualTrees, SynExportHTML,
-  extra_controls, dbstructures, RegExpr, StrUtils, comboex, EditBtn, Buttons;
+  extra_controls, dbstructures, lazaruscompat, RegExpr, StrUtils, comboex, EditBtn, Buttons;
 
 type
   TGridExportFormat = (

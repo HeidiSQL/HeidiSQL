@@ -6,7 +6,7 @@ interface
 
 uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, extra_controls,
-  dbconnection, dbstructures, dbstructures.mysql, laz.VirtualTrees, SynEdit, Menus,
+  dbconnection, dbstructures, dbstructures.mysql, lazaruscompat, laz.VirtualTrees, SynEdit, Menus,
   Buttons;
 
 type

@@ -8,15 +8,9 @@ uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient,
-  dbconnection, dbstructures, jsonregistry, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8, LConvEncoding;
+  dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8, LConvEncoding;
 
 type
-
-  // Sync with main branch and Delphi structures
-  TSynMemo = TSynEdit;
-  TVirtualStringTree = TLazVirtualStringTree;
-  PInt = ^Integer;
-  TProgressBarState = (pbsNormal, pbsError, pbsPaused);
 
   TSortItemOrder = (sioAscending, sioDescending);
   TSortItem = class(TPersistent)

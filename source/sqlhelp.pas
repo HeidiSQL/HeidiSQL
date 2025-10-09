@@ -6,7 +6,7 @@ interface
 
 uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, ExtCtrls,
-  Buttons, SynEdit, SynEditHighlighter, extra_controls,
+  Buttons, SynEdit, SynEditHighlighter, extra_controls, lazaruscompat,
   laz.VirtualTrees, Graphics, EditBtn,
   dbconnection;
 

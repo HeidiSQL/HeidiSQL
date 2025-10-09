@@ -5,10 +5,17 @@ unit lazaruscompat;
 interface
 
 uses
-  Classes, SysUtils, SynEdit, SynEditKeyCmds, SynEditHighlighter;
+  Classes, SysUtils, SynEdit, SynEditKeyCmds, SynEditHighlighter, laz.VirtualTrees;
 
 type
 
+  // Delphi type aliases
+  TSynMemo = TSynEdit;
+  TVirtualStringTree = TLazVirtualStringTree;
+  PInt = ^Integer;
+  TProgressBarState = (pbsNormal, pbsError, pbsPaused);
+
+  // Add methods which exist in Delphi but not in Lazarus
   TSynEditHelper = class helper for TSynEdit
     public
       function GetTextLen: Integer;
