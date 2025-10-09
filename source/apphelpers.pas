@@ -14,7 +14,7 @@ uses
   System.Win.Registry, System.DateUtils, System.Generics.Collections, System.Contnrs, System.StrUtils, System.AnsiStrings, Winapi.TlHelp32, System.Types,
   dbconnection, dbstructures, dbstructures.mysql, SynMemo, Vcl.Menus, Winapi.WinInet, gnugettext, Vcl.Themes,
   System.Character, Vcl.ImgList, System.UITypes, Vcl.ActnList, Winapi.WinSock, System.IOUtils, Vcl.StdCtrls, Vcl.ComCtrls,
-  Winapi.CommCtrl, Winapi.KnownFolders, SynUnicode, SynEdit;
+  Winapi.CommCtrl, Winapi.KnownFolders, SynUnicode, SynEdit, System.IniFiles;
 
 type
 
@@ -3361,13 +3361,13 @@ end;
 procedure TSQLBatch.SetSQL(Value: String);
 var
   i, AllLen, DelimLen, DelimStart, LastLeftOffset, RightOffset: Integer;
-  c, n, LastStringEncloser: Char;
-  Delim, DelimTest, QueryTest: String;
+  c, n: Char;
+  Delim, DelimTest, QueryTest, LastQuote, cn: String;
   InString, InComment, InBigComment, InEscape: Boolean;
   Marker: TSQLSentence;
   rx: TRegExpr;
+  Quotes: THashedStringList;
 const
-  StringEnclosers = ['"', '''', '`'];
   NewLines = [#13, #10];
   WhiteSpaces = NewLines + [#9, ' '];
 begin
@@ -3378,11 +3378,19 @@ begin
   i := 0;
   LastLeftOffset := 1;
   Delim := Mainform.Delimiter;
-  InString := False; // Loop in "enclosed string" or `identifier`
-  InComment := False; // Loop in one-line comment (# or --)
-  InBigComment := False; // Loop in /* multi-line */ or /*! condictional comment */
-  InEscape := False; // Previous char was backslash
-  LastStringEncloser := #0;
+  Quotes := THashedStringList.Create;
+  Quotes.CaseSensitive := True;
+  Quotes.Sorted := True;
+  Quotes.Add('"');
+  Quotes.Add('''');
+  Quotes.Add('`'); // MySQL/MariaDB only
+  Quotes.Add('$$'); // PostgreSQL only ($abc$ unsupported)
+
+  InString := False;          // c is in "enclosed string" or `identifier`
+  InComment := False;         // c is in one-line comment (# or --)
+  InBigComment := False;      // c is in /* multi-line */ or /*! condictional comment */
+  InEscape := False;          // Previous char was backslash
+  LastQuote := #0;
   DelimLen := Length(Delim);
   rx := TRegExpr.Create;
   rx.Expression := '^\s*DELIMITER\s+(\S+)';
@@ -3393,20 +3401,27 @@ begin
     Inc(i);
     // Current and next char
     c := FSQL[i];
-    if i < AllLen then n := FSQL[i+1]
-    else n := #0;
+    if i < AllLen then
+      n := FSQL[i+1]
+    else
+      n := #0;
+    cn := c + n;
 
-    // Check for comment syntax and for enclosed literals, so a query delimiter can be ignored
+    // Check for comment syntax, so a query delimiter can be ignored
     if (not InComment) and (not InBigComment) and (not InString) and ((c + n = '--') or (c = '#')) then
       InComment := True;
     if (not InComment) and (not InBigComment) and (not InString) and (c + n = '/*') then
       InBigComment := True;
     if InBigComment and (not InComment) and (not InString) and (c + n = '*/') then
       InBigComment := False;
-    if (not InEscape) and (not InComment) and (not InBigComment) and CharInSet(c, StringEnclosers) then begin
-      if (not InString) or (InString and (c = LastStringEncloser)) then begin
-        InString := not InString;
-        LastStringEncloser := c;
+    // Check for enclosed literals, so a query delimiter can be ignored
+    if (not InEscape) and (not InComment) and (not InBigComment) and (Quotes.Contains(c) or Quotes.Contains(cn)) then begin
+      if not InString then begin
+        InString := True;
+        LastQuote := IfThen(Quotes.Contains(c), c, cn);
+      end
+      else if (c = LastQuote) or (cn = LastQuote) then begin
+        InString := False;
       end;
     end;
     if (CharInSet(c, NewLines) and (not CharInSet(n, NewLines))) or (i = 1) then begin
@@ -3449,6 +3464,8 @@ begin
       end;
     end;
   end;
+
+  Quotes.Free;
 end;
 
 function TSQLBatch.GetSQLWithoutComments: String;
