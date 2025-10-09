@@ -9,7 +9,7 @@ interface
 uses
   Forms, Graphics, Messages, laz.VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, MaskEdit, DateUtils, Math,
-  dbconnection, dbstructures, apphelpers, texteditor, bineditor,
+  dbconnection, dbstructures, apphelpers, texteditor, bineditor, lazaruscompat,
   StrUtils, System.UITypes, RegExpr, extra_controls, EditBtn, LCLType, LCLIntf;
 
 type
@@ -940,7 +940,7 @@ var
   NewText: String;
 begin
   if AllowCustomText and FAllowEdit then begin
-    if (not ItemMustExist) or (ValueList.IndexOf(FCombo.Text)>-1) then
+    if (not ItemMustExist) or ValueList.Contains(FCombo.Text) then
       NewText := FCombo.Text
     else
       NewText := '';

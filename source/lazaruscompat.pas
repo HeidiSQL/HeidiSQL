@@ -20,6 +20,11 @@ type
       procedure AssignColorAndStyle(Source: TSynHighlighterAttributes);
   end;
 
+  TStringsHelper = class helper for TStrings
+    public
+      function Contains(const S: String): Boolean;
+  end;
+
 const
 {$IFDEF SYN_CodeFolding}
   EditorCommandStrs: array[0..109] of TIdentMapEntry = (
@@ -199,5 +204,11 @@ begin
   if bChanged then
     Changed;
 end;
+
+function TStringsHelper.Contains(const S: String): Boolean;
+begin
+  Result := IndexOf(S) >= 0;
+end;
+
 end.
 

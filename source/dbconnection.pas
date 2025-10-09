@@ -9,7 +9,7 @@ uses
   DateUtils, Types, Math, Dialogs, Graphics, ExtCtrls, StrUtils,
   Controls, Forms, IniFiles, Variants, FileUtil,
   RegExpr, process, Pipes,
-  generic_types,
+  generic_types, lazaruscompat,
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase;
 
 
@@ -8979,7 +8979,7 @@ end;
 
 function TDBQuery.ColumnExists(ColumnName: String): Boolean;
 begin
-  Result := FConnection.Active and (ColumnNames.IndexOf(ColumnName) > -1);
+  Result := FConnection.Active and ColumnNames.Contains(ColumnName);
 end;
 
 

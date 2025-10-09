@@ -12,7 +12,7 @@ interface
 uses
   SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs,
   laz.VirtualTrees, ExtCtrls, Graphics, RegExpr, Math, Generics.Collections, extra_controls,
-  dbconnection, apphelpers, Menus, DateUtils, Zipper, StrUtils,
+  dbconnection, apphelpers, lazaruscompat, Menus, DateUtils, Zipper, StrUtils,
   SynEdit, ClipBrd, generic_types, fpjson, Variants, EditBtn, LazFileUtils, Types, LCLType;
 
 type
@@ -2333,7 +2333,7 @@ begin
     Values.Clear;
     // Generate random values. Include some NULLs for columns which allow that.
     for Col in Columns do begin
-      if ColumnNamesSkipped.IndexOf(Col.Name) > -1 then
+      if ColumnNamesSkipped.Contains(Col.Name) then
         Continue;
 
       // https://www.delphipraxis.net/31059-warscheinlichkeit-random.html

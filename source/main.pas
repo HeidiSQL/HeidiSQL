@@ -6825,7 +6825,7 @@ var
           // Detect index icon, if any
           ColumnIcon := ICONINDEX_FIELD;
           for Key in Keys do begin
-            if Key.Columns.IndexOf(Col.Name) > -1 then begin
+            if Key.Columns.Contains(Col.Name) then begin
               ColumnIcon := Key.ImageIndex;
               Break;
             end;
