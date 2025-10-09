@@ -920,66 +920,65 @@ var
   Constraint: TCheckConstraint;
   Node: PVirtualNode;
   tmp, SQL: String;
+  CreateLines: TStringList;
 begin
   // Compose CREATE query, called by buttons and for SQL code tab
-  SQL := 'CREATE TABLE '+DBObject.Connection.QuoteIdent(editName.Text)+' ('+CRLF;
+  SQL := 'CREATE TABLE '+DBObject.Connection.QuoteIdent(editName.Text)+' ('+ sLineBreak;
+  CreateLines := TStringList.Create;
+  // Lines with columns, indexes, foreign keys and check constraints
   Node := listColumns.GetFirst;
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
-    SQL := SQL + CodeIndent + Col.SQLCode + ',' + sLineBreak;
+    CreateLines.Add(Col.SQLCode);
     Node := listColumns.GetNextSibling(Node);
   end;
-
   IndexCount := 0;
   for i:=0 to FKeys.Count-1 do begin
     if not FKeys[i].InsideCreateCode then
       Continue;
     tmp := FKeys[i].SQLCode;
     if tmp <> '' then begin
-      SQL := SQL + CodeIndent + tmp + ',' + sLineBreak;
+      CreateLines.Add(tmp);
       Inc(IndexCount);
     end;
   end;
-
-  for i:=0 to FForeignKeys.Count-1 do
-    SQL := SQL + CodeIndent + FForeignKeys[i].SQLCode(True) + ',' + sLineBreak;
-
-  // Check constraints
-  for Constraint in FCheckConstraints do begin
-    SQL := SQL + CodeIndent + Constraint.SQLCode + ',' + sLineBreak;
+  for i:=0 to FForeignKeys.Count-1 do begin
+    CreateLines.Add(FForeignKeys[i].SQLCode(True));
   end;
+  for Constraint in FCheckConstraints do begin
+    CreateLines.Add(Constraint.SQLCode);
+  end;
+  SQL := SQL + CodeIndent + Implode(',' + sLineBreak + CodeIndent, CreateLines) + sLineBreak
+      + ')' + sLineBreak;
+  CreateLines.Free;
 
-  if Integer(listColumns.RootNodeCount) + IndexCount + FForeignKeys.Count > 0 then
-    Delete(SQL, Length(SQL)-2, 3);
-
-  SQL := SQL + CRLF + ')' + CRLF;
   if (memoComment.Text <> '') and (not DBObject.Connection.Parameters.IsAnyPostgreSQL) then
-    SQL := SQL + 'COMMENT='+DBObject.Connection.EscapeString(memoComment.Text) + CRLF;
+    SQL := SQL + 'COMMENT='+DBObject.Connection.EscapeString(memoComment.Text) + sLineBreak;
   if comboCollation.Text <> '' then
-    SQL := SQL + 'COLLATE='+DBObject.Connection.EscapeString(comboCollation.Text) + CRLF;
+    SQL := SQL + 'COLLATE='+DBObject.Connection.EscapeString(comboCollation.Text) + sLineBreak;
   if (comboEngine.Text <> '') and (comboEngine.ItemIndex > 0) then begin
     if DBObject.Connection.ServerVersionInt < 40018 then
-      SQL := SQL + 'TYPE='+comboEngine.Text + CRLF
+      SQL := SQL + 'TYPE='+comboEngine.Text + sLineBreak
     else
-      SQL := SQL + 'ENGINE='+comboEngine.Text + CRLF;
+      SQL := SQL + 'ENGINE='+comboEngine.Text + sLineBreak;
   end;
   if comboRowFormat.Text <> 'DEFAULT' then
-    SQL := SQL + 'ROW_FORMAT='+comboRowFormat.Text + CRLF;
+    SQL := SQL + 'ROW_FORMAT='+comboRowFormat.Text + sLineBreak;
   if chkChecksum.Checked then
-    SQL := SQL + 'CHECKSUM='+IntToStr(Integer(chkChecksum.Checked)) + CRLF;
+    SQL := SQL + 'CHECKSUM='+IntToStr(Integer(chkChecksum.Checked)) + sLineBreak;
   if editAutoInc.Text <> '' then
-    SQL := SQL + 'AUTO_INCREMENT='+editAutoInc.Text + CRLF;
+    SQL := SQL + 'AUTO_INCREMENT='+editAutoInc.Text + sLineBreak;
   if editAvgRowLen.Text <> '' then
-    SQL := SQL + 'AVG_ROW_LENGTH='+editAvgRowLen.Text + CRLF;
+    SQL := SQL + 'AVG_ROW_LENGTH='+editAvgRowLen.Text + sLineBreak;
   if editMaxRows.Text <> '' then
-    SQL := SQL + 'MAX_ROWS='+editMaxRows.Text + CRLF;
+    SQL := SQL + 'MAX_ROWS='+editMaxRows.Text + sLineBreak;
   if memoUnionTables.Enabled and (memoUnionTables.Text <> '') then
-    SQL := SQL + 'UNION=('+memoUnionTables.Text+')' + CRLF;
+    SQL := SQL + 'UNION=('+memoUnionTables.Text+')' + sLineBreak;
   if comboInsertMethod.Enabled and (comboInsertMethod.Text <> '') then
-    SQL := SQL + 'INSERT_METHOD='+comboInsertMethod.Text + CRLF;
+    SQL := SQL + 'INSERT_METHOD='+comboInsertMethod.Text + sLineBreak;
   if SynMemoPartitions.GetTextLen > 0 then
     SQL := SQL +  '/*!50100 ' + SynMemoPartitions.Text + ' */';
-  SQL := SQL + ';' + CRLF;
+  SQL := SQL + ';' + sLineBreak;
 
   // Separate queries from here on
 
@@ -993,7 +992,7 @@ begin
       Col := listColumns.GetNodeData(Node);
       SQL := SQL + 'COMMENT ON COLUMN '+
         DBObject.Connection.QuoteIdent(editName.Text)+'.'+DBObject.Connection.QuoteIdent(Col.Name)+
-        ' IS '+DBObject.Connection.EscapeString(Col.Comment) + ';' + CRLF;
+        ' IS '+DBObject.Connection.EscapeString(Col.Comment) + ';' + sLineBreak;
       Node := listColumns.GetNextSibling(Node);
     end;
   end;
@@ -2531,7 +2530,7 @@ begin
     OldTopLine := SynMemoALTERcode.TopLine;
     SynMemoALTERcode.Clear;
     for Query in ComposeAlterStatement do
-      SynMemoALTERcode.Text := SynMemoALTERcode.Text + Query.SQL + ';' + CRLF;
+      SynMemoALTERcode.Text := SynMemoALTERcode.Text + Query.SQL + ';' + sLineBreak;
     SynMemoALTERcode.TopLine := OldTopLine;
     SynMemoALTERcode.EndUpdate;
     AlterCodeValid := True;
@@ -2540,7 +2539,7 @@ begin
     OldTopLine := SynMemoCREATEcode.TopLine;
     SynMemoCREATEcode.Clear;
     for Query in ComposeCreateStatement do
-      SynMemoCREATEcode.Text := SynMemoCREATEcode.Text + Query.SQL + ';' + CRLF;
+      SynMemoCREATEcode.Text := SynMemoCREATEcode.Text + Query.SQL + ';' + sLineBreak;
     SynMemoCREATEcode.TopLine := OldTopLine;
     SynMemoCREATEcode.EndUpdate;
     CreateCodeValid := True;
@@ -2998,10 +2997,10 @@ begin
         for i:=0 to Key.Columns.Count-1 do begin
           for j:=0 to FColumns.Count-1 do begin
             if FColumns[j].Name = Key.Columns[i] then begin
-              KeyColumnsSQLCode := KeyColumnsSQLCode + FColumns[j].SQLCode + CRLF;
+              KeyColumnsSQLCode := KeyColumnsSQLCode + FColumns[j].SQLCode + sLineBreak;
               for k:=0 to RefColumns.Count-1 do begin
                 if RefColumns[k].Name = Key.ForeignColumns[i] then begin
-                  RefColumnsSQLCode := RefColumnsSQLCode + RefColumns[k].SQLCode + CRLF;
+                  RefColumnsSQLCode := RefColumnsSQLCode + RefColumns[k].SQLCode + sLineBreak;
                   TypesMatch := TypesMatch
                     and (RefColumns[k].DataType.Index = FColumns[j].DataType.Index)
                     and (RefColumns[k].Unsigned = FColumns[j].Unsigned);
@@ -3012,7 +3011,7 @@ begin
         end;
         if not TypesMatch then begin
           Err := _('The selected foreign column do not match the source columns data type and unsigned flag. This will give you an error message when trying to save this change. Please compare yourself:');
-          Err := Err + CRLF + CRLF + KeyColumnsSQLCode + CRLF + Trim(RefColumnsSQLCode);
+          Err := Err + sLineBreak + sLineBreak + KeyColumnsSQLCode + sLineBreak + Trim(RefColumnsSQLCode);
         end;
       end;
       if Err <> '' then
