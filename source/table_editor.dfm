@@ -242,6 +242,7 @@ object frmTableEditor: TfrmTableEditor
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alClient
+        DefaultNodeHeight = 19
         DragMode = dmAutomatic
         EditDelay = 0
         Header.AutoSizeIndex = 0
@@ -416,6 +417,7 @@ object frmTableEditor: TfrmTableEditor
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alClient
+        DefaultNodeHeight = 19
         EditDelay = 0
         Header.AutoSizeIndex = -1
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
@@ -524,6 +526,7 @@ object frmTableEditor: TfrmTableEditor
         Width = 620
         Height = 121
         Align = alClient
+        DefaultNodeHeight = 19
         EditDelay = 0
         Header.AutoSizeIndex = 1
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
@@ -764,10 +767,11 @@ object frmTableEditor: TfrmTableEditor
     Margins.Bottom = 32
     Align = alClient
     Constraints.MinHeight = 20
+    DefaultNodeHeight = 19
     DragMode = dmAutomatic
     EditDelay = 0
     Header.AutoSizeIndex = -1
-    Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
+    Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
     Header.PopupMenu = MainForm.popupListHeader
     Images = MainForm.VirtualImageListMain
     IncrementalSearch = isAll
@@ -790,6 +794,7 @@ object frmTableEditor: TfrmTableEditor
     OnGetText = listColumnsGetText
     OnPaintText = listColumnsPaintText
     OnGetNodeDataSize = listColumnsGetNodeDataSize
+    OnHeaderClick = listColumnsHeaderClick
     OnInitNode = listColumnsInitNode
     OnKeyPress = listColumnsKeyPress
     OnNewText = listColumnsNewText
@@ -800,94 +805,77 @@ object frmTableEditor: TfrmTableEditor
       item
         Alignment = taRightJustify
         MinWidth = 20
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible, coAllowFocus]
         Position = 0
         Text = '#'
         Width = 20
       end
       item
         MinWidth = 50
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 1
         Text = 'Name'
         Width = 100
       end
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 2
         Text = 'Datatype'
         Width = 90
       end
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 3
         Text = 'Length/Set'
         Width = 90
       end
       item
-        Alignment = taCenter
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 4
         Text = 'Unsigned'
         Width = 60
       end
       item
-        Alignment = taCenter
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 5
         Text = 'Allow NULL'
         Width = 65
       end
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 6
         Text = 'Zerofill'
       end
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 7
         Text = 'Default'
         Width = 100
       end
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 8
         Text = 'Comment'
         Width = 130
       end
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 9
         Text = 'Collation'
         Width = 100
       end
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 10
         Text = 'Expression'
         Width = 100
       end
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 11
         Text = 'Virtuality'
         Width = 100
       end
       item
         Hint = 'Spatial reference system'
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 12
         Text = 'SRID'
       end
       item
         Hint = 'Hide in certain contexts'
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 13
         Text = 'Invisible'
       end
       item
         Hint = 'Storage-Engine Independent Column Compression'
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 14
         Text = 'Compressed'
       end>

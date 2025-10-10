@@ -202,6 +202,8 @@ type
     procedure menuRemovePropertyClick(Sender: TObject);
     procedure menuClearPropertiesClick(Sender: TObject);
     procedure menuAddPropertyClick(Sender: TObject);
+    procedure listColumnsHeaderClick(Sender: TVTHeader;
+      HitInfo: TVTHeaderHitInfo);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -258,6 +260,8 @@ uses main;
 
 
 constructor TfrmTableEditor.Create(AOwner: TComponent);
+var
+  i: Integer;
 begin
   inherited;
   comboRowFormat.Items.CommaText := 'DEFAULT,DYNAMIC,FIXED,COMPRESSED,REDUNDANT,COMPACT';
@@ -272,10 +276,26 @@ begin
   editName.MaxLength := NAME_LEN;
   FAlterRestrictedMessageDisplayed := False;
   btnSave.Hint := ShortCutToText(MainForm.actSaveSQL.ShortCut);
+  listColumns.OnCompareNodes := MainForm.AnyGridCompareNodes;
+  //listColumns.OnHeaderClick has its own handler
+  listColumns.OnAfterPaint := MainForm.AnyGridAfterPaint;
+  // Hide 0/1 text behind the drawn checkbox, by centering the text like the checkbox. We need the 0/1 text for sorting.
+  // And we cannot over-draw the cell rect which may have a different background.
+  for i in ColNumsCheckboxes do begin
+    listColumns.Header.Columns[i].Alignment := taCenter;
+  end;
   FixVT(listColumns);
   FixVT(treeIndexes);
   FixVT(listForeignKeys);
   FixVT(listCheckConstraints);
+end;
+
+
+procedure TfrmTableEditor.listColumnsHeaderClick(Sender: TVTHeader;
+  HitInfo: TVTHeaderHitInfo);
+begin
+  MainForm.AnyGridHeaderClick(Sender, HitInfo);
+  ValidateColumnControls;
 end;
 
 
@@ -319,6 +339,8 @@ begin
   end;
   listColumns.BeginUpdate;
   listColumns.Clear;
+  listColumns.Header.SortColumn := 0;
+  listColumns.Header.SortDirection := sdAscending;
   treeIndexes.Clear;
   listForeignKeys.Clear;
   listCheckConstraints.Clear;
@@ -596,7 +618,7 @@ var
   AlterColBase, AddColBase: String;
   i: Integer;
   Results: TDBQuery;
-  Col, PreviousCol: PTableColumn;
+  Col, PreviousCol: TTableColumn;
   TblKey: TTableKey;
   Constraint: TCheckConstraint;
   Node: PVirtualNode;
@@ -695,8 +717,7 @@ begin
   // Update columns
   Node := listColumns.GetFirst;
   PreviousCol := nil;
-  while Assigned(Node) do begin
-    Col := listColumns.GetNodeData(Node);
+  for Col in FColumns do begin
     if Col.Status <> esUntouched then begin
       OverrideCollation := IfThen(chkCharsetConvert.Checked, comboCollation.Text);
       AlterColBase := Conn.GetSQLSpecifity(spChangeColumn);
@@ -802,13 +823,12 @@ begin
 
     end;
     PreviousCol := Col;
-    Node := listColumns.GetNextSibling(Node);
   end;
 
-  // Deleted columns, not available as Node in above loop
-  for i:=0 to FColumns.Count-1 do begin
-    if FColumns[i].Status = esDeleted then begin
-      Specs.Add('DROP COLUMN '+Conn.QuoteIdent(FColumns[i].OldName));
+  // Deleted columns
+  for Col in FColumns do begin
+    if Col.Status = esDeleted then begin
+      Specs.Add('DROP COLUMN '+Conn.QuoteIdent(Col.OldName));
       // MSSQL + SQLite want one ALTER TABLE query per DROP COLUMN
       if Conn.Parameters.NetTypeGroup in [ngMSSQL, ngSQLite] then
         FinishSpecs;
@@ -915,10 +935,9 @@ end;
 
 function TfrmTableEditor.ComposeCreateStatement: TSQLBatch;
 var
-  i, IndexCount: Integer;
-  Col: PTableColumn;
+  i: Integer;
+  Col: TTableColumn;
   Constraint: TCheckConstraint;
-  Node: PVirtualNode;
   tmp, SQL: String;
   CreateLines: TStringList;
 begin
@@ -926,20 +945,15 @@ begin
   SQL := 'CREATE TABLE '+DBObject.Connection.QuoteIdent(editName.Text)+' ('+ sLineBreak;
   CreateLines := TStringList.Create;
   // Lines with columns, indexes, foreign keys and check constraints
-  Node := listColumns.GetFirst;
-  while Assigned(Node) do begin
-    Col := listColumns.GetNodeData(Node);
+  for Col in FColumns do begin
     CreateLines.Add(Col.SQLCode);
-    Node := listColumns.GetNextSibling(Node);
   end;
-  IndexCount := 0;
   for i:=0 to FKeys.Count-1 do begin
     if not FKeys[i].InsideCreateCode then
       Continue;
     tmp := FKeys[i].SQLCode;
     if tmp <> '' then begin
       CreateLines.Add(tmp);
-      Inc(IndexCount);
     end;
   end;
   for i:=0 to FForeignKeys.Count-1 do begin
@@ -987,13 +1001,10 @@ begin
       SQL := SQL + 'COMMENT ON TABLE '+DBObject.Connection.QuoteIdent(editName.Text)+
         ' IS '+DBObject.Connection.EscapeString(memoComment.Text) + ';' + sLineBreak;
     end;
-    Node := listColumns.GetFirst;
-    while Assigned(Node) do begin
-      Col := listColumns.GetNodeData(Node);
+    for Col in FColumns do begin
       SQL := SQL + 'COMMENT ON COLUMN '+
         DBObject.Connection.QuoteIdent(editName.Text)+'.'+DBObject.Connection.QuoteIdent(Col.Name)+
         ' IS '+DBObject.Connection.EscapeString(Col.Comment) + ';' + sLineBreak;
-      Node := listColumns.GetNextSibling(Node);
     end;
   end;
 
@@ -1042,9 +1053,9 @@ begin
   fn := listColumns.FocusedNode;
   NewCol := TTableColumn.Create(DBObject.Connection);
   if Assigned(fn) then begin
-    idx := fn.Index+1;
     // Copy properties from focused node
     FocusedCol := listColumns.GetNodeData(fn);
+    idx := FColumns.IndexOf(FocusedCol^) + 1;
     NewCol.DataType := FocusedCol.DataType;
     NewCol.LengthSet := FocusedCol.LengthSet;
     NewCol.Unsigned := FocusedCol.Unsigned;
@@ -1194,7 +1205,7 @@ begin
 
   // Darken cell background to signalize it doesn't allow length/set
   // Exclude non editable checkbox columns - grey looks ugly there.
-  if (not CellEditingAllowed(Node, Column)) and (not (Column in ColNumsCheckboxes)) then begin
+  if (not CellEditingAllowed(Node, Column)) and (Column <> ColNumCounter) then begin
     BgColor := clBtnFace;
   end;
 
@@ -1317,10 +1328,14 @@ begin
 
   btnMoveUpColumn.Enabled := (listColumns.SelectedCount > 0)
     and (listColumns.GetFirstSelected <> listColumns.GetFirst)
-    and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+    and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL)
+    and (listColumns.Header.SortColumn = 0)
+    and (listColumns.Header.SortDirection = sdAscending);
   btnMoveDownColumn.Enabled := (listColumns.SelectedCount > 0)
     and (LastSelected <> listColumns.GetLast)
-    and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+    and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL)
+    and (listColumns.Header.SortColumn = 0)
+    and (listColumns.Header.SortDirection = sdAscending);
 
   menuRemoveColumn.Enabled := btnRemoveColumn.Enabled;
   menuMoveUpColumn.Enabled := btnMoveUpColumn.Enabled;
@@ -1421,7 +1436,7 @@ begin
   Col := Sender.GetNodeData(Node);
   CellText := '';
   case Column of
-    ColNumCounter: CellText := IntToStr(Node.Index+1);
+    ColNumCounter: CellText := IntToStr(FColumns.IndexOf(Col^)+1);
 
     ColNumName: CellText := Col.Name;
 
@@ -1429,11 +1444,11 @@ begin
 
     ColNumLengthSet: CellText := Col.LengthSet;
 
-    ColNumUnsigned,
-    ColNumAllownull,
-    ColNumZerofill,
-    ColNumInvisible,
-    ColNumCompressed: CellText := ''; // Checkbox
+    ColNumUnsigned: CellText := Col.Unsigned.ToInteger.ToString;
+
+    ColNumAllownull: CellText := Col.AllowNull.ToInteger.ToString;
+
+    ColNumZerofill: CellText := Col.ZeroFill.ToInteger.ToString;
 
     ColNumDefault: begin
       case Col.DefaultType of
@@ -1468,6 +1483,11 @@ begin
       if (Col.DataType.Category = dtcSpatial) and (Col.Connection.Has(frSrid)) then
         CellText := Col.SRID.ToString;
     end;
+
+    ColNumInvisible: CellText := Col.Invisible.ToInteger.ToString;
+
+    ColNumCompressed: CellText := Col.Compressed.ToInteger.ToString;
+
   end;
 end;
 
@@ -1493,7 +1513,6 @@ procedure TfrmTableEditor.listColumnsPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
 var
-  TextColor: TColor;
   i: Integer;
   Col: PTableColumn;
 begin
@@ -1511,20 +1530,19 @@ begin
   //if vsSelected in Node.States then Exit;
 
   // Give datatype column specific color, as set in preferences
-  TextColor := TargetCanvas.Font.Color;
   case Column of
-    ColNumCounter: TextColor := clGrayText;
+    ColNumCounter: TargetCanvas.Font.Color := clGrayText;
 
-    ColNumDatatype: TextColor := DatatypeCategories[Col.DataType.Category].Color;
+    ColNumDatatype: TargetCanvas.Font.Color := DatatypeCategories[Col.DataType.Category].Color;
 
     ColNumDefault: case Col.DefaultType of
       cdtNothing, cdtNull:
-        TextColor := DatatypeCategories[Col.DataType.Category].NullColor;
+        TargetCanvas.Font.Color := DatatypeCategories[Col.DataType.Category].NullColor;
       else
-        TextColor := DatatypeCategories[Col.DataType.Category].Color;
+        TargetCanvas.Font.Color := DatatypeCategories[Col.DataType.Category].Color;
     end;
   end;
-  TargetCanvas.Font.Color := TextColor;
+
 end;
 
 
