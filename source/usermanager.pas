@@ -1170,6 +1170,7 @@ var
 begin
   // Save changes
   FocusedUser := listUsers.GetNodeData(listUsers.FocusedNode);
+  FocusedUser.Problem := upNone;
   if FAdded then begin
     FocusedUser.Username := editUsername.Text;
     FocusedUser.Host := editFromHost.Text;
