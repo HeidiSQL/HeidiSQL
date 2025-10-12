@@ -1130,6 +1130,9 @@ begin
 
   SiblingSessions := NodeSessionNames(Node.Parent, ParentKey);
 
+  // Safety replacement for folder separator, see issue #682
+  NewText := StringReplace(NewText, '\', '-', [rfReplaceAll]);
+
   if SiblingSessions.IndexOf(NewText) > -1 then begin
     ErrorDialog(
       f_('Session "%s" already exists!', [ParentKey+NewText])
