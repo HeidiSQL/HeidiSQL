@@ -183,7 +183,7 @@ object frmExportGrid: TfrmExportGrid
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
-      TabOrder = 4
+      TabOrder = 5
       Text = ';'
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
@@ -198,7 +198,7 @@ object frmExportGrid: TfrmExportGrid
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
-      TabOrder = 5
+      TabOrder = 6
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
@@ -212,7 +212,7 @@ object frmExportGrid: TfrmExportGrid
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
-      TabOrder = 6
+      TabOrder = 7
       Text = '\r\n'
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
@@ -243,7 +243,7 @@ object frmExportGrid: TfrmExportGrid
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
-      TabOrder = 7
+      TabOrder = 8
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
@@ -254,6 +254,14 @@ object frmExportGrid: TfrmExportGrid
       Height = 17
       Caption = 'Remove linebreaks from contents'
       TabOrder = 3
+    end
+    object chkOpenFile: TCheckBox
+      Left = 8
+      Top = 110
+      Width = 257
+      Height = 17
+      Caption = 'Open file after creation'
+      TabOrder = 4
     end
   end
   object btnSetClipboardDefaults: TButton
