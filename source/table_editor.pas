@@ -2281,7 +2281,7 @@ begin
       IndexedColName := VT.Text[Node, 0];
       for i:=0 to FColumns.Count-1 do begin
         if FColumns[i].Name = IndexedColName then begin
-          Allowed := FColumns[i].DataType.Category = dtcText;
+          Allowed := FColumns[i].DataType.Category in [dtcText, dtcBinary];
           break;
         end;
       end;
