@@ -2297,6 +2297,12 @@ var
   EnumValues: TStringList;
   TextVal: String;
   BinVal: String;
+
+  function RS: String;
+  begin
+    // return a Random integer as String
+    Result := RandomRange(1, 100).ToString;
+  end;
 begin
   // Generate rows
   if not (DBObj.NodeType in [lntTable, lntView]) then begin
@@ -2439,7 +2445,20 @@ begin
           Values.Add(Col.Connection.EscapeString(TextVal));
         end;
 
-        dtcSpatial: ;
+        dtcSpatial: begin
+          TextVal := Col.Connection.EscapeString('');
+          case Col.DataType.Index of
+            dbdtPoint: TextVal := 'POINT('+RS+', '+RS+')';
+            dbdtMultipoint: TextVal := 'MULTIPOINT(POINT('+RS+', '+RS+'), POINT('+RS+', '+RS+'))';
+            dbdtLinestring: TextVal := 'LINESTRING(POINT('+RS+', '+RS+'), POINT('+RS+', '+RS+'))';
+            dbdtMultilinestring: TextVal := 'MULTILINESTRING(LINESTRING(POINT('+RS+', '+RS+'), POINT('+RS+', '+RS+')), LINESTRING(POINT('+RS+', '+RS+'), POINT('+RS+', '+RS+')))';
+            dbdtPolygon: TextVal := 'POLYGON(LINESTRING(POINT('+RS+', '+RS+'), POINT('+RS+', '+RS+')), LINESTRING(POINT('+RS+', '+RS+'), POINT('+RS+', '+RS+')))';
+            dbdtMultipolygon: TextVal := 'MULTIPOLYGON(POLYGON(LINESTRING(POINT('+RS+', '+RS+'), POINT('+RS+', '+RS+')), LINESTRING(POINT('+RS+', '+RS+'), POINT('+RS+', '+RS+'))))';
+            dbdtGeometry: TextVal := 'POINT('+RS+', '+RS+')';
+            dbdtGeometrycollection: TextVal := 'GEOMETRYCOLLECTION(POINT('+RS+', '+RS+'), LINESTRING(POINT('+RS+', '+RS+'), POINT('+RS+', '+RS+')))';
+          end;
+          Values.Add(TextVal);
+        end;
 
         dtcOther: begin
           case Col.DataType.Index of
