@@ -1133,12 +1133,19 @@ end;
 procedure TfrmTableEditor.btnMoveUpColumnClick(Sender: TObject);
 var
   Node: PVirtualNode;
+  Col: PTableColumn;
+  ColId: NativeInt;
 begin
   // Move up selected columns
   listColumns.EndEditNode;
 
   Node := GetNextNode(listColumns, nil, true);
   while Assigned(Node) do begin
+    // Move column within FColumns list...
+    Col := listColumns.GetNodeData(Node);
+    ColId := FColumns.IndexOf(Col^);
+    FColumns.Move(ColId, ColId-1);
+    // ... and the tree node as well
     listColumns.MoveTo(Node, listColumns.GetPreviousSibling(Node), amInsertBefore, False);
     Node := GetNextNode(listColumns, Node, true);
   end;
@@ -1150,6 +1157,8 @@ end;
 procedure TfrmTableEditor.btnMoveDownColumnClick(Sender: TObject);
 var
   Node: PVirtualNode;
+  Col: PTableColumn;
+  ColId: NativeInt;
 begin
   // Move down selected columns
   listColumns.EndEditNode;
@@ -1157,6 +1166,9 @@ begin
   Node := listColumns.GetLast;
   while Assigned(Node) do begin
     if listColumns.Selected[Node] then begin
+      Col := listColumns.GetNodeData(Node);
+      ColId := FColumns.IndexOf(Col^);
+      FColumns.Move(ColId, ColId+1);
       listColumns.MoveTo(Node, listColumns.GetNextSibling(Node), amInsertAfter, False);
     end;
     Node := listColumns.GetPrevious(Node);
