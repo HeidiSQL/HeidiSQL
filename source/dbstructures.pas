@@ -6,7 +6,7 @@
 interface
 
 uses
-  gnugettext, Vcl.Graphics, Winapi.Windows, System.SysUtils, System.Classes;
+  gnugettext, Vcl.Graphics, Winapi.Windows, System.SysUtils, System.Classes, System.IOUtils;
 
 
 type
@@ -73,7 +73,7 @@ type
     public
       property ErrorCode: Cardinal read FErrorCode;
       property Hint: String read FHint;
-      constructor Create(const Msg: string; const ErrorCode: Cardinal=0; const Hint: String='');
+      constructor Create(const Msg: string; const ErrorCode_: Cardinal=0; const Hint_: String='');
   end;
 
   // DLL loading
@@ -89,7 +89,7 @@ type
     public
       property Handle: HMODULE read FHandle;
       property DllFile: String read FDllFile;
-      constructor Create(DllFile, DefaultDll: String); virtual;
+      constructor Create(UsedDllFile, HintDefaultDll: String); virtual;
       destructor Destroy; override;
   end;
 
@@ -138,10 +138,10 @@ uses apphelpers;
 
 { EDbError }
 
-constructor EDbError.Create(const Msg: string; const ErrorCode: Cardinal=0; const Hint: String='');
+constructor EDbError.Create(const Msg: string; const ErrorCode_: Cardinal=0; const Hint_: String='');
 begin
-  FErrorCode := ErrorCode;
-  FHint := Hint;
+  FErrorCode := ErrorCode_;
+  FHint := Hint_;
   inherited Create(Msg);
 end;
 
@@ -149,19 +149,16 @@ end;
 
 { TDbLib }
 
-constructor TDbLib.Create(DllFile, DefaultDll: String);
+constructor TDbLib.Create(UsedDllFile, HintDefaultDll: String);
 var
   msg, ErrorHint: String;
 begin
   // Load DLL as is (with or without path)
   inherited Create;
-  FDllFile := DllFile;
+  FDllFile := UsedDllFile;
+  // On Windows, we have the full path to the dll file here, so even if the file portion is empty, FDllFile contains a path / non-empty string
   if not FileExists(FDllFile) then begin
-    msg := f_('File does not exist: %s', [FDllFile]) +
-      sLineBreak + sLineBreak +
-      f_('Please launch %s from the directory where you have installed it. Or just reinstall %s.', [APPNAME, APPNAME]
-      );
-    Raise EdbError.Create(msg);
+    Raise EdbError.Create(_('No library selected. Please select one of the provided libraries in the drop-down.'));
   end;
 
   FHandle := LoadLibrary(PWideChar(FDllFile));
@@ -172,9 +169,9 @@ begin
     if GetLastError <> 0 then begin
       msg := msg + sLineBreak + sLineBreak + f_('Internal error %d: %s', [GetLastError, SysErrorMessage(GetLastError)]);
     end;
-    if (DefaultDll <> '') and (ExtractFileName(FDllFile) <> DefaultDll) then begin
+    if (HintDefaultDll <> '') and (ExtractFileName(FDllFile) <> HintDefaultDll) then begin
       ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
-        [DefaultDll, ExtractFileName(FDllFile)]
+        [HintDefaultDll, ExtractFileName(FDllFile)]
         );
     end else begin
       ErrorHint := '';
