@@ -101,11 +101,12 @@ object UserManagerForm: TUserManagerForm
     end
     object listUsers: TVirtualStringTree
       Left = 0
-      Top = 41
+      Top = 64
       Width = 177
-      Height = 275
+      Height = 236
       Align = alClient
       Header.AutoSizeIndex = 0
+      Header.Height = 18
       Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
       Header.PopupMenu = MainForm.popupListHeader
       Header.SortColumn = 0
@@ -141,7 +142,7 @@ object UserManagerForm: TUserManagerForm
     end
     object ToolBar1: TToolBar
       Left = 0
-      Top = 19
+      Top = 20
       Width = 177
       Height = 22
       AutoSize = True
@@ -176,6 +177,21 @@ object UserManagerForm: TUserManagerForm
         ImageName = 'icons8-delete-button'
         OnClick = btnDeleteUserClick
       end
+    end
+    object editFilterUsers: TButtonedEdit
+      Left = 0
+      Top = 42
+      Width = 177
+      Height = 22
+      Align = alTop
+      Images = MainForm.VirtualImageListMain
+      LeftButton.ImageIndex = 30
+      LeftButton.Visible = True
+      RightButton.ImageIndex = 193
+      TabOrder = 2
+      TextHint = 'Filter ...'
+      OnChange = editFilterUsersChange
+      OnRightButtonClick = editFilterUsersRightButtonClick
     end
   end
   object pnlRight: TPanel
