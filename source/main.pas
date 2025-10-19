@@ -2046,12 +2046,25 @@ begin
   if AppSettings.ReadBool(asDoubleClickInsertsNodeText) then
     menuDoubleClickInsertsNodeText.Click;
 
-  // Shortcuts
-  FActionList1DefaultCaptions := TStringList.Create;
-  FActionList1DefaultHints := TStringList.Create;
+  // Make exit action OS friendly
+  {$IFDEF UNIX}
+    actExitApplication.Caption := '&Quit';
+    actExitApplication.ShortCut := KeyToShortCut(VK_Q, [ssCtrl]);
+  {$ENDIF}
+  {$IFDEF WINDOWS}
+    actExitApplication.Caption := 'E&xit';
+    actExitApplication.ShortCut := KeyToShortCut(VK_F4, [ssAlt]);
+  {$ENDIF}
+  // Customized keyboard shortcuts
   for i:=0 to ActionList1.ActionCount-1 do begin
     Action := TAction(ActionList1.Actions[i]);
     Action.ShortCut := AppSettings.ReadInt(asActionShortcut1, Action.Name, Action.ShortCut);
+  end;
+
+  // Keep a list of untranslated captions and hints of actions
+  FActionList1DefaultCaptions := TStringList.Create;
+  FActionList1DefaultHints := TStringList.Create;
+  for i:=0 to ActionList1.ActionCount-1 do begin
     FActionList1DefaultCaptions.Insert(i, Action.Caption);
     FActionList1DefaultHints.Insert(i, Action.Hint);
   end;

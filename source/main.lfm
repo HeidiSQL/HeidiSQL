@@ -3607,7 +3607,6 @@ object MainForm: TMainForm
       end
       object FileExitItem: TMenuItem
         Action = actExitApplication
-        ShortCut = 32883
       end
     end
     object MainMenuEdit: TMenuItem
@@ -3921,6 +3920,7 @@ object MainForm: TMainForm
       Caption = 'E&xit'
       Hint = 'Exit|Exit application'
       ImageIndex = 26
+      ShortCut = 32883
       OnExecute = actExitApplicationExecute
     end
     object actFollowForeignKey: TAction
