@@ -10,6 +10,7 @@
 /out/heidisql.exe
 /out/gtk2
 /out/qt5
+/out/locale
 /extra/locale/*/LC_MESSAGES
 # Compiled translations
 /extra/locale/heidisql.*.mo

@@ -11,7 +11,7 @@ permissions:
 on:
 
   push:
-    branches: [ lazarus ]
+    branches: [ lazarus, add-changes-from-gus ]
     tags: [ "*" ]
     paths-ignore: [ "README.md", "LICENSE", "CHANGELOG.md", ".github/cliff.toml" ]
 

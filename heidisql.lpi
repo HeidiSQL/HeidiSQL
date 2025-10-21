@@ -18,7 +18,7 @@
       <Icon Value="0"/>
     </General>
     <i18n>
-      <EnableI18N Value="True" LFM="False"/>
+      <EnableI18N Value="True"/>
       <OutDir Value="po_files"/>
     </i18n>
     <VersionInfo>
