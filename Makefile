@@ -24,7 +24,7 @@ endif
 
 TRANSIFEX_TOKEN ?= help
 
-.PHONY: all clean tx-push tx-pull copy-locale build-mo build-gtk2 run-gtk2 build-qt5 run-qt5 deb-package tar-gtk2 tar-qt5
+.PHONY: all clean tx-pull copy-locale build-mo build-gtk2 run-gtk2 build-qt5 run-qt5 deb-package tar-gtk2 tar-qt5
 
 all: clean tx-pull build-mo build-gtk2 build-qt5 deb-package tar-gtk2 tar-qt5
 
@@ -33,10 +33,6 @@ clean:
 	@rm -rf ./bin/lib/x86_64-linux/*
 	@rm -f ./out/gtk2/* ./out/qt5/*
 	@rm -rf ./deb ./rpm ./tar ./dist
-
-tx-push:
-	@echo "=== Pushing to Transifex"
-# 	Need to ask Ansgar how he pushes to Transifex
 
 tx-pull:
 	@echo "=== Pulling from Transifex"
