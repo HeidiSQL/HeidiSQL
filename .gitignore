@@ -13,6 +13,8 @@
 /extra/locale/*/LC_MESSAGES
 # Compiled translations
 /extra/locale/heidisql.*.mo
+# Secrets, DO NOT COMMIT
+/secrets.mk
 
 ## Uncomment these types if you want even more clean repository. But be careful.
 ## It can make harm to an existing project source. Read explanations below.
