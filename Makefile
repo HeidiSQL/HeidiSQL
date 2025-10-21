@@ -3,9 +3,9 @@ OPTS := -B --bm=Release
 OPTSQT := --ws=qt5
 LPI := heidisql.lpi
 
-BIN := out/heidisql
-BINGTK := out/gtk2/heidisql
-BINQT := out/qt5/heidisql
+BIN := ./out/heidisql
+BINGTK := ./out/gtk2/heidisql
+BINQT := ./out/qt5/heidisql
 
 # Make shell magic to get version from somewhere
 #VERSION := shell magic
@@ -30,9 +30,9 @@ all: clean tx-pull build-mo build-gtk2 build-qt5 deb-package tar-gtk2 tar-qt5
 
 clean:
 	@echo "=== Cleaning"
-	@rm -rf bin/lib/x86_64-linux/*
-	@rm -f out/gtk2/* out/qt5/*
-	@rm -rf deb rpm tar dist
+	@rm -rf ./bin/lib/x86_64-linux/*
+	@rm -f ./out/gtk2/* ./out/qt5/*
+	@rm -rf ./deb ./rpm ./tar ./dist
 
 tx-push:
 	@echo "=== Pushing to Transifex"
@@ -44,36 +44,42 @@ tx-pull:
 
 copy-locale:
 	@echo "=== Copying .mo from extra/locale to out/locale"
-	@mkdir -p out/locale
-	@cp -fv extra/locale/*.mo out/locale
+	@mkdir -p ./out/locale
+	@cp -fv ./extra/locale/*.mo ./out/locale
 
 build-mo:
 	@echo "=== Building MO files"
 	@for file in $(shell find ./extra/locale -iname '*.po'); do \
 	  lang=`echo $${file} | cut -d'/' -f4`; \
 	  echo "Building MO file for $${lang}"; \
-	  msgfmt -o "extra/locale/heidisql.$${lang}.mo" $${file}; \
+	  msgfmt -o "./extra/locale/heidisql.$${lang}.mo" $${file}; \
 	done
 
 build-gtk2:
 	@echo "=== Building GTK2"
 	$(LAZBUILD) $(OPTS) $(LPI)
-	mkdir -p out/gtk2
-	mv -v $(BIN) $(BINGTK)
+	@mkdir -p ./out/gtk2
+	@mv -v $(BIN) $(BINGTK)
 
-run-gtk2: build-gtk2 build-mo
+run-gtk2: build-gtk2 tx-pull build-mo
 	@echo "=== Running GTK2"
-# 	Need to get the .mo files to run
+	@mkdir -p ./run/locale
+	@cp -vf ./extra/locale/*.mo ./run/locale
+	@cp -v $(BINGTK) ./run/heidisql
+	@./run/heidisql
 
 build-qt5:
 	@echo "=== Building QT5"
 	$(LAZBUILD) $(OPTS) $(OPTSQT) $(LPI)
-	mkdir -p out/qt5
-	mv -v $(BIN) $(BINQT)
+	@mkdir -p ./out/qt5
+	@mv -v $(BIN) $(BINQT)
 
-run-qt5: build-qt5 build-mo
+run-qt5: build-qt5 tx-pull build-mo
 	@echo "=== Running GTK2"
-# 	Need to get the .mo files to folder run
+	@mkdir -p ./run/locale
+	@cp -vf ./extra/locale/*.mo ./run/locale
+	@cp -v $(BINQT) ./run/heidisql
+	@./run/heidisql
 
 deb-package: build-mo
 	@echo "=== Creating debian package"
