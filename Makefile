@@ -65,6 +65,7 @@ run-gtk2: build-gtk2 tx-pull build-mo
 	@echo "=== Running GTK2"
 	@mkdir -p ./run/locale
 	@cp -vf ./extra/locale/*.mo ./run/locale
+	@cp -vf ./extra/ini/*.ini ./run
 	@cp -v $(BINGTK) ./run/heidisql
 	@./run/heidisql
 
@@ -78,6 +79,7 @@ run-qt5: build-qt5 tx-pull build-mo
 	@echo "=== Running GTK2"
 	@mkdir -p ./run/locale
 	@cp -vf ./extra/locale/*.mo ./run/locale
+	@cp -vf ./extra/ini/*.ini ./run
 	@cp -v $(BINQT) ./run/heidisql
 	@./run/heidisql
 
