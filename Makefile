@@ -1,16 +1,32 @@
-LAZBUILD = $(shell command -v lazbuild)
-OPTS = -B --bm=Release
-OPTSQT = --ws=qt5
-LPI = heidisql.lpi
+LAZBUILD := $(shell command -v lazbuild)
+OPTS := -B --bm=Release
+OPTSQT := --ws=qt5
+LPI := heidisql.lpi
 
-# VERSION = 12.12.1.3
-BIN = out/heidisql
-BINGTK = out/gtk2/heidisql
-BINQT = out/qt5/heidisql
+BIN := out/heidisql
+BINGTK := out/gtk2/heidisql
+BINQT := out/qt5/heidisql
 
-.PHONY: all clean run-tx build-mo build-gtk2 run-gtk2 build-qt5 run-qt5 deb-package tar-gtk2 tar-qt5
+# Make shell magic to get version from somewhere
+#VERSION := shell magic
 
-all: clean run-tx build-mo build-gtk2 build-qt5 deb-package tar-gtk2 tar-qt5
+# Check for environment variable GITHUB
+ifeq ($(origin GITHUB), undefined)
+    # GITHUB is not set — require secrets.mk
+    ifeq (,$(wildcard ./secrets.mk))
+        $(error "secrets.mk not found! Please create it first.")
+    endif
+    include ./secrets.mk
+else
+    # GITHUB is set — skip including secrets.mk
+    $(info GITHUB is set, not loading secrets.mk)
+endif
+
+TX_TOKEN ?= help
+
+.PHONY: all clean tx-pull build-mo build-gtk2 run-gtk2 build-qt5 run-qt5 deb-package tar-gtk2 tar-qt5
+
+all: clean tx-pull build-mo build-gtk2 build-qt5 deb-package tar-gtk2 tar-qt5
 
 clean:
 	@echo "=== Cleaning"
@@ -18,7 +34,7 @@ clean:
 	@rm -f out/gtk2/* out/qt5/*
 	@rm -rf deb rpm tar dist
 
-run-tx:
+tx-pull:
 	@echo "=== Pulling from transifex"
 	./extra/internationalization/tx pull -a
 
