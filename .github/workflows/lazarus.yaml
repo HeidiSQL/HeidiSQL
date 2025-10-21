@@ -71,6 +71,8 @@ jobs:
 
     release:
         if: contains(github.ref_type, 'tag')
+        env:
+          GITHUB: 1
 
         name: Create GitHub Release
         runs-on: [ubuntu-latest]

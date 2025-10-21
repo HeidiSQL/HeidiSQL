@@ -22,7 +22,7 @@ else
     $(info GITHUB is set, not loading secrets.mk)
 endif
 
-TX_TOKEN ?= help
+TRANSIFEX_TOKEN ?= help
 
 .PHONY: all clean tx-pull build-mo build-gtk2 run-gtk2 build-qt5 run-qt5 deb-package tar-gtk2 tar-qt5
 
@@ -36,7 +36,7 @@ clean:
 
 tx-pull:
 	@echo "=== Pulling from transifex"
-	./extra/internationalization/tx pull -a
+	@TX_TOKEN=$(TRANSIFEX_TOKEN) ./extra/internationalization/tx pull -a
 
 build-mo:
 	@echo "=== Building MO files"
