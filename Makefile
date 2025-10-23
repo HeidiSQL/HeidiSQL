@@ -17,6 +17,7 @@ ifeq ($(origin GITHUB), undefined)
         $(error "secrets.mk not found! Please create it first.")
     endif
     include ./secrets.mk
+	tag := $(shell git describe --tags $(shell git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
 else
     # GITHUB is set — skip including secrets.mk
     $(info GITHUB is set, not loading secrets.mk)
