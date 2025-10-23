@@ -1,6 +1,6 @@
 [remote.github]
-owner = "gcarreno"
-repo = "gcarreno-HeidiSQL"
+owner = "HeidiSQL"
+repo = "HeidiSQL"
 
 [changelog]
 # A Tera template to be rendered as the changelog's header.
@@ -84,7 +84,7 @@ trim = true
 # An array of regex based postprocessors to modify the changelog.
 postprocessors = [
   # Replace the placeholder `<REPO>` with a URL.
-  { pattern = '<REPO>', replace = "https://github.com/gcarreno/gcarreno-HeidiSQL" }, # replace repository URL
+  { pattern = '<REPO>', replace = "https://github.com/HeidiSQL/HeidiSQL" }, # replace repository URL
 ]
 
 [git]
@@ -108,22 +108,23 @@ commit_preprocessors = [
 # Optionally sets the commit's scope and can decide to exclude commits from further processing.
 commit_parsers = [
   { message = "^feat", group = "<!-- 0 -->⛰️  Features" },
-  { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
-  { message = "^doc", group = "<!-- 3 -->📚 Documentation" },
-  { message = "^perf", group = "<!-- 4 -->⚡ Performance" },
+  { message = "^enhance", group = "<!-- 1 -->🚀  Enhancements" },
+  { message = "^fix", group = "<!-- 2 -->🐛 Bug Fixes" },
+  { message = "^doc", group = "<!-- 4 -->📚 Documentation" },
+  { message = "^perf", group = "<!-- 5 -->⚡ Performance" },
   { message = "^refactor\\(clippy\\)", skip = true },
-  { message = "^refactor", group = "<!-- 2 -->🚜 Refactor" },
-  { message = "^style", group = "<!-- 5 -->🎨 Styling" },
-  { message = "^test", group = "<!-- 6 -->🧪 Testing" },
+  { message = "^refactor", group = "<!-- 3 -->🚜 Refactor" },
+  { message = "^style", group = "<!-- 6 -->🎨 Styling" },
+  { message = "^test", group = "<!-- 7 -->🧪 Testing" },
   { message = "^chore\\(release\\): prepare for", skip = true },
   { message = "^chore\\(deps.*\\)", skip = true },
   { message = "^chore\\(pr\\)", skip = true },
   { message = "^chore\\(pull\\)", skip = true },
   { message = "^chore\\(npm\\).*yarn\\.lock", skip = true },
-  { message = "^chore|^ci", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
-  { message = "^revert", group = "<!-- 9 -->◀️ Revert" },
+  { message = "^chore|^ci", group = "<!-- 8 -->⚙️ Miscellaneous Tasks" },
+  { message = "^revert", group = "<!-- 10 -->◀️ Revert" },
   { message = "^ign", skip = true},
-  { body = ".*security", group = "<!-- 8 -->🛡️ Security" },
+  { body = ".*security", group = "<!-- 9 -->🛡️ Security" },
 ]
 # Prevent commits that are breaking from being excluded by commit parsers.
 protect_breaking_commits = false
