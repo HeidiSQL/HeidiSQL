@@ -44,7 +44,7 @@ jobs:
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
           run: |
             echo Building with GTK2
-            make heidisql-gtk2
+            make build-gtk2
 
         - name: Upload binaries GTK
           if: ${{ matrix.lazarus-versions == 'stable' }}
@@ -62,7 +62,7 @@ jobs:
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
           run: |
             echo Building with QT5
-            make heidisql-qt5
+            make build-qt5
 
         - name: Upload binaries QT
           if: ${{ matrix.lazarus-versions == 'stable' }}
