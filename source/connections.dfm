@@ -966,6 +966,7 @@ object connform: Tconnform
       TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
       TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
       OnBeforeCellPaint = ListSessionsBeforeCellPaint
+      OnCompareNodes = ListSessionsCompareNodes
       OnCreateEditor = ListSessionsCreateEditor
       OnDragOver = ListSessionsDragOver
       OnDragDrop = ListSessionsDragDrop
@@ -1086,6 +1087,11 @@ object connform: Tconnform
     end
     object Filter1: TMenuItem
       Action = actFilter
+    end
+    object menuFoldersAtTop: TMenuItem
+      AutoCheck = True
+      Caption = 'Folders at top'
+      OnClick = menuFoldersAtTopClick
     end
   end
   object TimerStatistics: TTimer

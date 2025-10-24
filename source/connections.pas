@@ -140,6 +140,7 @@ type
     chkSSHActive: TCheckBox;
     comboSSLVerification: TComboBox;
     lblSSLVerification: TLabel;
+    menuFoldersAtTop: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -204,6 +205,9 @@ type
     procedure chkSSHActiveClick(Sender: TObject);
     procedure PageControlDetailsChange(Sender: TObject);
     procedure editUsernameRightButtonClick(Sender: TObject);
+    procedure ListSessionsCompareNodes(Sender: TBaseVirtualTree; Node1,
+      Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
+    procedure menuFoldersAtTopClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -286,11 +290,11 @@ begin
   Caption := GetWindowCaption;
 
   FixVT(ListSessions);
-  ListSessions.OnCompareNodes := MainForm.AnyGridCompareNodes;
   ListSessions.OnHeaderClick := MainForm.AnyGridHeaderClick;
   ListSessions.OnHeaderDraggedOut := MainForm.AnyGridHeaderDraggedOut;
   btnImportSettings.Caption := MainForm.actImportSettings.Caption;
   FLoaded := False;
+  menuFoldersAtTop.Checked := AppSettings.ReadBool(asSessionManagerListFoldersAtTop);
 
   comboNetType.Clear;
   Params := TConnectionParameters.Create;
@@ -353,8 +357,10 @@ begin
       RefreshSessions(SessNode);
     end;
   end;
-  if not Assigned(ParentNode) then
+  if not Assigned(ParentNode) then begin
     RefreshBackgroundColors;
+    ListSessions.SortTree(ListSessions.Header.SortColumn, ListSessions.Header.SortDirection);
+  end;
 end;
 
 
@@ -854,6 +860,25 @@ begin
       TargetCanvas.Brush.Color := Session.SessionColor;
       TargetCanvas.FillRect(CellRect);
     end;
+  end;
+end;
+
+procedure Tconnform.ListSessionsCompareNodes(Sender: TBaseVirtualTree; Node1,
+  Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
+var
+  VT: TVirtualStringTree;
+  DirectionMarker: Integer;
+begin
+  VT := Sender as TVirtualStringTree;
+  if Assigned(Node1) and Assigned(Node2) then begin
+    // This marker when set to -1 ensures folders are at the top
+    DirectionMarker := IfThen(VT.Header.SortDirection = sdAscending, 1, -1);
+    if menuFoldersAtTop.Checked and VT.HasChildren[Node1] and (not VT.HasChildren[Node2]) then
+      Result := -1 * DirectionMarker
+    else if menuFoldersAtTop.Checked and (not VT.HasChildren[Node1]) and VT.HasChildren[Node2] then
+      Result := 1 * DirectionMarker
+    else
+      Result := CompareAnyNode(VT.Text[Node1, Column], VT.Text[Node2, Column]);
   end;
 end;
 
@@ -1361,6 +1386,14 @@ begin
   FPopupCiphers.Popup(p.X-editUsername.Images.Width, p.Y);
 end;
 
+
+procedure Tconnform.menuFoldersAtTopClick(Sender: TObject);
+begin
+  AppSettings.WriteBool(asSessionManagerListFoldersAtTop, menuFoldersAtTop.Checked);
+  ListSessions.SortTree(ListSessions.Header.SortColumn, ListSessions.Header.SortDirection);
+  if ListSessions.SelectedCount > 0 then
+    ListSessions.ScrollIntoView(ListSessions.GetFirstSelected, False);
+end;
 
 procedure Tconnform.menuRenameClick(Sender: TObject);
 begin
