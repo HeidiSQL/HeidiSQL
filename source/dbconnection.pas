@@ -7933,7 +7933,7 @@ begin
   // | SQL SECURITY { DEFINER | INVOKER }
   // | COMMENT 'string'
   rx.Expression := '^\s*('+
-    'RETURNS\s+(\S+(\s+UNSIGNED)?(\s+CHARSET\s+\S+)?(\s+COLLATE\s\S+)?)|'+
+    'RETURNS\s+((\S+\([^\)]+\)|\S+)(\s+UNSIGNED)?(\s+CHARSET\s+\S+)?(\s+COLLATE\s\S+)?)|'+
     // MySQL function characteristics - see http://dev.mysql.com/doc/refman/5.1/de/create-procedure.html
     'LANGUAGE\s+SQL|'+
     '(NOT\s+)?DETERMINISTIC|'+
@@ -7961,7 +7961,7 @@ begin
     else if (Pos('CONTAINS SQL', Match) = 1) or (Pos('NO SQL', Match) = 1) or (Pos('READS SQL DATA', Match) = 1) or (Pos('MODIFIES SQL DATA', Match) = 1) then
       Obj.DataAccess := rx.Match[1]
     else if Pos('SQL SECURITY', Match) = 1 then
-      Obj.Security := rx.Match[7];
+      Obj.Security := rx.Match[8];
 
 
     Delete(Body, 1, rx.MatchLen[0]);
