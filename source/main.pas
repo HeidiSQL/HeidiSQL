@@ -10777,6 +10777,7 @@ begin
   if ([tsEditing, tsEditPending] * Sender.TreeStates) = [] then begin
     actDataCancelChanges.ShortCut := TextToShortcut('Esc');
     actDataPostChanges.ShortCut := TextToShortcut('Ctrl+Enter');
+    FGridEditFunctionMode := False;
   end;
 end;
 
