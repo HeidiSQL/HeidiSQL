@@ -998,98 +998,81 @@ object frmTableEditor: TfrmTableEditor
       item
         Alignment = taRightJustify
         MinWidth = 20
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible, coAllowFocus]
         Position = 0
         Text = '#'
         Width = 25
       end    
       item
         MinWidth = 50
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 1
         Text = 'Name'
         Width = 125
       end    
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 2
         Text = 'Datatype'
         Width = 112
       end    
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 3
         Text = 'Length/Set'
         Width = 112
       end    
       item
-        Alignment = taCenter
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 4
         Text = 'Unsigned'
         Width = 75
       end    
       item
-        Alignment = taCenter
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 5
         Text = 'Allow NULL'
         Width = 81
       end    
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 6
         Text = 'Zerofill'
       end    
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 7
         Text = 'Default'
         Width = 125
       end    
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 8
         Text = 'Comment'
         Width = 162
       end    
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 9
         Text = 'Collation'
         Width = 125
       end    
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 10
         Text = 'Expression'
         Width = 125
       end    
       item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 11
         Text = 'Virtuality'
         Width = 125
       end    
       item
         Hint = 'Spatial reference system'
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 12
         Text = 'SRID'
       end    
       item
         Hint = 'Hide in certain contexts'
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 13
         Text = 'Invisible'
       end
       item
         Hint = 'Storage-Engine Independent Column Compression'
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 14
         Text = 'Compressed'
       end>
-    Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible, hoDisableAnimatedResize]
+    Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
     Header.PopupMenu = MainForm.popupListHeader
     Images = MainForm.ImageListIcons8
     IncrementalSearch = isAll
@@ -1111,10 +1094,10 @@ object frmTableEditor: TfrmTableEditor
     OnGetText = listColumnsGetText
     OnPaintText = listColumnsPaintText
     OnGetNodeDataSize = listColumnsGetNodeDataSize
+    OnHeaderClick = listColumnsHeaderClick
     OnInitNode = listColumnsInitNode
     OnKeyPress = listColumnsKeyPress
     OnNewText = listColumnsNewText
-    OnNodeMoved = listColumnsNodeMoved
   end
   object btnSave: TButton
     AnchorSideLeft.Control = btnDiscard

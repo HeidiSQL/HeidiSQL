@@ -111,8 +111,6 @@ type
     procedure btnMoveDownColumnClick(Sender: TObject);
     procedure listColumnsDragOver(Sender: TBaseVirtualTree; Source: TObject; Shift: TShiftState; State: TDragState;
 		  Pt: TPoint; Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
-    //procedure listColumnsDragDrop(Sender: TBaseVirtualTree; Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
-    //  Shift: TShiftState; const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
     procedure listColumnsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
 		  Column: TColumnIndex; TextType: TVSTTextType);
     procedure listColumnsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
@@ -138,9 +136,6 @@ type
     procedure treeIndexesDragOver(Sender: TBaseVirtualTree; Source: TObject;
       Shift: TShiftState; State: TDragState; Pt: TPoint; Mode: TDropMode;
       var Effect: Integer; var Accept: Boolean);
-    //procedure treeIndexesDragDrop(Sender: TBaseVirtualTree; Source: TObject;
-    //  DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
-    //  const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
     procedure treeIndexesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: String);
     procedure treeIndexesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
     procedure treeIndexesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
@@ -176,7 +171,6 @@ type
     procedure listColumnsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
     procedure listColumnsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
-    procedure listColumnsNodeMoved(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure listColumnsKeyPress(Sender: TObject; var Key: Char);
     procedure vtHandleClickOrKeyPress(Sender: TLazVirtualStringTree;
       Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
@@ -206,6 +200,8 @@ type
     procedure menuRemovePropertyClick(Sender: TObject);
     procedure menuClearPropertiesClick(Sender: TObject);
     procedure menuAddPropertyClick(Sender: TObject);
+    procedure listColumnsHeaderClick(Sender: TVTHeader;
+      HitInfo: TVTHeaderHitInfo);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -244,6 +240,7 @@ type
     function GetKeyImageIndexes(Col: TTableColumn): TList<Integer>;
     procedure CalcMinColWidth;
     procedure UpdateTabCaptions;
+    function MoveNodeAllowed(Sender: TLazVirtualStringTree): Boolean;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -262,6 +259,8 @@ uses main, grideditlinks;
 
 
 constructor TfrmTableEditor.Create(AOwner: TComponent);
+var
+  i: Integer;
 begin
   inherited;
   comboRowFormat.Items.CommaText := 'DEFAULT,DYNAMIC,FIXED,COMPRESSED,REDUNDANT,COMPACT';
@@ -276,6 +275,14 @@ begin
   editName.MaxLength := NAME_LEN;
   FAlterRestrictedMessageDisplayed := False;
   btnSave.Hint := ShortCutToText(MainForm.actSaveSQL.ShortCut);
+  listColumns.OnCompareNodes := MainForm.AnyGridCompareNodes;
+  //listColumns.OnHeaderClick has its own handler
+  listColumns.OnAfterPaint := MainForm.AnyGridAfterPaint;
+  // Hide 0/1 text behind the drawn checkbox, by centering the text like the checkbox. We need the 0/1 text for sorting.
+  // And we cannot over-draw the cell rect which may have a different background.
+  for i in ColNumsCheckboxes do begin
+    listColumns.Header.Columns[i].Alignment := taCenter;
+  end;
   FixVT(listColumns);
   FixVT(treeIndexes);
   FixVT(listForeignKeys);
@@ -289,6 +296,14 @@ begin
   TExtForm.RestoreListSetup(treeIndexes);
   TExtForm.RestoreListSetup(listForeignKeys);
   TExtForm.RestoreListSetup(listCheckConstraints);
+end;
+
+
+procedure TfrmTableEditor.listColumnsHeaderClick(Sender: TVTHeader;
+  HitInfo: TVTHeaderHitInfo);
+begin
+  MainForm.AnyGridHeaderClick(Sender, HitInfo);
+  ValidateColumnControls;
 end;
 
 
@@ -323,6 +338,8 @@ begin
   end;
   listColumns.BeginUpdate;
   listColumns.Clear;
+  listColumns.Header.SortColumn := 0;
+  listColumns.Header.SortDirection := sdAscending;
   treeIndexes.Clear;
   listForeignKeys.Clear;
   listCheckConstraints.Clear;
@@ -600,7 +617,7 @@ var
   AlterColBase, AddColBase: String;
   i: Integer;
   Results: TDBQuery;
-  Col, PreviousCol: PTableColumn;
+  Col, PreviousCol: TTableColumn;
   TblKey: TTableKey;
   Constraint: TCheckConstraint;
   Node: PVirtualNode;
@@ -699,8 +716,7 @@ begin
   // Update columns
   Node := listColumns.GetFirst;
   PreviousCol := nil;
-  while Assigned(Node) do begin
-    Col := listColumns.GetNodeData(Node);
+  for Col in FColumns do begin
     if Col.Status <> esUntouched then begin
       OverrideCollation := IfThen(chkCharsetConvert.Checked, comboCollation.Text);
       AlterColBase := Conn.GetSQLSpecifity(spChangeColumn);
@@ -806,13 +822,12 @@ begin
 
     end;
     PreviousCol := Col;
-    Node := listColumns.GetNextSibling(Node);
   end;
 
-  // Deleted columns, not available as Node in above loop
-  for i:=0 to FColumns.Count-1 do begin
-    if FColumns[i].Status = esDeleted then begin
-      Specs.Add('DROP COLUMN '+Conn.QuoteIdent(FColumns[i].OldName));
+  // Deleted columns
+  for Col in FColumns do begin
+    if Col.Status = esDeleted then begin
+      Specs.Add('DROP COLUMN '+Conn.QuoteIdent(Col.OldName));
       // MSSQL + SQLite want one ALTER TABLE query per DROP COLUMN
       if Conn.Parameters.NetTypeGroup in [ngMSSQL, ngSQLite] then
         FinishSpecs;
@@ -919,10 +934,9 @@ end;
 
 function TfrmTableEditor.ComposeCreateStatement: TSQLBatch;
 var
-  i, IndexCount: Integer;
-  Col: PTableColumn;
+  i: Integer;
+  Col: TTableColumn;
   Constraint: TCheckConstraint;
-  Node: PVirtualNode;
   tmp, SQL: String;
   CreateLines: TStringList;
 begin
@@ -930,20 +944,15 @@ begin
   SQL := 'CREATE TABLE '+DBObject.Connection.QuoteIdent(editName.Text)+' ('+ sLineBreak;
   CreateLines := TStringList.Create;
   // Lines with columns, indexes, foreign keys and check constraints
-  Node := listColumns.GetFirst;
-  while Assigned(Node) do begin
-    Col := listColumns.GetNodeData(Node);
+  for Col in FColumns do begin
     CreateLines.Add(Col.SQLCode);
-    Node := listColumns.GetNextSibling(Node);
   end;
-  IndexCount := 0;
   for i:=0 to FKeys.Count-1 do begin
     if not FKeys[i].InsideCreateCode then
       Continue;
     tmp := FKeys[i].SQLCode;
     if tmp <> '' then begin
       CreateLines.Add(tmp);
-      Inc(IndexCount);
     end;
   end;
   for i:=0 to FForeignKeys.Count-1 do begin
@@ -991,13 +1000,10 @@ begin
       SQL := SQL + 'COMMENT ON TABLE '+DBObject.Connection.QuoteIdent(editName.Text)+
         ' IS '+DBObject.Connection.EscapeString(memoComment.Text) + ';' + sLineBreak;
     end;
-    Node := listColumns.GetFirst;
-    while Assigned(Node) do begin
-      Col := listColumns.GetNodeData(Node);
+    for Col in FColumns do begin
       SQL := SQL + 'COMMENT ON COLUMN '+
         DBObject.Connection.QuoteIdent(editName.Text)+'.'+DBObject.Connection.QuoteIdent(Col.Name)+
         ' IS '+DBObject.Connection.EscapeString(Col.Comment) + ';' + sLineBreak;
-      Node := listColumns.GetNextSibling(Node);
     end;
   end;
 
@@ -1046,9 +1052,9 @@ begin
   fn := listColumns.FocusedNode;
   NewCol := TTableColumn.Create(DBObject.Connection);
   if Assigned(fn) then begin
-    idx := fn.Index+1;
     // Copy properties from focused node
     FocusedCol := listColumns.GetNodeData(fn);
+    idx := FColumns.IndexOf(FocusedCol^) + 1;
     NewCol.DataType := FocusedCol.DataType;
     NewCol.LengthSet := FocusedCol.LengthSet;
     NewCol.Unsigned := FocusedCol.Unsigned;
@@ -1126,13 +1132,22 @@ end;
 procedure TfrmTableEditor.btnMoveUpColumnClick(Sender: TObject);
 var
   Node: PVirtualNode;
+  Col: PTableColumn;
+  ColId: NativeInt;
 begin
   // Move up selected columns
   listColumns.EndEditNode;
 
   Node := GetNextNode(listColumns, nil, true);
   while Assigned(Node) do begin
+    // Move column within FColumns list...
+    Col := listColumns.GetNodeData(Node);
+    ColId := FColumns.IndexOf(Col^);
+    FColumns.Move(ColId, ColId-1);
+    // ... and the tree node as well
     listColumns.MoveTo(Node, listColumns.GetPreviousSibling(Node), amInsertBefore, False);
+    Col.Status := esModified;
+    Modification(Sender);
     Node := GetNextNode(listColumns, Node, true);
   end;
 
@@ -1143,6 +1158,8 @@ end;
 procedure TfrmTableEditor.btnMoveDownColumnClick(Sender: TObject);
 var
   Node: PVirtualNode;
+  Col: PTableColumn;
+  ColId: NativeInt;
 begin
   // Move down selected columns
   listColumns.EndEditNode;
@@ -1150,7 +1167,12 @@ begin
   Node := listColumns.GetLast;
   while Assigned(Node) do begin
     if listColumns.Selected[Node] then begin
+      Col := listColumns.GetNodeData(Node);
+      ColId := FColumns.IndexOf(Col^);
+      FColumns.Move(ColId, ColId+1);
       listColumns.MoveTo(Node, listColumns.GetNextSibling(Node), amInsertAfter, False);
+      Col.Status := esModified;
+      Modification(Sender);
     end;
     Node := listColumns.GetPrevious(Node);
   end;
@@ -1159,33 +1181,19 @@ begin
 end;
 
 
+function TfrmTableEditor.MoveNodeAllowed(Sender: TLazVirtualStringTree): Boolean;
+begin
+  // Allow moving nodes per button or per drag'n drop only if list is sorted by first column
+  Result := (Sender.Header.SortColumn = 0)
+    and (Sender.Header.SortDirection = sdAscending);
+end;
+
 procedure TfrmTableEditor.listColumnsDragOver(Sender: TBaseVirtualTree;
   Source: TObject; Shift: TShiftState; State: TDragState; Pt: TPoint;
   Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
 begin
-  Accept := (Source = Sender) and (Mode <> dmNowhere);
-  // Not sure what this effect does, probably show a specific mouse cursor?
-  //Effect := DROPEFFECT_MOVE;
+  Accept := (Source = Sender) and MoveNodeAllowed(listColumns) and (Mode <> dmNowhere);
 end;
-
-
-{procedure TfrmTableEditor.listColumnsDragDrop(Sender: TBaseVirtualTree;
-  Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
-  Shift: TShiftState; const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
-var
-  Node: PVirtualNode;
-  AttachMode: TVTNodeAttachMode;
-begin
-  Node := Sender.GetNodeAt(Pt.X, Pt.Y);
-  if Assigned(Node) then begin
-    case Mode of
-      dmAbove, dmOnNode: AttachMode := amInsertBefore;
-      else AttachMode := amInsertAfter;
-    end;
-    listColumns.MoveTo(listColumns.FocusedNode, Node, AttachMode, False);
-    ValidateColumnControls;
-  end;
-end;}
 
 
 procedure TfrmTableEditor.listColumnsBeforeCellPaint(Sender: TBaseVirtualTree;
@@ -1198,7 +1206,7 @@ begin
 
   // Darken cell background to signalize it doesn't allow length/set
   // Exclude non editable checkbox columns - grey looks ugly there.
-  if (not CellEditingAllowed(Node, Column)) and (not (Column in ColNumsCheckboxes)) then begin
+  if (not CellEditingAllowed(Node, Column)) and (Column <> ColNumCounter) then begin
     BgColor := clBtnFace;
   end;
 
@@ -1321,10 +1329,12 @@ begin
 
   btnMoveUpColumn.Enabled := (listColumns.SelectedCount > 0)
     and (listColumns.GetFirstSelected <> listColumns.GetFirst)
-    and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+    and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL)
+    and MoveNodeAllowed(listColumns);
   btnMoveDownColumn.Enabled := (listColumns.SelectedCount > 0)
     and (LastSelected <> listColumns.GetLast)
-    and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+    and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL)
+    and MoveNodeAllowed(listColumns);
 
   menuRemoveColumn.Enabled := btnRemoveColumn.Enabled;
   menuMoveUpColumn.Enabled := btnMoveUpColumn.Enabled;
@@ -1425,7 +1435,7 @@ begin
   Col := Sender.GetNodeData(Node);
   CellText := '';
   case Column of
-    ColNumCounter: CellText := IntToStr(Node.Index+1);
+    ColNumCounter: CellText := IntToStr(FColumns.IndexOf(Col^)+1);
 
     ColNumName: CellText := Col.Name;
 
@@ -1433,11 +1443,11 @@ begin
 
     ColNumLengthSet: CellText := Col.LengthSet;
 
-    ColNumUnsigned,
-    ColNumAllownull,
-    ColNumZerofill,
-    ColNumInvisible,
-    ColNumCompressed: CellText := ''; // Checkbox
+    ColNumUnsigned: CellText := Col.Unsigned.ToInteger.ToString;
+
+    ColNumAllownull: CellText := Col.AllowNull.ToInteger.ToString;
+
+    ColNumZerofill: CellText := Col.ZeroFill.ToInteger.ToString;
 
     ColNumDefault: begin
       case Col.DefaultType of
@@ -1472,6 +1482,11 @@ begin
       if (Col.DataType.Category = dtcSpatial) and (Col.Connection.Has(frSrid)) then
         CellText := Col.SRID.ToString;
     end;
+
+    ColNumInvisible: CellText := Col.Invisible.ToInteger.ToString;
+
+    ColNumCompressed: CellText := Col.Compressed.ToInteger.ToString;
+
   end;
 end;
 
@@ -1497,7 +1512,6 @@ procedure TfrmTableEditor.listColumnsPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
 var
-  TextColor: TColor;
   i: Integer;
   Col: PTableColumn;
 begin
@@ -1515,20 +1529,19 @@ begin
   //if vsSelected in Node.States then Exit;
 
   // Give datatype column specific color, as set in preferences
-  TextColor := TargetCanvas.Font.Color;
   case Column of
-    ColNumCounter: TextColor := clGrayText;
+    ColNumCounter: TargetCanvas.Font.Color := clGrayText;
 
-    ColNumDatatype: TextColor := DatatypeCategories[Col.DataType.Category].Color;
+    ColNumDatatype: TargetCanvas.Font.Color := DatatypeCategories[Col.DataType.Category].Color;
 
     ColNumDefault: case Col.DefaultType of
       cdtNothing, cdtNull:
-        TextColor := DatatypeCategories[Col.DataType.Category].NullColor;
+        TargetCanvas.Font.Color := DatatypeCategories[Col.DataType.Category].NullColor;
       else
-        TextColor := DatatypeCategories[Col.DataType.Category].Color;
+        TargetCanvas.Font.Color := DatatypeCategories[Col.DataType.Category].Color;
     end;
   end;
-  TargetCanvas.Font.Color := TextColor;
+
 end;
 
 
@@ -1645,16 +1658,6 @@ begin
     Col.Status := esModified;
     Modification(Sender);
   end;
-end;
-
-
-procedure TfrmTableEditor.listColumnsNodeMoved(Sender: TBaseVirtualTree; Node: PVirtualNode);
-var
-  Col: PTableColumn;
-begin
-  Col := Sender.GetNodeData(Node);
-  Col.Status := esModified;
-  Modification(Sender);
 end;
 
 
@@ -2391,86 +2394,6 @@ begin
       (TargetNode <> Sender.FocusedNode) and (TargetNode.Parent = Sender.FocusedNode.Parent);
   end;
 end;
-
-
-{procedure TfrmTableEditor.treeIndexesDragDrop(Sender: TBaseVirtualTree;
-  Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
-  Shift: TShiftState; const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
-var
-  FocusedNode, TargetNode, IndexNode: PVirtualNode;
-  ColName, PartLength: String;
-  ColPos: Cardinal;
-  VT, SourceVT: TLazVirtualStringTree;
-  Col: PTableColumn;
-  TblKey: TTableKey;
-begin
-  // Column node dropped here
-  VT := Sender as TLazVirtualStringTree;
-  SourceVT := Source as TLazVirtualStringTree;
-  TargetNode := VT.GetNodeAt(Pt.X, Pt.Y);
-  FocusedNode := VT.FocusedNode;
-  IndexNode := nil;
-  ColPos := 0;
-  if not Assigned(TargetNode) then begin
-    MessageBeep(MB_ICONEXCLAMATION);
-    Exit;
-  end;
-  Mainform.LogSQL('TargetNode.Index: '+TargetNode.Index.ToString, lcDebug);
-
-  case VT.GetNodeLevel(TargetNode) of
-    0: begin
-      // DragOver only accepts dmOnNode in root tree level
-      IndexNode := TargetNode;
-      ColPos := IndexNode.ChildCount;
-    end;
-
-    1: begin
-      IndexNode := TargetNode.Parent;
-      // Find the right new position for the dropped column
-      ColPos := TargetNode.Index;
-      if Source = Sender then begin
-        // Drop within index tree: Take care if user dragged from above or from below the target node
-        if FocusedNode <> nil then begin
-          if (FocusedNode.Index < TargetNode.Index) and (Mode = dmAbove) and (ColPos > 0) then
-            Dec(ColPos);
-          if (FocusedNode.Index > TargetNode.Index) and (Mode = dmBelow) and (ColPos < IndexNode.ChildCount-1) then
-            Inc(ColPos);
-        end;
-      end else begin
-        // Drop from columns list
-        if Mode = dmBelow then
-          Inc(ColPos);
-      end;
-    end;
-
-  end;
-
-  if Source = Sender then
-    MoveFocusedIndexPart(ColPos)
-  else begin
-    TblKey := FKeys[IndexNode.Index];
-    Col := SourceVT.GetNodeData(SourceVT.FocusedNode);
-    ColName := Col.Name;
-    if TblKey.Columns.IndexOf(ColName) > -1 then begin
-      if MessageDialog(_('Add duplicated column to index?'),
-        f_('Index "%s" already contains the column "%s". It is possible to add a column twice into a index, but total nonsense in practice.', [VT.Text[IndexNode, 0], ColName]),
-        mtConfirmation, [mbYes, mbNo]) = mrNo then
-        Exit;
-    end;
-
-    TblKey.Columns.Insert(ColPos, ColName);
-    PartLength := '';
-    if (not TblKey.IsFulltext) and (Col.DataType.Index in [dbdtTinyText, dbdtText, dbdtMediumText, dbdtLongText, dbdtTinyBlob, dbdtBlob, dbdtMediumBlob, dbdtLongBlob]) then
-      PartLength := '100';
-    TblKey.Subparts.Insert(ColPos, PartLength);
-    TblKey.Collations.Insert(ColPos, 'A');
-    IndexNode.States := IndexNode.States + [vsHasChildren, vsExpanded];
-  end;
-  Modification(Sender);
-  // Finally tell parent node to update its children
-  VT.ReinitChildren(IndexNode, False);
-  VT.Repaint;
-end;}
 
 
 procedure TfrmTableEditor.btnMoveUpIndexClick(Sender: TObject);
