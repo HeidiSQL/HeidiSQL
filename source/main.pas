@@ -7614,7 +7614,7 @@ begin
       lntTable..lntEvent: begin
         if ShiftPressed then
           Text := ActiveDbObj.QuotedDatabase(False) + '.';
-        Text := Text + ActiveDbObj.QuotedName(False);
+        Text := Text + ActiveDbObj.Connection.QuoteIdent(ActiveDbObj.Name, False);
       end;
     end;
   end else if src = Tree then begin
