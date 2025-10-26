@@ -241,7 +241,7 @@ type
     function GetKeyImageIndexes(Col: TTableColumn): TList<Integer>;
     procedure CalcMinColWidth;
     procedure UpdateTabCaptions;
-    function MoveNodeAllowed(Sender: TBaseVirtualTree): Boolean;
+    function MoveNodeAllowed(Sender: TVirtualStringTree): Boolean;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -1147,6 +1147,8 @@ begin
     FColumns.Move(ColId, ColId-1);
     // ... and the tree node as well
     listColumns.MoveTo(Node, listColumns.GetPreviousSibling(Node), amInsertBefore, False);
+    Col.Status := esModified;
+    Modification(Sender);
     Node := GetNextNode(listColumns, Node, true);
   end;
 
@@ -1170,6 +1172,8 @@ begin
       ColId := FColumns.IndexOf(Col^);
       FColumns.Move(ColId, ColId+1);
       listColumns.MoveTo(Node, listColumns.GetNextSibling(Node), amInsertAfter, False);
+      Col.Status := esModified;
+      Modification(Sender);
     end;
     Node := listColumns.GetPrevious(Node);
   end;
@@ -1178,7 +1182,7 @@ begin
 end;
 
 
-function TfrmTableEditor.MoveNodeAllowed(Sender: TBaseVirtualTree): Boolean;
+function TfrmTableEditor.MoveNodeAllowed(Sender: TVirtualStringTree): Boolean;
 begin
   // Allow moving nodes per button or per drag'n drop only if list is sorted by first column
   Result := (Sender.Header.SortColumn = 0)
@@ -1189,7 +1193,7 @@ procedure TfrmTableEditor.listColumnsDragOver(Sender: TBaseVirtualTree;
   Source: TObject; Shift: TShiftState; State: TDragState; Pt: TPoint;
   Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
 begin
-  Accept := (Source = Sender) and MoveNodeAllowed(Sender) and (Mode <> dmNowhere);
+  Accept := (Source = Sender) and MoveNodeAllowed(listColumns) and (Mode <> dmNowhere);
   // Not sure what this effect does, probably show a specific mouse cursor?
   Effect := DROPEFFECT_MOVE;
 end;
