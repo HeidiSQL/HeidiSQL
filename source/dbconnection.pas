@@ -9211,14 +9211,20 @@ end;
 function TDBQuery.ValueList(Column: Integer): TStringList;
 var
   ColAttr: TTableColumn;
+  i: Integer;
 begin
   Result := TStringList.Create;
   Result.QuoteChar := '''';
   Result.Delimiter := ',';
   ColAttr := ColAttributes(Column);
   if Assigned(ColAttr) then case ColAttr.DataType.Index of
-    dbdtEnum, dbdtSet:
+    dbdtEnum, dbdtSet: begin
       Result.DelimitedText := ColAttr.LengthSet;
+      // Take care for escaped ENUM definitions, see issue #799
+      for i:=0 to Result.Count-1 do begin
+        Result[i] := FConnection.UnescapeString(Result[i]);
+      end;
+    end;
     dbdtBool:
       Result.DelimitedText := 'true,false';
   end;
