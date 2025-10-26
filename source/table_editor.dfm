@@ -798,7 +798,6 @@ object frmTableEditor: TfrmTableEditor
     OnInitNode = listColumnsInitNode
     OnKeyPress = listColumnsKeyPress
     OnNewText = listColumnsNewText
-    OnNodeMoved = listColumnsNodeMoved
     Touch.InteractiveGestures = [igPan, igPressAndTap]
     Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
     Columns = <

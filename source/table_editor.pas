@@ -172,7 +172,6 @@ type
     procedure listColumnsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
     procedure listColumnsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
-    procedure listColumnsNodeMoved(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure listColumnsKeyPress(Sender: TObject; var Key: Char);
     procedure vtHandleClickOrKeyPress(Sender: TVirtualStringTree;
       Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
@@ -242,6 +241,7 @@ type
     function GetKeyImageIndexes(Col: TTableColumn): TList<Integer>;
     procedure CalcMinColWidth;
     procedure UpdateTabCaptions;
+    function MoveNodeAllowed(Sender: TBaseVirtualTree): Boolean;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -1178,11 +1178,18 @@ begin
 end;
 
 
+function TfrmTableEditor.MoveNodeAllowed(Sender: TBaseVirtualTree): Boolean;
+begin
+  // Allow moving nodes per button or per drag'n drop only if list is sorted by first column
+  Result := (Sender.Header.SortColumn = 0)
+    and (Sender.Header.SortDirection = sdAscending);
+end;
+
 procedure TfrmTableEditor.listColumnsDragOver(Sender: TBaseVirtualTree;
   Source: TObject; Shift: TShiftState; State: TDragState; Pt: TPoint;
   Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
 begin
-  Accept := (Source = Sender) and (Mode <> dmNowhere);
+  Accept := (Source = Sender) and MoveNodeAllowed(Sender) and (Mode <> dmNowhere);
   // Not sure what this effect does, probably show a specific mouse cursor?
   Effect := DROPEFFECT_MOVE;
 end;
@@ -1192,16 +1199,21 @@ procedure TfrmTableEditor.listColumnsDragDrop(Sender: TBaseVirtualTree;
   Source: TObject; DataObject: TVTDragDataObject; Formats: TFormatArray;
   Shift: TShiftState; Pt: TPoint; var Effect: Integer; Mode: TDropMode);
 var
-  Node: PVirtualNode;
-  AttachMode: TVTNodeAttachMode;
+  ToNode: PVirtualNode;
+  ToCol, FocusedCol: PTableColumn;
+  NewIndex: NativeInt;
 begin
-  Node := Sender.GetNodeAt(Pt.X, Pt.Y);
-  if Assigned(Node) then begin
-    case Mode of
-      dmAbove, dmOnNode: AttachMode := amInsertBefore;
-      else AttachMode := amInsertAfter;
-    end;
-    listColumns.MoveTo(listColumns.FocusedNode, Node, AttachMode, False);
+  ToNode := Sender.GetNodeAt(Pt.X, Pt.Y);
+  if Assigned(ToNode) then begin
+    FocusedCol := Sender.GetNodeData(Sender.FocusedNode);
+    ToCol := Sender.GetNodeData(ToNode);
+    NewIndex := FColumns.IndexOf(ToCol^);
+    if Mode = dmBelow then
+      Inc(NewIndex);
+    FColumns.Move(FColumns.IndexOf(FocusedCol^), NewIndex);
+    FocusedCol.Status := esModified;
+    Modification(Sender);
+    Sender.SortTree(Sender.Header.SortColumn, Sender.Header.SortDirection);
     ValidateColumnControls;
   end;
 end;
@@ -1341,13 +1353,11 @@ begin
   btnMoveUpColumn.Enabled := (listColumns.SelectedCount > 0)
     and (listColumns.GetFirstSelected <> listColumns.GetFirst)
     and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL)
-    and (listColumns.Header.SortColumn = 0)
-    and (listColumns.Header.SortDirection = sdAscending);
+    and MoveNodeAllowed(listColumns);
   btnMoveDownColumn.Enabled := (listColumns.SelectedCount > 0)
     and (LastSelected <> listColumns.GetLast)
     and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL)
-    and (listColumns.Header.SortColumn = 0)
-    and (listColumns.Header.SortDirection = sdAscending);
+    and MoveNodeAllowed(listColumns);
 
   menuRemoveColumn.Enabled := btnRemoveColumn.Enabled;
   menuMoveUpColumn.Enabled := btnMoveUpColumn.Enabled;
@@ -1671,16 +1681,6 @@ begin
     Col.Status := esModified;
     Modification(Sender);
   end;
-end;
-
-
-procedure TfrmTableEditor.listColumnsNodeMoved(Sender: TBaseVirtualTree; Node: PVirtualNode);
-var
-  Col: PTableColumn;
-begin
-  Col := Sender.GetNodeData(Node);
-  Col.Status := esModified;
-  Modification(Sender);
 end;
 
 
