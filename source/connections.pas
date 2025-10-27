@@ -354,7 +354,11 @@ begin
     Params := TConnectionParameters.Create(RegKey+SessionNames[i]);
     SessNode := ListSessions.AddChild(ParentNode, PConnectionParameters(Params));
     if Params.IsFolder then begin
+      SessNode.Dummy := 1; // We use this Byte value later in CompareNodes
       RefreshSessions(SessNode);
+    end
+    else begin
+      SessNode.Dummy := 0;
     end;
   end;
   if not Assigned(ParentNode) then begin
@@ -873,9 +877,9 @@ begin
   if Assigned(Node1) and Assigned(Node2) then begin
     // This marker when set to -1 ensures folders are at the top
     DirectionMarker := IfThen(VT.Header.SortDirection = sdAscending, 1, -1);
-    if menuFoldersAtTop.Checked and VT.HasChildren[Node1] and (not VT.HasChildren[Node2]) then
+    if menuFoldersAtTop.Checked and (Node1.Dummy=1) and (Node2.Dummy<>1) then
       Result := -1 * DirectionMarker
-    else if menuFoldersAtTop.Checked and (not VT.HasChildren[Node1]) and VT.HasChildren[Node2] then
+    else if menuFoldersAtTop.Checked and (Node1.Dummy<>1) and (Node2.Dummy=1) then
       Result := 1 * DirectionMarker
     else
       Result := CompareAnyNode(VT.Text[Node1, Column], VT.Text[Node2, Column]);
