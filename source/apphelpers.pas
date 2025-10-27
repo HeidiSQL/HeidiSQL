@@ -2261,7 +2261,7 @@ begin
   end;
   if (not NumberMode) or (Result=0) then begin
     // Compare Strings
-    Result := CompareText(Text1, Text2);
+    Result := CompareText(Text1, Text2, loUserLocale);
   end;
 end;
 
