@@ -155,15 +155,9 @@ begin
   // Load DLL as is (with or without path)
   inherited Create;
   FDllFile := UsedDllFile;
-  if FDllFile.IsEmpty then begin
-    Raise EdbError.Create(f_('No library selected. Please make sure you have installed %s, e.g. "%s".', ['lib*[-dev]', 'libmariadb-dev']));
-  end;
+  // On Windows, we have the full path to the dll file here, so even if the file portion is empty, FDllFile contains a path / non-empty string
   if not FileExists(FDllFile) then begin
-    msg := f_('File does not exist: %s', [FDllFile]) +
-      sLineBreak + sLineBreak +
-      f_('Please launch %s from the directory where you have installed it. Or just reinstall %s.', [APPNAME, APPNAME]
-      );
-    Raise EdbError.Create(msg);
+    Raise EdbError.Create(f_('No library selected. Please make sure you have installed %s, e.g. "%s".', ['lib*[-dev]', 'libmariadb-dev']));
   end;
 
   FHandle := LoadLibrary(FDllFile);
