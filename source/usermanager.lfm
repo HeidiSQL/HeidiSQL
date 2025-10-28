@@ -11,13 +11,13 @@ object UserManagerForm: TUserManagerForm
   Constraints.MinHeight = 188
   Constraints.MinWidth = 312
   DesignTimePPI = 120
+  Position = poMainFormCenter
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
-  Position = poMainFormCenter
   object Splitter1: TSplitter
     Cursor = crSizeWE
     Left = 292
@@ -49,11 +49,18 @@ object UserManagerForm: TUserManagerForm
       FocusControl = listUsers
     end
     object listUsers: TLazVirtualStringTree
+      AnchorSideLeft.Control = pnlLeft
+      AnchorSideTop.Control = editFilterUsers
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = pnlLeft
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = pnlLeft
+      AnchorSideBottom.Side = asrBottom
       Left = 0
-      Height = 333
-      Top = 57
+      Height = 305
+      Top = 85
       Width = 280
-      Align = alClient
+      Anchors = [akTop, akLeft, akRight, akBottom]
       Header.AutoSizeIndex = 0
       Header.Columns = <      
         item
@@ -88,6 +95,9 @@ object UserManagerForm: TUserManagerForm
       OnInitNode = listUsersInitNode
     end
     object ToolBar1: TToolBar
+      AnchorSideLeft.Control = pnlLeft
+      AnchorSideTop.Control = lblUsers
+      AnchorSideTop.Side = asrBottom
       Left = 0
       Height = 37
       Top = 20
@@ -122,6 +132,28 @@ object UserManagerForm: TUserManagerForm
         ImageIndex = 46
         OnClick = btnDeleteUserClick
       end
+    end
+    object editFilterUsers: TEditButton
+      AnchorSideLeft.Control = pnlLeft
+      AnchorSideTop.Control = ToolBar1
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = pnlLeft
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 28
+      Top = 57
+      Width = 280
+      Anchors = [akTop, akLeft, akRight]
+      ButtonWidth = 29
+      Images = MainForm.ImageListIcons8
+      ImageIndex = 193
+      MaxLength = 0
+      NumGlyphs = 1
+      PasswordChar = #0
+      TabOrder = 2
+      TextHint = 'Filter ...'
+      OnButtonClick = editFilterUsersButtonClick
+      OnChange = editFilterUsersChange
     end
   end
   object pnlRight: TPanel
@@ -205,7 +237,7 @@ object UserManagerForm: TUserManagerForm
       ActivePage = tabCredentials
       Align = alTop
       AutoSize = True
-      TabIndex = 2
+      TabIndex = 0
       TabOrder = 0
       object tabCredentials: TTabSheet
         AutoSize = True
@@ -282,10 +314,10 @@ object UserManagerForm: TUserManagerForm
           ImageIndex = 75
           MaxLength = 0
           NumGlyphs = 1
-          OnButtonClick = editPasswordButtonClick
-          OnChange = editPasswordChange
           PasswordChar = '*'
           TabOrder = 2
+          OnButtonClick = editPasswordButtonClick
+          OnChange = editPasswordChange
         end
         object editFromHost: TEditButton
           AnchorSideTop.Control = editUsername
@@ -301,10 +333,10 @@ object UserManagerForm: TUserManagerForm
           ImageIndex = 75
           MaxLength = 0
           NumGlyphs = 1
-          OnButtonClick = editFromHostButtonClick
-          OnChange = Modification
           PasswordChar = #0
           TabOrder = 1
+          OnButtonClick = editFromHostButtonClick
+          OnChange = Modification
         end
         object editUsername: TEdit
           Left = 222

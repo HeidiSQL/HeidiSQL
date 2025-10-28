@@ -110,6 +110,7 @@ type
     editSubject: TEdit;
     comboSSL: TComboBox;
     lblSSL: TLabel;
+    editFilterUsers: TEditButton;
     procedure btnCancelClick(Sender: TObject);
     procedure editFromHostButtonClick(Sender: TObject);
     procedure editPasswordButtonClick(Sender: TObject);
@@ -160,6 +161,8 @@ type
     procedure udMaxQueriesClick(Sender: TObject; Button: TUDBtnType);
     procedure comboSSLChange(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure editFilterUsersButtonClick(Sender: TObject);
+    procedure editFilterUsersChange(Sender: TObject);
   private
     { Private declarations }
     FUsers: TUserList;
@@ -546,7 +549,7 @@ procedure TUserManagerForm.listUsersFocusChanged(Sender: TBaseVirtualTree; Node:
 var
   P, Ptmp, PCol: TPrivObj;
   User: PUser;
-  UserHost, WithClause, Msg, CreateUser: String;
+  UserHost, Msg, CreateUser: String;
   Grants, AllPNames, Cols: TStringList;
   rxTemp, rxGrant: TRegExpr;
   i, j: Integer;
@@ -1468,6 +1471,17 @@ begin
     Item.Checked := Item.Hint = editFromHost.Text;
 end;
 
+
+procedure TUserManagerForm.editFilterUsersChange(Sender: TObject);
+begin
+  // Filter nodes in query helpers
+  FilterNodesByEdit(Sender as TEditButton, listUsers);
+end;
+
+procedure TUserManagerForm.editFilterUsersButtonClick(Sender: TObject);
+begin
+  MainForm.buttonedEditClear(Sender);
+end;
 
 procedure TUserManagerForm.editPasswordChange(Sender: TObject);
 begin
