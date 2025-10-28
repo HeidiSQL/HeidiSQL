@@ -4718,9 +4718,24 @@ var
   List: TVirtualStringTree;
   OldDbObject: TDBObject;
   DoProceed: Boolean;
+  i: Integer;
+const
+  HeaderDragStates: THeaderStates = [
+    hsAutoSizing, hsDragging, hsDragPending, hsColumnWidthTracking, hsColumnWidthTrackPending, hsHeightTracking, hsHeightTrackPending, hsResizing
+    ];
 begin
   // Refresh
-  // Force data tab update when appropriate.
+
+  // Do not refresh when *any* tree is dragged or resized by user in this moment.
+  // This is not limited to the focused control, as we also refresh ListDatabases if only its tab is active.
+  for i:=0 to ComponentCount-1 do begin
+    if not(Components[i] is TVirtualStringTree) then
+      continue;
+    if (HeaderDragStates * TVirtualStringTree(Components[i]).Header.States <> [])  then begin
+      Exit;
+    end;
+  end;
+
   // Disable refresh action and re-enable in ApplicationOnIdle event
   tab1 := PageControlMain.ActivePage;
   actRefresh.Enabled := False;
