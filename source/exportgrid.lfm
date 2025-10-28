@@ -245,7 +245,7 @@ object frmExportGrid: TfrmExportGrid
       OnButtonClick = editCSVRightButtonClick
       OnChange = editCSVChange
       PasswordChar = #0
-      TabOrder = 4
+      TabOrder = 5
       Text = ';'
     end
     object editEncloser: TEditButton
@@ -262,10 +262,10 @@ object frmExportGrid: TfrmExportGrid
       ImageIndex = 108
       MaxLength = 0
       NumGlyphs = 1
+      PasswordChar = #0
+      TabOrder = 6
       OnButtonClick = editCSVRightButtonClick
       OnChange = editCSVChange
-      PasswordChar = #0
-      TabOrder = 5
     end
     object editTerminator: TEditButton
       AnchorSideTop.Control = editEncloser
@@ -284,7 +284,7 @@ object frmExportGrid: TfrmExportGrid
       OnButtonClick = editCSVRightButtonClick
       OnChange = editCSVChange
       PasswordChar = #0
-      TabOrder = 6
+      TabOrder = 7
       Text = '\r\n'
     end
     object chkIncludeAutoIncrement: TCheckBox
@@ -323,10 +323,10 @@ object frmExportGrid: TfrmExportGrid
       ImageIndex = 108
       MaxLength = 0
       NumGlyphs = 1
+      PasswordChar = #0
+      TabOrder = 8
       OnButtonClick = editCSVRightButtonClick
       OnChange = editCSVChange
-      PasswordChar = #0
-      TabOrder = 7
     end
     object chkRemoveLinebreaks: TCheckBox
       AnchorSideTop.Control = chkIncludeQuery
@@ -338,6 +338,17 @@ object frmExportGrid: TfrmExportGrid
       BorderSpacing.Around = 6
       Caption = 'Remove linebreaks from contents'
       TabOrder = 3
+    end
+    object chkOpenFile: TCheckBox
+      AnchorSideTop.Control = chkRemoveLinebreaks
+      AnchorSideTop.Side = asrBottom
+      Left = 10
+      Height = 24
+      Top = 126
+      Width = 175
+      BorderSpacing.Around = 6
+      Caption = 'Open file after creation'
+      TabOrder = 4
     end
   end
   object btnSetClipboardDefaults: TSpeedButton

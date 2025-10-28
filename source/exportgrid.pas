@@ -7,7 +7,7 @@ interface
 uses
   SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, laz.VirtualTrees, SynExportHTML,
-  extra_controls, dbstructures, lazaruscompat, RegExpr, StrUtils, comboex, EditBtn, Buttons;
+  extra_controls, dbstructures, lazaruscompat, RegExpr, StrUtils, comboex, EditBtn, Buttons, LCLIntf;
 
 type
   TGridExportFormat = (
@@ -73,6 +73,7 @@ type
     chkRemoveLinebreaks: TCheckBox;
     grpFormat: TGroupBox;
     comboFormat: TComboBoxEx;
+    chkOpenFile: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure CalcSize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -210,6 +211,7 @@ begin
     chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportClpIncludeAutoInc);
     chkIncludeQuery.Checked := False; // Always off in copy mode
     chkRemoveLinebreaks.Checked := AppSettings.ReadBool(asGridExportClpRemoveLinebreaks);
+    chkOpenFile.Checked := False; // Always off in copy mode
     FCSVSeparator := AppSettings.ReadString(asGridExportClpSeparator);
     FCSVEncloser := AppSettings.ReadString(asGridExportClpEncloser);
     FCSVTerminator := AppSettings.ReadString(asGridExportClpTerminator);
@@ -223,6 +225,7 @@ begin
     chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportIncludeAutoInc);
     chkIncludeQuery.Checked := AppSettings.ReadBool(asGridExportIncludeQuery);
     chkRemoveLinebreaks.Checked := AppSettings.ReadBool(asGridExportRemoveLinebreaks);
+    chkOpenFile.Checked := AppSettings.ReadBool(asGridExportOpenFile);
     FCSVSeparator := AppSettings.ReadString(asGridExportSeparator);
     FCSVEncloser := AppSettings.ReadString(asGridExportEncloser);
     FCSVTerminator := AppSettings.ReadString(asGridExportTerminator);
@@ -255,6 +258,7 @@ begin
     AppSettings.WriteBool(asGridExportIncludeAutoInc, chkIncludeAutoIncrement.Checked);
     AppSettings.WriteBool(asGridExportIncludeQuery, chkIncludeQuery.Checked);
     AppSettings.WriteBool(asGridExportRemoveLinebreaks, chkRemoveLinebreaks.Checked);
+    AppSettings.WriteBool(asGridExportOpenFile, chkOpenFile.Checked);
     AppSettings.WriteString(asGridExportSeparator, FCSVSeparator);
     AppSettings.WriteString(asGridExportEncloser, FCSVEncloser);
     AppSettings.WriteString(asGridExportTerminator, FCSVTerminator);
@@ -299,6 +303,7 @@ begin
   end;
 
   chkIncludeQuery.Enabled := ExportFormat in [efHTML, efXML, efMarkDown, efJSON];
+  chkOpenFile.Enabled := radioOutputFile.Checked;
   Enable := ExportFormat = efCSV;
   lblSeparator.Enabled := Enable;
   editSeparator.Enabled := Enable;
@@ -1226,6 +1231,8 @@ begin
     end else begin
       try
         S.SaveToFile(Filename);
+        if chkOpenFile.Checked then
+          OpenDocument(editFilename.Text);
       except
         on E:EFCreateError do begin
           // Keep form open if file cannot be created
