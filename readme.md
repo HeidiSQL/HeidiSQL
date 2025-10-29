@@ -22,7 +22,7 @@ Afterwards, load the HeidiSQL project from the packages folder.
 
 # Translation
 If you'd like to contribute by translating HeidiSQL into your mother tongue, you need to register at
-[Transifex](https://www.transifex.com/heidisql/heidisql/), and join an existing language or request a
+[Transifex](https://explore.transifex.com/heidisql/heidisql/), and join an existing language or request a
 new one.
 
 # Contributing to HeidiSQL
