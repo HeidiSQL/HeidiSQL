@@ -203,7 +203,7 @@ type
     asTableToolsFindTextTab, asTableToolsFindText, asTableToolsFindSQL, asTableToolsDatatype, asTableToolsFindCaseSensitive, asTableToolsFindMatchType, asFileImportWindowWidth, asFileImportWindowHeight,
     asEditVarWindowWidth, asEditVarWindowHeight, asUsermanagerWindowWidth, asUsermanagerWindowHeight, asUsermanagerListWidth,
     asSelectDBOWindowWidth, asSelectDBOWindowHeight,
-    asSessionManagerListWidth, asSessionManagerWindowWidth, asSessionManagerWindowHeight, asSessionManagerWindowLeft, asSessionManagerWindowTop,
+    asSessionManagerListWidth, asSessionManagerListFoldersAtTop, asSessionManagerWindowWidth, asSessionManagerWindowHeight, asSessionManagerWindowLeft, asSessionManagerWindowTop,
     asCopyTableWindowHeight, asCopyTableWindowWidth, asCopyTableColumns, asCopyTableKeys, asCopyTableForeignKeys,
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
@@ -2192,7 +2192,7 @@ begin
   end;
   if (not NumberMode) or (Result=0) then begin
     // Compare Strings
-    Result := CompareText(Text1, Text2);
+    Result := CompareText(Text1, Text2, loUserLocale);
   end;
 end;
 
@@ -3855,6 +3855,7 @@ begin
   InitSetting(asSelectDBOWindowWidth,             'SelectDBO_WindowWidth',                 250);
   InitSetting(asSelectDBOWindowHeight,            'SelectDBO_WindowHeight',                350);
   InitSetting(asSessionManagerListWidth,          'SessionManager_ListWidth',              220);
+  InitSetting(asSessionManagerListFoldersAtTop,   'SessionManager_ListFoldersAtTop',       0, True);
   InitSetting(asSessionManagerWindowWidth,        'SessionManager_WindowWidth',            700);
   InitSetting(asSessionManagerWindowHeight,       'SessionManager_WindowHeight',           490);
   InitSetting(asSessionManagerWindowLeft,         'SessionManager_WindowLeft',             50);
