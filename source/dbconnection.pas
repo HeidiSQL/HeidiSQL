@@ -733,6 +733,7 @@ type
       property Lib: TPostgreSQLLib read FLib;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
+      function GetCreateCode(Obj: TDBObject): String; override;
       function ConnectionInfo: TStringList; override;
       function GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
@@ -4044,6 +4045,61 @@ begin
 end;
 
 
+function TPgConnection.GetCreateCode(Obj: TDBObject): String;
+var
+  ProcDetails: TDBQuery;
+  DataType: String;
+  ArgNames, ArgTypes, Arguments: TStringList;
+  i: Integer;
+begin
+  Result := '';
+  case Obj.NodeType of
+    lntView: begin
+      // Prefer pg_catalog tables. See http://www.heidisql.com/forum.php?t=16213#p16685
+      Result := 'CREATE VIEW ' + QuoteIdent(Obj.Name) + ' AS ' + GetVar('SELECT '+QuoteIdent('definition')+
+        ' FROM '+QuoteIdent('pg_views')+
+        ' WHERE '+QuoteIdent('viewname')+'='+EscapeString(Obj.Name)+
+        ' AND '+QuoteIdent('schemaname')+'='+EscapeString(Obj.Schema)
+        );
+    end;
+    lntFunction, lntProcedure: begin
+      Result := 'CREATE '+Obj.GetObjType.ToUpper+' '+QuoteIdent(Obj.Name);
+      ProcDetails := GetResults('SELECT '+
+        QuoteIdent('p')+'.'+QuoteIdent('prosrc')+', '+
+        QuoteIdent('p')+'.'+QuoteIdent('proargnames')+', '+
+        QuoteIdent('p')+'.'+QuoteIdent('proargtypes')+', '+
+        QuoteIdent('p')+'.'+QuoteIdent('prorettype')+' '+
+        'FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace')+' AS '+QuoteIdent('n')+' '+
+        'JOIN '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_proc')+' AS '+QuoteIdent('p')+' ON '+QuoteIdent('p')+'.'+QuoteIdent('pronamespace')+' = '+QuoteIdent('n')+'.'+QuoteIdent('oid')+' '+
+        'WHERE '+
+        QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(Obj.Database)+
+        'AND '+QuoteIdent('p')+'.'+QuoteIdent('proname')+'='+EscapeString(Obj.Name)+
+        'AND '+QuoteIdent('p')+'.'+QuoteIdent('proargtypes')+'='+EscapeString(Obj.ArgTypes)
+        );
+      ArgNames := Explode(',', Copy(ProcDetails.Col('proargnames'), 2, Length(ProcDetails.Col('proargnames'))-2));
+      ArgTypes := Explode(' ', Copy(ProcDetails.Col('proargtypes'), 1, Length(ProcDetails.Col('proargtypes'))));
+      Arguments := TStringList.Create;
+      for i:=0 to ArgNames.Count-1 do begin
+        if ArgTypes.Count > i then
+          DataType := GetDatatypeByNativeType(MakeInt(ArgTypes[i]), ArgNames[i]).Name
+        else
+          DataType := '';
+        Arguments.Add(ArgNames[i] + ' ' + DataType);
+      end;
+      Result := Result + '(' + Implode(', ', Arguments) + ') '+
+        'RETURNS '+GetDatatypeByNativeType(MakeInt(ProcDetails.Col('prorettype'))).Name+' '+
+        'AS $$ '+ProcDetails.Col('prosrc')+' $$'
+        // TODO: 'LANGUAGE SQL IMMUTABLE STRICT'
+        ;
+    end
+    else begin
+      // Let the generic method try to return code
+      Result := inherited;
+    end;
+  end;
+end;
+
+
 function TSQLiteConnection.GetCreateCode(Obj: TDBObject): String;
 var
   CreateList: TStringList;
@@ -4144,11 +4200,7 @@ end;
 
 function TDBConnection.GetCreateCode(Obj: TDBObject): String;
 var
-  ProcDetails: TDBQuery;
-  DataType: String;
-  ArgNames, ArgTypes, Arguments: TStringList;
   Rows: TStringList;
-  i: Integer;
   TableCols: TTableColumnList;
   TableCol: TTableColumn;
   TableKeys: TTableKeyList;
@@ -4203,14 +4255,6 @@ begin
 
     lntView: begin
       case FParameters.NetTypeGroup of
-        ngPgSQL: begin
-          // Prefer pg_catalog tables. See http://www.heidisql.com/forum.php?t=16213#p16685
-          Result := 'CREATE VIEW ' + QuoteIdent(Obj.Name) + ' AS ' + GetVar('SELECT '+QuoteIdent('definition')+
-            ' FROM '+QuoteIdent('pg_views')+
-            ' WHERE '+QuoteIdent('viewname')+'='+EscapeString(Obj.Name)+
-            ' AND '+QuoteIdent('schemaname')+'='+EscapeString(Obj.Schema)
-            );
-        end;
         ngMSSQL: begin
           // Overcome 4000 character limit in IS.VIEW_DEFINITION
           // See http://www.heidisql.com/forum.php?t=21097
@@ -4251,36 +4295,6 @@ begin
           // Do not use Rows.Text, as the rows already include a trailing linefeed
           Result := Implode('', Rows);
           Rows.Free;
-        end;
-        ngPgSQL: begin
-          Result := 'CREATE FUNCTION '+QuoteIdent(Obj.Name);
-          ProcDetails := GetResults('SELECT '+
-            QuoteIdent('p')+'.'+QuoteIdent('prosrc')+', '+
-            QuoteIdent('p')+'.'+QuoteIdent('proargnames')+', '+
-            QuoteIdent('p')+'.'+QuoteIdent('proargtypes')+', '+
-            QuoteIdent('p')+'.'+QuoteIdent('prorettype')+' '+
-            'FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace')+' AS '+QuoteIdent('n')+' '+
-            'JOIN '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_proc')+' AS '+QuoteIdent('p')+' ON '+QuoteIdent('p')+'.'+QuoteIdent('pronamespace')+' = '+QuoteIdent('n')+'.'+QuoteIdent('oid')+' '+
-            'WHERE '+
-            QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(Obj.Database)+
-            'AND '+QuoteIdent('p')+'.'+QuoteIdent('proname')+'='+EscapeString(Obj.Name)+
-            'AND '+QuoteIdent('p')+'.'+QuoteIdent('proargtypes')+'='+EscapeString(Obj.ArgTypes)
-            );
-          ArgNames := Explode(',', Copy(ProcDetails.Col('proargnames'), 2, Length(ProcDetails.Col('proargnames'))-2));
-          ArgTypes := Explode(' ', Copy(ProcDetails.Col('proargtypes'), 1, Length(ProcDetails.Col('proargtypes'))));
-          Arguments := TStringList.Create;
-          for i:=0 to ArgNames.Count-1 do begin
-            if ArgTypes.Count > i then
-              DataType := GetDatatypeByNativeType(MakeInt(ArgTypes[i]), ArgNames[i]).Name
-            else
-              DataType := '';
-            Arguments.Add(ArgNames[i] + ' ' + DataType);
-          end;
-          Result := Result + '(' + Implode(', ', Arguments) + ') '+
-            'RETURNS '+GetDatatypeByNativeType(MakeInt(ProcDetails.Col('prorettype'))).Name+' '+
-            'AS $$ '+ProcDetails.Col('prosrc')+' $$'
-            // TODO: 'LANGUAGE SQL IMMUTABLE STRICT'
-            ;
         end;
         else begin
           Result := GetVar('SELECT ROUTINE_DEFINITION'+
@@ -7496,10 +7510,13 @@ begin
     FreeAndNil(Results);
   end;
 
-  // Stored functions. No procedures in PostgreSQL.
+  // Stored functions and procedures in PostgreSQL.
   // See http://dba.stackexchange.com/questions/2357/what-are-the-differences-between-stored-procedures-and-stored-functions
   try
-    Results := GetResults('SELECT '+QuoteIdent('p')+'.'+QuoteIdent('proname')+', '+QuoteIdent('p')+'.'+QuoteIdent('proargtypes')+' '+
+    Results := GetResults('SELECT '+
+      QuoteIdent('p')+'.'+QuoteIdent('proname')+', '+
+      QuoteIdent('p')+'.'+QuoteIdent('proargtypes')+', '+
+      QuoteIdent('p')+'.'+QuoteIdent('prokind')+' '+
       'FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace')+' AS '+QuoteIdent('n')+' '+
       'JOIN '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_proc')+' AS '+QuoteIdent('p')+' ON '+QuoteIdent('p')+'.'+QuoteIdent('pronamespace')+' = '+QuoteIdent('n')+'.'+QuoteIdent('oid')+' '+
       'WHERE '+QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(db)
@@ -7514,7 +7531,10 @@ begin
       obj.Name := Results.Col('proname');
       obj.ArgTypes := Results.Col('proargtypes');
       obj.Database := db;
-      obj.NodeType := lntFunction;
+      if Results.Col('prokind') = 'p' then
+        obj.NodeType := lntProcedure
+      else
+        obj.NodeType := lntFunction;
       Results.Next;
     end;
     FreeAndNil(Results);
