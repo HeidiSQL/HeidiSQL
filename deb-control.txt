@@ -1,3 +1,4 @@
+Package: HeidiSQL
 Maintainer: Ansgar Becker <anse@heidisql.com>
 Homepage: https://www.heidisql.com
 License: GPLv2+
