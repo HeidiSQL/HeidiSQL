@@ -460,9 +460,13 @@ type
     DataPost1: TMenuItem;
     menuShowSizeColumn: TMenuItem;
     actPreviousTab: TPreviousTab;
+    actToggleLeftPanel: TAction;
+    actToggleOutputPanel: TAction;
     actNextTab: TNextTab;
     Nexttab1: TMenuItem;
     Previoustab1: TMenuItem;
+    LeftPanel: TMenuItem;
+    OutputPanel: TMenuItem;
     menuConnectTo: TMenuItem;
     actSelectAll: TAction;
     actSelectAll1: TMenuItem;
@@ -1202,6 +1206,9 @@ type
       var HintText: string);
     procedure actCopyGridNodesExecute(Sender: TObject);
     procedure actQueryTableExecute(Sender: TObject);
+    procedure actToggleLeftPanelExecute(Sender: TObject);
+    procedure actToggleOutputPanelExecute(Sender: TObject);
+
   private
     // Executable file details
     FAppVerMajor, FAppVerMinor, FAppVerRelease, FAppVerRevision: Word;
@@ -4832,35 +4839,48 @@ begin
   // Call SQL Help from various places
   keyword := '';
 
-  // Query-Tab
-  if ActiveControl is TSynMemo then begin
-    SynMemo := TSynMemo(ActiveControl);
-    keyword := SynMemo.WordAtCursor;
-    if keyword.IsEmpty then begin
-      keyword := SynMemo.SelText;
+  try
+
+    // When showing or hiding panels, this is needed as the active control
+    // changes to nil, and would cause an issue directly after toggle if help
+    // is opened
+    if ActiveControl = nil then begin
+      keyword := ''; // No particular keyword to search for
+    end
+
+    // Query-Tab
+    else if ActiveControl is TSynMemo then begin
+      SynMemo := TSynMemo(ActiveControl);
+      keyword := SynMemo.WordAtCursor;
+      if keyword.IsEmpty then begin
+        keyword := SynMemo.SelText;
+      end;
+    end
+
+    // Data-Tab
+    else if (PageControlMain.ActivePage = tabData)
+      and Assigned(DataGrid.FocusedNode) then begin
+      keyword := SelectedTableFocusedColumn.DataType.Name;
+
+    end else if ActiveControl = QueryTabs.ActiveHelpersTree then begin
+      // Makes only sense if one of the nodes "SQL fn" or "SQL kw" was selected
+      Tree := QueryTabs.ActiveHelpersTree;
+      if Assigned(Tree.FocusedNode)
+        and (Tree.GetNodeLevel(Tree.FocusedNode)=1)
+        and (Tree.FocusedNode.Parent.Index in [TQueryTab.HelperNodeFunctions, TQueryTab.HelperNodeKeywords]) then
+        keyword := Tree.Text[Tree.FocusedNode, 0];
     end;
-  end
 
-  // Data-Tab
-  else if (PageControlMain.ActivePage = tabData)
-    and Assigned(DataGrid.FocusedNode) then begin
-    keyword := SelectedTableFocusedColumn.DataType.Name;
+    // Clean existing paranthesis, fx: char(64)
+    if Pos( '(', keyword ) > 0 then
+      keyword := Copy( keyword, 1, Pos( '(', keyword )-1 );
 
-  end else if ActiveControl = QueryTabs.ActiveHelpersTree then begin
-    // Makes only sense if one of the nodes "SQL fn" or "SQL kw" was selected
-    Tree := QueryTabs.ActiveHelpersTree;
-    if Assigned(Tree.FocusedNode)
-      and (Tree.GetNodeLevel(Tree.FocusedNode)=1)
-      and (Tree.FocusedNode.Parent.Index in [TQueryTab.HelperNodeFunctions, TQueryTab.HelperNodeKeywords]) then
-      keyword := Tree.Text[Tree.FocusedNode, 0];
+    // Show the window
+    CallSQLHelpWithKeyword( keyword );
+  except
+    on E: Exception do
+      ShowMessage('General error: ' + E.Message);
   end;
-
-  // Clean existing paranthesis, fx: char(64)
-  if Pos( '(', keyword ) > 0 then
-    keyword := Copy( keyword, 1, Pos( '(', keyword )-1 );
-
-  // Show the window
-  CallSQLHelpWithKeyword( keyword );
 end;
 
 
@@ -5088,6 +5108,17 @@ begin
     Tab.Memo.Text := Conn.ApplyLimitClause('SELECT', '* FROM '+Obj.QuotedName, AppSettings.ReadInt(asDatagridRowsPerStep), 0);
     actExecuteQueryExecute(Sender);
   end;
+end;
+
+// When left panel toggle is executed
+procedure TMainForm.actToggleLeftPanelExecute(Sender: TObject);
+begin
+  pnlLeft.Visible := not pnlLeft.Visible; // Hide/show left panel
+end;
+
+procedure TMainForm.actToggleOutputPanelExecute(Sender: TObject);
+begin
+  SynMemoSQLLog.Visible := not SynMemoSQLLog.Visible; // Hide/show output panel
 end;
 
 procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
