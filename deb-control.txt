@@ -1,4 +1,6 @@
 Package: HeidiSQL
+Version: %VERSION%
+Architecture: amd64
 Maintainer: Ansgar Becker <anse@heidisql.com>
 Homepage: https://www.heidisql.com
 License: GPLv2+

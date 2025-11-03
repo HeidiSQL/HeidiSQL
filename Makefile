@@ -23,6 +23,8 @@ else
     $(info GITHUB is set, not loading secrets.mk)
 endif
 
+VERSION := $(shell echo $(tag) | sed "s/v//")
+
 TRANSIFEX_TOKEN ?= help
 
 .PHONY: all clean tx-pull copy-locale build-mo build-gtk2 run-gtk2 build-qt5 run-qt5 deb-package tar-gtk2 tar-qt5
@@ -92,13 +94,15 @@ deb-package: build-mo
 	chmod +x deb/usr/share/heidisql/heidisql
 	cp -v README.md LICENSE deb/usr/share/doc/heidisql
 	mkdir -p dist
+	@sed "s/%VERSION%/$(VERSION)/" deb-control.txt > control.txt
 	rm -vf dist/*.deb
-	fpm -s dir -t deb -n heidisql -v ${tag} \
+	fpm -s dir -t deb -n heidisql -v $(VERSION) \
 	  -p dist \
 	  --verbose \
-	  --deb-custom-control deb-control.txt \
+	  --deb-custom-control control.txt \
 	  --deb-no-default-config-files \
 	  ./deb/=/
+	rm control.txt
 
 tar-gtk2: build-mo
 	@echo "=== Creating GTK2 archive"
