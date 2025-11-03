@@ -129,7 +129,7 @@ jobs:
 
             - name: Generate Release Notes
               id: git-cliff
-              uses: orhun/git-cliff-action@main
+              uses: orhun/git-cliff-action@v4
               with:
                 config: .github/cliff.toml
                 args: --latest --strip header
