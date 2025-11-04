@@ -281,7 +281,7 @@ type
     mysql_options: function(Handle: PMYSQL; Option: Integer; arg: Pointer): Integer; stdcall;
     mysql_optionsv: function(Handle: PMYSQL; Option: Integer; arg, val: PAnsiChar): Integer; stdcall;
     mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
-    mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
+    mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: NativeUInt): PMYSQL; stdcall;
     mysql_real_query: function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
     mysql_stat: function(Handle: PMYSQL): PAnsiChar; stdcall;
     mysql_store_result: function(Handle: PMYSQL): PMYSQL_RES; stdcall;
