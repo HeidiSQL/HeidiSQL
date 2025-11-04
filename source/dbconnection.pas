@@ -2305,7 +2305,8 @@ end;
 procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
-  ClientFlags, FinalPort, SSLoption: Integer;
+  FinalPort, SSLoption: Integer;
+  ClientFlags: NativeUInt;
   VerifyServerCert: Integer;
   Error, StatusName: String;
   FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
