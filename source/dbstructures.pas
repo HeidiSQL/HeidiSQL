@@ -150,7 +150,7 @@ end;
 
 constructor TDbLib.Create(UsedDllFile, HintDefaultDll: String);
 var
-  msg, ErrorHint: String;
+  msg, ErrorHint, LoadErr: String;
 begin
   // Load DLL as is (with or without path)
   inherited Create;
@@ -161,12 +161,13 @@ begin
   end;
 
   FHandle := LoadLibrary(FDllFile);
+  LoadErr := GetLoadErrorStr;
   if FHandle = NilHandle then begin
     msg := f_('Library %s could not be loaded. Please select a different one.',
       [ExtractFileName(FDllFile)]
       );
-    if GetLastOSError <> 0 then begin
-      msg := msg + sLineBreak + sLineBreak + f_('Internal error %d: %s', [GetLastOSError, SysErrorMessage(GetLastOSError)]);
+    if LoadErr <> '' then begin
+      msg := msg + sLineBreak + sLineBreak + LoadErr;
     end;
     if (HintDefaultDll <> '') and (ExtractFileName(FDllFile) <> HintDefaultDll) then begin
       ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',

@@ -433,7 +433,6 @@ type
   function EscapeHotkeyPrefix(Text: String): String;
   function GetFileNameWithoutExtension(Filename: String): String;
   function GetCommandLine: String;
-  function GetDynLibExtension: String;
 
 var
   AppSettings: TAppSettings;
@@ -3072,14 +3071,6 @@ begin
   Result := Trim(Result);
 end;
 
-function GetDynLibExtension: String;
-begin
-  Result :=
-    {$IFDEF WINDOWS}'dll'{$EndIf}
-    {$IFDEF LINUX}'so'{$EndIf}
-    {$IFDEF MACOS}'dylib'{$EndIf}
-  ;
-end;
 
 { Get SID of current Windows user, probably useful in the future
 {function GetCurrentUserSID: string;

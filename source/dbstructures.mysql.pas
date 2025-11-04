@@ -162,8 +162,8 @@ type
     db:               PAnsiChar;   // table schema (added after 3.23.58)
     catalog:	        PAnsiChar;   // table catalog (added after 3.23.58)
     def:              PAnsiChar;   // Default value (set by mysql_list_fields)
-    length:           {$IfDef LINUX} NativeUInt {$Else} LongInt {$EndIf};     // Width of column
-    max_length:       {$IfDef LINUX} NativeUInt {$Else} LongInt {$EndIf};     // Max width of selected set
+    length:           {$IfDef UNIX} NativeUInt {$Else} LongInt {$EndIf};     // Width of column
+    max_length:       {$IfDef UNIX} NativeUInt {$Else} LongInt {$EndIf};     // Max width of selected set
     // added after 3.23.58
     name_length:      Cardinal;
     org_name_length:  Cardinal;
@@ -181,7 +181,7 @@ type
 
   // Added in Oct 2023, to fix usage of mysql_fetch_lengths(). See issue #1863
   PMYSQL_LENGTHS = ^TMYSQL_LENGTHS;
-  TMYSQL_LENGTHS = array[0..4095] of {$IfDef LINUX} qword {$Else} LongWord {$EndIf};
+  TMYSQL_LENGTHS = array[0..4095] of {$IfDef UNIX} qword {$Else} LongWord {$EndIf};
 
   MYSQL_ROW = array[0..$ffff] of PAnsiChar;
   PMYSQL_ROW = ^MYSQL_ROW;

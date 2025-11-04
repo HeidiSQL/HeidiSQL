@@ -1771,9 +1771,9 @@ begin
     ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
     ngInterbase: begin
       if IsInterbase then
-        Result := IfThen(GetExecutableBits=64, 'ibclient64.', 'gds32.') + GetDynLibExtension
+        Result := IfThen(GetExecutableBits=64, 'ibclient64.', 'gds32.') + SharedSuffix
       else if IsFirebird then
-        Result := 'fbclient.' + GetDynLibExtension;
+        Result := 'fbclient.' + SharedSuffix;
     end
   end;
 end;
@@ -1858,12 +1858,11 @@ function TConnectionParameters.GetLibraries: TStringList;
 var
   rx: TRegExpr;
   FoundLibs: TStringList;
-  {$IfDef WINDOWS}
+  {$If defined(WINDOWS) OR defined(DARWIN)}
   DllPath, DllFile: String;
   Dlls {, Providers}: TStringList;
   {Provider: String;}
-  {$EndIf}
-  {$IfDef LINUX}
+  {$ElseIf defined(LINUX)}
   LibMapOutput, LibMap: String;
   LibMapLines: TStringList;
   {$EndIf}
@@ -1878,36 +1877,36 @@ begin
     rx.ModifierI := True;
     case NetTypeGroup of
       ngMySQL:
-        {$If defined(LINUX)}
+        {$IfDef LINUX}
         // libmariadb.so.0 (libc,...) => /lib/x86_64-linux-gnu/libmariadb.so
         rx.Expression := '^\s*lib(mysqlclient|mariadb|perconaserverclient)\.[^=]+=>\s*(\S+)$';
-        {$ElseIf defined(WINDOWS)}
-        rx.Expression := '^lib(mysql|mariadb).*\.' + GetDynLibExtension;
+        {$Else}
+        rx.Expression := '^lib(mysql|mariadb).*\.' + SharedSuffix;
         {$EndIf}
       ngMSSQL: // Allow unsupported ADODB providers per registry hack
         rx.Expression := IfThen(AppSettings.ReadBool(asAllProviders), '^', '^(MSOLEDBSQL|SQLOLEDB)');
       ngPgSQL:
-        {$If defined(LINUX)}
+        {$IfDef LINUX}
         rx.Expression := '^\s*(libpq)[^=]+=>\s*(\S+)$';
-        {$ElseIf defined(WINDOWS)}
-        rx.Expression := '^libpq.*\.' + GetDynLibExtension;
+        {$Else}
+        rx.Expression := '^libpq.*\.' + SharedSuffix;
         {$EndIf}
       ngSQLite: begin
-        {$If defined(LINUX)}
+        {$IfDef LINUX}
         rx.Expression := '^\s*(libsqlite3)[^=]+=>\s*(\S+)$';
-        {$ElseIf defined(WINDOWS)}
+        {$Else}
         if NetType = ntSQLite then
-          rx.Expression := '^sqlite.*\.' + GetDynLibExtension
+          rx.Expression := '^sqlite.*\.' + SharedSuffix
         else
-          rx.Expression := '^sqlite3mc.*\.' + GetDynLibExtension;
+          rx.Expression := '^sqlite3mc.*\.' + SharedSuffix;
         {$EndIf}
       end;
       ngInterbase:
-        rx.Expression := '^(gds32|ibclient|fbclient).*\.' + GetDynLibExtension;
+        rx.Expression := '^(gds32|ibclient|fbclient).*\.' + SharedSuffix;
     end;
     case NetTypeGroup of
       ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
-        {$If defined(LINUX)}
+        {$IfDEF LINUX}
         // See https://serverfault.com/a/513938
         Process.RunCommandInDir('', '/sbin/ldconfig', ['-p'], LibMapOutput);
         LibMapLines := Explode(sLineBreak, LibMapOutput);
@@ -1916,8 +1915,8 @@ begin
             FoundLibs.Add(rx.Match[2]);
           end;
         end;
-        {$ElseIf defined(WINDOWS)}
-        Dlls := FindAllFiles(ExtractFilePath(ParamStr(0)), '*.' + GetDynLibExtension, False);
+        {$Else}
+        Dlls := FindAllFiles(ExtractFilePath(ParamStr(0)), '*.' + SharedSuffix, False);
         for DllPath in Dlls do begin
           DllFile := ExtractFileName(DllPath);
           if rx.Exec(DllFile) then begin
@@ -2283,11 +2282,11 @@ begin
     if Value <> nil then begin
       // We're running in a thread already. Ensure that Log() is able to detect that.
       FLockedByThread := Value;
-      Log(lcDebug, 'mysql_thread_init, thread id #'+IntToStr(Value.ThreadID));
+      Log(lcDebug, 'mysql_thread_init, thread id #'+IntToStr(Integer(Value.ThreadID)));
       FLib.mysql_thread_init;
     end else begin
       FLib.mysql_thread_end;
-      Log(lcDebug, 'mysql_thread_end, thread id #'+IntToStr(FLockedByThread.ThreadID));
+      Log(lcDebug, 'mysql_thread_end, thread id #'+IntToStr(Integer(FLockedByThread.ThreadID)));
       FLockedByThread := Value;
     end;
   end;
@@ -3311,7 +3310,7 @@ var
   LibraryPath: String;
 begin
   // Init libmysql before actually connecting.
-  LibraryPath := Parameters.LibraryOrProvider;
+  LibraryPath := {$IFNDEF LINUX}ExtractFilePath(ParamStr(0)) + {$ENDIF} Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
   FLib := TMySQLLib.Create(LibraryPath, Parameters.DefaultLibrary);
@@ -3326,7 +3325,7 @@ var
   msg: String;
 begin
   // Init lib before actually connecting.
-  LibraryPath := Parameters.LibraryOrProvider;
+  LibraryPath := {$IFNDEF LINUX}ExtractFilePath(ParamStr(0)) + {$ENDIF} Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   try
     FLib := TPostgreSQLLib.Create(LibraryPath, Parameters.DefaultLibrary);
@@ -3357,7 +3356,7 @@ var
   LibraryPath: String;
 begin
   // Init lib before actually connecting.
-  LibraryPath := Parameters.LibraryOrProvider;
+  LibraryPath := {$IFNDEF LINUX}ExtractFilePath(ParamStr(0)) + {$ENDIF} Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
   if Parameters.NetType = ntSQLite then
