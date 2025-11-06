@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2025-10-13 20:32+0200\n"
+"PO-Revision-Date: 2025-11-06 19:16+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.7\n"
+"X-Generator: Poedit 3.8\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -6764,3 +6764,6 @@ msgstr "Selects the first %s rows in a new query tab"
 
 msgid "Open file after creation"
 msgstr "Open file after creation"
+
+msgid "Source table"
+msgstr "Source table"
