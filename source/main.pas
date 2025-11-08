@@ -3412,6 +3412,7 @@ begin
     for i:=0 to NewTab.Results.ColumnCount-1 do begin
       col := NewTab.Grid.Header.Columns.Add;
       col.Text := NewTab.Results.ColumnNames[i];
+      col.Hint := _('Source table') + ': ' + IfEmpty(NewTab.Results.TableName(i), '-');
       if NewTab.Results.DataType(i).Category in [dtcInteger, dtcReal] then
         col.Alignment := taRightJustify;
       if NewTab.Results.ColIsPrimaryKeyPart(i) then
