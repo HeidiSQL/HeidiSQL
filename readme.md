@@ -3,8 +3,11 @@
 ![](https://img.shields.io/github/languages/top/HeidiSQL/HeidiSQL.svg?style=flat)
 ![](https://img.shields.io/github/languages/code-size/HeidiSQL/HeidiSQL.svg?style=flat)
 
-# HeidiSQL
+# HeidiSQL Featured
 HeidiSQL is a graphical interface for managing [MariaDB](http://www.mariadb.org/) or [MySQL](http://www.mysql.com/) servers, [Microsoft SQL databases](http://www.microsoft.com/sql/), [PostgreSQL](http://www.postgresql.org/), [SQLite](https://www.sqlite.org/), [Interbase](https://www.embarcadero.com/de/products/interbase) or [Firebird](https://firebirdsql.org/). "Heidi" lets you browse and edit data, create and edit tables, views, procedures, triggers and scheduled events. Also, you can export structure and data, either to SQL file, clipboard or to other servers. Read about [features](https://www.heidisql.com/#featurelist) or see some [screenshots](https://www.heidisql.com/screenshots.php). 
+
+# Featured
+This fork of HeidiSQL accepts new features unlike the parent repository. Feel free to post PRs for your implemented features as well as bugs.
 
 # Need help?
 Look at [the online help page](https://www.heidisql.com/help.php) to learn how to use HeidiSQL. The [forum](https://www.heidisql.com/forum.php) is meant to ask questions. The [issue tracker](https://github.com/HeidiSQL/HeidiSQL/issues) is the place to report bugs or request new features.
@@ -32,3 +35,4 @@ new one.
 
 # Icons8 copyright
 Icons added in January 2019 into a `TImageCollection` component are copyright by [Icons8](https://icons8.com). Used with a special permission from Icons8 given to Ansgar for this project only. Do not copy them for anything else other than building HeidiSQL.
+
