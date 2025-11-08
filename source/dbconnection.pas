@@ -1911,7 +1911,7 @@ begin
         Process.RunCommandInDir('', '/sbin/ldconfig', ['-p'], LibMapOutput);
         LibMapLines := Explode(sLineBreak, LibMapOutput);
         for LibMap in LibMapLines do begin
-          if rx.Exec(LibMap) then begin
+          if rx.Exec(LibMap) and FileExists(rx.Match[2]) then begin
             FoundLibs.Add(rx.Match[2]);
           end;
         end;
