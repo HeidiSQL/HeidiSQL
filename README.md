@@ -18,8 +18,11 @@ Ansgar
 
 ![HeidiSQL 12.10.1.92 running on Ubuntu Linux 22.04](https://www.heidisql.com/images/screenshots/linux_version_datagrid.png)
 
-# Building
+### Building
 Install Lazarus and FreePascal. Then load the `.lpi` file in the root directory in the Lazarus IDE. Alternatively, use `/usr/bin/lazbuild heidisql.lpi` on the command line.
 
-# Icons8 copyright
+### Icons8 copyright
 Icons added in January 2019 into a `TImageCollection` component are copyright by [Icons8](https://icons8.com). Used with a special permission from Icons8 given to Ansgar for this project only. Do not copy them for anything else other than building HeidiSQL.
+
+[![Lazarus logo.](https://www.heidisql.com/images/powered-by-lazarus.png)](https://www.lazarus-ide.org/)
+
