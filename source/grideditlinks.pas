@@ -610,15 +610,22 @@ begin
   if not Result then
     Exit;
   FMaskEdit.ReadOnly := not FAllowEdit;
+
   case FTableColumn.DataType.Index of
     dbdtDate:
       FMaskEdit.EditMask := '0000-00-00;1; ';
-    dbdtDatetime, dbdtDatetime2, dbdtTimestamp, dbdtInt, dbdtBigint: begin
+
+    dbdtDatetime, dbdtDatetime2, dbdtTimestamp,
+    dbdtInt, dbdtBigint,
+    dbdtFloat, dbdtDouble, dbdtDecimal, dbdtNumeric, dbdtReal, dbdtDoublePrecision: begin
+        if FCellText.IsEmpty then
+          FCellText := DateTimeToStr(Now);
         if MicroSecondsPrecision > 0 then
           FMaskEdit.EditMask := '0000-00-00 00\:00\:00.'+StringOfChar('0', MicroSecondsPrecision)+';1; '
         else
           FMaskEdit.EditMask := '0000-00-00 00\:00\:00;1; ';
       end;
+
     dbdtTime: begin
         ForceTextLen := 10;
         if MicroSecondsPrecision > 0 then begin
@@ -629,6 +636,7 @@ begin
         while Length(FCellText) < ForceTextLen do
           FCellText := ' ' + FCellText;
       end;
+
     dbdtYear:
       FMaskEdit.EditMask := '0000;1; ';
   end;
@@ -730,7 +738,8 @@ var
   i, MaxSeconds, MinSeconds: Int64;
   text: String;
   OldSelStart, OldSelLength,
-  ms, DotPos: Integer;
+  ms: Integer;
+  msStr, StrWithoutMs: String;
 
   function TimeToSeconds(Str: String): Int64;
   var
@@ -766,10 +775,11 @@ begin
   try
     // Detect microseconds part of value if any
     if MicroSecondsPrecision > 0 then begin
-      DotPos := Length(FMaskEdit.Text) - Pos('.', ReverseString(FMaskEdit.Text)) + 2;
-      ms := MakeInt(Copy(FMaskEdit.Text, DotPos, Length(FMaskEdit.Text)));
-    end else
+      msStr := RegExprGetMatch('\.(\d+)$', FMaskEdit.Text, 1);
+      ms := MakeInt(msStr);
+    end else begin
       ms := 0;
+    end;
 
     case FTableColumn.DataType.Index of
       dbdtYear: begin
@@ -789,8 +799,11 @@ begin
         text := DateToStr(d);
       end;
 
-      dbdtDateTime, dbdtDateTime2, dbdtTimestamp, dbdtInt, dbdtBigint: begin
-        dt := StrToDateTime(FMaskEdit.Text);
+      dbdtDateTime, dbdtDateTime2, dbdtTimestamp,
+      dbdtInt, dbdtBigint,
+      dbdtFloat, dbdtDouble, dbdtDecimal, dbdtNumeric, dbdtReal, dbdtDoublePrecision: begin
+        StrWithoutMs := ReplaceRegExpr('\.\d+$', FMaskEdit.Text, '');
+        dt := StrToDateTime(StrWithoutMs);
         case FMaskEdit.SelStart of
           0..3: dt := IncYear(dt, Offset);
           5,6: dt := IncMonth(dt, Offset);
@@ -838,11 +851,9 @@ begin
       FMaskEdit.SelLength := OldSelLength;
     end;
   except
-    on E:EConvertError do begin
-      // Ignore any DateToStr exception. Should only appear in cases where the users
-      // enters invalid dates
-    end else
-      raise;
+    on E:Exception do begin
+      MainForm.LogSQL(E.Message);
+    end;
   end;
 end;
 
@@ -856,23 +867,39 @@ end;
 function TDateTimeEditorLink.MicroSecondsPrecision: Integer;
 var
   rx: TRegExpr;
+  msStr: String;
 begin
-  if not FTableColumn.LengthSet.IsEmpty then
-    Result := MakeInt(FTableColumn.LengthSet)
-  else begin
-    // Find default length of supported microseconds in datatype definition
-    // See dbstructures
-    rx := TRegExpr.Create;
-    rx.Expression := '\.([^\.]+)$';
-    if rx.Exec(FTableColumn.DataType.Format) then
-      Result := rx.MatchLen[1]
-    else
+  case FTableColumn.DataType.Category of
+    dtcTemporal: begin
+      if not FTableColumn.LengthSet.IsEmpty then
+        // Read microseconds precision from MySQL length/set
+        Result := MakeInt(FTableColumn.LengthSet)
+      else begin
+        // Find default length of supported microseconds in datatype definition
+        // See dbstructures
+        rx := TRegExpr.Create;
+        rx.Expression := '\.([^\.]+)$';
+        if rx.Exec(FTableColumn.DataType.Format) then
+          Result := rx.MatchLen[1]
+        else
+          Result := 0;
+        rx.Free;
+      end;
+    end;
+
+    dtcInteger: begin
+      // UNIX timestamps from integers
       Result := 0;
-    rx.Free;
+    end;
+
+    dtcReal: begin
+      // UNIX timestamps from floats
+      // Detect number of decimals from original cell string
+      msStr := RegExprGetMatch('\.(\d+)$', FCellText, 1);
+      Result := Length(msStr);
+    end;
+
   end;
-  // No microseconds for UNIX timestamp columns
-  if FTableColumn.DataType.Index in [dbdtInt, dbdtBigint] then
-    Result := 0;
 end;
 
 
