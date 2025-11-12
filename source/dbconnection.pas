@@ -349,6 +349,7 @@ type
       function IsRedshift: Boolean;
       function IsInterbase: Boolean;
       function IsFirebird: Boolean;
+      function SshIsPlink: Boolean;
       property ImageIndex: Integer read GetImageIndex;
       function GetLibraries: TStringList;
       function DefaultLibrary: String;
@@ -1069,10 +1070,11 @@ var
   OutText, ErrorText, AllPipesText, UserInput: String;
   rx: TRegExpr;
   ExitCode: LongWord;
-  PortChecks: Integer;
+  PortChecks, i: Integer;
   CheckIntervalMs: Integer;
-  IsPlink: Boolean;
   TimeStartedMs, WaitedMs, TimeOutMs: Int64;
+  EnvSshpass: String;
+  EnvList: TStringList;
 begin
   // Check if local port is open
   PortChecks := 0;
@@ -1086,9 +1088,8 @@ begin
 
   // Build SSH command line
   // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
-  IsPlink := ExecRegExprI('([pk]link|putty)', FConnection.Parameters.SSHExe);
   SshCmd := FConnection.Parameters.SSHExe;
-  if IsPlink then
+  if FConnection.Parameters.SshIsPlink then
     SshCmd := SshCmd + ' -ssh';
   SshCmd := SshCmd + ' ';
   if FConnection.Parameters.SSHUser.Trim <> '' then
@@ -1097,17 +1098,29 @@ begin
     SshCmd := SshCmd + FConnection.Parameters.SSHHost.Trim
   else
     SshCmd := SshCmd + FConnection.Parameters.Hostname;
+  EnvSshpass := '';
   if FConnection.Parameters.SSHPassword <> '' then begin
-    // Escape double quote with backslash, see issue #261
-    SshCmd := SshCmd + ' -pw "' + StringReplace(FConnection.Parameters.SSHPassword, '"', '\"', [rfReplaceAll]) + '"';
+    if FConnection.Parameters.SshIsPlink then
+      SshCmd := SshCmd + ' -pw "' + StringReplace(FConnection.Parameters.SSHPassword, '"', '\"', [rfReplaceAll]) + '"'
+    else
+      EnvSshpass := 'SSHPASS='+FConnection.Parameters.SSHPassword;
   end;
   if FConnection.Parameters.SSHPort > 0 then
-    SshCmd := SshCmd + IfThen(IsPlink, ' -P ', ' -p ') + IntToStr(FConnection.Parameters.SSHPort);
+    SshCmd := SshCmd + IfThen(FConnection.Parameters.SshIsPlink, ' -P ', ' -p ') + IntToStr(FConnection.Parameters.SSHPort);
   if FConnection.Parameters.SSHPrivateKey <> '' then
     SshCmd := SshCmd + ' -i "' + FConnection.Parameters.SSHPrivateKey + '"';
-  if not IsPlink then
+  if not FConnection.Parameters.SshIsPlink then
     SshCmd := SshCmd + ' -o StrictHostKeyChecking=no';
   SshCmd := SshCmd + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port);
+
+  if not EnvSshpass.IsEmpty then begin
+    SshCmd := 'sshpass -e ' + SshCmd;
+    EnvList := TStringList.Create;
+    for i := 0 to GetEnvironmentVariableCount - 1 do
+      EnvList.Add(GetEnvironmentString(i));
+    FProcess.Environment := EnvList;
+  end;
+
   rx := TRegExpr.Create;
   rx.Expression := '(-pw\s+")[^"]*(")';
   SshCmdDisplay := rx.Replace(SshCmd, '${1}******${2}', True);
@@ -1693,6 +1706,11 @@ begin
   Result := NetType in [ntFirebird_TCPIP, ntFirebird_Local];
 end;
 
+
+function TConnectionParameters.SshIsPlink: Boolean;
+begin
+  Result := ExecRegExprI('([pk]link|putty)', FSSHExe);
+end;
 
 function TConnectionParameters.GetImageIndex: Integer;
 begin

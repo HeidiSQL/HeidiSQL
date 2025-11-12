@@ -25,6 +25,7 @@ type
     btnSave: TSpeedButton;
     btnNew: TSpeedButton;
     btnDelete: TSpeedButton;
+    lblSshPassHint: TLabel;
     pnlBottom: TPanel;
     popupSessions: TPopupMenu;
     menuSave: TMenuItem;
@@ -1627,6 +1628,8 @@ begin
       editSSHUser.Enabled := Params.SSHActive;
       lblSSHPassword.Enabled := Params.SSHActive;
       editSSHPassword.Enabled := Params.SSHActive;
+      lblSshPassHint.Enabled := Params.SSHActive and (editSSHPassword.Text <> '');
+      lblSshPassHint.Visible := not Params.SshIsPlink;
       lblSSHTimeout.Enabled := Params.SSHActive;
       editSSHTimeout.Enabled := Params.SSHActive;
       lblSSHkeyfile.Enabled := Params.SSHActive;

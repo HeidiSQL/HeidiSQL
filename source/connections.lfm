@@ -12,13 +12,13 @@ object connform: Tconnform
   Constraints.MinHeight = 338
   Constraints.MinWidth = 550
   DesignTimePPI = 120
+  ShowHint = True
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
-  ShowHint = True
   object splitterMain: TSplitter
     Cursor = crSizeWE
     Left = 260
@@ -208,11 +208,11 @@ object connform: Tconnform
         ImageIndex = 75
         MaxLength = 0
         NumGlyphs = 1
+        PasswordChar = #0
+        TabOrder = 5
         OnButtonClick = editUsernameRightButtonClick
         OnChange = Modification
         OnExit = editTrim
-        PasswordChar = #0
-        TabOrder = 5
       end
       object editHost: TEditButton
         AnchorSideLeft.Side = asrBottom
@@ -229,11 +229,11 @@ object connform: Tconnform
         ImageIndex = 75
         MaxLength = 0
         NumGlyphs = 1
+        PasswordChar = #0
+        TabOrder = 2
         OnChange = editHostChange
         OnDblClick = editHostDblClick
         OnExit = editTrim
-        PasswordChar = #0
-        TabOrder = 2
       end
       object comboNetType: TComboBoxEx
         AnchorSideLeft.Side = asrBottom
@@ -249,9 +249,9 @@ object connform: Tconnform
         Images = MainForm.ImageListIcons8
         ItemHeight = 20
         ItemsEx = <>
-        OnChange = comboNetTypeChange
         Style = csExDropDownList
         TabOrder = 0
+        OnChange = comboNetTypeChange
       end
       object chkLoginPrompt: TCheckBox
         AnchorSideTop.Control = editHost
@@ -307,11 +307,11 @@ object connform: Tconnform
         ImageIndex = 75
         MaxLength = 0
         NumGlyphs = 1
-        OnButtonClick = editDatabasesRightButtonClick
-        OnChange = Modification
         PasswordChar = #0
         TabOrder = 9
         TextHint = 'Separated by semicolon'
+        OnButtonClick = editDatabasesRightButtonClick
+        OnChange = Modification
       end
       object comboLibrary: TComboBox
         AnchorSideLeft.Side = asrBottom
@@ -335,76 +335,76 @@ object connform: Tconnform
       ClientWidth = 648
       ImageIndex = 147
       object lblSSHLocalPort: TLabel
-        AnchorSideTop.Control = editSSHPrivateKey
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = editSSHlocalport
+        AnchorSideTop.Side = asrCenter
         Left = 4
         Height = 20
-        Top = 240
+        Top = 270
         Width = 70
         BorderSpacing.Around = 6
         Caption = 'Local port:'
         FocusControl = editSSHlocalport
       end
       object lblSSHUser: TLabel
-        AnchorSideTop.Control = editSSHhost
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = editSSHUser
+        AnchorSideTop.Side = asrCenter
         Left = 4
         Height = 20
-        Top = 104
+        Top = 108
         Width = 69
         BorderSpacing.Around = 6
         Caption = 'Username:'
         FocusControl = editSSHUser
       end
       object lblSSHPassword: TLabel
-        AnchorSideTop.Control = editSSHUser
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = editSSHPassword
+        AnchorSideTop.Side = asrCenter
         Left = 4
         Height = 20
-        Top = 138
+        Top = 142
         Width = 64
         BorderSpacing.Around = 6
         Caption = 'Password:'
         FocusControl = editSSHPassword
       end
       object lblSSHExe: TLabel
-        AnchorSideTop.Control = chkSSHActive
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = comboSSHExe
+        AnchorSideTop.Side = asrCenter
         Left = 4
         Height = 20
-        Top = 36
+        Top = 40
         Width = 106
         BorderSpacing.Around = 6
         Caption = 'SSH executable:'
       end
       object lblSSHhost: TLabel
-        AnchorSideTop.Control = comboSSHExe
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = editSSHhost
+        AnchorSideTop.Side = asrCenter
         Left = 4
         Height = 20
-        Top = 70
+        Top = 74
         Width = 108
         BorderSpacing.Around = 6
         Caption = 'SSH host + port:'
         FocusControl = editSSHhost
       end
       object lblSSHkeyfile: TLabel
-        AnchorSideTop.Control = editSSHTimeout
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = editSSHPrivateKey
+        AnchorSideTop.Side = asrCenter
         Left = 4
         Height = 20
-        Top = 206
+        Top = 236
         Width = 99
         BorderSpacing.Around = 6
         Caption = 'Private key file:'
         FocusControl = editSSHPrivateKey
       end
       object lblSSHTimeout: TLabel
-        AnchorSideTop.Control = editSSHPassword
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = editSSHTimeout
+        AnchorSideTop.Side = asrCenter
         Left = 4
         Height = 20
-        Top = 172
+        Top = 202
         Width = 86
         BorderSpacing.Around = 6
         Caption = 'SSH timeout:'
@@ -414,7 +414,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 242
         Height = 28
-        Top = 240
+        Top = 266
         Width = 400
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
@@ -487,7 +487,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 242
         Height = 28
-        Top = 206
+        Top = 232
         Width = 400
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
@@ -496,21 +496,21 @@ object connform: Tconnform
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
-        OnButtonClick = PickFile
-        OnChange = Modification
-        OnDblClick = PickFile
-        OnExit = editTrim
         PasswordChar = #0
         TabOrder = 7
         Text = 'editSSHPrivateKey'
         TextHint = 'Private key / identify file'
+        OnButtonClick = PickFile
+        OnChange = Modification
+        OnDblClick = PickFile
+        OnExit = editTrim
       end
       object editSSHTimeout: TEdit
-        AnchorSideTop.Control = editSSHPassword
+        AnchorSideTop.Control = lblSshPassHint
         AnchorSideTop.Side = asrBottom
         Left = 242
         Height = 28
-        Top = 172
+        Top = 198
         Width = 75
         BorderSpacing.Around = 6
         NumbersOnly = True
@@ -543,6 +543,18 @@ object connform: Tconnform
         Caption = 'Use SSH tunnel'
         TabOrder = 0
         OnClick = Modification
+      end
+      object lblSshPassHint: TLabel
+        AnchorSideLeft.Control = editSSHPassword
+        AnchorSideTop.Control = editSSHPassword
+        AnchorSideTop.Side = asrBottom
+        Left = 248
+        Height = 20
+        Top = 172
+        Width = 355
+        BorderSpacing.Around = 6
+        Caption = 'Make sure sshpass is available when using a password'
+        Enabled = False
       end
     end
     object tabAdvanced: TTabSheet
@@ -651,12 +663,12 @@ object connform: Tconnform
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
+        PasswordChar = #0
+        TabOrder = 0
         OnButtonClick = PickFile
         OnChange = Modification
         OnDblClick = PickFile
         OnExit = editTrim
-        PasswordChar = #0
-        TabOrder = 0
       end
       object chkFullTableStatus: TCheckBox
         AnchorSideTop.Control = chkLocalTimeZone
@@ -713,8 +725,8 @@ object connform: Tconnform
         BorderSpacing.Around = 6
         DropDownCount = 16
         ItemHeight = 20
-        OnChange = Modification
         TabOrder = 6
+        OnChange = Modification
       end
       object editIgnoreDatabasePattern: TEdit
         AnchorSideTop.Control = ColorBoxBackgroundColor
@@ -757,10 +769,10 @@ object connform: Tconnform
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
-        OnButtonClick = PickFile
-        OnChange = Modification
         PasswordChar = #0
         TabOrder = 8
+        OnButtonClick = PickFile
+        OnChange = Modification
       end
       object chkLogFileDml: TCheckBox
         AnchorSideTop.Control = chkLogFileDdl
@@ -874,13 +886,13 @@ object connform: Tconnform
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
+        PasswordChar = #0
+        TabOrder = 3
+        TextHint = 'Path to certificate file'
         OnButtonClick = PickFile
         OnChange = Modification
         OnDblClick = PickFile
         OnExit = editTrim
-        PasswordChar = #0
-        TabOrder = 3
-        TextHint = 'Path to certificate file'
       end
       object editSSLCACertificate: TEditButton
         AnchorSideTop.Control = editSSLPrivateKey
@@ -896,13 +908,13 @@ object connform: Tconnform
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
+        PasswordChar = #0
+        TabOrder = 2
+        TextHint = 'Path to certificate authority file'
         OnButtonClick = PickFile
         OnChange = Modification
         OnDblClick = PickFile
         OnExit = editTrim
-        PasswordChar = #0
-        TabOrder = 2
-        TextHint = 'Path to certificate authority file'
       end
       object editSSLPrivateKey: TEditButton
         AnchorSideTop.Control = chkWantSSL
@@ -918,13 +930,13 @@ object connform: Tconnform
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
+        PasswordChar = #0
+        TabOrder = 1
+        TextHint = 'Path to key file'
         OnButtonClick = PickFile
         OnChange = Modification
         OnDblClick = PickFile
         OnExit = editTrim
-        PasswordChar = #0
-        TabOrder = 1
-        TextHint = 'Path to key file'
       end
       object comboSSLVerification: TComboBox
         AnchorSideTop.Control = editSSLcipher
@@ -1126,11 +1138,11 @@ object connform: Tconnform
       ImageIndex = 193
       MaxLength = 0
       NumGlyphs = 1
-      OnButtonClick = editSearchRightButtonClick
-      OnChange = editSearchChange
       PasswordChar = #0
       TabOrder = 1
       TextHint = 'Filter'
+      OnButtonClick = editSearchRightButtonClick
+      OnChange = editSearchChange
     end
   end
   object pnlBottom: TPanel
@@ -1344,8 +1356,8 @@ object connform: Tconnform
     object actFilter: TAction
       Caption = 'Filter ...'
       ImageIndex = 30
-      OnExecute = actFilterExecute
       ShortCut = 16454
+      OnExecute = actFilterExecute
     end
   end
   object timerEditFilterDelay: TTimer
