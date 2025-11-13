@@ -9,7 +9,7 @@ unit printlist;
 interface
 
 uses
-  Winapi.Windows, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Printers, VirtualTrees, gnugettext;
+  Winapi.Windows, System.Classes, System.SysUtils, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Printers, VirtualTrees, gnugettext;
 
 type
   TprintlistForm = class(TForm)
@@ -43,7 +43,17 @@ begin
   // show!
   Screen.Cursor := crHourGlass;
   comboPrinters.Items := Printer.printers;
-  comboPrinters.ItemIndex := Printer.printerIndex;
+  try
+    if comboPrinters.Items.Count > 0 then begin
+      comboPrinters.ItemIndex := Printer.printerIndex;
+      btnConfigure.Enabled := True;
+    end;
+  except
+    on E:Exception do begin
+      btnConfigure.Enabled := False;
+      ErrorDialog(E.Message);
+    end;
+  end;
   Screen.Cursor := crDefault;
 end;
 
