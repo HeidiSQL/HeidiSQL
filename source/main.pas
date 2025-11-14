@@ -9575,12 +9575,16 @@ end;
 procedure TMainForm.menuEditVariableClick(Sender: TObject);
 var
   Dialog: TfrmEditVariable;
+  VarValue: String;
 begin
   Dialog := TfrmEditVariable.Create(Self);
   try
     try
       Dialog.VarName := ListVariables.Text[ListVariables.FocusedNode, 0];
-      Dialog.VarValue := ListVariables.Text[ListVariables.FocusedNode, 1];
+      VarValue := ListVariables.Text[ListVariables.FocusedNode, 1];
+      if VarValue = TEXT_NULL then
+        VarValue := '';
+      Dialog.VarValue := VarValue;
       // Refresh list node
       if Dialog.ShowModal = mrOK then
         InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
@@ -11661,7 +11665,7 @@ begin
       Variables := Conn.GetResults(Conn.GetSQLSpecifity(spSessionVariables));
       while not Variables.Eof do begin
         FVariableNames.Add(Variables.Col(0));
-        FSessionVars.Values[Variables.Col(0)] := Variables.Col(1);
+        FSessionVars.Values[Variables.Col(0)] := IfThen(Variables.IsNull(1), TEXT_NULL, Variables.Col(1));
         Variables.Next;
       end;
       Variables.Free;
@@ -11669,6 +11673,7 @@ begin
       while not Variables.Eof do begin
         FVariableNames.Add(Variables.Col(0));
         FGlobalVars.Values[Variables.Col(0)] := Variables.Col(1);
+        FGlobalVars.Values[Variables.Col(0)] := IfThen(Variables.IsNull(1), TEXT_NULL, Variables.Col(1));
         Variables.Next;
       end;
       Variables.Free;
