@@ -11217,6 +11217,7 @@ var
   FieldText, FocusedFieldText: String;
   VT: TVirtualStringTree;
   ResultCol: Integer;
+  SelectedNode: PVirtualNode;
 begin
   if Column = -1 then
     Exit;
@@ -11265,22 +11266,29 @@ begin
   end;
 
   // Probably display background color on fields with same text
-  // Result pointer gets moved to the focused node.. careful!
-  if (Sender.FocusedNode <> nil) and (Sender.FocusedColumn > 0) then begin
-    if ((Node <> Sender.FocusedNode) and (Column = Sender.FocusedColumn))
-      or ((Node = Sender.FocusedNode) and (Column <> Sender.FocusedColumn)) then begin
+  // Result pointer gets moved to selected nodes.. careful!
+  if (Sender.FocusedNode <> nil) and (Sender.FocusedColumn > 0) and (Sender.SelectedCount <= 100) then begin
+    if ((not Sender.Selected[Node]) and (Column = Sender.FocusedColumn))
+      or (Sender.Selected[Node] and (Column <> Sender.FocusedColumn)) then begin
       clSameData := AppSettings.ReadInt(asHightlightSameTextBackground);
       if clSameData <> clNone then begin
         FieldText := r.Col(ResultCol);
         CurrentIsNull := r.IsNull(ResultCol);
-        RowNumber := Sender.GetNodeData(Sender.FocusedNode);
-        r.RecNo := RowNumber^; // moving result cursor
-        FocusedFieldText := r.Col(Sender.FocusedColumn-1);
-        FocusedIsNull := r.IsNull(Sender.FocusedColumn-1);
-        if (CompareText(FieldText, FocusedFieldText) = 0) and (CurrentIsNull = FocusedIsNull) then begin
-          TargetCanvas.Brush.Color := clSameData;
-          TargetCanvas.FillRect(CellRect);
+
+        SelectedNode := GetNextNode(VT, nil, True);
+        while Assigned(SelectedNode) do begin
+          RowNumber := Sender.GetNodeData(SelectedNode);
+          r.RecNo := RowNumber^; // moving result cursor
+          FocusedFieldText := r.Col(Sender.FocusedColumn-1);
+          FocusedIsNull := r.IsNull(Sender.FocusedColumn-1);
+          if (CompareText(FieldText, FocusedFieldText) = 0) and (CurrentIsNull = FocusedIsNull) then begin
+            TargetCanvas.Brush.Color := clSameData;
+            TargetCanvas.FillRect(CellRect);
+            Break; // No need to look further
+          end;
+          SelectedNode := GetNextNode(VT, SelectedNode, True);
         end;
+
       end;
     end;
   end;
