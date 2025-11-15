@@ -1445,7 +1445,8 @@ begin
     if (PanelNr = 6) and (not IsWine) then begin
       // Immediately repaint this special panel, as it holds critical update messages,
       // while avoiding StatusBar.Repaint which refreshes all panels
-      StatusBar.Repaint;
+      // Caution: statusbar.Repaint crashes with QT here. See issue #2270
+      StatusBar.InvalidatePanel(6, [ppText]);
     end;
   end;
 end;
@@ -9117,6 +9118,7 @@ procedure TMainForm.ApplyVTFilter(FromTimer: Boolean);
 var
   Node: PVirtualNode;
   VT: TVirtualStringTree;
+  TreeIsInsideUpdate: Boolean;
   i: Integer;
   match: Boolean;
   tab: TTabSheet;
@@ -9162,6 +9164,7 @@ begin
   end;
   if not Assigned(VT) then
     Exit;
+  TreeIsInsideUpdate := tsUpdating in VT.TreeStates;
   // Loop through all nodes and hide non matching
   Node := VT.GetFirst;
   rx := TRegExpr.Create;
@@ -9181,9 +9184,11 @@ begin
   // Display hour glass instead of X icon
   OldImageIndex := editFilterVT.ImageIndex;
   editFilterVT.ImageIndex := 150;
-  editFilterVT.Repaint;
+  // Caution: edit.Repaint crashes with QT here. See issue #2270
+  editFilterVT.Invalidate;
 
-  VT.BeginUpdate;
+  if not TreeIsInsideUpdate then
+    VT.BeginUpdate;
   while Assigned(Node) do begin
     // Don't filter anything if the filter text is empty
     match := rx.Expression = '';
@@ -9199,7 +9204,8 @@ begin
       inc(VisibleCount);
     Node := VT.GetNext(Node);
   end;
-  VT.EndUpdate;
+  if not TreeIsInsideUpdate then
+    VT.EndUpdate;
   if rx.Expression <> '' then begin
     lblFilterVTInfo.Caption := f_('%0:d out of %1:d matching. %2:d hidden.', [VisibleCount, VT.RootNodeCount, VT.RootNodeCount - VisibleCount]);
   end else
