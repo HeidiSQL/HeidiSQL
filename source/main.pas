@@ -10623,6 +10623,8 @@ begin
   end;
 
   r := GridResult(Sender);
+  if not Assigned(r) then
+    Exit;
   RowNumber := Sender.GetNodeData(Node);
   r.RecNo := RowNumber^;
 
