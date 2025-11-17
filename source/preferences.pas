@@ -320,7 +320,7 @@ begin
     AppSettings.WriteInt(asHighlighterBackground, Attri.Background, Attri.Name);
     AppSettings.WriteInt(asHighlighterStyle, Attri.IntegerStyle, Attri.Name);
   end;
-  //AppSettings.WriteString(asSQLColActiveLine, ColorToString(SynMemoSQLSample.ActiveLineColor));
+  AppSettings.WriteString(asSQLColActiveLine, ColorToString(SynMemoSQLSample.LineHighlightColor.Background));
   AppSettings.WriteString(asSQLColMatchingBraceForeground, ColorToString(MainForm.MatchingBraceForegroundColor));
   AppSettings.WriteString(asSQLColMatchingBraceBackground, ColorToString(MainForm.MatchingBraceBackgroundColor));
 
@@ -832,7 +832,7 @@ begin
     MainForm.MatchingBraceForegroundColor := Foreground;
     MainForm.MatchingBraceBackgroundColor := Background;
   end else if AttriIdx = comboSQLColElement.Items.Count-2 then begin
-    //SynMemoSQLSample.ActiveLineColor := Foreground;
+    SynMemoSQLSample.LineHighlightColor.Background := Background;
   end else begin
     Attri := SynSqlSynSQLSample.Attribute[AttriIdx];
     Attri.Foreground := Foreground;
@@ -978,7 +978,7 @@ begin
         end;
         // Use 3 hardcoded default values for additional colors, which are not part
         // of the highlighter's attributes
-        //SynMemoSQLSample.ActiveLineColor := StringToColor(AppSettings.GetDefaultString(asSQLColActiveLine));
+        SynMemoSQLSample.LineHighlightColor.Background := StringToColor(AppSettings.GetDefaultString(asSQLColActiveLine));
         if ThemeIsDark(comboTheme.Text) then begin
           MainForm.MatchingBraceForegroundColor := $0028EFFF;
           MainForm.MatchingBraceBackgroundColor := $004D513B;
@@ -1056,8 +1056,8 @@ begin
     chkSQLBold.Enabled := False;
     chkSQLItalic.Enabled := False;
   end else if AttriIdx = comboSQLColElement.Items.Count-2 then begin
-    //Foreground := SynMemoSQLSample.ActiveLineColor;
-    Background := clNone;
+    Foreground := clNone;
+    Background := SynMemoSQLSample.LineHighlightColor.Background;
     chkSQLBold.Enabled := False;
     chkSQLItalic.Enabled := False;
   end else begin

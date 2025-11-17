@@ -2584,11 +2584,10 @@ end;
 
 procedure TSqlSrvConnection.SetActive(Value: Boolean);
 var
-  Error, NetLib, DataSource, QuotedPassword, ServerVersion, ErrorHint: String;
+  Error, ServerVersion, ErrorHint: String;
   FinalHost: String;
   rx: TRegExpr;
-  FinalPort, i: Integer;
-  IsOldProvider: Boolean;
+  FinalPort: Integer;
 begin
   if Value then begin
     DoBeforeConnect;
@@ -5078,6 +5077,8 @@ begin
       Result := escChars(Text, EscChar, c1, c2, c3, c4);
     end;
 
+    else Result := '';
+
   end;
 
   if DoQuote then begin
@@ -5248,6 +5249,7 @@ begin
   if rx.Exec(SQL) then begin
     LitStart := rx.MatchLen[0]+1;
     InLiteral := True;
+    i := 0;
     for i:=LitStart to Length(SQL) do begin
       if SQL[i] = '''' then
         InLiteral := not InLiteral
@@ -6718,6 +6720,7 @@ begin
         frInvisibleColumns: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100303)) or
           (FParameters.IsMySQL(True) and (ServerVersionInt >= 80023));
         frCompressedColumns: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100301));
+        else Result := False;
       end;
     else Result := False;
   end;
@@ -8963,6 +8966,7 @@ var
   c: Char;
   Field: PMYSQL_FIELD;
 begin
+  Result := '';
   if ColumnExists(Column) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       // Row was edited and only valid in a TGridRow
@@ -9035,6 +9039,7 @@ function TPGQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 var
   AnsiStr: AnsiString;
 begin
+  Result := '';
   if ColumnExists(Column) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       Result := FCurrentUpdateRow[Column].NewText;
@@ -9054,6 +9059,7 @@ end;
 
 function TSQLiteQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 begin
+  Result := '';
   if ColumnExists(Column) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       Result := FCurrentUpdateRow[Column].NewText;
@@ -9084,6 +9090,7 @@ var
 begin
   // ColumnNames is case insensitive, so we can select wrong cased columns in MariaDB 10.4
   // See #599
+  Result := '';
   idx := ColumnNames.IndexOf(ColumnName);
   if idx > -1 then
     Result := Col(idx)
@@ -9858,6 +9865,7 @@ begin
   end else begin
     // Return first available Field.db property, or just the current database as fallback.
     // For a view in db1 selecting from db2, this returns db2, which triggers errors in GetCreateViewCode!
+    Result := '';
     for i:=0 to ColumnCount-1 do begin
       Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, i);
       if Field.db <> '' then begin
@@ -10871,6 +10879,7 @@ begin
   InLiteral := False;
   ParenthLeft := Pos('(', Source);
   if (ParenthLeft > 0) and DataType.HasLength then begin
+    i := 0;
     for i:=ParenthLeft+1 to Length(Source) do begin
       if (Source[i] = ')') and (not InLiteral) then
         break;

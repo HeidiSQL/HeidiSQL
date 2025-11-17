@@ -86,7 +86,9 @@ begin
     rx := TRegExpr.Create;
     rx.Expression := '\sCHARACTER\s+SET\s+(\w+)\b';
     if rx.Exec(CreateCode) then
-      Charset := rx.Match[1];
+      Charset := rx.Match[1]
+    else
+      Charset := '';
     rx.Expression := '\sCOLLATE\s+(\w+)\b';
     if rx.Exec(CreateCode) then
       CurrentCollation := rx.Match[1];

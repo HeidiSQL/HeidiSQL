@@ -620,7 +620,6 @@ var
   Col, PreviousCol: TTableColumn;
   TblKey: TTableKey;
   Constraint: TCheckConstraint;
-  Node: PVirtualNode;
   Conn: TDBConnection;
 
   procedure FinishSpecs;
@@ -714,7 +713,6 @@ begin
   end;
 
   // Update columns
-  Node := listColumns.GetFirst;
   PreviousCol := nil;
   for Col in FColumns do begin
     if Col.Status <> esUntouched then begin

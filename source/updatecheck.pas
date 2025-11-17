@@ -273,9 +273,11 @@ begin
     Result := 'download.php?'+DownloadParam+'&'+PlaceParam+'&'+OsParam;
   end
 
-  else if LinkType = SLinkChangelog then begin
-    Result := 'changes-lazarus';
-  end;
+  else if LinkType = SLinkChangelog then
+    Result := 'changes-lazarus'
+
+  else
+    Result := '';
 
   Result := APPDOMAIN + Result;
 end;

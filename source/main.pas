@@ -12313,7 +12313,7 @@ begin
   //QueryTab.Memo.Gutter.Parts.Add(TSynGutterCodeFolding.Create(QueryTab.Memo.Gutter.Parts));
   //QueryTab.Memo.Gutter.Parts[1].Width := SynMemoQuery.Gutter.Parts[1].Width;
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
-  //QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
+  QueryTab.Memo.LineHighlightColor.Background := SynMemoQuery.LineHighlightColor.Background;
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
   QueryTab.Memo.OnSpecialLineColors := SynMemoQuery.OnSpecialLineColors;
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
@@ -13253,7 +13253,8 @@ begin
     else if tab = tabDatabase then f := FFilterTextDatabase
     else if tab = tabEditor then f := FFilterTextEditor
     else if tab = tabData then f := FFilterTextData
-    else if QueryTabs.HasActiveTab and (QueryTabs.ActiveTab.ActiveResultTab <> nil) then f := QueryTabs.ActiveTab.ActiveResultTab.FilterText;
+    else if QueryTabs.HasActiveTab and (QueryTabs.ActiveTab.ActiveResultTab <> nil) then f := QueryTabs.ActiveTab.ActiveResultTab.FilterText
+    else f := '';
     if editFilterVT.Text <> f then
       editFilterVT.Text := f
     else
@@ -13392,7 +13393,7 @@ begin
     Editor.OnScanForFoldRanges := BaseEditor.OnScanForFoldRanges;
     Editor.UseCodeFolding := actCodeFolding.Checked;}
   end;
-  //Editor.ActiveLineColor := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
+  Editor.LineHighlightColor.Background := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
   Editor.Options := BaseEditor.Options;
   if Editor = SynMemoSQLLog then
     Editor.Options := Editor.Options + [eoRightMouseMovesCursor];
@@ -13550,7 +13551,10 @@ begin
   end else if MenuItem = menuQueryHelpersGenerateDelete then begin
     sql := 'DELETE FROM '+ActiveDbObj.QuotedName(False)+' WHERE ' + WhereClause;
 
+  end else begin
+    sql := '';
   end;
+
   //QueryTabs.ActiveMemo.UndoList.AddGroupBreak;
   QueryTabs.ActiveMemo.SelText := sql;
 end;
