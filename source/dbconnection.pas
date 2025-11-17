@@ -9,6 +9,7 @@ uses
   DateUtils, Types, Math, Dialogs, Graphics, ExtCtrls, StrUtils,
   Controls, Forms, IniFiles, Variants, FileUtil,
   RegExpr, process, Pipes,
+  MSSQLConn, SQLDBLib, SQLDB, DB,
   generic_types, lazaruscompat,
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase;
 
@@ -681,11 +682,13 @@ type
       procedure SetLockedByThread(Value: TThread); override;
   end;
 
-  {TAdoRawResults = Array of String; // _RecordSet;
-  TAdoDBConnection = class(TDBConnection)
+  TSqlSrvResults = TObjectList<TSQLQuery>;
+  TSqlSrvConnection = class(TDBConnection)
     private
-      FAdoHandle: TStringList; // TAdoConnection;
-      FLastRawResults: TAdoRawResults;
+      FHandle: TMSSQLConnection;
+      FLib: TSQLDBLibraryLoader;
+      FTransaction: TSQLTransaction;
+      FLastRawResults: TSqlSrvResults;
       FLastError: String;
       procedure SetActive(Value: Boolean); override;
       procedure DoAfterConnect; override;
@@ -704,10 +707,10 @@ type
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
       function GetLastResults: TDBQueryList; override;
-      property LastRawResults: TAdoRawResults read FLastRawResults;
+      property LastRawResults: TSqlSrvResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
-  end;}
+  end;
 
   TPGRawResults = Array of PPGresult;
   TPQerrorfields = (PG_DIAG_SEVERITY, PG_DIAG_SQLSTATE, PG_DIAG_MESSAGE_PRIMARY, PG_DIAG_MESSAGE_DETAIL, PG_DIAG_MESSAGE_HINT, PG_DIAG_STATEMENT_POSITION, PG_DIAG_INTERNAL_POSITION, PG_DIAG_INTERNAL_QUERY, PG_DIAG_CONTEXT, PG_DIAG_SOURCE_FILE, PG_DIAG_SOURCE_LINE, PG_DIAG_SOURCE_FUNCTION);
@@ -839,7 +842,7 @@ type
       FEditingPrepared: Boolean;
       FUpdateData: TGridRows;
       FDBObject: TDBObject;
-      //FFormatSettings: TFormatSettings;
+      FFormatSettings: TFormatSettings;
       procedure SetRecNo(Value: Int64); virtual; abstract;
       function ColumnExists(Column: Integer): Boolean; overload;
       function ColumnExists(ColumnName: String): Boolean; overload;
@@ -932,12 +935,13 @@ type
       function TableName(Column: Integer): String; overload; override;
   end;
 
-  {TAdoDBQuery = class(TDBQuery)
+  TSqlSrvQuery = class(TDBQuery)
     private
-      FCurrentResults: TStringList; //TAdoQuery;
-      FResultList: Array of String; // TAdoQuery;
+      FCurrentResults: TSQLQuery;
+      FResultList: TSqlSrvResults;
       procedure SetRecNo(Value: Int64); override;
     public
+      constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
@@ -948,7 +952,7 @@ type
       function HasResult: Boolean; override;
       function DatabaseName: String; override;
       function TableName(Column: Integer): String; overload; override;
-  end;}
+  end;
 
   TPGQuery = class(TDBQuery)
     private
@@ -1458,8 +1462,8 @@ begin
   case NetTypeGroup of
     ngMySQL:
       Result := TMySQLConnection.Create(AOwner);
-    //ngMSSQL:
-    //  Result := TAdoDBConnection.Create(AOwner);
+    ngMSSQL:
+      Result := TSqlSrvConnection.Create(AOwner);
     ngPgSQL:
       Result := TPgConnection.Create(AOwner);
     ngSQLite:
@@ -1478,8 +1482,8 @@ begin
   case NetTypeGroup of
     ngMySQL:
       Result := TMySQLQuery.Create(Connection);
-    //ngMSSQL:
-    //  Result := TAdoDBQuery.Create(Connection);
+    ngMSSQL:
+      Result := TSqlSrvQuery.Create(Connection);
     ngPgSQL:
       Result := TPGQuery.Create(Connection);
     ngSQLite:
@@ -1878,8 +1882,7 @@ var
   FoundLibs: TStringList;
   {$If defined(WINDOWS) OR defined(DARWIN)}
   DllPath, DllFile: String;
-  Dlls {, Providers}: TStringList;
-  {Provider: String;}
+  Dlls: TStringList;
   {$ElseIf defined(LINUX)}
   LibMapOutput, LibMap: String;
   LibMapLines: TStringList;
@@ -1901,8 +1904,12 @@ begin
         {$Else}
         rx.Expression := '^lib(mysql|mariadb).*\.' + SharedSuffix;
         {$EndIf}
-      ngMSSQL: // Allow unsupported ADODB providers per registry hack
-        rx.Expression := IfThen(AppSettings.ReadBool(asAllProviders), '^', '^(MSOLEDBSQL|SQLOLEDB)');
+      ngMSSQL:
+        {$IfDef LINUX}
+        rx.Expression := '^\s*(libsybdb)[^=]+=>\s*(\S+)$';
+        {$Else}
+        rx.Expression := '^(dblib|libsybdb).*\.' + SharedSuffix;
+        {$EndIf}
       ngPgSQL:
         {$IfDef LINUX}
         rx.Expression := '^\s*(libpq)[^=]+=>\s*(\S+)$';
@@ -1923,7 +1930,7 @@ begin
         rx.Expression := '^(gds32|ibclient|fbclient).*\.' + SharedSuffix;
     end;
     case NetTypeGroup of
-      ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
+      ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase: begin
         {$IfDEF LINUX}
         // See https://serverfault.com/a/513938
         Process.RunCommandInDir('', '/sbin/ldconfig', ['-p'], LibMapOutput);
@@ -1943,21 +1950,6 @@ begin
         end;
         {$EndIf}
       end;
-      {ngMSSQL: begin
-        try
-          Providers := TStringList.Create;
-          GetProviderNames(Providers);
-          for Provider in Providers do begin
-            if rx.Exec(Provider) then begin
-              FoundLibs.Add(Provider);
-            end;
-          end;
-          Providers.Free;
-        except
-          //on E:EOleSysError do
-          //  ErrorDialog('OLE provider names not available.' + sLineBreak + E.Message);
-        end;
-      end;}
     end;
     rx.Free;
     FLibraries.Add(NetType, FoundLibs);
@@ -2058,7 +2050,7 @@ begin
 end;
 
 
-{constructor TAdoDBConnection.Create(AOwner: TComponent);
+constructor TSqlSrvConnection.Create(AOwner: TComponent);
 var
   i: Integer;
 begin
@@ -2070,7 +2062,8 @@ begin
     FDatatypes[i] := MSSQLDatatypes[i];
   FInfSch := 'INFORMATION_SCHEMA';
   FMaxRowsPerInsert := 1000;
-end;}
+  FLastRawResults := TSqlSrvResults.Create(False);
+end;
 
 
 constructor TPgConnection.Create(AOwner: TComponent);
@@ -2137,11 +2130,11 @@ begin
 end;
 
 
-{destructor TAdoDBConnection.Destroy;
+destructor TSqlSrvConnection.Destroy;
 begin
   if Active then Active := False;
   try
-    FreeAndNil(FAdoHandle);
+    FreeAndNil(FHandle);
   except
     on E:Exception do begin
       // Destroy > ClearRefs > GetDataSetCount throws some error, but max in Delphi 11.2 yet
@@ -2149,7 +2142,7 @@ begin
     end;
   end;
   inherited;
-end;}
+end;
 
 
 destructor TPgConnection.Destroy;
@@ -2589,7 +2582,7 @@ begin
 end;
 
 
-{procedure TAdoDBConnection.SetActive(Value: Boolean);
+procedure TSqlSrvConnection.SetActive(Value: Boolean);
 var
   Error, NetLib, DataSource, QuotedPassword, ServerVersion, ErrorHint: String;
   FinalHost: String;
@@ -2603,85 +2596,36 @@ begin
     FinalPort := Parameters.Port;
     StartSSHTunnel(FinalHost, FinalPort);
 
-    try
-      // Creating the ADO object throws exceptions if MDAC is missing, especially on Wine
-      FAdoHandle := TStringList.Create; // TAdoConnection.Create(Owner);
-    except
-      on E:Exception do
-        raise EDbError.Create(E.Message+CRLF+CRLF+
-            _('On Wine, you can try to install MDAC:')+CRLF+
-            '> wget http://winetricks.org/winetricks'+CRLF+
-            '> chmod +x winetricks'+CRLF+
-            '> sh winetricks mdac28'+CRLF+
-            '> sh winetricks native_mdac');
-    end;
+    FHandle := TMSSQLConnection.Create(nil);
 
-    IsOldProvider := Parameters.LibraryOrProvider = 'SQLOLEDB';
-    if IsOldProvider then begin
-      MessageDialog(
-        f_('Security issue: Using %s %s with insecure %s.',
-          [Parameters.LibraryOrProvider, 'ADO provider', 'TLS 1.0']) +
-        f_('You should install %s from %s',
-          ['Microsoft OLE DB Driver', 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=56730']),
-        mtWarning, [mbOK]);
-    end;
+    FLib := TSQLDBLibraryLoader.Create(nil);
+    FLib.ConnectionType := 'MSSQLServer';
+    FLib.LibraryName := Parameters.LibraryOrProvider;
+    FLib.Enabled := True;
 
-    NetLib := '';
-    case Parameters.NetType of
-      ntMSSQL_NamedPipe: NetLib := 'DBNMPNTW';
-      ntMSSQL_TCPIP: NetLib := 'DBMSSOCN';
-      ntMSSQL_SPX: NetLib := 'DBMSSPXN';
-      ntMSSQL_VINES: NetLib := 'DBMSVINN';
-      ntMSSQL_RPC: NetLib := 'DBMSRPCN';
-    end;
+    FTransaction := TSQLTransaction.Create(nil);
+    FTransaction.Database := FHandle;
 
-    DataSource := FinalHost;
-    if (Parameters.NetType = ntMSSQL_TCPIP) and (FinalPort <> 0) then
-      DataSource := DataSource + ','+IntToStr(FinalPort);
-
-    // Quote password, just in case there is a semicolon or a double quote in it.
-    // See http://forums.asp.net/t/1957484.aspx?Passwords+ending+with+semi+colon+as+the+terminal+element+in+connection+strings+
-    if Pos('"', Parameters.Password) > 0 then
-      QuotedPassword := ''''+Parameters.Password+''''
-    else
-      QuotedPassword := '"'+Parameters.Password+'"';
-
-    FAdoHandle.ConnectionString := 'Provider='+Parameters.LibraryOrProvider+';'+
-      'Password='+QuotedPassword+';'+
-      'Persist Security Info=True;'+
-      'User ID='+Parameters.Username+';'+
-      'Network Library='+NetLib+';'+
-      'Data Source='+DataSource+';'+
-      'Application Name='+AppName+';'
-      ;
-    if Parameters.LibraryOrProvider.StartsWith('MSOLEDBSQL', true) then begin
-      // Issue #423: MSOLEDBSQL compatibility with new column types
-      // See https://docs.microsoft.com/en-us/sql/connect/oledb/applications/using-ado-with-oledb-driver-for-sql-server?view=sql-server-2017
-      // Do not use with old driver, see https://www.heidisql.com/forum.php?t=35208
-      FAdoHandle.ConnectionString := FAdoHandle.ConnectionString +
-        'DataTypeCompatibility=80;';
-    end;
-
-    // Pass Database setting to connection string. Required on MS Azure?
-    if (not Parameters.AllDatabasesStr.IsEmpty) and (Pos(';', Parameters.AllDatabasesStr)=0) then
-      FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Database='+Parameters.AllDatabasesStr+';';
-
-    if Parameters.WindowsAuth then begin
-      if IsOldProvider then
-        FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Integrated Security=SSPI;'
-      else
-        FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Trusted_Connection=yes;'
-    end;
+    FHandle.Transaction := FTransaction;
+    FHandle.HostName := FinalHost + ':' + FinalPort.ToString;
+    //FHandle.Params.Values['Port'] := FinalPort;
+    FHandle.UserName := Parameters.Username;
+    FHandle.Password := Parameters.Password;
+    FHandle.DatabaseName := 'master';
+    FHandle.Params.Values['AutoCommit'] := 'true';
+    FHandle.Params.Values['ApplicationName'] := APPNAME;
+    // See http://www.heidisql.com/forum.php?t=19779
+    FHandle.Params.Values['TextSize'] := '2147483647';
 
     try
-      FAdoHandle.Connected := True;
-      FConnectionStarted := GetTickCount div 1000;
+      FHandle.Open;
+      FConnectionStarted := GetTickCount64 div 1000;
       FActive := True;
       // No need to set a charset for MS SQL
       // CharacterSet := 'utf8';
       // CurCharset := CharacterSet;
       // Log(lcDebug, 'Characterset: '+CurCharset);
-      FAdoHandle.CommandTimeout := Parameters.QueryTimeout;
+      //FHandle.CommandTimeout := Parameters.QueryTimeout;
       try
         // Gracefully accept failure on MS Azure (SQL Server 11), which does not have a sysprocesses table
         FServerUptime := StrToIntDef(GetVar('SELECT DATEDIFF(SECOND, '+QuoteIdent('login_time')+', CURRENT_TIMESTAMP) FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('sysprocesses')+' WHERE '+QuoteIdent('spid')+'=1'), -1);
@@ -2714,13 +2658,7 @@ begin
         // Keep value from SELECT @@VERSION on older servers
       end;
       rx.Free;
-      // See http://www.heidisql.com/forum.php?t=19779
-      Query('SET TEXTSIZE 2147483647');
       FRealHostname := Parameters.Hostname;
-
-      // Show up dynamic connection properties, probably useful for debugging
-      for i:=0 to FAdoHandle.Properties.Count-1 do
-        Log(lcDebug, f_('OLE DB property "%s": %s', [FAdoHandle.Properties[i].Name, String(FAdoHandle.Properties[i].Value)]));
 
       // Triggers OnDatabaseChange event for <no db>
       Database := '';
@@ -2755,7 +2693,7 @@ begin
     EndSSHTunnel;
     Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
-end; }
+end;
 
 
 procedure TPgConnection.SetActive(Value: Boolean);
@@ -3499,7 +3437,7 @@ begin
 end;
 
 
-{procedure TAdoDBConnection.DoAfterConnect;
+procedure TSqlSrvConnection.DoAfterConnect;
 begin
   inherited;
   // See http://sqlserverbuilds.blogspot.de/
@@ -3542,7 +3480,7 @@ begin
     'VIEW_COLUMN_USAGE,'+
     'VIEW_TABLE_USAGE,'+
     'VIEWS';
-end;}
+end;
 
 
 procedure TPgConnection.DoAfterConnect;
@@ -3584,13 +3522,13 @@ begin
 end;
 
 
-{function TAdoDBConnection.Ping(Reconnect: Boolean): Boolean;
+function TSqlSrvConnection.Ping(Reconnect: Boolean): Boolean;
 begin
   Log(lcDebug, 'Ping server ...');
   if FActive then try
-    FAdoHandle.Execute('SELECT 1');
+    FHandle.ExecuteDirect('SELECT 1');
   except
-    on E:EOleException do begin
+    on E:Exception do begin
       FLastError := E.Message;
       Log(lcError, E.Message);
       Active := False;
@@ -3602,7 +3540,7 @@ begin
   // Restart keep-alive timer
   FKeepAliveTimer.Enabled := False;
   FKeepAliveTimer.Enabled := True;
-end;}
+end;
 
 
 function TPGConnection.Ping(Reconnect: Boolean): Boolean;
@@ -3786,49 +3724,35 @@ begin
 end;
 
 
-{procedure TAdoDBConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
+procedure TSqlSrvConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 var
-  TimerStart: Cardinal;
+  TimerStart: QWord;
   VarRowsAffected: OleVariant;
-  QueryResult, NextResult: _RecordSet;
+  QueryResult, NextResult: TSQLQuery;
   Affected: Int64;
 begin
   inherited;
 
-  TimerStart := GetTickCount;
-  SetLength(FLastRawResults, 0);
+  TimerStart := GetTickCount64;
+  FLastRawResults.Clear;
   try
-    QueryResult := FAdoHandle.ConnectionObject.Execute(SQL, VarRowsAffected, 1);
-    FLastQueryDuration := GetTickCount - TimerStart;
+    QueryResult := TSQLQuery.Create(FHandle); // FAdoHandle.ConnectionObject.Execute(SQL, VarRowsAffected, 1);
+    FLastRawResults.Add(QueryResult);
+    QueryResult.DataBase := FHandle;
+    QueryResult.SQL.Text := SQL;
+    Inc(FRowsAffected, QueryResult.RowsAffected);
+    FLastQueryDuration := GetTickCount64 - TimerStart;
     FLastQueryNetworkDuration := 0;
-
-    // Handle multiple results
-    while(QueryResult <> nil) do begin
-      Affected := VarRowsAffected;
-      Affected := Max(Affected, 0);
-      Inc(FRowsAffected, Affected);
-      NextResult := QueryResult.NextRecordset(VarRowsAffected);
-      if QueryResult.Fields.Count > 0 then begin
-        Inc(FRowsFound, QueryResult.RecordCount);
-        if DoStoreResult then begin
-          SetLength(FLastRawResults, Length(FLastRawResults)+1);
-          FLastRawResults[Length(FLastRawResults)-1] := QueryResult;
-        end else
-          QueryResult := nil;
-      end else
-        QueryResult := nil;
-      QueryResult := NextResult;
-    end;
 
     DetectUSEQuery(SQL);
   except
-    on E:EOleException do begin
+    on E:Exception do begin
       FLastError := E.Message;
       Log(lcError, GetLastErrorMsg);
       raise EDbError.Create(GetLastErrorMsg);
     end;
   end;
-end;}
+end;
 
 
 procedure TPGConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
@@ -4022,7 +3946,7 @@ begin
 end;
 
 
-{function TAdoDBConnection.GetLastResults: TDBQueryList;
+function TSqlSrvConnection.GetLastResults: TDBQueryList;
 var
   r: TDBQuery;
   i: Integer;
@@ -4031,7 +3955,7 @@ begin
   Result := TDBQueryList.Create(False);
   Batch := TSQLBatch.Create;
   Batch.SQL := FLastQuerySQL;
-  for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
+  for i:=0 to FLastRawResults.Count-1 do begin
     r := Parameters.CreateQuery(Self);
     if Batch.Count > i then
       r.SQL := Batch[i].SQL
@@ -4041,7 +3965,7 @@ begin
     Result.Add(r);
   end;
   Batch.Free;
-end; }
+end;
 
 
 function TMySQLConnection.GetCreateCode(Obj: TDBObject): String;
@@ -4490,7 +4414,7 @@ begin
 end;
 
 
-{function TAdoDBConnection.GetThreadId: Int64;
+function TSqlSrvConnection.GetThreadId: Int64;
 begin
   if FThreadId = 0 then begin
     Ping(False);
@@ -4498,7 +4422,7 @@ begin
       FThreadID := StrToInt64Def(GetVar('SELECT @@SPID'), 0);
   end;
   Result := FThreadID;
-end;}
+end;
 
 
 function TPGConnection.GetThreadId: Int64;
@@ -4581,14 +4505,10 @@ begin
 end;
 
 
-{function TAdoDBConnection.GetLastErrorCode: Cardinal;
+function TSqlSrvConnection.GetLastErrorCode: Cardinal;
 begin
-  // SELECT @@SPID throws errors without filling the error pool. See issue #2684.
-  if FAdoHandle.Errors.Count > 0 then
-    Result := FAdoHandle.Errors[FAdoHandle.Errors.Count-1].NativeError
-  else
-    Result := 0;
-end; }
+  Result := 0;
+end;
 
 
 function TPgConnection.GetLastErrorCode: Cardinal;
@@ -4656,27 +4576,13 @@ begin
 end;
 
 
-{function TAdoDBConnection.GetLastErrorMsg: String;
-var
-  Msg: String;
-  rx: TRegExpr;
-  E: Error;
+function TSqlSrvConnection.GetLastErrorMsg: String;
 begin
-  if FAdoHandle.Errors.Count > 0 then begin
-    E := FAdoHandle.Errors[FAdoHandle.Errors.Count-1];
-    Msg := E.Description;
-    // Remove stuff from driver in message "[DBNETLIB][ConnectionOpen (Connect()).]"
-    rx := TRegExpr.Create;
-    rx.Expression := '^\[DBNETLIB\]\[.*\](.+)$';
-    if rx.Exec(Msg) then
-      Msg := rx.Match[1];
-    rx.Free;
-  end else
-    Msg := _('unknown');
-  if (FLastError <> '') and (Pos(FLastError, Msg) = 0) then
-    Msg := FLastError + CRLF + Msg;
-  Result := f_(MsgSQLError, [LastErrorCode, Msg]);
-end;}
+  if FLastError <> '' then
+    Result := f_(MsgSQLError, [LastErrorCode, FLastError])
+  else
+    Result := '';
+end;
 
 
 function TPgConnection.GetLastErrorMsg: String;
@@ -4855,7 +4761,7 @@ begin
 end;
 
 
-{function TAdoDBConnection.GetAllDatabases: TStringList;
+function TSqlSrvConnection.GetAllDatabases: TStringList;
 begin
   Result := inherited;
   if not Assigned(Result) then begin
@@ -4867,7 +4773,7 @@ begin
     ApplyIgnoreDatabasePattern(FAllDatabases);
     Result := FAllDatabases;
   end;
-end;}
+end;
 
 
 function TPGConnection.GetAllDatabases: TStringList;
@@ -5596,7 +5502,7 @@ begin
 end;
 
 
-{function TAdoDBConnection.GetCollationTable: TDBQuery;
+function TSqlSrvConnection.GetCollationTable: TDBQuery;
 begin
   inherited;
   if (not Assigned(FCollationTable)) then
@@ -5607,7 +5513,7 @@ begin
   if Assigned(FCollationTable) then
     FCollationTable.First;
   Result := FCollationTable;
-end;}
+end;
 
 
 {function TInterbaseConnection.GetCollationTable: TDBQuery;
@@ -5660,7 +5566,7 @@ begin
 end;
 
 
-{function TAdoDBConnection.GetCharsetTable: TDBQuery;
+function TSqlSrvConnection.GetCharsetTable: TDBQuery;
 begin
   inherited;
   if not Assigned(FCharsetTable) then
@@ -5668,7 +5574,7 @@ begin
       ' FROM '+QuotedDbAndTableName('master', 'syscharsets')
       );
   Result := FCharsetTable;
-end;}
+end;
 
 
 function TPgConnection.GetCharsetTable: TDBQuery;
@@ -6047,7 +5953,7 @@ begin
 end;
 
 
-{function TAdoDBConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
+function TSqlSrvConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
 var
   Comments: TDBQuery;
   TableCol: TTableColumn;
@@ -6086,7 +5992,7 @@ begin
     on E:EDbError do;
   end;
 
-end;}
+end;
 
 function TPgConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
 var
@@ -6523,7 +6429,7 @@ begin
 end;
 
 
-{function TAdoDbConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
+function TSqlSrvConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
 var
   ForeignQuery: TDBQuery;
   ForeignKey: TForeignKey;
@@ -6558,7 +6464,7 @@ begin
     ForeignQuery.Next;
   end;
   ForeignQuery.Free;
-end;}
+end;
 
 
 function TPgConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
@@ -6843,7 +6749,7 @@ begin
 end;
 
 
-{function TAdoDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
+function TSqlSrvConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
 var
   Rows: String;
 begin
@@ -6857,7 +6763,7 @@ begin
     Rows := GetVar('SELECT COUNT(*) FROM '+Obj.QuotedDbAndTableName);
   end;
   Result := MakeInt(Rows);
-end;}
+end;
 
 
 function TPgConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
@@ -6928,8 +6834,8 @@ begin
   case Parameters.NetTypeGroup of
     ngMySQL:
       Result := Length(TMySQLConnection(Self).LastRawResults);
-    //ngMSSQL:
-    //  Result := Length(TAdoDBConnection(Self).LastRawResults);
+    ngMSSQL:
+      Result := TSqlSrvConnection(Self).LastRawResults.Count;
     ngPgSQL:
       Result := Length(TPGConnection(Self).LastRawResults);
     ngSQLite:
@@ -7414,7 +7320,7 @@ begin
 end;
 
 
-{procedure TAdoDBConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
+procedure TSqlSrvConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
 var
   obj: TDBObject;
   Results: TDBQuery;
@@ -7462,7 +7368,7 @@ begin
     end;
     FreeAndNil(Results);
   end;
-end; }
+end;
 
 
 procedure TPGConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
@@ -7828,23 +7734,16 @@ begin
 end;
 
 
-{function TAdoDBConnection.ConnectionInfo: TStringList;
-var
-  ConnectionString: String;
-  rx: TRegExpr;
+function TSqlSrvConnection.ConnectionInfo: TStringList;
 begin
   Result := Inherited;
   if FActive then begin
-    // clear out password
-    ConnectionString := FAdoHandle.ConnectionString;
-    rx := TRegExpr.Create;
-    rx.ModifierI := True;
-    rx.Expression := '(\Wpassword=)([^;]*)';}
-    //ConnectionString := rx.Replace(ConnectionString, '${1}******', True);
-    {rx.Free;
-    Result.Values[_('Connection string')] := ConnectionString;
+    Result.Values[_('Server type')] := FHandle.GetConnectionInfo(citServerType);
+    Result.Values[_('Server version')] := FHandle.GetConnectionInfo(citServerVersionString);
+    Result.Values[_('Client name')] := FHandle.GetConnectionInfo(citClientName);
+    Result.Values[_('Client version')] := FHandle.GetConnectionInfo(citClientVersion);
   end;
-end; }
+end;
 
 
 function TPgConnection.ConnectionInfo: TStringList;
@@ -8101,7 +8000,7 @@ begin
   FColumnOrgNames.CaseSensitive := False;
   FStoreResult := True;
   FDBObject := nil;
-  //FFormatSettings := TFormatSettings.Create('en-US');
+  FFormatSettings := DefaultFormatSettings;
 end;
 
 
@@ -8165,19 +8064,25 @@ begin
 end;
 
 
-{destructor TAdoDBQuery.Destroy;
+constructor TSqlSrvQuery.Create(AOwner: TComponent);
+begin
+  inherited;
+  FResultList := TSqlSrvResults.Create(False);
+end;
+
+destructor TSqlSrvQuery.Destroy;
 var
   i: Integer;
 begin
   if HasResult and (FConnection <> nil) and (FConnection.Active) then begin
-    for i:=Low(FResultList) to High(FResultList) do begin
+    for i:=0 to FResultList.Count-1 do begin
       FResultList[i].Close;
       FResultList[i].Free;
     end;
   end;
-  SetLength(FResultList, 0);
+  FResultList.Clear;
   inherited;
-end;}
+end;
 
 
 destructor TPGQuery.Destroy;
@@ -8327,11 +8232,11 @@ begin
 end;
 
 
-{procedure TAdoDBQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
+procedure TSqlSrvQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
   i, j, NumFields, NumResults: Integer;
   TypeIndex: TDBDatatypeIndex;
-  LastResult: TAdoQuery;
+  LastResult: TSQLQuery;
 begin
   // TODO: Handle multiple results
   if UseRawResult = -1 then begin
@@ -8339,18 +8244,17 @@ begin
     UseRawResult := 0;
   end;
   if Connection.ResultCount > UseRawResult then begin
-    LastResult := TAdoQuery.Create(Self);
-    LastResult.Recordset := TAdoDBConnection(Connection).LastRawResults[UseRawResult];
+    LastResult := TSqlSrvConnection(Connection).LastRawResults[UseRawResult];
     LastResult.Open;
   end else begin
     LastResult := nil;
   end;
-  if AddResult and (Length(FResultList) = 0) then
+  if AddResult and (FResultList.Count = 0) then
     AddResult := False;
   if AddResult then
-    NumResults := Length(FResultList)+1
+    NumResults := FResultList.Count+1
   else begin
-    for i:=Low(FResultList) to High(FResultList) do begin
+    for i:=0 to FResultList.Count-1 do begin
       FResultList[i].Close;
       FResultList[i].Free;
     end;
@@ -8361,8 +8265,7 @@ begin
   end;
   if LastResult <> nil then begin
     LogMetaInfo(NumResults);
-    SetLength(FResultList, NumResults);
-    FResultList[NumResults-1] := LastResult;
+    FResultList.Add(LastResult);
     FRecordCount := FRecordCount + LastResult.RecordCount;
   end;
 
@@ -8378,7 +8281,7 @@ begin
       FColumnOrgNames.Clear;
       for i:=0 to NumFields-1 do begin
         FColumnNames.Add(LastResult.Fields[i].FieldName);
-        FColumnOrgNames.Add(FColumnNames[i]); }
+        FColumnOrgNames.Add(FColumnNames[i]);
         { ftUnknown, ftString, ftSmallint, ftInteger, ftWord, // 0..4
           ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate, ftTime, ftDateTime, // 5..11
           ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo, // 12..18
@@ -8388,7 +8291,7 @@ begin
           ftFixedWideChar, ftWideMemo, ftOraTimeStamp, ftOraInterval, // 38..41
           ftLongWord, ftShortint, ftByte, ftExtended, ftConnection, ftParams, ftStream, //42..48
           ftTimeStampOffset, ftObject, ftSingle //49..51 }
-        {case LastResult.Fields[i].DataType of
+        case LastResult.Fields[i].DataType of
           ftSmallint, ftWord:
             TypeIndex := dbdtMediumInt;
           ftInteger:
@@ -8440,7 +8343,7 @@ begin
       SetLength(FColumnFlags, 0);
     end;
   end;
-end;}
+end;
 
 
 procedure TPGQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
@@ -8778,7 +8681,7 @@ begin
 end;
 
 
-{procedure TAdoDBQuery.SetRecNo(Value: Int64);
+procedure TSqlSrvQuery.SetRecNo(Value: Int64);
 var
   i, j: Integer;
   RowFound: Boolean;
@@ -8811,7 +8714,7 @@ begin
     if not RowFound then begin
       NumRows := 0;
       try
-        for i:=Low(FResultList) to High(FResultList) do begin
+        for i:=0 to FResultList.Count-1 do begin
           Inc(NumRows, FResultList[i].RecordCount);
           if NumRows > Value then begin
             FCurrentResults := FResultList[i];
@@ -8825,7 +8728,7 @@ begin
         end;
       except
         // Catch broken connection
-        on E:EOleException do begin
+        on E:Exception do begin
           FConnection.Active := False;
           FConnection.Log(lcError, E.Message);
         end;
@@ -8835,7 +8738,7 @@ begin
     FRecNo := Value;
     FEof := False;
   end;
-end;}
+end;
 
 
 procedure TPGQuery.SetRecNo(Value: Int64);
@@ -9098,7 +9001,7 @@ begin
 end;
 
 
-{function TAdoDBQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
+function TSqlSrvQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 begin
   if ColumnExists(Column) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
@@ -9107,7 +9010,7 @@ begin
       try
         case Datatype(Column).Category of
           dtcReal:
-            Result := FloatToStr(FCurrentResults.Fields[Column].AsExtended, FFormatSettings);
+            Result := FloatToStr(FCurrentResults.Fields[Column].AsFloat, FFormatSettings);
           dtcTemporal:
             Result := FormatDateTime(Datatype(Column).Format, FCurrentResults.Fields[Column].AsFloat);
           else
@@ -9125,7 +9028,7 @@ begin
     end;
   end else if not IgnoreErrors then
     Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
-end;}
+end;
 
 
 function TPGQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
@@ -9299,11 +9202,11 @@ begin
 end;
 
 
-{function TAdoDBQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
+function TSqlSrvQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
 begin
 //  Result := FCurrentResults.Fields[0].KeyFields
   Result := False;
-end;}
+end;
 
 
 function TPGQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
@@ -9349,10 +9252,10 @@ begin
 end;
 
 
-{function TAdoDBQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
+function TSqlSrvQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
 begin
   Result := False;
-end;}
+end;
 
 
 function TPGQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
@@ -9380,10 +9283,10 @@ begin
 end;
 
 
-{function TAdoDbQuery.ColIsKeyPart(Column: Integer): Boolean;
+function TSqlSrvQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
   Result := FCurrentResults.Fields[Column].IsIndexField;
-end;}
+end;
 
 
 function TPGQuery.ColIsKeyPart(Column: Integer): Boolean;
@@ -9444,7 +9347,7 @@ begin
 end;
 
 
-{function TAdoDBQuery.IsNull(Column: Integer): Boolean;
+function TSqlSrvQuery.IsNull(Column: Integer): Boolean;
 begin
   Result := False;
   // Catch broken connection
@@ -9462,7 +9365,7 @@ begin
       end;
     end;
   end;
-end;}
+end;
 
 
 function TPGQuery.IsNull(Column: Integer): Boolean;
@@ -9507,10 +9410,10 @@ begin
 end;
 
 
-{function TAdoDBQuery.HasResult: Boolean;
+function TSqlSrvQuery.HasResult: Boolean;
 begin
-  Result := Length(FResultList) > 0;
-end;}
+  Result := FResultList.Count > 0;
+end;
 
 
 function TPGQuery.HasResult: Boolean;
@@ -9968,10 +9871,10 @@ begin
 end;
 
 
-{function TAdoDBQuery.DatabaseName: String;
+function TSqlSrvQuery.DatabaseName: String;
 begin
   Result := Connection.Database;
-end;}
+end;
 
 
 function TPGQuery.DatabaseName: String;
@@ -10060,10 +9963,10 @@ begin
 end;
 
 
-{function TAdoDBQuery.TableName(Column: Integer): String;
+function TSqlSrvQuery.TableName(Column: Integer): String;
 begin
   Result := '';
-end;}
+end;
 
 function TPGQuery.TableName(Column: Integer): String;
 var
