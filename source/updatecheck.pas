@@ -42,6 +42,7 @@ type
     procedure DownloadProgress(Sender: TObject);
     function GetLinkUrl(Sender: TObject; LinkType: String): String;
     function GetTaskXmlFileContents: String;
+    function AppDirIsWritable: Boolean;
   public
     { Public declarations }
     BuildRevision: Integer;
@@ -210,6 +211,7 @@ begin
       SaveUnicodeFile(TaskXmlFile, GetTaskXmlFileContents, UTF8NoBOMEncoding);
       FRestartTaskName := ValidFilename(ParamStr(0));
       ShellExec('schtasks', '', '/Create /TN "'+FRestartTaskName+'" /xml '+TaskXmlFile, True);
+      btnBuild.ElevationRequired := not AppDirIsWritable;
     end;
 
   end;
@@ -236,7 +238,7 @@ begin
         Close;
       end
       else if Link = SLinkInstructionsPortable then begin
-        MessageDialog(f_('Download the portable package and extract it in %s', [ExtractFilePath(Application.ExeName)]), mtInformation, [mbOK]);
+        MessageDialog(f_('Download the portable package and extract it in %s', [GetAppDir]), mtInformation, [mbOK]);
       end;
     end;
 
@@ -421,6 +423,21 @@ begin
     '    </Exec>' + sLineBreak +
     '  </Actions>' + sLineBreak +
     '</Task>';
+end;
+
+
+function TfrmUpdateCheck.AppDirIsWritable: Boolean;
+var
+  TestFile: string;
+  H: THandle;
+begin
+  TestFile := IncludeTrailingPathDelimiter(GetAppDir) + 'chk.tmp';
+  H := CreateFile(PChar(TestFile), GENERIC_READ or GENERIC_WRITE, 0, nil,
+    CREATE_NEW, FILE_ATTRIBUTE_TEMPORARY or FILE_FLAG_DELETE_ON_CLOSE, 0);
+  Result := H <> INVALID_HANDLE_VALUE;
+  if Result then
+    CloseHandle(H);
+  DeleteFile(TestFile);
 end;
 
 
