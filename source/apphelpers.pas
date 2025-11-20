@@ -4077,7 +4077,7 @@ begin
   InitSetting(asDateTimeEditorCursorPos,          'DateTimeEditor_CursorPos_Type%s',       0);
   InitSetting(asAppLanguage,                      'Language',                              0, False, '');
   InitSetting(asAutoExpand,                       'AutoExpand',                            0, False);
-  InitSetting(asDoubleClickInsertsNodeText,       'DoubleClickInsertsNodeText',            0, True);
+  InitSetting(asDoubleClickInsertsNodeText,       'DoubleClickInsertsNodeText',            0, False);
   InitSetting(asForeignDropDown,                  'ForeignDropDown',                       0, True);
   InitSetting(asIncrementalSearch,                'IncrementalSearch',                     0, True);
   InitSetting(asQueryHistoryEnabled,              'QueryHistory',                          0, True);
