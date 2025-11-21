@@ -11386,7 +11386,7 @@ end;
 procedure TMainForm.ListDatabasesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
   var InitialStates: TVirtualNodeInitStates);
 var
-  Idx: PInt;
+  Idx: PInt64;
 begin
   // Integers mapped to the node's index so nodes can be sorted without losing their database name
   Idx := Sender.GetNodeData(Node);
@@ -11397,7 +11397,7 @@ end;
 procedure TMainForm.ListDatabasesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
-  Idx: PInt;
+  Idx: PInt64;
   Objects: TDBObjectList;
   DBname: String;
   Conn: TDBConnection;
@@ -13849,7 +13849,8 @@ begin
     actCancelOperation.ImageIndex := 159;
     actCancelOperation.Enabled := Runs;
     FOperationTicker := IfThen(Runs, GetTickCount, 0);
-    Application.ProcessMessages;
+    // Caution: crashes with QT, see issue #2270. Todo: find another way to repaint the "cancel" button at once.
+    // Application.ProcessMessages;
   end else if Runs then begin
     if (GetTickCount-FOperationTicker) > 250 then begin
       // Signalize running operation
@@ -13857,7 +13858,8 @@ begin
         actCancelOperation.ImageIndex := 160
       else
         actCancelOperation.ImageIndex := 159;
-      Application.ProcessMessages;
+      // See above
+      // Application.ProcessMessages;
       FOperationTicker := GetTickCount;
     end;
   end;

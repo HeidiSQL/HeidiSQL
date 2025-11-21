@@ -12,7 +12,6 @@ type
   // Delphi type aliases
   TSynMemo = TSynEdit;
   TVirtualStringTree = TLazVirtualStringTree;
-  PInt = ^Integer;
   TProgressBarState = (pbsNormal, pbsError, pbsPaused);
 
   // Add methods which exist in Delphi but not in Lazarus
