@@ -433,6 +433,7 @@ type
   function EscapeHotkeyPrefix(Text: String): String;
   function GetFileNameWithoutExtension(Filename: String): String;
   function GetCommandLine: String;
+  // This returns a stable, lowercase name "heidisql", used for configuration files and translations
   function GetApplicationName: String;
 
 var
@@ -2677,7 +2678,7 @@ begin
   if LangCode.IsEmpty then
     LangCode := SysLanguage;
   LocaleDir := AppendPathDelim(ExtractFilePath(Application.ExeName)) + AppendPathDelim('locale');
-  AppLanguageMoBasePath := LocaleDir + LowerCase(APPNAME);
+  AppLanguageMoBasePath := LocaleDir + GetApplicationName;
   MOFileName := '';
   if not LangCode.IsEmpty then begin
     MOFileName := AppLanguageMoBasePath + '.' + LangCode + '.mo';
