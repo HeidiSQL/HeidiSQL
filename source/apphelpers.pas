@@ -2670,15 +2670,13 @@ end;
 
 procedure InitMoFile(LangCode: String);
 var
-  LocaleDir, BaseName, MOFileName: String;
+  LocaleDir, MOFileName: String;
 begin
   // Initialize .mo file in the given language, so we can use that for translating via _()
   if LangCode.IsEmpty then
     LangCode := SysLanguage;
   LocaleDir := AppendPathDelim(ExtractFilePath(Application.ExeName)) + AppendPathDelim('locale');
-  BaseName := ExtractFileName(Application.ExeName);
-  BaseName := GetFileNameWithoutExtension(BaseName);
-  AppLanguageMoBasePath := LocaleDir + BaseName;
+  AppLanguageMoBasePath := LocaleDir + LowerCase(APPNAME);
   MOFileName := '';
   if not LangCode.IsEmpty then begin
     MOFileName := AppLanguageMoBasePath + '.' + LangCode + '.mo';
