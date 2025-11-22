@@ -433,6 +433,7 @@ type
   function EscapeHotkeyPrefix(Text: String): String;
   function GetFileNameWithoutExtension(Filename: String): String;
   function GetCommandLine: String;
+  function GetApplicationName: String;
 
 var
   AppSettings: TAppSettings;
@@ -3119,6 +3120,10 @@ begin
   end;
 end;}
 
+function GetApplicationName: String;
+begin
+  Result := LowerCase(APPNAME);
+end;
 
 { Threading stuff }
 
@@ -4657,6 +4662,9 @@ DateTimeNever := MinDateTime;
 
 //ConfirmIcon := TIcon.Create;
 //ConfirmIcon.LoadFromResourceName(hInstance, 'Z_ICONQUESTION');
+
+// Callback used by osutil.inc:ApplicationName(), forcing a stable configuration directory. See issue #2310
+OnGetApplicationName := @GetApplicationName;
 
 end.
 
