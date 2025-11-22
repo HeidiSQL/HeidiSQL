@@ -37,7 +37,7 @@ begin
   AppLanguage := AppSettings.ReadString(asAppLanguage);
   // SysLanguage may be zh_CN, while we don't offer such a language, but anyway, this is just the current system language:
   SysLanguage := GetLanguageID.LanguageCode;
-  LCLTranslator.SetDefaultLang(AppLanguage);
+  LCLTranslator.SetDefaultLang(AppLanguage, '', GetApplicationName);
   InitMoFile(AppLanguage);
 
   // Enable padding in customized tooltips
