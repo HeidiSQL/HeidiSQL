@@ -1517,11 +1517,11 @@ begin
       ntMySQL_SSHtunnel:        Result := PrefixMysql+' (SSH tunnel)';
       ntMySQL_ProxySQLAdmin:    Result := PrefixProxysql+' (Experimental)';
       ntMySQL_RDS:              Result := 'MySQL on RDS';
-      ntMSSQL_NamedPipe:        Result := PrefixMssql+' (named pipe)';
+      ntMSSQL_NamedPipe:        Result := PrefixMssql+' (named pipe, unsuppported)';
       ntMSSQL_TCPIP:            Result := PrefixMssql+' (TCP/IP)';
-      ntMSSQL_SPX:              Result := PrefixMssql+' (SPX/IPX)';
-      ntMSSQL_VINES:            Result := PrefixMssql+' (Banyan VINES)';
-      ntMSSQL_RPC:              Result := PrefixMssql+' (Windows RPC)';
+      ntMSSQL_SPX:              Result := PrefixMssql+' (SPX/IPX, unsuppported)';
+      ntMSSQL_VINES:            Result := PrefixMssql+' (Banyan VINES, unsuppported)';
+      ntMSSQL_RPC:              Result := PrefixMssql+' (Windows RPC, unsuppported)';
       ntPgSQL_TCPIP:            Result := PrefixPostgres+' (TCP/IP)';
       ntPgSQL_SSHtunnel:        Result := PrefixPostgres+' (SSH tunnel)';
       ntSQLite:                 Result := PrefixSqlite;
@@ -1785,12 +1785,11 @@ var
 begin
   Result := '';
   case NetTypeGroup of
-    ngMySQL, ngPgSQL, ngSQLite: begin
+    ngMySQL, ngMSSQL, ngPgSQL, ngSQLite: begin
       AllLibs := GetLibraries;
       if AllLibs.Count > 0 then
         Result := AllLibs[0];
     end;
-    ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
     ngInterbase: begin
       if IsInterbase then
         Result := IfThen(GetExecutableBits=64, 'ibclient64.', 'gds32.') + SharedSuffix
@@ -2590,6 +2589,12 @@ var
   FinalPort: Integer;
 begin
   if Value then begin
+    if Parameters.NetType <> ntMSSQL_TCPIP then begin
+       raise EDbError.Create('No longer supported network type: '+Parameters.NetTypeName(True),
+           0,
+           'Please select the TCP/IP type for MS SQL instead');
+    end;
+
     DoBeforeConnect;
     FinalHost := Parameters.Hostname;
     FinalPort := Parameters.Port;
