@@ -5,16 +5,17 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus,
-  ActnList, ComCtrls, ExtCtrls, LCLProc, DateUtils, SynEdit, SynEditHighlighter,
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, ActnList,
+  ComCtrls, ExtCtrls, LCLProc, DateUtils, SynEdit, SynEditHighlighter,
   SynHighlighterSQL, SynGutterBase, SynCompletion, SynEditKeyCmds, SynEditTypes,
-  SynGutter, SynGutterCodeFolding,
-  StrUtils, laz.VirtualTrees, laz.VTHeaderPopup, RegExpr,
-  Buttons, StdCtrls, fphttpclient, Math, LCLIntf, Generics.Collections,
-  Generics.Defaults, opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn,
-  FileUtil, LMessages, jsonconf, DelphiCompat, LazStringUtils, dbconnection, dbstructures, dbstructures.mysql,
-  generic_types, apphelpers, extra_controls, createdatabase,
-  SynEditMarkupBracket, searchreplace, ImgList, IniFiles, LazFileUtils, tabletools, lazaruscompat;
+  SynGutter, SynGutterLineNumber, SynGutterCodeFolding, StrUtils, laz.VirtualTrees,
+  laz.VTHeaderPopup, RegExpr, Buttons, StdCtrls, fphttpclient, Math, LCLIntf,
+  Generics.Collections, Generics.Defaults, opensslsockets, StdActns, Clipbrd,
+  Types, LCLType, EditBtn, FileUtil, LMessages, jsonconf, DelphiCompat,
+  LazStringUtils, dbconnection, dbstructures, dbstructures.mysql, generic_types,
+  apphelpers, extra_controls, createdatabase, SynEditMarkupBracket,
+  searchreplace, ImgList, IniFiles, LazFileUtils, tabletools,
+  lazaruscompat;
 
 
 type
@@ -191,6 +192,7 @@ type
   { TMainForm }
 
   TMainForm = class(TExtForm)
+    ImageListSynBookMarks: TImageList;
     popupListHeader: TLazVTHeaderPopupMenu;
     MainMenu1: TMainMenu;
     MainMenuFile: TMenuItem;
@@ -12249,6 +12251,7 @@ var
   i: Integer;
   QueryTab, OldTab: TQueryTab;
   HelperColumn: TVirtualTreeColumn;
+  SeparatorPart: TSynGutterSeparator;
 begin
   i := QueryTabs[QueryTabs.Count-1].Number + 1;
   OldTab := QueryTabs.ActiveTab;
@@ -12300,18 +12303,10 @@ begin
   QueryTab.Memo.WantTabs := SynMemoQuery.WantTabs;
   QueryTab.Memo.Highlighter := SynMemoQuery.Highlighter;
   QueryTab.Memo.Gutter.Width := SynMemoQuery.Gutter.Width;
-  // Todo: adding and gutter part results in EAccessviolation's when closing a query tab.
-  // Fix that and use the same gutter as in mother query tab
-  // In the meantime we let SynEdit use TSynGutter.CreateDefaultGutterParts
-  //for GutterPartIndex:=0 to SynMemoQuery.Gutter.Parts.Count-1 do begin
-  //  QueryTab.Memo.Gutter.Parts.Add(SynMemoQuery.Gutter.Parts[GutterPartIndex].ClassType.Create(QueryTab.Memo.Gutter.Parts));
-  //  QueryTab.Memo.Gutter.Parts[GutterPartIndex].Width := SynMemoQuery.Gutter.Parts[GutterPartIndex].Width;
-  //end;
-  //QueryTab.Memo.Gutter.Parts.Clear;
-  //QueryTab.Memo.Gutter.Parts.Add(TSynGutterLineNumber.Create(QueryTab.Memo.Gutter.Parts));
-  //QueryTab.Memo.Gutter.Parts[0].Width := SynMemoQuery.Gutter.Parts[0].Width;
-  //QueryTab.Memo.Gutter.Parts.Add(TSynGutterCodeFolding.Create(QueryTab.Memo.Gutter.Parts));
-  //QueryTab.Memo.Gutter.Parts[1].Width := SynMemoQuery.Gutter.Parts[1].Width;
+  SeparatorPart := QueryTab.Memo.Gutter.SeparatorPart(0);
+  if Assigned(SeparatorPart) then begin // Remove ugly separator, added by default in TSynGutter.CreateDefaultGutterParts
+    QueryTab.Memo.Gutter.Parts.Delete(SeparatorPart.Index);
+  end;
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
   QueryTab.Memo.LineHighlightColor.Background := SynMemoQuery.LineHighlightColor.Background;
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
@@ -13369,6 +13364,8 @@ end;
 procedure TMainForm.SetupSynEditor(Editor: TSynMemo);
 var
   BaseEditor: TSynMemo;
+  LineNumberPart: TSynGutterLineNumber;
+  CodeFoldingPart: TSynGutterCodeFolding;
 begin
   LogSQL('Setting up TSynMemo "'+Editor.Name+'"', lcDebug);
   BaseEditor := SynMemoQuery;
@@ -13377,6 +13374,12 @@ begin
   Editor.Font.Name := AppSettings.ReadString(asFontName);
   Editor.Font.Size := AppSettings.ReadInt(asFontSize);
   Editor.Font.Quality := fqCleartypeNatural;
+  LineNumberPart := Editor.Gutter.LineNumberPart(0);
+  if Assigned(LineNumberPart) then begin
+    LineNumberPart.LeftOffset := 2;
+    LineNumberPart.MarkupInfo.Foreground := clGrayText;
+  end;
+  Editor.BookMarkOptions.BookmarkImages := ImageListSynBookMarks;
   //Editor.Gutter.BorderColor := GetThemeColor(clWindow);
   //Editor.Gutter.Font.Name := Editor.Font.Name;
   //Editor.Gutter.Font.Size := Editor.Font.Size;
@@ -13390,8 +13393,11 @@ begin
     // Probably use TLazSynEditLineWrapPlugin?
     {Editor.WordWrap := actQueryWordWrap.Checked;
     // Assignment of OnScanForFoldRanges event is required for UseCodeFolding
-    Editor.OnScanForFoldRanges := BaseEditor.OnScanForFoldRanges;
-    Editor.UseCodeFolding := actCodeFolding.Checked;}
+    Editor.OnScanForFoldRanges := BaseEditor.OnScanForFoldRanges;}
+    CodeFoldingPart := Editor.Gutter.CodeFoldPart(0);
+    if Assigned(CodeFoldingPart) then begin
+      CodeFoldingPart.Visible := actCodeFolding.Checked;
+    end;
   end;
   Editor.LineHighlightColor.Background := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
   Editor.Options := BaseEditor.Options;
