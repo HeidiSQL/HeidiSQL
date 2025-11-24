@@ -192,6 +192,7 @@ type
   { TMainForm }
 
   TMainForm = class(TExtForm)
+    ImageListSilk: TImageList;
     ImageListSynBookMarks: TImageList;
     popupListHeader: TLazVTHeaderPopupMenu;
     MainMenu1: TMainMenu;
