@@ -12288,9 +12288,11 @@ begin
   QueryTab.Memo.WantTabs := SynMemoQuery.WantTabs;
   QueryTab.Memo.Highlighter := SynMemoQuery.Highlighter;
   QueryTab.Memo.Gutter.Width := SynMemoQuery.Gutter.Width;
+  // Hide ugly separator, added by default in TSynGutter.CreateDefaultGutterParts
+  // Calling Gutter.Parts.Delete crashes, so we just hide it!
   SeparatorPart := QueryTab.Memo.Gutter.SeparatorPart(0);
-  if Assigned(SeparatorPart) then begin // Remove ugly separator, added by default in TSynGutter.CreateDefaultGutterParts
-    QueryTab.Memo.Gutter.Parts.Delete(SeparatorPart.Index);
+  if Assigned(SeparatorPart) then begin
+    SeparatorPart.Visible := False;
   end;
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
   QueryTab.Memo.LineHighlightColor.Background := SynMemoQuery.LineHighlightColor.Background;
