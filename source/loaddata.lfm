@@ -90,7 +90,7 @@ object loaddataform: Tloaddataform
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ButtonWidth = 29
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 51
       MaxLength = 0
       NumGlyphs = 1
@@ -477,7 +477,7 @@ object loaddataform: Tloaddataform
       ButtonHeight = 35
       ButtonWidth = 74
       Caption = 'ToolBarColMove'
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       List = True
       ParentShowHint = False
       ShowCaptions = True

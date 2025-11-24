@@ -133,7 +133,7 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     BorderSpacing.Around = 6
     ButtonHint = 'Color picker'
     ButtonWidth = 29
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     ImageIndex = 33
     MaxLength = 0
     NumGlyphs = 1
@@ -153,7 +153,7 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     BorderSpacing.Around = 6
     ButtonHint = 'Color picker'
     ButtonWidth = 29
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     ImageIndex = 33
     MaxLength = 0
     NumGlyphs = 1

@@ -435,6 +435,7 @@ type
   function GetCommandLine: String;
   // This returns a stable, lowercase name "heidisql", used for configuration files and translations
   function GetApplicationName: String;
+  procedure CopyImageList(SourceList, TargetList: TImageList);
 
 var
   AppSettings: TAppSettings;
@@ -1903,7 +1904,7 @@ begin
       Continue;
 
     popup := TPopupMenu.Create(Self);
-    popup.Images := MainForm.VirtualImageListMain;
+    popup.Images := MainForm.ImageListMain;
 
     Item := TMenuItem.Create(popup);
     Item.Action := MainForm.actCopy;
@@ -3125,6 +3126,32 @@ function GetApplicationName: String;
 begin
   Result := LowerCase(APPNAME);
 end;
+
+procedure CopyImageList(SourceList, TargetList: TImageList);
+var
+  i, j, ResIdx, ResWidth: Integer;
+  TempBitmap: TBitmap;
+  TempBitmapList: Array of TRasterImage;
+const
+  Resolutions: Array of Integer = [16, 24, 32, 48];
+begin
+  // TImageList.AddImages copies only the current PPI versions of images. Following code copies all resolutions.
+  TargetList.Clear;
+  TargetList.RegisterResolutions(Resolutions);
+  for i:=0 to SourceList.Count-1 do
+  begin
+    SetLength(TempBitmapList, 0);
+    SetLength(TempBitmapList, Length(Resolutions));
+    for ResIdx:=Low(Resolutions) to High(Resolutions) do begin
+      ResWidth := Resolutions[ResIdx];
+      TempBitmap := TBitmap.Create;
+      SourceList.Resolution[ResWidth].GetBitmap(i, TempBitmap);
+      TempBitmapList[ResIdx] := TempBitmap;
+    end;
+    TargetList.AddMultipleResolutions(TempBitmapList);
+  end;
+end;
+
 
 { Threading stuff }
 

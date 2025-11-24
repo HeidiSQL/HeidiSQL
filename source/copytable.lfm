@@ -102,7 +102,7 @@ object CopyTableForm: TCopyTableForm
     Header.AutoSizeIndex = 0
     Header.Columns = <>
     Header.MainColumn = -1
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     TabOrder = 2
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
@@ -206,7 +206,7 @@ object CopyTableForm: TCopyTableForm
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 6
     Caption = 'Recent filters'
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     ImageIndex = 108
     OnClick = btnRecentFiltersClick
   end

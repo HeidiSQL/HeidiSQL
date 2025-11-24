@@ -501,7 +501,7 @@ var
   Highlighter: TSynSQLSyn;
   Name: String;
   GridColorsPreset: TGridColorsPreset;
-  //IconPack: String;
+  IconPack: String;
   Reformatter: TfrmReformatter;
 begin
   HasSizeGrip := True;
@@ -529,13 +529,13 @@ begin
 
   // Populate icon pack dropdown from image collections on main form
   comboIconPack.Items.Clear;
-  {for i:=0 to MainForm.ComponentCount-1 do begin
-    if MainForm.Components[i] is TImageCollection then begin
+  for i:=0 to MainForm.ComponentCount-1 do begin
+    if (MainForm.Components[i] is TImageList) and (MainForm.Components[i].Tag <> 0) then begin
       IconPack := MainForm.Components[i].Name;
-      IconPack := StringReplace(IconPack, 'ImageCollection', '', [rfIgnoreCase]);
+      IconPack := StringReplace(IconPack, 'ImageList', '', [rfIgnoreCase]);
       comboIconPack.Items.Add(IconPack);
     end;
-  end;}
+  end;
 
   // Data
   // Populate datatype categories pulldown

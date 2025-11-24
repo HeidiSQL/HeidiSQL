@@ -397,7 +397,7 @@ object AboutBox: TAboutBox
     OnClick = lnklblWebpageClick
   end
   object popupLabels: TPopupMenu
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     Left = 40
     Top = 180
     object menuCopyLabel: TMenuItem

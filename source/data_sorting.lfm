@@ -9,10 +9,10 @@ object frmDataSorting: TfrmDataSorting
   ClientWidth = 255
   Color = clBtnFace
   DesignTimePPI = 120
+  LCLVersion = '4.2.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
-  LCLVersion = '3.8.0.0'
   object pnlBevel: TPanel
     Left = 0
     Height = 121
@@ -66,7 +66,7 @@ object frmDataSorting: TfrmDataSorting
       Width = 156
       Action = MainForm.actDataResetSorting
       Anchors = [akRight, akBottom]
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 139
     end
   end

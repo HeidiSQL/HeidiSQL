@@ -9,11 +9,11 @@ object frmTableTools: TfrmTableTools
   ClientWidth = 955
   Color = clBtnFace
   DesignTimePPI = 120
+  Position = poMainFormCenter
+  LCLVersion = '4.2.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
-  Position = poMainFormCenter
-  LCLVersion = '3.8.0.0'
   object lblCheckedSize: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideBottom.Control = btnSeeResults
@@ -88,7 +88,7 @@ object frmTableTools: TfrmTableTools
         Header.AutoSizeIndex = -1
         Header.Columns = <>
         Header.Height = 25
-        Header.Images = MainForm.ImageListIcons8
+        Header.Images = MainForm.ImageListMain
         Header.MainColumn = -1
         Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
@@ -112,8 +112,8 @@ object frmTableTools: TfrmTableTools
         ActivePage = tabMaintenance
         Align = alTop
         AutoSize = True
-        Images = MainForm.ImageListIcons8
-        TabIndex = 2
+        Images = MainForm.ImageListMain
+        TabIndex = 0
         TabOrder = 1
         OnChange = ValidateControls
         object tabMaintenance: TTabSheet
@@ -586,7 +586,7 @@ object frmTableTools: TfrmTableTools
             Width = 29
             Anchors = [akTop, akRight]
             BorderSpacing.Around = 6
-            Images = MainForm.ImageListIcons8
+            Images = MainForm.ImageListMain
             ImageIndex = 51
             OnClick = btnExportOutputTargetSelectClick
           end
@@ -960,17 +960,17 @@ object frmTableTools: TfrmTableTools
           Top = 0
           Width = 61
           ButtonWidth = 29
-          Images = MainForm.ImageListIcons8
+          Images = MainForm.ImageListMain
           ImageIndex = 193
           MaxLength = 0
           NumGlyphs = 1
-          OnButtonClick = editDatabaseTableFilterRightButtonClick
-          OnChange = editDatabaseTableFilterChange
-          OnKeyPress = editDatabaseTableFilterKeyPress
           PasswordChar = #0
           TabOrder = 0
           Text = 'editDatabaseFilter'
           TextHint = 'Database filter'
+          OnButtonClick = editDatabaseTableFilterRightButtonClick
+          OnChange = editDatabaseTableFilterChange
+          OnKeyPress = editDatabaseTableFilterKeyPress
         end
         object editTableFilter: TEditButton
           Left = 74
@@ -979,17 +979,17 @@ object frmTableTools: TfrmTableTools
           Top = 0
           Width = 85
           ButtonWidth = 29
-          Images = MainForm.ImageListIcons8
+          Images = MainForm.ImageListMain
           ImageIndex = 193
           MaxLength = 0
           NumGlyphs = 1
-          OnButtonClick = editDatabaseTableFilterRightButtonClick
-          OnChange = editDatabaseTableFilterChange
-          OnKeyPress = editDatabaseTableFilterKeyPress
           PasswordChar = #0
           TabOrder = 1
           Text = 'editTableFilter'
           TextHint = 'Table filter'
+          OnButtonClick = editDatabaseTableFilterRightButtonClick
+          OnChange = editDatabaseTableFilterChange
+          OnKeyPress = editDatabaseTableFilterKeyPress
         end
       end
       object TreeObjects: TLazVirtualStringTree
@@ -1012,7 +1012,7 @@ object frmTableTools: TfrmTableTools
           end>
         Header.Height = 32
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         IncrementalSearch = isInitializedOnly
         PopupMenu = popupTree
         TabOrder = 1
@@ -1064,7 +1064,7 @@ object frmTableTools: TfrmTableTools
     OnClick = btnSeeResultsClick
   end
   object popupTree: TPopupMenu
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     Left = 180
     Top = 440
     object menuCheckNone: TMenuItem

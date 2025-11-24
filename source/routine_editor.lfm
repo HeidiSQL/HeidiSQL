@@ -187,7 +187,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     AutoSize = True
     BorderSpacing.Around = 6
     Constraints.MinHeight = 125
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     TabIndex = 0
     TabOrder = 0
     OnChange = PageControlMainChange
@@ -442,7 +442,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Header.MainColumn = 1
         Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         NodeDataSize = 0
         TabOrder = 0
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
@@ -467,7 +467,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         ButtonHeight = 35
         ButtonWidth = 102
         Caption = 'tlbParameters'
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         List = True
         ShowCaptions = True
         TabOrder = 1
@@ -616,7 +616,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Action = MainForm.actRunRoutines
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 6
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     ImageIndex = 35
   end
 end

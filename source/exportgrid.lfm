@@ -138,7 +138,7 @@ object frmExportGrid: TfrmExportGrid
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ButtonWidth = 29
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 51
       MaxLength = 0
       NumGlyphs = 1
@@ -238,7 +238,7 @@ object frmExportGrid: TfrmExportGrid
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ButtonWidth = 29
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 108
       MaxLength = 0
       NumGlyphs = 1
@@ -258,7 +258,7 @@ object frmExportGrid: TfrmExportGrid
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ButtonWidth = 29
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 108
       MaxLength = 0
       NumGlyphs = 1
@@ -277,7 +277,7 @@ object frmExportGrid: TfrmExportGrid
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ButtonWidth = 29
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 108
       MaxLength = 0
       NumGlyphs = 1
@@ -319,7 +319,7 @@ object frmExportGrid: TfrmExportGrid
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 6
       ButtonWidth = 29
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 108
       MaxLength = 0
       NumGlyphs = 1
@@ -361,7 +361,7 @@ object frmExportGrid: TfrmExportGrid
     Anchors = [akLeft, akBottom]
     BorderSpacing.Around = 6
     Caption = 'Save clipboard settings'
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     ImageIndex = 4
     OnClick = btnSetClipboardDefaultsClick
   end
@@ -390,7 +390,7 @@ object frmExportGrid: TfrmExportGrid
       Width = 588
       Anchors = [akTop, akLeft, akRight]
       DropDownCount = 20
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ItemHeight = 20
       ItemsEx = <      
         item

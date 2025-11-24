@@ -13,6 +13,7 @@ object connform: Tconnform
   Constraints.MinWidth = 550
   DesignTimePPI = 120
   ShowHint = True
+  LCLVersion = '4.2.0.0'
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -34,7 +35,7 @@ object connform: Tconnform
     Width = 656
     ActivePage = tabSettings
     Align = alClient
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     TabIndex = 1
     TabOrder = 1
     OnChange = PageControlDetailsChange
@@ -60,7 +61,7 @@ object connform: Tconnform
         Width = 597
         Anchors = [akTop, akLeft, akRight]
         Caption = 'Import settings ...'
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 101
         OnClick = btnImportSettingsClick
       end
@@ -204,7 +205,7 @@ object connform: Tconnform
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 75
         MaxLength = 0
         NumGlyphs = 1
@@ -225,7 +226,7 @@ object connform: Tconnform
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 75
         MaxLength = 0
         NumGlyphs = 1
@@ -246,7 +247,7 @@ object connform: Tconnform
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         DropDownCount = 12
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ItemHeight = 20
         ItemsEx = <>
         Style = csExDropDownList
@@ -303,7 +304,7 @@ object connform: Tconnform
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 75
         MaxLength = 0
         NumGlyphs = 1
@@ -492,7 +493,7 @@ object connform: Tconnform
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
@@ -659,7 +660,7 @@ object connform: Tconnform
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
@@ -765,7 +766,7 @@ object connform: Tconnform
         BorderSpacing.Around = 6
         ButtonWidth = 29
         Enabled = False
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
@@ -882,7 +883,7 @@ object connform: Tconnform
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
@@ -904,7 +905,7 @@ object connform: Tconnform
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
@@ -926,7 +927,7 @@ object connform: Tconnform
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
@@ -1106,7 +1107,7 @@ object connform: Tconnform
       Header.PopupMenu = MainForm.popupListHeader
       Header.SortColumn = 0
       HintMode = hmTooltip
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       IncrementalSearch = isAll
       PopupMenu = popupSessions
       TabOrder = 0
@@ -1134,7 +1135,7 @@ object connform: Tconnform
       Align = alTop
       BorderSpacing.Bottom = 6
       ButtonWidth = 29
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 193
       MaxLength = 0
       NumGlyphs = 1
@@ -1162,7 +1163,7 @@ object connform: Tconnform
       Top = 8
       Width = 62
       Caption = 'Save'
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 10
       OnClick = btnSaveClick
     end
@@ -1195,7 +1196,7 @@ object connform: Tconnform
       Top = 8
       Width = 62
       Caption = 'New'
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 45
       OnClick = btnNewDropdown
     end
@@ -1205,7 +1206,7 @@ object connform: Tconnform
       Top = 8
       Width = 62
       Caption = 'Delete'
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 46
       OnClick = btnDeleteClick
     end
@@ -1220,7 +1221,7 @@ object connform: Tconnform
     end
   end
   object popupSessions: TPopupMenu
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     Left = 29
     Top = 104
     object menuRename: TMenuItem
@@ -1280,7 +1281,7 @@ object connform: Tconnform
     Top = 44
   end
   object popupNew: TPopupMenu
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     Left = 136
     Top = 103
     object menuNewSessionInRoot: TMenuItem
@@ -1305,7 +1306,7 @@ object connform: Tconnform
     end
   end
   object popupMore: TPopupMenu
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     Left = 30
     Top = 180
     object Preferences1: TMenuItem
@@ -1335,7 +1336,7 @@ object connform: Tconnform
     Top = 180
   end
   object popupHost: TPopupMenu
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     Left = 30
     Top = 260
     object menuFindDatabaseFiles: TMenuItem
@@ -1350,7 +1351,7 @@ object connform: Tconnform
     end
   end
   object ActionListConnections: TActionList
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     Left = 140
     Top = 260
     object actFilter: TAction

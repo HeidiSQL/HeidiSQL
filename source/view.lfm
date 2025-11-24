@@ -181,7 +181,7 @@ object frmView: TfrmView
     Align = alTop
     AutoSize = True
     BorderSpacing.Around = 6
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     TabIndex = 0
     TabOrder = 0
     OnChange = PageControlMainChange

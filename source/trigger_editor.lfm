@@ -26,7 +26,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Align = alTop
     AutoSize = True
     BorderSpacing.Around = 6
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     TabIndex = 0
     TabOrder = 4
     OnChange = PageControlMainChange

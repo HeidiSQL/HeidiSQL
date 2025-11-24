@@ -192,9 +192,6 @@ type
   { TMainForm }
 
   TMainForm = class(TExtForm)
-    ImageListSilk: TImageList;
-    ImageListSynBookMarks: TImageList;
-    popupListHeader: TLazVTHeaderPopupMenu;
     MainMenu1: TMainMenu;
     MainMenuFile: TMenuItem;
     FileNewItem: TMenuItem;
@@ -388,6 +385,7 @@ type
     InsertfilesintoBLOBfields3: TMenuItem;
     setNULL1: TMenuItem;
     menuExporttables: TMenuItem;
+    popupListHeader: TLazVTHeaderPopupMenu;
     SynCompletionProposal: TSynCompletion;
     tabCommandStats: TTabSheet;
     ListCommandStats: TVirtualStringTree;
@@ -647,7 +645,10 @@ type
     actGotoTab41: TMenuItem;
     actGotoTab51: TMenuItem;
     actClearQueryLog: TAction;
+    ImageListMain: TImageList;
     ImageListIcons8: TImageList;
+    ImageListSilk: TImageList;
+    ImageListSynBookMarks: TImageList;
     pnlQueryHelpers: TPanel;
     treeQueryHelpers: TVirtualStringTree;
     filterQueryHelpers: TEditButton;
@@ -793,7 +794,7 @@ type
     procedure actNextTabExecute(Sender: TObject);
     procedure actPreviousTabExecute(Sender: TObject);
     procedure FormActivate(Sender: TObject);
-    procedure ImageListIcons8GetWidthForPPI(Sender: TCustomImageList;
+    procedure ImageListGetWidthForPPI(Sender: TCustomImageList;
       AImageWidth, APPI: Integer; var AResultWidth: Integer);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1400,7 +1401,6 @@ type
     property FormatSettings: TFormatSettings read FFormatSettings;
     property MatchingBraceForegroundColor: TColor read FMatchingBraceForegroundColor write FMatchingBraceForegroundColor;
     property MatchingBraceBackgroundColor: TColor read FMatchingBraceBackgroundColor write FMatchingBraceBackgroundColor;
-    property VirtualImageListMain: TImageList read ImageListIcons8; // Sync with main branch
   end;
 
 var
@@ -1511,8 +1511,8 @@ begin
   PanelRect := Rect;
   //StatusBar.Canvas.FillRect(PanelRect);
   if ImageIndex > -1 then begin
-    VirtualImageListMain.DrawForControl(StatusBar.Canvas, PanelRect.Left, PanelRect.Top+2, ImageIndex, VirtualImageListMain.Width, StatusBar, True);
-    OffsetRect(PanelRect, Scale96ToForm(VirtualImageListMain.Width)+4, 0);
+    ImageListMain.DrawForControl(StatusBar.Canvas, PanelRect.Left, PanelRect.Top+2, ImageIndex, ImageListMain.Width, StatusBar, True);
+    OffsetRect(PanelRect, Scale96ToForm(ImageListMain.Width)+4, 0);
   end;
   StatusBar.Canvas.TextRect(PanelRect, PanelRect.Left, PanelRect.Top+2, Panel.Text);
 end;
@@ -1859,7 +1859,7 @@ begin
   }
   Caption := APPNAME;
 
-  // Load preferred ImageCollection into VirtualImageList
+  // Load preferred Images into ImageListMain
   PrepareImageList;
 
   if AppSettings.ReadBool(asToolbarShowCaptions) then begin
@@ -2093,17 +2093,9 @@ begin
 
   PageControlMain.MultiLine := AppSettings.ReadBool(asTabsInMultipleLines);
   SetMainTab(tabHost);
-  {FBtnAddTab := TSpeedButton.Create(PageControlMain);
-  FBtnAddTab.Parent := PageControlMain;
-  VirtualImageListMain.GetBitmap(actNewQueryTab.ImageIndex, FBtnAddTab.Glyph);
-  FBtnAddTab.Height := PageControlMain.TabRect(0).Bottom - PageControlMain.TabRect(0).Top - 2;
-  FBtnAddTab.Width := FBtnAddTab.Height;
-  FBtnAddTab.Flat := True;
-  FBtnAddTab.Hint := actNewQueryTab.Hint;
-  FBtnAddTab.OnClick := actNewQueryTab.OnExecute;}
 
   // Filter panel
-  //VirtualImageListMain.GetBitmap(134, btnCloseFilterPanel.Glyph);
+  ImageListMain.GetBitmap(134, btnCloseFilterPanel.Glyph);
   if AppSettings.ReadBool(asFilterPanel) then
     actFilterPanelExecute(nil);
   lblFilterVTInfo.Caption := '';
@@ -2755,7 +2747,7 @@ var
   var
     MaxPixels: Integer;
   begin
-    MaxPixels := StatusBar.Canvas.TextWidth(SampleText) + VirtualImageListMain.Width + 30;
+    MaxPixels := StatusBar.Canvas.TextWidth(SampleText) + ImageListMain.Width + 30;
     Result := Round(Min(MaxPixels, Width / 100 * MaxPercentage));
   end;
 begin
@@ -2774,7 +2766,7 @@ begin
   w5 := CalcPanelWidth('Server time: 20:00 PM', 12);
   w6 := CalcPanelWidth('DummyDummyDummyDummyDummy', 20);
   w0 := StatusBar.Width - w1 - w2 - w3 - w4 - w5 - w6;
-  //logsql(format('IconWidth:%d 0:%d 1:%d 2:%d 3:%d 4:%d 5:%d 6:%d', [VirtualImageListMain.Width, w0, w1, w2, w3, w4, w5, w6]));
+  //logsql(format('IconWidth:%d 0:%d 1:%d 2:%d 3:%d 4:%d 5:%d 6:%d', [ImageListMain.Width, w0, w1, w2, w3, w4, w5, w6]));
   StatusBar.Panels[0].Width := w0;
   StatusBar.Panels[1].Width := w1;
   StatusBar.Panels[2].Width := w2;
@@ -4456,7 +4448,7 @@ begin
   end;
 end;
 
-procedure TMainForm.ImageListIcons8GetWidthForPPI(Sender: TCustomImageList;
+procedure TMainForm.ImageListGetWidthForPPI(Sender: TCustomImageList;
   AImageWidth, APPI: Integer; var AResultWidth: Integer);
 begin
   // Scale for intermediate resolutions which were not added explictly
@@ -9257,23 +9249,23 @@ end;
 
 
 procedure TMainForm.PrepareImageList;
-//var
-//  IconPack: String;
-//  WantedImageCollection: TComponent;
+var
+  IconPack: String;
+  WantedImageCollection: TComponent;
+  SourceList: TImageList;
 begin
-  {// Load preferred ImageCollection into VirtualImageList
-  VirtualImageListMain.Clear;
-  IconPack := AppSettings.ReadString(asIconPack);
-  WantedImageCollection := FindComponent('ImageCollection' + IconPack);
-  if (WantedImageCollection <> nil) and (WantedImageCollection is TImageCollection) then begin
-    VirtualImageListMain.ImageCollection := WantedImageCollection as TImageCollection;
-  end else begin
-    VirtualImageListMain.ImageCollection := ImageCollectionIcons8;
+  // Load preferred ImageList into ImageListMain
+  if ImageListIcons8.Count = 0 then begin
+    CopyImageList(ImageListMain, ImageListIcons8);
   end;
-  // Add all normal color icons from collection to virtual image list
-  VirtualImageListMain.Add('', 0, VirtualImageListMain.ImageCollection.Count-1);
+  IconPack := AppSettings.ReadString(asIconPack);
+  WantedImageCollection := FindComponent('ImageList' + IconPack);
+  if (WantedImageCollection <> nil) and (WantedImageCollection is TImageList) and (WantedImageCollection.Tag <> 0) then begin
+    SourceList := WantedImageCollection as TImageList;
+    CopyImageList(SourceList, ImageListMain);
+  end;
   // Add all icons again in disabled/grayscale mode, used in TExtForm.PageControlTabHighlight
-  VirtualImageListMain.AddDisabled('', 0, VirtualImageListMain.ImageCollection.Count-1);}
+  //VirtualImageListMain.AddDisabled('', 0, VirtualImageListMain.ImageCollection.Count-1);
 end;
 
 
@@ -10533,7 +10525,7 @@ begin
   RowNum := Sender.GetNodeData(Node);
   Results.RecNo := RowNum^;
   if Results.Modified(ResultCol) then
-    VirtualImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 111);
+    ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 111);
 end;
 
 
@@ -12267,14 +12259,6 @@ begin
   QueryTab.TabSheet.PageControl := PageControlMain;
   QueryTab.TabSheet.ImageIndex := tabQuery.ImageIndex;
 
-  {QueryTab.CloseButton := TSpeedButton.Create(QueryTab.TabSheet);
-  QueryTab.CloseButton.Parent := PageControlMain;
-  QueryTab.CloseButton.Width := 16;
-  QueryTab.CloseButton.Height := 16;
-  QueryTab.CloseButton.Flat := True;
-  VirtualImageListMain.GetBitmap(134, QueryTab.CloseButton.Glyph);
-  QueryTab.CloseButton.OnMouseDown := CloseButtonOnMouseDown;
-  QueryTab.CloseButton.OnMouseUp := CloseButtonOnMouseUp;}
   SetTabCaption(QueryTab.TabSheet.PageIndex, '');
 
   // Dumb code which replicates all controls from tabQuery
@@ -12724,7 +12708,7 @@ begin
   Edit := Sender as TEditButton;
   Menu := TPopupMenu.Create(Edit);
   //Menu.AutoHotkeys := maManual;
-  Menu.Images := VirtualImageListMain;
+  Menu.Images := ImageListMain;
   AppSettings.SessionPath := '';
   if Edit = editDatabaseFilter then
     Setting := asDatabaseFilter
@@ -13579,9 +13563,9 @@ begin
   Obj := Sender.GetNodeData(Node);
   if Obj.NodeType in [lntTable..lntEvent] then begin
     if Obj.Connection.Favorites.IndexOf(Obj.Path) > -1 then
-      VirtualImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 168)
+      ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 168)
     else if Node = Sender.HotNode then
-      VirtualImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 183);
+      ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 183);
   end;
 end;
 
@@ -13596,7 +13580,7 @@ begin
   // Watch out for clicks on favorite icon
   // Add or remove object path from favorite list on click
   Node := DBtree.GetNodeAt(X, Y);
-  if (Button = mbLeft) and (X < VirtualImageListMain.Width) and Assigned(Node) then begin
+  if (Button = mbLeft) and (X < ImageListMain.Width) and Assigned(Node) then begin
     Obj := DBtree.GetNodeData(Node);
     if Obj.NodeType in [lntTable..lntEvent] then begin
       idx := Obj.Connection.Favorites.IndexOf(Obj.Path);

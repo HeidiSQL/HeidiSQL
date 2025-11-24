@@ -69,7 +69,7 @@ object frmLogin: TfrmLogin
       Top = 16
       Width = 20
       ImageIndex = 144
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
     end
     object editPassword: TEdit
       Left = 48

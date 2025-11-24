@@ -56,7 +56,7 @@ object frmTextEditor: TfrmTextEditor
       BorderSpacing.Around = 6
       Caption = 'tlbStandard'
       EdgeBorders = []
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0

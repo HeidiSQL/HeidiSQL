@@ -220,9 +220,9 @@ begin
       ImageIndex := 128
     else
       ImageIndex := 127;
-    X := CellRect.Left + (Grid.Header.Columns[Column].Width div 2) - (MainForm.VirtualImageListMain.Width div 2);
-    Y := CellRect.Top + Integer(Grid.NodeHeight[Node] div 2) - (MainForm.VirtualImageListMain.Height div 2);
-    MainForm.VirtualImageListMain.Draw(TargetCanvas, X, Y, ImageIndex);
+    X := CellRect.Left + (Grid.Header.Columns[Column].Width div 2) - (MainForm.ImageListMain.Width div 2);
+    Y := CellRect.Top + Integer(Grid.NodeHeight[Node] div 2) - (MainForm.ImageListMain.Height div 2);
+    MainForm.ImageListMain.Draw(TargetCanvas, X, Y, ImageIndex);
   end;
 end;
 

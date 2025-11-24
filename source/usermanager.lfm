@@ -77,7 +77,7 @@ object UserManagerForm: TUserManagerForm
       Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
       Header.PopupMenu = MainForm.popupListHeader
       Header.SortColumn = 0
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       IncrementalSearch = isAll
       TabOrder = 0
       TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
@@ -106,7 +106,7 @@ object UserManagerForm: TUserManagerForm
       ButtonHeight = 35
       ButtonWidth = 72
       Caption = 'ToolBar1'
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       List = True
       ShowCaptions = True
       TabOrder = 1
@@ -145,7 +145,7 @@ object UserManagerForm: TUserManagerForm
       Width = 280
       Anchors = [akTop, akLeft, akRight]
       ButtonWidth = 29
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 193
       MaxLength = 0
       NumGlyphs = 1
@@ -178,7 +178,7 @@ object UserManagerForm: TUserManagerForm
       ButtonHeight = 35
       ButtonWidth = 99
       Caption = 'tlbObjects'
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       List = True
       ParentShowHint = False
       ShowCaptions = True
@@ -215,7 +215,7 @@ object UserManagerForm: TUserManagerForm
       Header.AutoSizeIndex = 0
       Header.Columns = <>
       Header.MainColumn = -1
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       IncrementalSearch = isAll
       TabOrder = 2
       TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
@@ -310,7 +310,7 @@ object UserManagerForm: TUserManagerForm
           BorderSpacing.Around = 6
           ButtonWidth = 29
           EchoMode = emPassword
-          Images = MainForm.ImageListIcons8
+          Images = MainForm.ImageListMain
           ImageIndex = 75
           MaxLength = 0
           NumGlyphs = 1
@@ -329,7 +329,7 @@ object UserManagerForm: TUserManagerForm
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 6
           ButtonWidth = 29
-          Images = MainForm.ImageListIcons8
+          Images = MainForm.ImageListMain
           ImageIndex = 75
           MaxLength = 0
           NumGlyphs = 1
@@ -574,7 +574,7 @@ object UserManagerForm: TUserManagerForm
       Width = 119
       Anchors = [akTop, akRight]
       Caption = 'Discard'
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 40
       OnClick = btnDiscardClick
     end
@@ -585,7 +585,7 @@ object UserManagerForm: TUserManagerForm
       Width = 119
       Anchors = [akTop, akRight]
       Caption = 'Save'
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 10
       OnClick = btnSaveClick
     end
@@ -596,7 +596,7 @@ object UserManagerForm: TUserManagerForm
       Width = 119
       Anchors = [akTop, akRight]
       Caption = 'Close'
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       ImageIndex = 26
       OnClick = btnCancelClick
     end

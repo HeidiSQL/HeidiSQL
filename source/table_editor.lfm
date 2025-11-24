@@ -27,7 +27,7 @@ object frmTableEditor: TfrmTableEditor
     ActivePage = tabBasic
     Align = alTop
     AutoSize = True
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     TabIndex = 0
     TabOrder = 0
     OnChange = PageControlMainChange
@@ -368,7 +368,7 @@ object frmTableEditor: TfrmTableEditor
           end>
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         PopupMenu = popupProperties
         TabOrder = 1
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
@@ -398,7 +398,7 @@ object frmTableEditor: TfrmTableEditor
         ButtonHeight = 35
         ButtonWidth = 82
         Caption = 'tlbIndexes'
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         List = True
         ShowCaptions = True
         TabOrder = 0
@@ -463,7 +463,7 @@ object frmTableEditor: TfrmTableEditor
         ButtonHeight = 35
         ButtonWidth = 82
         Caption = 'tlbForeignKeys'
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         List = True
         ShowCaptions = True
         TabOrder = 0
@@ -540,7 +540,7 @@ object frmTableEditor: TfrmTableEditor
           end>
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         PopupMenu = popupProperties
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
@@ -572,7 +572,7 @@ object frmTableEditor: TfrmTableEditor
         ButtonHeight = 35
         ButtonWidth = 82
         Caption = 'tlbCheckConstraints'
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         List = True
         ShowCaptions = True
         TabOrder = 0
@@ -625,7 +625,7 @@ object frmTableEditor: TfrmTableEditor
           end>
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         PopupMenu = popupProperties
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
@@ -944,7 +944,7 @@ object frmTableEditor: TfrmTableEditor
       ButtonWidth = 82
       Caption = 'Columns:'
       EdgeBorders = []
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       List = True
       ShowCaptions = True
       TabOrder = 0
@@ -1066,7 +1066,7 @@ object frmTableEditor: TfrmTableEditor
         Hint = 'Hide in certain contexts'
         Position = 13
         Text = 'Invisible'
-      end
+      end    
       item
         Hint = 'Storage-Engine Independent Column Compression'
         Position = 14
@@ -1074,7 +1074,7 @@ object frmTableEditor: TfrmTableEditor
       end>
     Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
     Header.PopupMenu = MainForm.popupListHeader
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     IncrementalSearch = isAll
     PopupMenu = popupColumns
     TabOrder = 2
@@ -1145,7 +1145,7 @@ object frmTableEditor: TfrmTableEditor
     OnClick = btnHelpClick
   end
   object popupProperties: TPopupMenu
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     OnPopup = popupPropertiesPopup
     Left = 500
     Top = 450
@@ -1190,7 +1190,7 @@ object frmTableEditor: TfrmTableEditor
     end
   end
   object popupColumns: TPopupMenu
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     OnPopup = popupColumnsPopup
     Left = 390
     Top = 450

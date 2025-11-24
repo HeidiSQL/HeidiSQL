@@ -11,10 +11,11 @@ object frmInsertFiles: TfrmInsertFiles
   Constraints.MinHeight = 250
   Constraints.MinWidth = 250
   DesignTimePPI = 120
+  Position = poOwnerFormCenter
+  LCLVersion = '4.2.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  Position = poOwnerFormCenter
   object btnInsert: TButton
     AnchorSideRight.Control = btnCancel
     AnchorSideBottom.Control = Owner
@@ -152,10 +153,10 @@ object frmInsertFiles: TfrmInsertFiles
           Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
           Position = 2
           Text = 'Value'
-          Width = 382
+          Width = 386
         end>
       Header.Height = 32
-      Header.Images = MainForm.ImageListIcons8
+      Header.Images = MainForm.ImageListMain
       Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
       Header.PopupMenu = MainForm.popupListHeader
       TabOrder = 2
@@ -237,7 +238,7 @@ object frmInsertFiles: TfrmInsertFiles
         item
           Position = 0
           Text = 'Filename'
-          Width = 419
+          Width = 423
         end      
         item
           CheckBox = True
@@ -288,7 +289,7 @@ object frmInsertFiles: TfrmInsertFiles
       ButtonWidth = 82
       Caption = 'ToolBarFiles'
       EdgeBorders = []
-      Images = MainForm.ImageListIcons8
+      Images = MainForm.ImageListMain
       List = True
       ShowCaptions = True
       TabOrder = 1

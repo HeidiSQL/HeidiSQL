@@ -55,7 +55,7 @@ object frmSelectDBObject: TfrmSelectDBObject
       end>
     Header.Height = 32
     Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     Indent = 20
     Margin = 2
     TabOrder = 0

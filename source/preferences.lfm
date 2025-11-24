@@ -10,11 +10,11 @@ object frmPreferences: TfrmPreferences
   Constraints.MinHeight = 350
   Constraints.MinWidth = 375
   DesignTimePPI = 120
+  Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  Position = poMainFormCenter
   object pagecontrolMain: TPageControl
     AnchorSideBottom.Control = btnOK
     Left = 6
@@ -25,7 +25,7 @@ object frmPreferences: TfrmPreferences
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Around = 6
-    Images = MainForm.ImageListIcons8
+    Images = MainForm.ImageListMain
     TabIndex = 0
     TabOrder = 4
     OnChange = pagecontrolMainChange
@@ -243,17 +243,17 @@ object frmPreferences: TfrmPreferences
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
-        OnButtonClick = editMySQLBinariesRightButtonClick
-        OnChange = Modified
-        OnDblClick = editMySQLBinariesRightButtonClick
         PasswordChar = #0
         TabOrder = 9
         Text = 'editMySQLBinaries'
         TextHint = 'Find mysql.exe directory'
+        OnButtonClick = editMySQLBinariesRightButtonClick
+        OnChange = Modified
+        OnDblClick = editMySQLBinariesRightButtonClick
       end
       object comboAppLanguage: TComboBox
         Tag = 1
@@ -284,17 +284,17 @@ object frmPreferences: TfrmPreferences
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ButtonWidth = 29
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
-        OnButtonClick = editCustomSnippetsDirectoryRightButtonClick
-        OnChange = Modified
-        OnDblClick = editCustomSnippetsDirectoryRightButtonClick
         PasswordChar = #0
         TabOrder = 10
         Text = 'editCustomSnippetsDirectory'
         TextHint = 'Set custom directory for SQL snippet files'
+        OnButtonClick = editCustomSnippetsDirectoryRightButtonClick
+        OnChange = Modified
+        OnDblClick = editCustomSnippetsDirectoryRightButtonClick
       end
       object comboGUIFont: TComboBox
         Tag = 1
@@ -595,17 +595,17 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 6
         ButtonWidth = 29
         Enabled = False
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 51
         MaxLength = 0
         NumGlyphs = 1
-        OnButtonClick = editLogDirRightButtonClick
-        OnChange = Modified
-        OnDblClick = editLogDirRightButtonClick
         PasswordChar = #0
         TabOrder = 3
         Text = 'editLogDir'
         TextHint = 'Select output directory'
+        OnButtonClick = editLogDirRightButtonClick
+        OnChange = Modified
+        OnDblClick = editLogDirRightButtonClick
       end
       object chkQueryHistory: TCheckBox
         AnchorSideTop.Control = chkLogEventDebug
@@ -908,8 +908,8 @@ object frmPreferences: TfrmPreferences
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
         BorderSpacing.Around = 6
         ItemHeight = 20
-        OnChange = SQLFontChange
         TabOrder = 13
+        OnChange = SQLFontChange
       end
       object cboxSQLColBackground: TColorBox
         AnchorSideTop.Control = lblSQLColBackground
@@ -922,8 +922,8 @@ object frmPreferences: TfrmPreferences
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
         BorderSpacing.Around = 6
         ItemHeight = 20
-        OnChange = SQLFontChange
         TabOrder = 14
+        OnChange = SQLFontChange
       end
       inline SynMemoSQLSample: TSynEdit
         AnchorSideLeft.Control = comboEditorColorsPreset
@@ -1323,8 +1323,8 @@ object frmPreferences: TfrmPreferences
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbCustomColor, cbPrettyNames]
         BorderSpacing.Around = 6
         ItemHeight = 20
-        OnSelect = colorBoxGridTextColorsSelect
         TabOrder = 8
+        OnSelect = colorBoxGridTextColorsSelect
       end
       object cboxNullBackground: TColorBox
         AnchorSideTop.Control = comboGridTextColors
@@ -1336,9 +1336,9 @@ object frmPreferences: TfrmPreferences
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
         BorderSpacing.Around = 6
         ItemHeight = 20
+        TabOrder = 9
         OnChange = Modified
         OnSelect = Modified
-        TabOrder = 9
       end
       object cboxRowBackgroundOdd: TColorBox
         AnchorSideLeft.Control = cboxRowBackgroundEven
@@ -1352,8 +1352,8 @@ object frmPreferences: TfrmPreferences
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
         BorderSpacing.Around = 6
         ItemHeight = 20
-        OnChange = Modified
         TabOrder = 11
+        OnChange = Modified
       end
       object cboxRowBackgroundEven: TColorBox
         AnchorSideTop.Control = cboxNullBackground
@@ -1365,8 +1365,8 @@ object frmPreferences: TfrmPreferences
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
         BorderSpacing.Around = 6
         ItemHeight = 20
-        OnChange = Modified
         TabOrder = 10
+        OnChange = Modified
       end
       object chkLocalNumberFormat: TCheckBox
         AnchorSideTop.Control = editLongSortRowNum
@@ -1404,8 +1404,8 @@ object frmPreferences: TfrmPreferences
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
         BorderSpacing.Around = 6
         ItemHeight = 20
-        OnSelect = Modified
         TabOrder = 12
+        OnSelect = Modified
       end
       object comboGridTextColorsPreset: TComboBox
         AnchorSideTop.Control = comboDataFontName
@@ -1669,7 +1669,7 @@ object frmPreferences: TfrmPreferences
         Header.Columns = <>
         Header.Height = 25
         Header.MainColumn = -1
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         TabOrder = 0
         OnFocusChanged = TreeShortcutItemsFocusChanged
         OnGetText = TreeShortcutItemsGetText
@@ -1685,7 +1685,7 @@ object frmPreferences: TfrmPreferences
         Width = 101
         Anchors = [akTop, akRight]
         Caption = 'Remove'
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 26
         OnClick = btnRemoveHotKeyClick
       end
@@ -1696,7 +1696,7 @@ object frmPreferences: TfrmPreferences
         Width = 101
         Anchors = [akTop, akRight]
         Caption = 'Remove'
-        Images = MainForm.ImageListIcons8
+        Images = MainForm.ImageListMain
         ImageIndex = 26
         OnClick = btnRemoveHotKeyClick
       end

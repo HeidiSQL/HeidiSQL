@@ -377,15 +377,15 @@ begin
   end;
 
   Canv.FillRect(ARect);
-  Canv.TextRect(ARect, ARect.Left + Scale96ToForm(MainForm.VirtualImageListMain.Width) + 4, ARect.Top, comboExportOutputType.Items[Index]);
-  MainForm.VirtualImageListMain.DrawForControl(Canv, ARect.Left + 2, ARect.Top + 2, ItemImageIndex, MainForm.VirtualImageListMain.Width, comboExportOutputType);
+  Canv.TextRect(ARect, ARect.Left + Scale96ToForm(MainForm.ImageListMain.Width) + 4, ARect.Top, comboExportOutputType.Items[Index]);
+  MainForm.ImageListMain.DrawForControl(Canv, ARect.Left + 2, ARect.Top + 2, ItemImageIndex, MainForm.ImageListMain.Width, comboExportOutputType);
 end;
 
 
 procedure TfrmTableTools.comboExportOutputTypeMeasureItem(Control: TWinControl;
   Index: Integer; var AHeight: Integer);
 begin
-  AHeight := Scale96ToForm(MainForm.VirtualImageListMain.Height) + 2;
+  AHeight := Scale96ToForm(MainForm.ImageListMain.Height) + 2;
 end;
 
 
