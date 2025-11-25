@@ -437,6 +437,14 @@
         <Filename Value="source\crashdialog.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmCrashDialog"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="source\extfiledialog.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmExtFileDialog"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
     </Units>

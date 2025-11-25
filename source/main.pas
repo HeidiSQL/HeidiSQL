@@ -15,7 +15,7 @@ uses
   LazStringUtils, dbconnection, dbstructures, dbstructures.mysql, generic_types,
   apphelpers, extra_controls, createdatabase, SynEditMarkupBracket,
   searchreplace, ImgList, IniFiles, LazFileUtils, tabletools,
-  lazaruscompat;
+  lazaruscompat, extfiledialog;
 
 
 type

@@ -1,0 +1,142 @@
+object frmExtFileDialog: TfrmExtFileDialog
+  Left = 306
+  Height = 544
+  Top = 123
+  Width = 872
+  BorderIcons = [biSystemMenu]
+  Caption = 'Open existing file'
+  ClientHeight = 544
+  ClientWidth = 872
+  DesignTimePPI = 120
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  object pnlBottom: TPanel
+    Left = 10
+    Height = 68
+    Top = 466
+    Width = 852
+    Align = alBottom
+    AutoSize = True
+    BorderSpacing.Around = 10
+    BevelOuter = bvNone
+    ClientHeight = 68
+    ClientWidth = 852
+    TabOrder = 2
+    object editFilename: TEdit
+      AnchorSideLeft.Control = lblFilename
+      AnchorSideLeft.Side = asrBottom
+      AnchorSideTop.Control = pnlBottom
+      AnchorSideRight.Control = comboFileType
+      Left = 77
+      Height = 28
+      Top = 0
+      Width = 505
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Left = 10
+      BorderSpacing.Right = 10
+      TabOrder = 0
+      Text = 'editFilename'
+    end
+    object lblFilename: TLabel
+      AnchorSideLeft.Control = pnlBottom
+      AnchorSideTop.Control = editFilename
+      AnchorSideTop.Side = asrCenter
+      Left = 0
+      Height = 20
+      Top = 4
+      Width = 67
+      Caption = 'File name:'
+    end
+    object comboFileType: TComboBox
+      AnchorSideLeft.Control = btnOk
+      AnchorSideTop.Control = pnlBottom
+      AnchorSideRight.Control = pnlBottom
+      AnchorSideRight.Side = asrBottom
+      Left = 592
+      Height = 28
+      Top = 0
+      Width = 260
+      Anchors = [akTop, akLeft, akRight]
+      BorderSpacing.Bottom = 10
+      ItemHeight = 20
+      Items.Strings = (
+        ''
+      )
+      Style = csDropDownList
+      TabOrder = 1
+      OnChange = comboFileTypeChange
+    end
+    object btnOk: TButton
+      AnchorSideLeft.Control = pnlBottom
+      AnchorSideTop.Control = comboFileType
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = btnCancel
+      AnchorSideBottom.Control = pnlBottom
+      AnchorSideBottom.Side = asrBottom
+      Left = 592
+      Height = 30
+      Top = 38
+      Width = 125
+      Anchors = [akTop, akRight, akBottom]
+      BorderSpacing.Right = 10
+      Caption = 'OK'
+      Constraints.MinWidth = 125
+      Default = True
+      ModalResult = 1
+      TabOrder = 2
+    end
+    object btnCancel: TButton
+      AnchorSideTop.Control = comboFileType
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = pnlBottom
+      AnchorSideRight.Side = asrBottom
+      Left = 727
+      Height = 30
+      Top = 38
+      Width = 125
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      Cancel = True
+      Caption = 'Cancel'
+      Constraints.MinWidth = 125
+      ModalResult = 2
+      TabOrder = 3
+    end
+  end
+  object ShellTreeView: TShellTreeView
+    Left = 10
+    Height = 446
+    Top = 10
+    Width = 261
+    Align = alLeft
+    BorderSpacing.Left = 10
+    BorderSpacing.Top = 10
+    HideSelection = False
+    ReadOnly = False
+    TabOrder = 0
+    Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+    ShellListView = ShellListView
+  end
+  object splitterMain: TSplitter
+    Left = 271
+    Height = 456
+    Top = 0
+    Width = 6
+  end
+  object ShellListView: TShellListView
+    Left = 277
+    Height = 446
+    Top = 10
+    Width = 585
+    Align = alClient
+    BorderSpacing.Top = 10
+    BorderSpacing.Right = 10
+    Color = clDefault
+    TabOrder = 1
+    ShellTreeView = ShellTreeView
+    OnClick = ShellListViewClick
+    OnDblClick = ShellListViewDblClick
+    OnSelectItem = ShellListViewSelectItem
+  end
+end

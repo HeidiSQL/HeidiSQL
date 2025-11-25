@@ -40,25 +40,6 @@ type
       class procedure ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
   end;
 
-  // Modern file-open-dialog with high DPI support and encoding selector
-  TExtFileOpenDialog = class(TOpenDialog)
-    private
-      FFilters: TStringList;
-      FEncodings: TStringList;
-      FEncodingIndex: Cardinal;
-      //const idEncodingCombo = 1;
-      procedure FileOkClickNoOp(Sender: TObject; var CanClose: Boolean);
-    protected
-      //procedure DoOnExecute; override;
-      //function DoOnFileOkClick: Boolean; override;
-    public
-      constructor Create(AOwner: TComponent); override;
-      destructor Destroy; override;
-      procedure AddFileType(FileMask, DisplayName: String);
-      property Encodings: TStringList read FEncodings write FEncodings;
-      property EncodingIndex: Cardinal read FEncodingIndex write FEncodingIndex;
-  end;
-
   TExtFileSaveDialog = class(TSaveDialog)
     private
       FFilters: TStringList;
@@ -481,85 +462,6 @@ class procedure TExtForm.ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMe
 begin
   PopupMenu.Popup(ClickedControl.ClientOrigin.X, ClickedControl.ClientOrigin.Y + ClickedControl.Height);
 end;
-
-
-{ TExtFileOpenDialog }
-
-constructor TExtFileOpenDialog.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  FEncodings := TStringList.Create;
-  FEncodingIndex := 0;
-  FFilters := TStringList.Create;
-end;
-
-
-destructor TExtFileOpenDialog.Destroy;
-begin
-  FEncodings.Free;
-  FFilters.Free;
-  inherited;
-end;
-
-
-procedure TExtFileOpenDialog.AddFileType(FileMask, DisplayName: String);
-var
-  i: Integer;
-  NewFilter: String;
-begin
-  // Shorthand for callers
-  FFilters.Values[DisplayName] := FileMask;
-  NewFilter := '';
-  for i:=FFilters.Count-1 downto 0 do begin
-    NewFilter := NewFilter + Format('%s (%s)|%s', [FFilters.Names[i], FFilters.ValueFromIndex[i], FFilters.ValueFromIndex[i]]);
-    if i > 0 then
-      NewFilter := NewFilter + '|';
-  end;
-  Filter := NewFilter;
-end;
-
-
-{procedure TExtFileOpenDialog.DoOnExecute;
-var
-  iCustomize: IFileDialogCustomize;
-  i: Integer;
-begin
-  // Add encodings selector
-  if Dialog.QueryInterface(IFileDialogCustomize, iCustomize) = S_OK then
-  begin
-    iCustomize.StartVisualGroup(0, PChar(_('Encoding:')));
-    try
-      // note other controls available: AddCheckButton, AddEditBox, AddPushButton, AddRadioButtonList...
-      iCustomize.AddComboBox(idEncodingCombo);
-      for i:=0 to FEncodings.Count - 1 do begin
-        iCustomize.AddControlItem(idEncodingCombo, i, PChar(FEncodings[i]));
-      end;
-      iCustomize.SetSelectedControlItem(idEncodingCombo, FEncodingIndex);
-      if not Assigned(OnFileOkClick) then
-        OnFileOkClick := FileOkClickNoOp;
-    finally
-      iCustomize.EndVisualGroup;
-    end;
-  end;
-end;}
-
-
-procedure TExtFileOpenDialog.FileOkClickNoOp(Sender: TObject; var CanClose: Boolean);
-begin
-  // Dummy procedure, just makes sure parent class calls DoOnFileOkClick
-end;
-
-
-{function TExtFileOpenDialog.DoOnFileOkClick: Boolean;
-var
-  iCustomize: IFileDialogCustomize;
-begin
-  Result := inherited;
-  if Dialog.QueryInterface(IFileDialogCustomize, iCustomize) = S_OK then
-  begin
-    iCustomize.GetSelectedControlItem(idEncodingCombo, FEncodingIndex);
-  end;
-end;}
 
 
 

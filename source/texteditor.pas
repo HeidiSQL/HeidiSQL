@@ -9,7 +9,7 @@ uses
   ComCtrls, Dialogs, SysUtils, Menus, LCLType,
   apphelpers, ActnList, extra_controls,
   ExtCtrls, dbconnection, SynEdit, SynEditHighlighter, customize_highlighter,
-  reformatter, jsonparser,
+  reformatter, jsonparser, extfiledialog,
 
   SynHighlighterBat,
   SynHighlighterCpp, SynHighlighterCss,
