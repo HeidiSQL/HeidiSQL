@@ -8,6 +8,7 @@ object frmExtFileDialog: TfrmExtFileDialog
   ClientHeight = 544
   ClientWidth = 872
   DesignTimePPI = 120
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
@@ -117,6 +118,7 @@ object frmExtFileDialog: TfrmExtFileDialog
       ItemHeight = 20
       Style = csDropDownList
       TabOrder = 4
+      Visible = False
       OnChange = comboEncodingChange
     end
     object lblEncoding: TLabel
@@ -130,6 +132,36 @@ object frmExtFileDialog: TfrmExtFileDialog
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 10
       Caption = 'Encoding:'
+      Visible = False
+    end
+    object comboLineBreaks: TComboBox
+      AnchorSideTop.Control = comboFileType
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = lblEncoding
+      Left = 117
+      Height = 28
+      Top = 38
+      Width = 200
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 10
+      ItemHeight = 20
+      Style = csDropDownList
+      TabOrder = 5
+      Visible = False
+      OnChange = comboLineBreaksChange
+    end
+    object lblLinebreaks: TLabel
+      AnchorSideTop.Control = comboLineBreaks
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = comboLineBreaks
+      Left = 34
+      Height = 20
+      Top = 42
+      Width = 73
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 10
+      Caption = 'Linebreaks:'
+      Visible = False
     end
   end
   object ShellTreeView: TShellTreeView

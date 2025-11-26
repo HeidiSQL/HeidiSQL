@@ -4904,7 +4904,7 @@ begin
     Dialog.AddFileType('*.sql', _('SQL files'));
     Dialog.AddFileType('*.*', _('All files'));
     Dialog.DefaultExt := 'sql';
-    //Dialog.LineBreakIndex := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
+    Dialog.LineBreakIndex := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
     if Dialog.Execute then begin
       Screen.Cursor := crHourGlass;
       SaveUnicodeFile(
@@ -4948,7 +4948,7 @@ begin
   Dialog.AddFileType('*.sql', _('SQL files'));
   Dialog.AddFileType('*.*', _('All files'));
   Dialog.DefaultExt := 'sql';
-  //Dialog.LineBreakIndex := QueryTab.MemoLineBreaks;
+  Dialog.LineBreakIndex := QueryTab.MemoLineBreaks;
   while (CanSave = mrNo) and Dialog.Execute do begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
@@ -4963,7 +4963,7 @@ begin
   end;
   if CanSave = mrYes then begin
     OnlySelection := (Sender = actSaveSQLselection) or (Sender = actSaveSQLSelectionSnippet);
-    //QueryTab.MemoLineBreaks := Dialog.LineBreakIndex;
+    QueryTab.MemoLineBreaks := Dialog.LineBreakIndex;
     QueryTab.SaveContents(Dialog.FileName, OnlySelection);
     for i:=0 to QueryTabs.Count-1 do begin
       if QueryTabs[i] = QueryTab then
@@ -13164,10 +13164,10 @@ begin
         Dialog.AddFileType('*.sql', _('SQL files'));
         Dialog.AddFileType('*.*', _('All files'));
         Dialog.DefaultExt := 'sql';
-        //Dialog.LineBreakIndex := Tab.MemoLineBreaks;
+        Dialog.LineBreakIndex := Tab.MemoLineBreaks;
         if Dialog.Execute then begin
           Tab.SaveContents(Dialog.FileName, False);
-          //Tab.MemoLineBreaks := Dialog.LineBreakIndex;
+          Tab.MemoLineBreaks := Dialog.LineBreakIndex;
         end;
         // The save dialog can be cancelled.
         Result := not Tab.Memo.Modified;

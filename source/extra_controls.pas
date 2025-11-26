@@ -40,24 +40,6 @@ type
       class procedure ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
   end;
 
-  TExtFileSaveDialog = class(TSaveDialog)
-    private
-      FFilters: TStringList;
-      FLineBreaks: TStringList;
-      FLineBreakIndex: TLineBreaks;
-      //const idLineBreakCombo = 1;
-      procedure FileOkClickNoOp(Sender: TObject; var CanClose: Boolean);
-    protected
-      //procedure DoOnExecute; override;
-      //function DoOnFileOkClick: Boolean; override;
-    public
-      constructor Create(AOwner: TComponent); override;
-      destructor Destroy; override;
-      procedure AddFileType(FileMask, DisplayName: String);
-      property LineBreaks: TStringList read FLineBreaks;
-      property LineBreakIndex: TLineBreaks read FLineBreakIndex write FLineBreakIndex;
-  end;
-
   {TExtSynHotKey = class(TSynHotKey)
     private
       FOnChange: TNotifyEvent;
@@ -462,98 +444,6 @@ class procedure TExtForm.ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMe
 begin
   PopupMenu.Popup(ClickedControl.ClientOrigin.X, ClickedControl.ClientOrigin.Y + ClickedControl.Height);
 end;
-
-
-
-{ TExtFileSaveDialog }
-
-constructor TExtFileSaveDialog.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  FLineBreaks := TStringList.Create;
-  FLineBreaks.Add(_('Windows linebreaks'));
-  FLineBreaks.Add(_('UNIX linebreaks'));
-  FLineBreaks.Add(_('Mac OS linebreaks'));
-  FLineBreakIndex := lbsWindows;
-  FFilters := TStringList.Create;
-end;
-
-
-destructor TExtFileSaveDialog.Destroy;
-begin
-  FLineBreaks.Free;
-  inherited;
-end;
-
-
-procedure TExtFileSaveDialog.AddFileType(FileMask, DisplayName: String);
-var
-  i: Integer;
-  NewFilter: String;
-begin
-  // Shorthand for callers
-  FFilters.Values[DisplayName] := FileMask;
-  NewFilter := '';
-  for i:=FFilters.Count-1 downto 0 do begin
-    NewFilter := NewFilter + Format('%s (%s)|%s', [FFilters.Names[i], FFilters.ValueFromIndex[i], FFilters.ValueFromIndex[i]]);
-    if i > 0 then
-      NewFilter := NewFilter + '|';
-  end;
-  Filter := NewFilter;
-end;
-
-
-{procedure TExtFileSaveDialog.DoOnExecute;
-var
-  iCustomize: IFileDialogCustomize;
-  i, ComboIndex: Integer;
-begin
-  // Add line break selector
-  if Dialog.QueryInterface(IFileDialogCustomize, iCustomize) = S_OK then
-  begin
-    iCustomize.StartVisualGroup(0, PChar(_('Linebreaks')+':'));
-    try
-      iCustomize.AddComboBox(idLineBreakCombo);
-      case FLineBreakIndex of
-        lbsUnix: ComboIndex := 1;
-        lbsMac: ComboIndex := 2;
-        else ComboIndex := 0;
-      end;
-      for i:=0 to FLineBreaks.Count - 1 do begin
-        iCustomize.AddControlItem(idLineBreakCombo, i, PChar(FLineBreaks[i]));
-      end;
-      iCustomize.SetSelectedControlItem(idLineBreakCombo, ComboIndex);
-      if not Assigned(OnFileOkClick) then
-        OnFileOkClick := FileOkClickNoOp;
-    finally
-      iCustomize.EndVisualGroup;
-    end;
-  end;
-end;}
-
-
-procedure TExtFileSaveDialog.FileOkClickNoOp(Sender: TObject; var CanClose: Boolean);
-begin
-  // Dummy procedure, just makes sure parent class calls DoOnFileOkClick
-end;
-
-
-{function TExtFileSaveDialog.DoOnFileOkClick: Boolean;
-var
-  iCustomize: IFileDialogCustomize;
-  ComboIndex: Cardinal;
-begin
-  Result := inherited;
-  if Dialog.QueryInterface(IFileDialogCustomize, iCustomize) = S_OK then
-  begin
-    iCustomize.GetSelectedControlItem(idLineBreakCombo, ComboIndex);
-    case ComboIndex of
-      0: FLineBreakIndex := lbsWindows;
-      1: FLineBreakIndex := lbsUnix;
-      2: FLineBreakIndex := lbsMac;
-    end;
-  end;
-end;}
 
 
 { TExtSynHotKey }
