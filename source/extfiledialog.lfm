@@ -28,12 +28,11 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = pnlBottom
       AnchorSideRight.Control = comboFileType
-      Left = 77
+      Left = 73
       Height = 28
       Top = 0
-      Width = 505
+      Width = 549
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Left = 10
       BorderSpacing.Right = 10
       TabOrder = 0
       Text = 'editFilename'
@@ -45,18 +44,19 @@ object frmExtFileDialog: TfrmExtFileDialog
       Left = 0
       Height = 20
       Top = 4
-      Width = 67
-      Caption = 'File name:'
+      Width = 63
+      BorderSpacing.Right = 10
+      Caption = 'Filename:'
     end
     object comboFileType: TComboBox
       AnchorSideLeft.Control = btnOk
       AnchorSideTop.Control = pnlBottom
       AnchorSideRight.Control = pnlBottom
       AnchorSideRight.Side = asrBottom
-      Left = 592
+      Left = 632
       Height = 28
       Top = 0
-      Width = 260
+      Width = 220
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Bottom = 10
       ItemHeight = 20
@@ -74,14 +74,15 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideRight.Control = btnCancel
       AnchorSideBottom.Control = pnlBottom
       AnchorSideBottom.Side = asrBottom
-      Left = 592
+      Left = 632
       Height = 30
       Top = 38
-      Width = 125
+      Width = 105
       Anchors = [akTop, akRight, akBottom]
+      AutoSize = True
       BorderSpacing.Right = 10
       Caption = 'OK'
-      Constraints.MinWidth = 125
+      Constraints.MinWidth = 105
       Default = True
       ModalResult = 1
       TabOrder = 2
@@ -91,17 +92,44 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = pnlBottom
       AnchorSideRight.Side = asrBottom
-      Left = 727
+      Left = 747
       Height = 30
       Top = 38
-      Width = 125
+      Width = 105
       Anchors = [akTop, akRight]
       AutoSize = True
       Cancel = True
       Caption = 'Cancel'
-      Constraints.MinWidth = 125
+      Constraints.MinWidth = 105
       ModalResult = 2
       TabOrder = 3
+    end
+    object comboEncoding: TComboBox
+      AnchorSideTop.Control = comboFileType
+      AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = btnOk
+      Left = 402
+      Height = 28
+      Top = 38
+      Width = 220
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 10
+      ItemHeight = 20
+      Style = csDropDownList
+      TabOrder = 4
+      OnChange = comboEncodingChange
+    end
+    object lblEncoding: TLabel
+      AnchorSideTop.Control = comboEncoding
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = comboEncoding
+      Left = 327
+      Height = 20
+      Top = 42
+      Width = 65
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 10
+      Caption = 'Encoding:'
     end
   end
   object ShellTreeView: TShellTreeView

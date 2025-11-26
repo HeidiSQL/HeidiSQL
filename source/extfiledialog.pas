@@ -6,22 +6,25 @@ interface
 
 uses
   Classes, SysUtils, LCLType, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls, StdCtrls, ShellCtrls, ComCtrls, apphelpers;
+  ExtCtrls, StdCtrls, ShellCtrls, ComCtrls, apphelpers, extra_controls;
 
 type
 
   { TfrmExtFileDialog }
 
-  TfrmExtFileDialog = class(TForm)
+  TfrmExtFileDialog = class(TExtForm)
     btnCancel: TButton;
     btnOk: TButton;
+    comboEncoding: TComboBox;
     comboFileType: TComboBox;
     editFilename: TEdit;
+    lblEncoding: TLabel;
     lblFilename: TLabel;
     pnlBottom: TPanel;
     ShellListView: TShellListView;
     ShellTreeView: TShellTreeView;
     splitterMain: TSplitter;
+    procedure comboEncodingChange(Sender: TObject);
     procedure comboFileTypeChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -57,12 +60,15 @@ type
   end;
 
   // File-open-dialog with encoding selector
-  TExtFileOpenDialog = class(TfrmExtFileDialog);
+  TExtFileOpenDialog = class(TfrmExtFileDialog)
+    procedure FormCreate(Sender: TObject); overload;
+  end;
 
 
 implementation
 
 {$R *.lfm}
+
 
 function TfrmExtFileDialog.Execute: Boolean;
 begin
@@ -78,12 +84,16 @@ end;
 
 procedure TfrmExtFileDialog.FormCreate(Sender: TObject);
 begin
+  if ClassType = TfrmExtFileDialog then
+    raise Exception.CreateFmt('Constructor of base class %s called. Use one of its descendants instead.', [ClassName]);
   FFilterNames := TStringList.Create;
   FFilterMasks := TStringList.Create;
   FEncodings := TStringList.Create;
   FFiles := TStringList.Create;
   comboFileType.Items.Clear;
   editFilename.Text := '';
+  lblEncoding.Enabled := False;
+  comboEncoding.Enabled := False;
 end;
 
 procedure TfrmExtFileDialog.FormDestroy(Sender: TObject);
@@ -106,8 +116,13 @@ begin
     else
       SetInitialDir(GetUserDir);
   end;
+
   comboFileType.ItemIndex := 0;
   comboFileType.OnChange(Sender);
+
+  comboEncoding.Items.AddStrings(FEncodings, True);
+  if (FEncodingIndex >=0) and (FEncodingIndex < comboEncoding.Items.Count) then
+    comboEncoding.ItemIndex := FEncodingIndex;
 end;
 
 procedure TfrmExtFileDialog.comboFileTypeChange(Sender: TObject);
@@ -121,6 +136,11 @@ begin
   ShellListView.Mask := FileMask;
 end;
 
+procedure TfrmExtFileDialog.comboEncodingChange(Sender: TObject);
+begin
+  FEncodingIndex := comboEncoding.ItemIndex;
+end;
+
 procedure TfrmExtFileDialog.ShellListViewClick(Sender: TObject);
 begin
   if ShellListView.Selected <> nil then
@@ -131,7 +151,8 @@ end;
 
 procedure TfrmExtFileDialog.ShellListViewDblClick(Sender: TObject);
 begin
-  ModalResult := mrOK;
+  if ShellListView.Selected <> nil then
+    ModalResult := mrOK;
 end;
 
 procedure TfrmExtFileDialog.ShellListViewSelectItem(Sender: TObject;
@@ -169,6 +190,18 @@ procedure TfrmExtFileDialog.SetInitialDir(const AValue: String);
 begin
   ShellTreeView.Path := AValue;
 end;
+
+
+
+{ TExtFileOpenDialog }
+
+procedure TExtFileOpenDialog.FormCreate(Sender: TObject);
+begin
+  inherited;
+  lblEncoding.Enabled := True;
+  comboEncoding.Enabled := True;
+end;
+
 
 end.
 

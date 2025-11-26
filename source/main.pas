@@ -3943,7 +3943,7 @@ end;
 // Load SQL-file, make sure that SheetQuery is activated
 procedure TMainForm.actLoadSQLExecute(Sender: TObject);
 var
-  i: Integer;
+  i, ProceedResult: Integer;
   Dialog: TExtFileOpenDialog;
   Encoding: TEncoding;
   Tab: TQueryTab;
@@ -3957,13 +3957,24 @@ begin
   Dialog.Encodings.Assign(FileEncodings);
   Dialog.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if Dialog.Execute then begin
-    Encoding := TEncoding.UTF8;
-    if not RunQueryFiles(Dialog.Files, Encoding, Sender=actRunSQL) then begin
-      for i:=0 to Dialog.Files.Count-1 do begin
-        Tab := GetOrCreateEmptyQueryTab(False);
-        Tab.LoadContents(Dialog.Files[i], True, Encoding);
-        if i = Dialog.Files.Count-1 then
-          SetMainTab(Tab.TabSheet);
+    Encoding := GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
+    if Encoding = nil then begin
+      ProceedResult := MessageDialog(_('Really auto-detect file encoding?') + SLineBreak + SLineBreak +
+        _('Auto detecting the encoding of a file is highly discouraged. You may experience data loss if the detection fails.') + SLineBreak + SLineBreak +
+        _('To avoid this message select the correct encoding before pressing Open.'),
+        mtConfirmation, [mbYes, mbCancel]);
+    end else begin
+      ProceedResult := mrYes;
+    end;
+
+    if ProceedResult = mrYes then begin
+      if not RunQueryFiles(Dialog.Files, Encoding, Sender=actRunSQL) then begin
+        for i:=0 to Dialog.Files.Count-1 do begin
+          Tab := GetOrCreateEmptyQueryTab(False);
+          Tab.LoadContents(Dialog.Files[i], True, Encoding);
+          if i = Dialog.Files.Count-1 then
+            SetMainTab(Tab.TabSheet);
+        end;
       end;
     end;
     AppSettings.WriteInt(asFileDialogEncoding, Dialog.EncodingIndex, Self.Name);
