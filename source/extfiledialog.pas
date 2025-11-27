@@ -178,20 +178,19 @@ procedure TfrmExtFileDialog.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
   CanClose := True;
-  if ModalResult = mrOK then begin
 
-    if FileName.IsEmpty then begin
-      CanClose := False;
-    end;
+  if ModalResult = mrCancel then
+    Exit;
 
-    if (not FileName.IsEmpty) and (Self is TExtFileSaveDialog) and (ofOverwritePrompt in FOptions) then begin
-      case MessageDialog(f_('File already exists: %s'+sLineBreak+sLineBreak+'Overwrite it?', [FileName]), mtConfirmation, [mbYes, mbNo]) of
-        mrNo: begin
-          CanClose := False;
-        end;
-      end;
-    end;
+  // Do nothing when user clicks OK without a selected file. Imitates Windows behaviour.
+  if FileName.IsEmpty then begin
+    CanClose := False;
+    Exit;
+  end;
 
+  // Ask user whether to overwrite the selected file
+  if (Self is TExtFileSaveDialog) and (ofOverwritePrompt in FOptions) and (FileExists(FileName)) then begin
+    CanClose := MessageDialog(f_('File already exists: %s'+sLineBreak+sLineBreak+'Overwrite it?', [FileName]), mtConfirmation, [mbYes, mbNo]) = mrYes;
   end;
 end;
 
