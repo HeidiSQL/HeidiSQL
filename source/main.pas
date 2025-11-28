@@ -4935,12 +4935,15 @@ begin
   CanSave := mrNo;
   QueryTab := QueryTabs.ActiveTab;
   Dialog := TExtFileSaveDialog.Create(Self);
-  if QueryTab.MemoFilename.IsEmpty then
-    DefaultFilename := QueryTab.TabSheet.Caption
+  if QueryTab.MemoFilename.IsEmpty then begin
+    DefaultFilename := QueryTab.TabSheet.Caption;
+    DefaultFilename := DefaultFilename.Trim([' ', '*']);
+    DefaultFilename := ValidFilename(DefaultFilename);
+  end
   else
-    DefaultFilename := ExtractFileName(QueryTab.MemoFilename);
-  DefaultFilename := DefaultFilename.Trim([' ', '*']);
-  Dialog.FileName := ValidFilename(DefaultFilename);
+    DefaultFilename := QueryTab.MemoFilename;
+  Dialog.FileName := DefaultFilename;
+
   Dialog.Options := Dialog.Options + [ofOverwritePrompt];
   if (Sender = actSaveSQLSnippet) or (Sender = actSaveSQLSelectionSnippet) then begin
     Dialog.InitialDir := AppSettings.DirnameSnippets;
