@@ -19,6 +19,7 @@ type
     comboEncoding: TComboBox;
     comboFileType: TComboBox;
     editFilename: TEdit;
+    IdleTimerTreeNodeScrolltoview: TIdleTimer;
     lblPath: TLabel;
     lblLinebreaks: TLabel;
     lblEncoding: TLabel;
@@ -34,6 +35,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure IdleTimerTreeNodeScrolltoviewTimer(Sender: TObject);
     procedure lblPathClick(Sender: TObject);
     procedure lblPathMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
@@ -163,6 +165,17 @@ begin
     comboLineBreaks.ItemIndex := LineBreakIndexInt;
 end;
 
+procedure TfrmExtFileDialog.IdleTimerTreeNodeScrolltoviewTimer(Sender: TObject);
+begin
+  // Work around tree node not being in scroll area in the first place
+  if not Visible then
+    Exit;
+  if Assigned(ShellTreeView.Selected) then
+    ShellTreeView.Selected.MakeVisible;
+  IdleTimerTreeNodeScrolltoview.AutoEnabled := False;
+  IdleTimerTreeNodeScrolltoview.Enabled := False;
+end;
+
 procedure TfrmExtFileDialog.lblPathClick(Sender: TObject);
 begin
   if (not FClickedPathPart.IsEmpty) and DirectoryExists(FClickedPathPart) then begin
@@ -200,6 +213,7 @@ begin
     Inc(CurrentWidth, TextWidth);
   end;
   if CharIndex > 0 then begin
+    i := 0;
     for i:=CharIndex to Length(lblPath.Caption) do begin
       if Copy(lblPath.Caption, i, 1) = PathDelim then
         break;
@@ -330,15 +344,25 @@ begin
 end;
 
 procedure TfrmExtFileDialog.SetInitialDir(const AValue: String);
+var
+  CurPath: String;
+  i: Integer;
 begin
+  // Try to set path on tree
   FInitialDir := AValue;
-  try
-    ShellTreeView.Path := FInitialDir;
-  except
-    on E:EInvalidPath do begin
-      ErrorDialog(E.Message);
-      // In case, re-enable changing directory in tree
-      Exclude(FOptions, ofNoChangeDir);
+  CurPath := AValue;
+  for i:=0 to 10 do begin
+    try
+      ShellTreeView.Path := CurPath;
+      Break;
+    except
+      on E:EInvalidPath do begin
+        // Go up to parent folder
+        // Testable on connections > advanced > file logging, due to virtual template strings.
+        CurPath := ExtractFilePath(ExcludeTrailingPathDelimiter(CurPath));
+        // In case, re-enable changing directory in tree
+        Exclude(FOptions, ofNoChangeDir);
+      end;
     end;
   end;
 end;

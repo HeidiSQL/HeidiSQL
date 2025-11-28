@@ -174,9 +174,8 @@ object frmExtFileDialog: TfrmExtFileDialog
     Align = alLeft
     BorderSpacing.Left = 10
     HideSelection = False
-    ReadOnly = False
     TabOrder = 0
-    Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+    Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
     ObjectTypes = [otFolders, otHidden]
     ShellListView = ShellListView
     OnChange = ShellTreeViewChange
@@ -200,6 +199,7 @@ object frmExtFileDialog: TfrmExtFileDialog
     Color = clDefault
     SortType = stText
     TabOrder = 1
+    ObjectTypes = [otNonFolders, otHidden]
     ShellTreeView = ShellTreeView
     OnClick = ShellListViewClick
     OnDblClick = ShellListViewDblClick
@@ -219,5 +219,12 @@ object frmExtFileDialog: TfrmExtFileDialog
     OnClick = lblPathClick
     OnMouseDown = lblPathMouseDown
     OnMouseMove = lblPathMouseMove
+  end
+  object IdleTimerTreeNodeScrolltoview: TIdleTimer
+    AutoEnabled = True
+    Interval = 100
+    OnTimer = IdleTimerTreeNodeScrolltoviewTimer
+    Left = 32
+    Top = 64
   end
 end
