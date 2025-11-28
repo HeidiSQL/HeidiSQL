@@ -206,6 +206,7 @@ object frmExtFileDialog: TfrmExtFileDialog
     OnSelectItem = ShellListViewSelectItem
   end
   object lblPath: TLabel
+    Cursor = crHandPoint
     Left = 10
     Height = 20
     Top = 10
@@ -213,5 +214,10 @@ object frmExtFileDialog: TfrmExtFileDialog
     Align = alTop
     BorderSpacing.Around = 10
     Caption = 'lblPath'
+    ParentShowHint = False
+    ShowHint = True
+    OnClick = lblPathClick
+    OnMouseDown = lblPathMouseDown
+    OnMouseMove = lblPathMouseMove
   end
 end

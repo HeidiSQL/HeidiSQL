@@ -34,6 +34,11 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure lblPathClick(Sender: TObject);
+    procedure lblPathMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure lblPathMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
     procedure ShellListViewClick(Sender: TObject);
     procedure ShellListViewDblClick(Sender: TObject);
     procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
@@ -53,11 +58,13 @@ type
     FOptions: TOpenOptions;
     FFiles: TStringList;
     FOnTypeChange: TNotifyEvent;
+    FClickedPathPart: String;
     procedure SetTitle(AValue: String);
     function GetFileName: String;
     procedure SetFileName(const AValue: String);
     procedure SetInitialDir(const AValue: String);
     procedure SetFilterIndex(AValue: Integer);
+    function GetPathPartAt(X: Integer): String;
   public
     property OnTypeChange: TNotifyEvent read FOnTypeChange write FOnTypeChange;
     property Title: String write SetTitle;
@@ -154,6 +161,57 @@ begin
   LineBreakIndexInt := Integer(FLineBreakIndex)-1; // we skip lbsNone
   if (LineBreakIndexInt >=0) and (LineBreakIndexInt < comboLineBreaks.Items.Count) then
     comboLineBreaks.ItemIndex := LineBreakIndexInt;
+end;
+
+procedure TfrmExtFileDialog.lblPathClick(Sender: TObject);
+begin
+  if (not FClickedPathPart.IsEmpty) and DirectoryExists(FClickedPathPart) then begin
+    if ofNoChangeDir in FOptions then
+      ErrorDialog('You cannot change the directory in this context.')
+    else
+      ShellTreeView.Path := FClickedPathPart;
+  end;
+end;
+
+procedure TfrmExtFileDialog.lblPathMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  FClickedPathPart := GetPathPartAt(X);
+end;
+
+function TfrmExtFileDialog.GetPathPartAt(X: Integer): String;
+var
+  i, CharIndex, CurrentWidth: Integer;
+  TextWidth: Integer;
+begin
+  CharIndex := -1;
+  CurrentWidth := 0;
+  Result := '';
+
+  lblPath.Canvas.Font := lblPath.Font;
+  for i := 1 to Length(lblPath.Caption) do
+  begin
+    TextWidth := lblPath.Canvas.TextWidth(Copy(lblPath.Caption, i, 1));
+    if (X >= CurrentWidth) and (X < CurrentWidth + TextWidth) then
+    begin
+      CharIndex := i; // 1-based character index clicked
+      Break;
+    end;
+    Inc(CurrentWidth, TextWidth);
+  end;
+  if CharIndex > 0 then begin
+    for i:=CharIndex to Length(lblPath.Caption) do begin
+      if Copy(lblPath.Caption, i, 1) = PathDelim then
+        break;
+    end;
+    Result := Copy(lblPath.Caption, 1, i);
+  end;
+end;
+
+procedure TfrmExtFileDialog.lblPathMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  lblPath.Hint := GetPathPartAt(X);
 end;
 
 procedure TfrmExtFileDialog.comboFileTypeChange(Sender: TObject);
