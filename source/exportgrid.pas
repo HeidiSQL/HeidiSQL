@@ -7,7 +7,8 @@ interface
 uses
   SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, laz.VirtualTrees, SynExportHTML,
-  extra_controls, dbstructures, lazaruscompat, RegExpr, StrUtils, comboex, EditBtn, Buttons, LCLIntf;
+  extra_controls, dbstructures, lazaruscompat, RegExpr, StrUtils, comboex, EditBtn, Buttons, LCLIntf,
+  extfiledialog;
 
 type
   TGridExportFormat = (
@@ -390,21 +391,20 @@ end;
 
 procedure TfrmExportGrid.editFilenameRightButtonClick(Sender: TObject);
 var
-  Dialog: TSaveDialog;
+  Dialog: TExtFileSaveDialog;
   ef: TGridExportFormat;
   Filename: String;
 begin
   // Select file target
-  Dialog := TSaveDialog.Create(Self);
+  Dialog := TExtFileSaveDialog.Create(Self);
   Filename := GetOutputFilename(editFilename.Text, MainForm.ActiveDbObj);
   Dialog.InitialDir := ExtractFilePath(Filename);
   Dialog.FileName := GetFileNameWithoutExtension(Filename);
-  Dialog.Filter := '';
   for ef:=Low(TGridExportFormat) to High(TGridExportFormat) do
-    Dialog.Filter := Dialog.Filter + FormatToDescription[ef] + ' (*.'+FormatToFileExtension[ef]+')|*.'+FormatToFileExtension[ef]+'|';
-  Dialog.Filter := Dialog.Filter + _('All files')+' (*.*)|*.*';
+    Dialog.AddFileType('*.'+FormatToFileExtension[ef], FormatToDescription[ef]);
+  Dialog.AddFileType('*.*', _('All files'));
   Dialog.OnTypeChange := SaveDialogTypeChange;
-  Dialog.FilterIndex := comboFormat.ItemIndex+1;
+  Dialog.FilterIndex := comboFormat.ItemIndex;
   Dialog.OnTypeChange(Dialog);
   if Dialog.Execute then begin
     editFilename.Text := Dialog.FileName;
@@ -558,13 +558,13 @@ end;
 
 procedure TfrmExportGrid.SaveDialogTypeChange(Sender: TObject);
 var
-  Dialog: TSaveDialog;
+  Dialog: TExtFileSaveDialog;
   ef: TGridExportFormat;
 begin
   // Set default file-extension of saved file and options on the dialog to show
-  Dialog := Sender as TSaveDialog;
+  Dialog := Sender as TExtFileSaveDialog;
   for ef:=Low(TGridExportFormat) to High(TGridExportFormat) do begin
-    if Dialog.FilterIndex = Integer(ef)+1 then
+    if Dialog.FilterIndex = Integer(ef) then
       Dialog.DefaultExt := FormatToFileExtension[ef];
   end;
 end;

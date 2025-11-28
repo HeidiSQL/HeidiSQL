@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, Graphics, Forms, Controls, StdCtrls, laz.VirtualTrees,
-  ComCtrls, Dialogs, SysUtils, extra_controls, LCLType;
+  ComCtrls, Dialogs, SysUtils, extra_controls, LCLType, extfiledialog;
 
 {$I const.inc}
 
@@ -151,11 +151,10 @@ end;
 
 procedure TfrmBinEditor.btnLoadBinaryClick(Sender: TObject);
 var
-  d: TOpenDialog;
+  d: TExtFileOpenDialog;
 begin
-  d := TOpenDialog.Create(Self);
-  d.Filter := _('All files')+' (*.*)|*.*';
-  d.FilterIndex := 0;
+  d := TExtFileOpenDialog.Create(Self);
+  d.AddFileType('*.*', _('All files'));
   if d.Execute then try
     Screen.Cursor := crHourglass;
     memoText.Text := BinToWideHex(ReadBinaryFile(d.FileName, memoText.MaxLength));

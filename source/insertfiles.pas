@@ -7,7 +7,7 @@ interface
 uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
   Math, Graphics, ComCtrls, LCLType, extra_controls, lazaruscompat,
-  dbconnection, dbstructures, laz.VirtualTrees, RegExpr, apphelpers;
+  dbconnection, dbstructures, laz.VirtualTrees, RegExpr, apphelpers, extfiledialog;
 
 type
   TColInfo = class
@@ -30,7 +30,6 @@ type
   TfrmInsertFiles = class(TExtForm)
     btnInsert: TButton;
     btnCancel: TButton;
-    OpenDialog: TOpenDialog;
     grpSelectObject: TGroupBox;
     lblTable: TLabel;
     comboDBs: TComboBox;
@@ -93,6 +92,7 @@ type
   private
     FConnection: TDBConnection;
     FMaxFileSize: Int64;
+    FOpenDialog: TExtFileOpenDialog;
   public
     { Public declarations }
     //procedure AcceptFiles( var msg : TMessage ); message WM_DROPFILES;
@@ -124,6 +124,10 @@ begin
   FixVT(ListColumns);
   Width := AppSettings.ReadInt(asFileImportWindowWidth);
   Height := AppSettings.ReadInt(asFileImportWindowHeight);
+  FOpenDialog := TExtFileOpenDialog.Create(Self);
+  FOpenDialog.Options := FOpenDialog.Options + [ofAllowMultiSelect];
+  FOpenDialog.AddFileType('*.*', _('All files'));
+  FOpenDialog.AddFileType('*.jpg;*.gif;*.bmp;*.png', _('Common images'));
 end;
 
 
@@ -397,12 +401,12 @@ var
   i: Integer;
 begin
   // Add file(s) to list
-  if OpenDialog.Execute then begin
+  if FOpenDialog.Execute then begin
     Screen.Cursor := crHourglass;
     ListFiles.BeginUpdate;
     try
-      for i:=0 to OpenDialog.Files.Count-1 do
-        AddFile(OpenDialog.Files[i]);
+      for i:=0 to FOpenDialog.Files.Count-1 do
+        AddFile(FOpenDialog.Files[i]);
     finally
       ListFiles.EndUpdate;
     end;

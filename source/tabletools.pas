@@ -13,7 +13,7 @@ uses
   SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs,
   laz.VirtualTrees, ExtCtrls, Graphics, RegExpr, Math, Generics.Collections, extra_controls,
   dbconnection, apphelpers, lazaruscompat, Menus, DateUtils, Zipper, StrUtils,
-  SynEdit, ClipBrd, generic_types, fpjson, Variants, EditBtn, LazFileUtils, Types, LCLType;
+  SynEdit, ClipBrd, generic_types, fpjson, Variants, EditBtn, LazFileUtils, Types, LCLType, extfiledialog;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit, tmGenerateData);
@@ -1675,17 +1675,22 @@ end;
 
 procedure TfrmTableTools.btnExportOutputTargetSelectClick(Sender: TObject);
 var
-  SaveDialog: TSaveDialog;
+  SaveDialog: TExtFileSaveDialog;
   Browse: TSelectDirectoryDialog;
 begin
   if (comboExportOutputType.Text = OUTPUT_FILE) or (comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED) then begin
     // Select filename
-    SaveDialog := TSaveDialog.Create(Self);
-    SaveDialog.DefaultExt := 'sql';
-    if comboExportOutputType.Text = OUTPUT_FILE then
-      SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
-    else
-      SaveDialog.Filter := _('ZIP files')+' (*.zip)|*.zip|'+_('All files')+' (*.*)|*.*';
+    SaveDialog := TExtFileSaveDialog.Create(Self);
+    SaveDialog.FileName := comboExportOutputTarget.Text;
+    if comboExportOutputType.Text = OUTPUT_FILE then begin
+      SaveDialog.AddFileType('*.sql', _('SQL files'));
+      SaveDialog.DefaultExt := 'sql';
+    end
+    else begin
+      SaveDialog.AddFileType('*.zip', _('ZIP files'));
+      SaveDialog.DefaultExt := 'zip';
+    end;
+    SaveDialog.AddFileType('*.*', _('All files'));
     // Don't prompt here if file exists, but later when exporting starts. See issue #835
     // SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
     if SaveDialog.Execute then

@@ -165,38 +165,53 @@ object frmExtFileDialog: TfrmExtFileDialog
     end
   end
   object ShellTreeView: TShellTreeView
+    AnchorSideTop.Control = lblPath
+    AnchorSideTop.Side = asrBottom
     Left = 10
-    Height = 446
-    Top = 10
+    Height = 416
+    Top = 40
     Width = 261
     Align = alLeft
     BorderSpacing.Left = 10
-    BorderSpacing.Top = 10
     HideSelection = False
     ReadOnly = False
     TabOrder = 0
     Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
+    ObjectTypes = [otFolders, otHidden]
     ShellListView = ShellListView
+    OnChange = ShellTreeViewChange
+    OnChanging = ShellTreeViewChanging
   end
   object splitterMain: TSplitter
     Left = 271
-    Height = 456
-    Top = 0
+    Height = 416
+    Top = 40
     Width = 6
   end
   object ShellListView: TShellListView
+    AnchorSideTop.Control = lblPath
+    AnchorSideTop.Side = asrBottom
     Left = 277
-    Height = 446
-    Top = 10
+    Height = 416
+    Top = 40
     Width = 585
     Align = alClient
-    BorderSpacing.Top = 10
     BorderSpacing.Right = 10
     Color = clDefault
+    SortType = stText
     TabOrder = 1
     ShellTreeView = ShellTreeView
     OnClick = ShellListViewClick
     OnDblClick = ShellListViewDblClick
     OnSelectItem = ShellListViewSelectItem
+  end
+  object lblPath: TLabel
+    Left = 10
+    Height = 20
+    Top = 10
+    Width = 852
+    Align = alTop
+    BorderSpacing.Around = 10
+    Caption = 'lblPath'
   end
 end

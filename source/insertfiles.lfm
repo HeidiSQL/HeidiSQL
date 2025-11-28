@@ -12,7 +12,6 @@ object frmInsertFiles: TfrmInsertFiles
   Constraints.MinWidth = 250
   DesignTimePPI = 120
   Position = poOwnerFormCenter
-  LCLVersion = '4.2.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
@@ -153,7 +152,7 @@ object frmInsertFiles: TfrmInsertFiles
           Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
           Position = 2
           Text = 'Value'
-          Width = 386
+          Width = 382
         end>
       Header.Height = 32
       Header.Images = MainForm.ImageListMain
@@ -238,7 +237,7 @@ object frmInsertFiles: TfrmInsertFiles
         item
           Position = 0
           Text = 'Filename'
-          Width = 423
+          Width = 419
         end      
         item
           CheckBox = True
@@ -317,11 +316,5 @@ object frmInsertFiles: TfrmInsertFiles
         OnClick = btnRemoveFilesClick
       end
     end
-  end
-  object OpenDialog: TOpenDialog
-    Filter = 'All files (*.*)|*.*|Common images (*.jpg, *.gif, *.bmp, *.png)|*.jpg;*.gif;*.bmp;*.png'
-    Options = [ofHideReadOnly, ofAllowMultiSelect, ofFileMustExist, ofEnableSizing]
-    Left = 10
-    Top = 570
   end
 end

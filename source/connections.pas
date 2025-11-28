@@ -13,7 +13,7 @@ uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   laz.VirtualTrees, Menus, Graphics, extra_controls, lazaruscompat,
   dbconnection, RegExpr, Types, FileUtil,
-  Math, ActnList, ComboEx, EditBtn, Buttons, ColorBox;
+  Math, ActnList, ComboEx, EditBtn, Buttons, ColorBox, extfiledialog;
 
 type
 
@@ -1720,7 +1720,7 @@ end;
 
 procedure Tconnform.PickFile(Sender: TObject);
 var
-  Selector: TOpenDialog;
+  Selector: TExtFileOpenDialog;
   Edit: TEditButton;
   i: Integer;
   Control: TControl;
@@ -1728,18 +1728,21 @@ var
 begin
   // Select startup SQL file, SSL file or whatever button clicked
   Edit := Sender as TEditButton;
-  Selector := TOpenDialog.Create(Self);
+  Selector := TExtFileOpenDialog.Create(Self);
   if Edit = editHost then begin
-    Selector.Filter := 'SQLite databases ('+FILEFILTER_SQLITEDB+')|'+FILEFILTER_SQLITEDB+'|'+_('All files')+' (*.*)|*.*';
+    Selector.AddFileType(FILEFILTER_SQLITEDB, 'SQLite databases');
     Selector.Options := Selector.Options - [ofFileMustExist];
     Selector.Options := Selector.Options + [ofAllowMultiSelect];
     Selector.DefaultExt := FILEEXT_SQLITEDB;
   end else if (Edit = editStartupScript) or (Edit = editLogFilePath) then
-    Selector.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
-  else if Edit = editSSHPrivateKey then
-    Selector.Filter := _('All files')+' (*.*)|*.*'
-  else
-    Selector.Filter := _('Privacy Enhanced Mail certificates')+' (*.pem)|*.pem|'+_('Certificates')+' (*.crt)|*.crt|'+_('All files')+' (*.*)|*.*';
+    Selector.AddFileType('*.sql', _('SQL files'))
+  else if Edit = editSSHPrivateKey then begin
+  end
+  else begin
+    Selector.AddFileType('*.pem', _('Privacy Enhanced Mail certificates'));
+    Selector.AddFileType('*.crt', _('Certificates'));
+  end;
+  Selector.AddFileType('*.*', _('All files'));
   // Find relevant label and set open dialog's title
   for i:=0 to Edit.Parent.ControlCount - 1 do begin
     Control := Edit.Parent.Controls[i];
@@ -1750,8 +1753,6 @@ begin
   end;
   // Set initial directory to the one from the edit's file
   Selector.InitialDir := ExtractFilePath(Edit.Text);
-  //if Selector.InitialDir.IsEmpty then
-  //  Selector.InitialDir := TPath.GetPathRoot(Application.ExeName);
   if Selector.Execute then begin
     FileNames := TStringList.Create;
     FileNames.Assign(Selector.Files);

@@ -3130,13 +3130,14 @@ end;
 
 procedure TMainForm.actExportSettingsExecute(Sender: TObject);
 var
-  Dialog: TSaveDialog;
+  Dialog: TExtFileSaveDialog;
 begin
   // Export settings to .txt file
-  Dialog := TSaveDialog.Create(Self);
+  Dialog := TExtFileSaveDialog.Create(Self);
   Dialog.Title := f_('Export %s settings to file ...', [APPNAME]);
   Dialog.DefaultExt := 'txt';
-  Dialog.Filter := _('Text files')+' (*.txt)|*.txt|'+_('All files')+' (*.*)|*.*';
+  Dialog.AddFileType('*.txt', _('Text files'));
+  Dialog.AddFileType('*.*', _('All files'));
   Dialog.Options := Dialog.Options + [ofOverwritePrompt];
   if Dialog.Execute then try
     AppSettings.ExportSettings(Dialog.FileName);
@@ -3151,12 +3152,13 @@ end;
 
 procedure TMainForm.actImportSettingsExecute(Sender: TObject);
 var
-  Dialog: TOpenDialog;
+  Dialog: TExtFileOpenDialog;
 begin
   // Import settings from .txt or .reg file
-  Dialog := TOpenDialog.Create(Self);
+  Dialog := TExtFileOpenDialog.Create(Self);
   Dialog.Title := f_('Import %s settings from file ...', [APPNAME]);
-  Dialog.Filter := _('Text files')+' (*.txt)|*.txt|'+_('All files')+' (*.*)|*.*';
+  Dialog.AddFileType('*.txt', _('Text files'));
+  Dialog.AddFileType('*.*', _('All files'));
   ImportSettingsDone := False;
   if Dialog.Execute then try
     if LowerCase(ExtractFileExt(Dialog.FileName)) = 'reg' then
@@ -3767,13 +3769,13 @@ var
   Content: AnsiString;
   FileStream: TFileStream;
   StrLen: Integer;
-  Dialog: TSaveDialog;
+  Dialog: TExtFileSaveDialog;
 begin
   // Save BLOB to local file
   Grid := ActiveGrid;
   Results := GridResult(Grid);
-  Dialog := TSaveDialog.Create(Self);
-  Dialog.Filter := _('All files')+' (*.*)|*.*';
+  Dialog := TExtFileSaveDialog.Create(Self);
+  Dialog.AddFileType('*.*', _('All files'));
   Dialog.FileName := Results.ColumnOrgNames[Grid.FocusedColumn-1];
   if not (Results.DataType(Grid.FocusedColumn-1).Category in [dtcBinary, dtcSpatial]) then
     Dialog.FileName := Dialog.FileName + '.txt';
@@ -5612,16 +5614,17 @@ end;
 
 procedure TMainForm.actAttachDatabaseExecute(Sender: TObject);
 var
-  Selector: TOpenDialog;
+  Selector: TExtFileOpenDialog;
   OldFiles, NewFiles: TStringList;
   i: Integer;
   Conn: TDBConnection;
   DbAlias: String;
 begin
   // Attach new or existing SQLite database file
-  Selector := TOpenDialog.Create(Self);
+  Selector := TExtFileOpenDialog.Create(Self);
   //Selector.InitialDir := ?;
-  Selector.Filter := 'SQLite databases ('+FILEFILTER_SQLITEDB+')|'+FILEFILTER_SQLITEDB+'|'+_('All files')+' (*.*)|*.*';
+  Selector.AddFileType(FILEFILTER_SQLITEDB, 'SQLite databases');
+  Selector.AddFileType('*.*', _('All files'));
   Selector.Options := Selector.Options - [ofFileMustExist];
   Selector.Options := Selector.Options + [ofAllowMultiSelect];
   Selector.DefaultExt := FILEEXT_SQLITEDB;
