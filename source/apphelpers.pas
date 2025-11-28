@@ -1307,14 +1307,19 @@ end;}
 }
 procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
 var
-  Writer: TStringList;
+  Writer: TFileStream;
+  Bytes: TBytes;
 begin
   // Encoding may be nil when previously loaded via auto-detection
   if not Assigned(Encoding) then
     Encoding := UTF8NoBOMEncoding;
-  Writer := TStringList.Create;
-  Writer.Text := Text;
-  Writer.SaveToFile(Filename, Encoding);
+  Bytes := Encoding.GetBytes(Text); // Encode text
+  Writer := TFileStream.Create(Filename, fmCreate);
+  try
+    Writer.WriteBuffer(Bytes[0], Length(Bytes));
+  finally
+    Writer.Free;
+  end;
 end;
 
 
@@ -1325,56 +1330,62 @@ var
 begin
   // Open a textfile and return a stream. Detect its encoding if not passed by the caller
   Stream := TFileStream.Create(Filename, fmOpenRead or fmShareDenyNone);
-  //if Encoding = nil then
-  //  Encoding := DetectEncoding(Stream);
+  if Encoding = nil then
+    Encoding := DetectEncoding(Stream);
   // If the file contains a BOM, advance the stream's position
   BomLen := 0;
-  {if Length(Encoding.GetPreamble) > 0 then begin
+  if Length(Encoding.GetPreamble) > 0 then begin
     SetLength(Header, Length(Encoding.GetPreamble));
     Stream.ReadBuffer(Pointer(Header)^, Length(Header));
     if CompareMem(Header, Encoding.GetPreamble, SizeOf(Header)) then
       BomLen := Length(Encoding.GetPreamble);
-  end;}
+  end;
   Stream.Position := BomLen;
 end;
 
 
 {**
-  Detect stream's content encoding through SynEdit's GetEncoding. Result can be:
+  Detect stream's content encoding. Result can be:
     UTF-16 BE with BOM
     UTF-16 LE with BOM
     UTF-8 with or without BOM
-    ANSI
-  Aimed to work better than WideStrUtils.IsUTF8String() which didn't work in any test case here.
-  @see http://en.wikipedia.org/wiki/Byte_Order_Mark
-  Could also do that with TEncoding.GetBufferEncoding, but that relies on the file having a BOM
 }
 function DetectEncoding(Stream: TStream): TEncoding;
-{var
-  SynEnc: TSynEncoding;
-  WithBOM: Boolean;}
+const
+  BOM_UTF8: array[0..2] of Byte = ($EF, $BB, $BF);
+  BOM_UTF16LE: array[0..1] of Byte = ($FF, $FE);
+  BOM_UTF16BE: array[0..1] of Byte = ($FE, $FF);
+var
+  Buffer: array[0..3] of Byte;
+  ReadCount: Integer;
+  OldPos: Int64;
 begin
-  Result := TEncoding.UTF8
-  { LConvEncoding.GuessEncoding returns string identifiers, not the TEncoding objects
-  SynEnc := SynUnicode.GetEncoding(Stream, WithBOM);
-  case SynEnc of
-    seUTF8: begin
-      if WithBOM then
-        Result := TEncoding.UTF8
-      else
-        Result := UTF8NoBOMEncoding;
-    end;
-    seUTF16LE: Result := TEncoding.Unicode;
-    seUTF16BE: Result := TEncoding.BigEndianUnicode;
-    seAnsi: Result := TEncoding.ANSI;
-    else Result := UTF8NoBOMEncoding;
-  end;}
+  Result := UTF8NoBOMEncoding;  // Default if no BOM is found
+
+  OldPos := Stream.Position;
+  Stream.Position := 0;
+  try
+    ReadCount := Stream.Read(Buffer, SizeOf(Buffer));
+  finally
+    Stream.Position := OldPos;
+  end;
+
+  if (ReadCount >= 3) and CompareMem(@Buffer[0], @BOM_UTF8[0], 3) then
+    Result := TEncoding.UTF8
+  else if (ReadCount >= 2) and CompareMem(@Buffer[0], @BOM_UTF16LE[0], 2) then
+    Result := TEncoding.Unicode // UTF-16 LE
+  else if (ReadCount >= 2) and CompareMem(@Buffer[0], @BOM_UTF16BE[0], 2) then
+    Result := TEncoding.BigEndianUnicode // UTF-16 BE
+  // Could add detection for UTF-32 BOMs too if needed
+  else
+    Result := UTF8NoBOMEncoding;  // No BOM
 end;
 
 
 function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
 var
   DataLeft: Int64;
+  Bytes: TBytes;
 begin
   // Read a chunk or the complete contents out of a textfile, opened by OpenTextFile()
   if Stream.Size = 0 then begin
@@ -1386,8 +1397,9 @@ begin
   if (ChunkSize = 0) or (ChunkSize > DataLeft) then
     ChunkSize := DataLeft;
 
-  SetLength(Result, ChunkSize);
-  Stream.Read(PChar(Result)^, ChunkSize);
+  SetLength(Bytes, ChunkSize);
+  Stream.ReadBuffer(Bytes[0], Length(Bytes));
+  Result := Encoding.GetString(Bytes);
 end;
 
 
