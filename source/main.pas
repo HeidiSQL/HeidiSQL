@@ -12299,6 +12299,7 @@ begin
   //QueryTab.Memo.HintMode := SynMemoQuery.HintMode;
   QueryTab.Memo.Left := SynMemoQuery.Left;
   QueryTab.Memo.Options := SynMemoQuery.Options;
+  QueryTab.Memo.Options2 := SynMemoQuery.Options2;
   QueryTab.Memo.PopupMenu := SynMemoQuery.PopupMenu;
   QueryTab.Memo.TabWidth := SynMemoQuery.TabWidth;
   QueryTab.Memo.RightEdge := SynMemoQuery.RightEdge;
@@ -13405,6 +13406,7 @@ begin
   end;
   Editor.LineHighlightColor.Background := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
   Editor.Options := BaseEditor.Options;
+  Editor.Options2 := BaseEditor.Options2;
   if Editor = SynMemoSQLLog then
     Editor.Options := Editor.Options + [eoRightMouseMovesCursor];
   Editor.TabWidth := AppSettings.ReadInt(asTabWidth);
