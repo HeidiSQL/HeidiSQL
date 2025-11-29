@@ -10382,7 +10382,9 @@ var
   EditingAndFocused, IsScientific: Boolean;
   RowNumber: PInt64;
   Results: TDBQuery;
-  Timestamp: Int64;
+  TimestampInt: Int64;
+  TimestampFloat: Extended;
+  FloatFrac: String;
   DotPos, i, NumZeros, NumDecimals, KeepDecimals: Integer;
   ResultCol: Integer;
 begin
@@ -10420,9 +10422,16 @@ begin
           CellText := Results.Col(ResultCol);
         end else if HandleUnixTimestampColumn(Sender, Column) then begin
           try
-            Timestamp := Trunc(StrToFloat(Results.Col(ResultCol), FFormatSettings));
-            Dec(Timestamp, FTimeZoneOffset);
-            CellText := DateTimeToStr(UnixToDateTime(Timestamp));
+            TimestampFloat := StrToFloat(Results.Col(ResultCol), FFormatSettings);
+            TimestampInt := Trunc(TimestampFloat);
+            Dec(TimestampInt, FTimeZoneOffset);
+            CellText := DateTimeToStr(UnixToDateTime(TimestampInt));
+
+            FloatFrac := Results.Col(ResultCol);
+            if FloatFrac.Contains(FFormatSettings.DecimalSeparator) then begin
+              FloatFrac := FloatFrac.Substring(Pos(FFormatSettings.DecimalSeparator, FloatFrac));
+              CellText := CellText + '.' + FloatFrac;
+            end;
           except
             // EConvertError in StrToFloat or EInvalidOp in Trunc or...
             on E:Exception do begin
@@ -10673,6 +10682,7 @@ var
   Results: TDBQuery;
   RowNum: PInt64;
   Timestamp: Int64;
+  TimestampFraction, StrWithoutMs: String;
   IsNull: Boolean;
   ResultCol: Integer;
 begin
@@ -10685,9 +10695,11 @@ begin
   try
     if (not FGridEditFunctionMode) and (Results.DataType(ResultCol).Category in [dtcInteger, dtcReal]) then begin
       if HandleUnixTimestampColumn(Sender, Column) then begin
-        Timestamp := DateTimeToUnix(StrToDateTime(NewText));
+        TimestampFraction := RegExprGetMatch('(\.\d+)$', NewText, 1);
+        StrWithoutMs := ReplaceRegExpr('\.\d+$', NewText, '');
+        Timestamp := DateTimeToUnix(StrToDateTime(StrWithoutMs));
         Inc(Timestamp, FTimeZoneOffset);
-        NewText := IntToStr(Timestamp)
+        NewText := IntToStr(Timestamp) + TimestampFraction;
       end else
         NewText := NewText;
     end;
@@ -10695,7 +10707,7 @@ begin
     IsNull := FGridPasting and FClipboardHasNull;
     Results.SetCol(ResultCol, NewText, IsNull, FGridEditFunctionMode);
   except
-    on E:EDbError do
+    on E:Exception do
       ErrorDialog(E.Message);
   end;
   FGridEditFunctionMode := False;
