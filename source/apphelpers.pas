@@ -396,6 +396,7 @@ type
   //function GetImageLinkTimeStamp(const FileName: string): TDateTime;
   function IsEmpty(Str: String): Boolean;
   function IsNotEmpty(Str: String): Boolean;
+  function IfEmpty(Str: String; WhenEmpty: String): String;
   function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
   function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer; overload;
   function ErrorDialog(Msg: string): Integer; overload;
@@ -2365,6 +2366,13 @@ begin
   Result := Str <> '';
 end;
 
+function IfEmpty(Str: String; WhenEmpty: String): String;
+begin
+  if Str.IsEmpty then
+    Result := WhenEmpty
+  else
+    Result := Str;
+end;
 
 function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer;
 begin
