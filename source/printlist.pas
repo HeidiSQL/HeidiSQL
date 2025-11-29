@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, Controls, Forms, Dialogs, StdCtrls, Printers, laz.VirtualTrees,
-  PrintersDlgs;
+  PrintersDlgs, SysUtils;
 
 type
 
@@ -48,7 +48,17 @@ begin
   // show!
   Screen.Cursor := crHourGlass;
   comboPrinters.Items := Printer.printers;
-  comboPrinters.ItemIndex := Printer.printerIndex;
+  try
+    if comboPrinters.Items.Count > 0 then begin
+      comboPrinters.ItemIndex := Printer.printerIndex;
+      btnConfigure.Enabled := True;
+    end;
+  except
+    on E:Exception do begin
+      btnConfigure.Enabled := False;
+      ErrorDialog(E.Message);
+    end;
+  end;
   Screen.Cursor := crDefault;
 end;
 
