@@ -224,7 +224,7 @@ type
     asIncrementalSearch, asQueryHistoryEnabled, asQueryHistoryKeepDays,
     asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail, asFavoriteObjects, asFavoriteObjectsOnly, asFullTableStatus, asLineBreakStyle,
     asPreferencesWindowWidth, asPreferencesWindowHeight,
-    asFileDialogEncoding,
+    asFileDialogEncoding, asFileDialogPreviousDir,
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asCreateDbCollation, asRealTrailingZeros,
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
@@ -4010,6 +4010,7 @@ begin
   InitSetting(asPreferencesWindowWidth,           'PreferencesWindowWidth',                740);
   InitSetting(asPreferencesWindowHeight,          'PreferencesWindowHeight',               500);
   InitSetting(asFileDialogEncoding,               'FileDialogEncoding_%s',                 0);
+  InitSetting(asFileDialogPreviousDir,            'FileDialogPreviousDir',                 0, False, '');
   InitSetting(asThemePreviewWidth,                'ThemePreviewWidth',                     300);
   InitSetting(asThemePreviewHeight,               'ThemePreviewHeight',                    200);
   InitSetting(asThemePreviewTop,                  'ThemePreviewTop',                       300);
