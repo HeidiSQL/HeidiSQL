@@ -31,6 +31,7 @@ type
     procedure comboEncodingChange(Sender: TObject);
     procedure comboFileTypeChange(Sender: TObject);
     procedure comboLineBreaksChange(Sender: TObject);
+    procedure editFilenameEditingDone(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -74,7 +75,6 @@ type
     procedure AddFileType(FileMask, DisplayName: String);
     property FileName: String read GetFileName write SetFileName;
     property InitialDir: String read FInitialDir write SetInitialDir;
-    class var PreviousDir: String;
     property DefaultExt: String read FDefaultExt write FDefaultExt;
     property Options: TOpenOptions read FOptions write FOptions;
     property Files: TStringList read FFiles;
@@ -83,6 +83,7 @@ type
 
   // File-open-dialog with encoding selector
   TExtFileOpenDialog = class(TfrmExtFileDialog)
+    procedure FormCreate(Sender: TObject); overload;
     procedure FormShow(Sender: TObject); overload;
     public
       property Encodings: TStringList read FEncodings write FEncodings;
@@ -90,6 +91,7 @@ type
   end;
 
   TExtFileSaveDialog = class(TfrmExtFileDialog)
+    procedure FormCreate(Sender: TObject); overload;
     procedure FormShow(Sender: TObject); overload;
     public
       property LineBreakIndex: TLineBreaks read FLineBreakIndex write FLineBreakIndex;
@@ -131,7 +133,7 @@ end;
 
 procedure TfrmExtFileDialog.FormDestroy(Sender: TObject);
 begin
-  PreviousDir := ShellTreeView.Path;
+  AppSettings.WriteString(asFileDialogPreviousDir, ShellTreeView.Path);
   FFilterNames.Free;
   FFilterMasks.Free;
   FEncodings.Free;
@@ -141,9 +143,10 @@ end;
 procedure TfrmExtFileDialog.FormShow(Sender: TObject);
 var
   LineBreakIndexInt: Integer;
+  PreviousDir: String;
 begin
   ShellListView.MultiSelect := ofAllowMultiSelect in FOptions;
-  // Todo: support ofFileMustExist
+  PreviousDir := AppSettings.ReadString(asFileDialogPreviousDir);
   if not FInitialDir.IsEmpty then
     SetInitialDir(FInitialDir)
   else if not PreviousDir.IsEmpty then
@@ -251,6 +254,12 @@ begin
   end;
 end;
 
+procedure TfrmExtFileDialog.editFilenameEditingDone(Sender: TObject);
+begin
+  FFiles.Clear;
+  FFiles.Add(GetFileName);
+end;
+
 procedure TfrmExtFileDialog.FormCloseQuery(Sender: TObject;
   var CanClose: Boolean);
 begin
@@ -265,9 +274,15 @@ begin
     Exit;
   end;
 
-  // Ask user whether to overwrite the selected file
-  if (Self is TExtFileSaveDialog) and (ofOverwritePrompt in FOptions) and (FileExists(FileName)) then begin
+  // Only for save dialogs: Ask user whether to overwrite the selected file
+  if (ofOverwritePrompt in FOptions) and (FileExists(FileName)) then begin
     CanClose := MessageDialog(f_('File already exists: %s'+sLineBreak+sLineBreak+'Overwrite it?', [FileName]), mtConfirmation, [mbYes, mbNo]) = mrYes;
+  end;
+
+  // Only for open dialogs: Error if file does not exist
+  if (ofFileMustExist in FOptions) and (not FileExists(FileName)) then begin
+    ErrorDialog(f_('File does not exist: %s', [FileName]));
+    CanClose := False;
   end;
 end;
 
@@ -337,6 +352,8 @@ procedure TfrmExtFileDialog.SetFileName(const AValue: String);
 var
   fn: String;
 begin
+  if AValue.IsEmpty then
+    Exit;
   fn := ExpandFileName(AValue);
   SetInitialDir(ExtractFilePath(fn));
   editFilename.Text := ExtractFileName(fn);
@@ -349,6 +366,9 @@ var
   i: Integer;
 begin
   // Try to set path on tree
+  // Note both .FileName and .InitialDir go here, and .FileName := '' sets the initial dir to the app directory.
+  if AValue.IsEmpty then
+    Exit;
   FInitialDir := AValue;
   CurPath := AValue;
   for i:=0 to 10 do begin
@@ -378,6 +398,13 @@ end;
 
 { TExtFileOpenDialog }
 
+procedure TExtFileOpenDialog.FormCreate(Sender: TObject);
+begin
+  inherited;
+  Include(FOptions, ofFileMustExist);
+  Caption := _('Open existing file');
+end;
+
 procedure TExtFileOpenDialog.FormShow(Sender: TObject);
 var
   EncodingVisible: Boolean;
@@ -391,6 +418,12 @@ end;
 
 
 { TExtFileSaveDialog }
+
+procedure TExtFileSaveDialog.FormCreate(Sender: TObject);
+begin
+  inherited;
+  Caption := _('Save to file');
+end;
 
 procedure TExtFileSaveDialog.FormShow(Sender: TObject);
 var

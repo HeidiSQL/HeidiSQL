@@ -37,6 +37,7 @@ object frmExtFileDialog: TfrmExtFileDialog
       BorderSpacing.Right = 10
       TabOrder = 0
       Text = 'editFilename'
+      OnEditingDone = editFilenameEditingDone
     end
     object lblFilename: TLabel
       AnchorSideLeft.Control = pnlBottom
@@ -222,7 +223,7 @@ object frmExtFileDialog: TfrmExtFileDialog
   end
   object IdleTimerTreeNodeScrolltoview: TIdleTimer
     AutoEnabled = True
-    Interval = 100
+    Interval = 200
     OnTimer = IdleTimerTreeNodeScrolltoviewTimer
     Left = 32
     Top = 64
