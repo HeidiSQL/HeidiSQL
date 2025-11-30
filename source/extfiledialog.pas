@@ -124,8 +124,8 @@ begin
     raise Exception.CreateFmt('Constructor of base class %s called. Use one of its descendants instead.', [ClassName]);
   {$IfNDef WINDOWS}
   ShellTreeView.Images := MainForm.ImageListMain;
-  ShellTreeView.OnGetImageIndex := @ShellTreeViewGetImageIndex;
-  ShellTreeView.OnGetSelectedIndex := @ShellTreeViewGetSelectedIndex;
+  ShellTreeView.OnGetImageIndex := ShellTreeViewGetImageIndex;
+  ShellTreeView.OnGetSelectedIndex := ShellTreeViewGetSelectedIndex;
   {$ENDIF}
   FFilterNames := TStringList.Create;
   FFilterMasks := TStringList.Create;
