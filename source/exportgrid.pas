@@ -103,7 +103,7 @@ type
     procedure SetExportFormatByFilename;
     procedure SelectRecentFile(Sender: TObject);
     procedure PutFilenamePlaceholder(Sender: TObject);
-    function FormatExcelCsv(Text, Encloser: String; DataType: TDBDatatype): String;
+    function FormatCsv(Text, Encloser: String; DataType: TDBDatatype; SubFormat: TGridExportFormat): String;
     function FormatJson(Text: String): String;
     function FormatPhp(Text: String): String;
     function FormatLatex(Text: String): String;
@@ -590,14 +590,14 @@ begin
 end;
 
 
-function TfrmExportGrid.FormatExcelCsv(Text, Encloser: String; DataType: TDBDatatype): String;
+function TfrmExportGrid.FormatCsv(Text, Encloser: String; DataType: TDBDatatype; SubFormat: TGridExportFormat): String;
 begin
   Result := Text;
   // Escape encloser characters inside data per de-facto CSV.
   if not Encloser.IsEmpty then
     Result := StringReplace(Result, Encloser, Encloser+Encloser, [rfReplaceAll]);
   // Remove milliseconds from date/time values, unsupported by Excel. See issue #922
-  if DataType.Category = dtcTemporal then begin
+  if (SubFormat = efExcel) and (DataType.Category = dtcTemporal) then begin
     Result := ReplaceRegExpr('\.(\d+)$', Result, '');
   end;
 end;
@@ -1020,7 +1020,7 @@ begin
               if GridData.IsNull(ResultCol) then
                 Data := editNull.Text
               else begin
-                Data := FormatExcelCsv(Data, Encloser, GridData.DataType(ResultCol));
+                Data := FormatCsv(Data, Encloser, GridData.DataType(ResultCol), CurrentExportFormat);
                 Data := Encloser + Data + Encloser;
               end;
               tmp := tmp + Data + Separator;
