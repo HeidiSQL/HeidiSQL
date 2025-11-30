@@ -8941,6 +8941,7 @@ end;
 function TMySQLQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 var
   AnsiStr: AnsiString;
+  Len: Integer;
 begin
   Result := False;
 
@@ -8948,15 +8949,23 @@ begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       // Row was edited and only valid in a TGridRow
       AnsiStr := AnsiString(FCurrentUpdateRow[Column].NewText);
+      Len := Length(AnsiStr);
+      if Datatype(Column).Category in [dtcBinary, dtcSpatial] then begin
+        SetLength(baData, Len);
+        if Len > 0 then
+          Move(AnsiStr[1], baData[0], Len);
+        Result := True;
+      end;
     end else begin
       // The normal case: Fetch cell from mysql result
-      SetString(AnsiStr, FCurrentRow[Column], FColumnLengths[Column]);
-    end;
-
-    if Datatype(Column).Category in [dtcBinary, dtcSpatial] then begin
-      SetLength(baData, Length(AnsiStr));
-      //CopyMemory(baData, @AnsiStr[1], Length(AnsiStr));
-      Result := True;
+      Len := FColumnLengths[Column];
+      SetString(AnsiStr, FCurrentRow[Column], Len);
+      if Datatype(Column).Category in [dtcBinary, dtcSpatial] then begin
+        SetLength(baData, Len);
+        if Len > 0 then
+          Move(FCurrentRow[Column]^, baData[0], Len);
+        Result := True;
+      end;
     end;
   end;
 end;
