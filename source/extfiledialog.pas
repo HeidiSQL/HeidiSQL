@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LCLType, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls, StdCtrls, ShellCtrls, ComCtrls, apphelpers, extra_controls;
+  ExtCtrls, StdCtrls, ShellCtrls, ComCtrls, apphelpers, extra_controls, Math;
 
 type
 
@@ -49,6 +49,8 @@ type
     procedure ShellTreeViewChange(Sender: TObject; Node: TTreeNode);
     procedure ShellTreeViewChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
+    procedure ShellTreeViewGetImageIndex(Sender: TObject; Node: TTreeNode);
+    procedure ShellTreeViewGetSelectedIndex(Sender: TObject; Node: TTreeNode);
   private
     FInitialDir: String;
     FFilterNames: TStringList;
@@ -101,6 +103,8 @@ implementation
 
 {$R *.lfm}
 
+uses main;
+
 
 function TfrmExtFileDialog.Execute: Boolean;
 begin
@@ -118,6 +122,11 @@ procedure TfrmExtFileDialog.FormCreate(Sender: TObject);
 begin
   if ClassType = TfrmExtFileDialog then
     raise Exception.CreateFmt('Constructor of base class %s called. Use one of its descendants instead.', [ClassName]);
+  {$IfNDef WINDOWS}
+  ShellTreeView.Images := MainForm.ImageListMain;
+  ShellTreeView.OnGetImageIndex := @ShellTreeViewGetImageIndex;
+  ShellTreeView.OnGetSelectedIndex := @ShellTreeViewGetSelectedIndex;
+  {$ENDIF}
   FFilterNames := TStringList.Create;
   FFilterMasks := TStringList.Create;
   FFilterIndex := 0;
@@ -328,6 +337,18 @@ procedure TfrmExtFileDialog.ShellTreeViewChanging(Sender: TObject;
   Node: TTreeNode; var AllowChange: Boolean);
 begin
   AllowChange := not (ofNoChangeDir in FOptions);
+end;
+
+procedure TfrmExtFileDialog.ShellTreeViewGetImageIndex(Sender: TObject;
+  Node: TTreeNode);
+begin
+  Node.ImageIndex := IfThen(Node.Level = 0, 1, 51);
+end;
+
+procedure TfrmExtFileDialog.ShellTreeViewGetSelectedIndex(Sender: TObject;
+  Node: TTreeNode);
+begin
+  Node.ImageIndex := IfThen(Node.Level = 0, 1, 51);
 end;
 
 procedure TfrmExtFileDialog.SetTitle(AValue: String);
