@@ -13,8 +13,9 @@ uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, laz.VirtualTrees, SynEditKeyCmds, ActnList, Menus,
-  dbstructures, RegExpr, Generics.Collections, EditBtn,
-  extra_controls, reformatter, Buttons, ColorBox, LCLProc, LCLIntf, lazaruscompat, FileUtil;
+  dbstructures, RegExpr, Generics.Collections, EditBtn, LCLType,
+  extra_controls, reformatter, Buttons, ColorBox, LCLProc, LCLIntf, lazaruscompat, FileUtil,
+  vktable;
 
 type
   TShortcutItemData = record
@@ -35,6 +36,14 @@ type
   { TfrmPreferences }
 
   TfrmPreferences = class(TExtForm)
+    chkShortcut2Shift: TCheckBox;
+    chkShortcut2Alt: TCheckBox;
+    chkShortcut2Control: TCheckBox;
+    chkShortcut1Shift: TCheckBox;
+    chkShortcut1Alt: TCheckBox;
+    chkShortcut1Control: TCheckBox;
+    comboShortcut1Key: TComboBox;
+    comboShortcut2Key: TComboBox;
     pagecontrolMain: TPageControl;
     tabMisc: TTabSheet;
     btnCancel: TButton;
@@ -221,7 +230,6 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure comboGridTextColorsPresetSelect(Sender: TObject);
     procedure chkCompletionProposalClick(Sender: TObject);
-    procedure HotKeyChange(Sender: TObject);
     procedure btnRemoveHotKeyClick(Sender: TObject);
   private
     { Private declarations }
@@ -232,8 +240,6 @@ type
     FLanguages: TStringList;
     FRestartOptionTouched: Boolean;
     FRestartOptionApplied: Boolean;
-    //FHotKey1: TExtSynHotKey;
-    //FHotKey2: TExtSynHotKey;
     procedure InitLanguages;
     procedure SelectDirectory(Sender: TObject; NewFolderButton: Boolean);
     function EnsureShortcutIsUnused(RequestShortcut: TShortCut): Boolean;
@@ -617,42 +623,8 @@ begin
   end;
 
   // Shortcuts
-  {FHotKey1 := TExtSynHotKey.Create(Self);
-  FHotKey1.Parent := tabShortcuts;
-  FHotKey1.Left := lblShortcut1.Left;
-  FHotKey1.Top := lblShortcut1.Top + lblShortcut1.Height + 4;
-  FHotKey1.Width := tabShortcuts.Width - FHotKey1.Left - btnRemoveHotKey1.Width - 4 - 4;
-  FHotKey1.Height := editDataFontSize.Height;
-  FHotKey1.Anchors := [akLeft, akTop, akRight];
-  FHotKey1.HotKey := 0;
-  FHotKey1.InvalidKeys := [];
-  FHotKey1.Modifiers := [];
-  FHotKey1.Enabled := False;
-  FHotKey1.OnChange := HotKeyChange;
-  FHotKey1.OnEnter := HotKeyEnter;
-  FHotKey1.OnExit := HotKeyExit;
-  btnRemoveHotKey1.Left := FHotKey1.Left + FHotKey1.Width + 4;
-  btnRemoveHotKey1.Top := FHotKey1.Top;}
   btnRemoveHotKey1.Enabled := False;
-
-  {FHotKey2 := TExtSynHotKey.Create(Self);
-  FHotKey2.Parent := tabShortcuts;
-  FHotKey2.Left := lblShortcut2.Left;
-  FHotKey2.Top := lblShortcut2.Top + lblShortcut2.Height + 4;
-  FHotKey2.Width := tabShortcuts.Width - FHotKey2.Left - btnRemoveHotKey2.Width - 4 - 4;
-  FHotKey2.Height := editDataFontSize.Height;
-  FHotKey2.Anchors := [akLeft, akTop, akRight];
-  FHotKey2.HotKey := 0;
-  FHotKey2.InvalidKeys := [];
-  FHotKey2.Modifiers := [];
-  FHotKey2.Enabled := False;
-  FHotKey2.OnChange := HotKeyChange;
-  FHotKey2.OnEnter := HotKeyEnter;
-  FHotKey2.OnExit := HotKeyExit;
-  btnRemoveHotKey2.Left := FHotKey2.Left + FHotKey2.Width + 4;
-  btnRemoveHotKey2.Top := FHotKey2.Top;}
   btnRemoveHotKey2.Enabled := False;
-
   FShortcutCategories := TStringList.Create;
   for i:=0 to Mainform.ActionList1.ActionCount-1 do begin
     if FShortcutCategories.IndexOf(Mainform.ActionList1.Actions[i].Category) = -1 then
@@ -661,6 +633,12 @@ begin
   FShortcutCategories.Add(_('SQL editing'));
   TreeShortcutItems.RootNodeCount := FShortcutCategories.Count;
   comboLineBreakStyle.Items := Explode(',', _('Windows linebreaks')+','+_('UNIX linebreaks')+','+_('Mac OS linebreaks'));
+  comboShortcut1Key.Clear;
+  comboShortcut2Key.Clear;
+  for i:=Low(VKcodes) to High(VKcodes) do begin
+    comboShortcut1Key.Items.Add(VKcodes[i].Name);
+    comboShortcut2Key.Items.Add(VKcodes[i].Name);
+  end;
 
   comboReformatter.Items.Add(_('Always ask'));
   Reformatter := TfrmReformatter.Create(Self);
@@ -1111,12 +1089,16 @@ procedure TfrmPreferences.btnRemoveHotKeyClick(Sender: TObject);
 begin
   // Clear current shortcut
   if Sender = btnRemoveHotKey1 then begin
-    //FHotKey1.HotKey := 0;
-    //HotKeyChange(FHotKey1);
+    chkShortcut1Shift.Checked := False;
+    chkShortcut1Alt.Checked := False;
+    chkShortcut1Control.Checked := False;
+    comboShortcut1Key.ItemIndex := -1;
   end
   else if Sender = btnRemoveHotKey2 then begin
-    //FHotKey2.HotKey := 0;
-    //HotKeyChange(FHotKey2);
+    chkShortcut2Shift.Checked := False;
+    chkShortcut2Alt.Checked := False;
+    chkShortcut2Control.Checked := False;
+    comboShortcut2Key.ItemIndex := -1;
   end
   else
     Beep;
@@ -1145,13 +1127,18 @@ procedure TfrmPreferences.TreeShortcutItemsFocusChanged(Sender: TBaseVirtualTree
 var
   ShortcutFocused: Boolean;
   Data: PShortcutItemData;
+  Key: Word;
+  Shift: TShiftState;
 begin
   // Shortcut item focus change in tree
   ShortcutFocused := Assigned(Node) and (Sender.GetNodeLevel(Node) = 1);
   lblShortcutHint.Enabled := ShortcutFocused;
   lblShortcut1.Enabled := ShortcutFocused;
   lblShortcut2.Enabled := ShortcutFocused;
-  //FHotKey1.Enabled := lblShortcut1.Enabled;
+  chkShortcut1Shift.Enabled := lblShortcut1.Enabled;
+  chkShortcut1Alt.Enabled := lblShortcut1.Enabled;
+  chkShortcut1Control.Enabled := lblShortcut1.Enabled;
+  comboShortcut1Key.Enabled := lblShortcut1.Enabled;
   btnRemoveHotKey1.Enabled := lblShortcut1.Enabled;
   if ShortcutFocused then begin
     Data := Sender.GetNodeData(Node);
@@ -1163,8 +1150,16 @@ begin
     end;
     //FHotKey1.HotKey := Data.ShortCut1;
     //FHotKey2.HotKey := Data.ShortCut2;
+    ShortCutToKey(Data.ShortCut1, Key, Shift);
+    chkShortcut1Shift.Checked := ssShift in Shift;
+    chkShortcut1Alt.Checked := ssAlt in Shift;
+    chkShortcut1Control.Checked := ssCtrl in Shift;
+    comboShortcut1Key.ItemIndex := GetVKIndexByCode(Key);
   end;
-  //FHotKey2.Enabled := lblShortcut2.Enabled;
+  chkShortcut2Shift.Enabled := lblShortcut2.Enabled;
+  chkShortcut2Alt.Enabled := lblShortcut2.Enabled;
+  chkShortcut2Control.Enabled := lblShortcut2.Enabled;
+  comboShortcut2Key.Enabled := lblShortcut2.Enabled;
   btnRemoveHotKey2.Enabled := lblShortcut2.Enabled;
 end;
 
@@ -1326,33 +1321,6 @@ begin
     Node := GetNextNode(Tree, Node, False);
   end;
 
-end;
-
-
-procedure TfrmPreferences.HotKeyChange(Sender: TObject);
-//var
-//  Data: PShortcutItemData;
-//  HotKeyEdit: TExtSynHotKey;
-//  EventHandler: TNotifyEvent;
-begin
-  // Shortcut 1 or 2 changed
-  {HotKeyEdit := Sender as TExtSynHotKey;
-  Data := TreeShortcutItems.GetNodeData(TreeShortcutItems.FocusedNode);
-  if EnsureShortcutIsUnused(HotKeyEdit.HotKey) then begin
-    if HotKeyEdit = FHotKey1 then
-      Data.Shortcut1 := HotKeyEdit.HotKey
-    else
-      Data.Shortcut2 := HotKeyEdit.HotKey;
-    Modified(Sender);
-  end else begin
-    // Undo change in hotkey editor, without triggering OnChange event
-    EventHandler := HotKeyEdit.OnChange;
-    if HotKeyEdit = FHotKey1 then
-      HotKeyEdit.HotKey := Data.ShortCut1
-    else
-      HotKeyEdit.HotKey := Data.ShortCut2;
-    HotKeyEdit.OnChange := EventHandler;
-  end;}
 end;
 
 

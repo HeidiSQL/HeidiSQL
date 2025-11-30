@@ -1619,35 +1619,52 @@ object frmPreferences: TfrmPreferences
       ClientWidth = 870
       ImageIndex = 13
       object lblShortcut1: TLabel
-        Left = 382
+        AnchorSideLeft.Control = TreeShortcutItems
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = lblShortcutHint
+        AnchorSideTop.Side = asrBottom
+        Left = 387
         Height = 20
-        Top = 80
+        Top = 79
         Width = 58
+        BorderSpacing.Around = 6
         Caption = 'Shortcut:'
       end
       object lblShortcutHint: TLabel
-        Left = 382
+        AnchorSideLeft.Control = TreeShortcutItems
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideRight.Control = tabShortcuts
+        AnchorSideRight.Side = asrBottom
+        Left = 387
         Height = 69
         Top = 4
-        Width = 467
+        Width = 477
         Anchors = [akTop, akLeft, akRight]
         AutoSize = False
+        BorderSpacing.Around = 6
         Caption = 'Please select a shortcut item in the tree.'
         WordWrap = True
       end
       object lblShortcut2: TLabel
-        Left = 382
+        AnchorSideLeft.Control = TreeShortcutItems
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = comboShortcut1Key
+        AnchorSideTop.Side = asrBottom
+        Left = 387
         Height = 20
-        Top = 135
+        Top = 145
         Width = 129
+        BorderSpacing.Top = 6
+        BorderSpacing.Around = 6
         Caption = 'Secondary shortcut:'
       end
       object TreeShortcutItems: TLazVirtualStringTree
-        Left = 0
-        Height = 520
-        Top = 0
+        Left = 6
+        Height = 508
+        Top = 6
         Width = 375
         Align = alLeft
+        BorderSpacing.Around = 6
         Colors.BorderColor = 15987699
         Colors.DisabledColor = clGray
         Colors.DropMarkColor = 15385233
@@ -1679,26 +1696,156 @@ object frmPreferences: TfrmPreferences
         OnInitNode = TreeShortcutItemsInitNode
       end
       object btnRemoveHotKey1: TSpeedButton
-        Left = 748
-        Height = 31
-        Top = 100
-        Width = 101
+        AnchorSideTop.Control = lblShortcut1
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabShortcuts
+        AnchorSideRight.Side = asrBottom
+        Left = 780
+        Height = 30
+        Top = 105
+        Width = 84
         Anchors = [akTop, akRight]
+        AutoSize = True
+        BorderSpacing.Around = 6
         Caption = 'Remove'
         Images = MainForm.ImageListMain
         ImageIndex = 26
         OnClick = btnRemoveHotKeyClick
       end
       object btnRemoveHotKey2: TSpeedButton
-        Left = 748
-        Height = 31
-        Top = 180
-        Width = 101
+        AnchorSideTop.Control = lblShortcut2
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabShortcuts
+        AnchorSideRight.Side = asrBottom
+        Left = 780
+        Height = 30
+        Top = 171
+        Width = 84
         Anchors = [akTop, akRight]
+        AutoSize = True
+        BorderSpacing.Around = 6
         Caption = 'Remove'
         Images = MainForm.ImageListMain
         ImageIndex = 26
         OnClick = btnRemoveHotKeyClick
+      end
+      object chkShortcut1Shift: TCheckBox
+        AnchorSideLeft.Control = TreeShortcutItems
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = lblShortcut1
+        AnchorSideTop.Side = asrBottom
+        Left = 387
+        Height = 24
+        Top = 105
+        Width = 51
+        BorderSpacing.Around = 6
+        Caption = 'Shift'
+        TabOrder = 1
+        OnChange = Modified
+      end
+      object chkShortcut1Alt: TCheckBox
+        AnchorSideLeft.Control = chkShortcut1Shift
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = lblShortcut1
+        AnchorSideTop.Side = asrBottom
+        Left = 444
+        Height = 24
+        Top = 105
+        Width = 40
+        BorderSpacing.Around = 6
+        Caption = 'Alt'
+        TabOrder = 2
+        OnChange = Modified
+      end
+      object chkShortcut1Control: TCheckBox
+        AnchorSideLeft.Control = chkShortcut1Alt
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = lblShortcut1
+        AnchorSideTop.Side = asrBottom
+        Left = 490
+        Height = 24
+        Top = 105
+        Width = 44
+        BorderSpacing.Around = 6
+        Caption = 'Ctrl'
+        TabOrder = 3
+        OnChange = Modified
+      end
+      object comboShortcut1Key: TComboBox
+        AnchorSideLeft.Control = chkShortcut1Control
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = lblShortcut1
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = btnRemoveHotKey1
+        Left = 540
+        Height = 28
+        Top = 105
+        Width = 234
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        ItemHeight = 20
+        Style = csDropDownList
+        TabOrder = 4
+        OnChange = Modified
+      end
+      object chkShortcut2Shift: TCheckBox
+        AnchorSideLeft.Control = TreeShortcutItems
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = lblShortcut2
+        AnchorSideTop.Side = asrBottom
+        Left = 387
+        Height = 24
+        Top = 171
+        Width = 51
+        BorderSpacing.Around = 6
+        Caption = 'Shift'
+        TabOrder = 5
+        OnChange = Modified
+      end
+      object chkShortcut2Alt: TCheckBox
+        AnchorSideLeft.Control = chkShortcut2Shift
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = lblShortcut2
+        AnchorSideTop.Side = asrBottom
+        Left = 444
+        Height = 24
+        Top = 171
+        Width = 40
+        BorderSpacing.Around = 6
+        Caption = 'Alt'
+        TabOrder = 6
+        OnChange = Modified
+      end
+      object chkShortcut2Control: TCheckBox
+        AnchorSideLeft.Control = chkShortcut2Alt
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = lblShortcut2
+        AnchorSideTop.Side = asrBottom
+        Left = 490
+        Height = 24
+        Top = 171
+        Width = 44
+        BorderSpacing.Around = 6
+        Caption = 'Ctrl'
+        TabOrder = 7
+        OnChange = Modified
+      end
+      object comboShortcut2Key: TComboBox
+        AnchorSideLeft.Control = chkShortcut2Control
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = lblShortcut2
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = btnRemoveHotKey2
+        Left = 540
+        Height = 28
+        Top = 171
+        Width = 234
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        ItemHeight = 20
+        Style = csDropDownList
+        TabOrder = 8
+        OnChange = Modified
       end
     end
     object tabFiles: TTabSheet
