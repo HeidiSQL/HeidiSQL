@@ -1244,6 +1244,7 @@ begin
   end;
 end;
 
+
 procedure TfrmPreferences.TreeShortcutItemsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
   var InitialStates: TVirtualNodeInitStates);
 var

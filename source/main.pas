@@ -2069,6 +2069,8 @@ begin
   FActionList1DefaultCaptions := TStringList.Create;
   FActionList1DefaultHints := TStringList.Create;
   for i:=0 to ActionList1.ActionCount-1 do begin
+    Action := TAction(ActionList1.Actions[i]);
+    Action.ShortCut := AppSettings.ReadInt(asActionShortcut1, Action.Name, Action.ShortCut);
     FActionList1DefaultCaptions.Insert(i, Action.Caption);
     FActionList1DefaultHints.Insert(i, Action.Hint);
   end;
