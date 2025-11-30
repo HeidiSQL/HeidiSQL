@@ -2332,7 +2332,7 @@ begin
   // Try to open tabs.ini for writing or reading
   // Taking multiple application instances into account
   if AppSettings.PortableMode then
-    TabsIniFilename := ExtractFilePath(Application.ExeName) + 'tabs.ini'
+    TabsIniFilename := GetAppDir + 'tabs.ini'
   else
     TabsIniFilename := AppSettings.DirnameUserAppData + 'tabs.ini';
   {WaitingSince := GetTickCount64;
@@ -4653,7 +4653,7 @@ end;
 
 procedure TMainForm.actNewWindowExecute(Sender: TObject);
 begin
-  ShellExec( ExtractFileName(paramstr(0)), ExtractFilePath(paramstr(0)) );
+  ShellExec( ExtractFileName(paramstr(0)), GetAppDir);
 end;
 
 
@@ -5640,7 +5640,7 @@ begin
     try
       for i:=0 to NewFiles.Count-1 do begin
         // Remove path if it's the application directory
-        if ExtractFilePath(NewFiles[i]) = ExtractFilePath(Application.ExeName) then
+        if ExtractFilePath(NewFiles[i]) = GetAppDir then
           NewFiles[i] := ExtractFileName(NewFiles[i]);
         if OldFiles.IndexOf(NewFiles[i]) = -1 then begin
           OldFiles.Add(NewFiles[i]);

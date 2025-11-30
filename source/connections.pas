@@ -334,7 +334,7 @@ begin
   editLogFilePath.Hint := FilenameHint;
 
   // Populate dropdown with supported SSH executables
-  ExeFiles := FindAllFiles(ExtractFilePath(ParamStr(0)), '*.exe', False);
+  ExeFiles := FindAllFiles(GetAppDir, '*.exe', False);
   for ExePath in ExeFiles do begin
     ExeFile := ExtractFileName(ExePath);
     if ExecRegExprI('([pk]link|putty)', ExeFile) then begin
@@ -1395,7 +1395,7 @@ begin
     FPopupCiphers := TPopupMenu.Create(Self);
     //FPopupCiphers.AutoHotkeys := maManual;
     Params := CurrentParams;
-    LibraryPath := ExtractFilePath(ParamStr(0)) + Params.LibraryOrProvider;
+    LibraryPath := GetAppDir + Params.LibraryOrProvider;
     // Throws EDbError on any failure:
     Lib := TSQLiteLib.CreateWithMultipleCipherFunctions(LibraryPath, Params.DefaultLibrary);
     for i:=1 to Lib.sqlite3mc_cipher_count() do begin
@@ -1758,7 +1758,7 @@ begin
     FileNames.Assign(Selector.Files);
     for i:=0 to FileNames.Count-1 do begin
       // Remove path if it's the application directory
-      if ExtractFilePath(FileNames[i]) = ExtractFilePath(Application.ExeName) then
+      if ExtractFilePath(FileNames[i]) = GetAppDir then
         FileNames[i] := ExtractFileName(FileNames[i]);
     end;
     Edit.Text := Implode(DELIM, FileNames);

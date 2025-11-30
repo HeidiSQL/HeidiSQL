@@ -356,6 +356,7 @@ type
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
   //function GetTempDir: String;
+  function GetAppDir: String;
   procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
   function DetectEncoding(Stream: TStream): TEncoding;
@@ -1302,6 +1303,11 @@ begin
   Result := StrPas(TempPath);
 end;}
 
+
+function GetAppDir: String;
+begin
+  Result := ExtractFilePath(Application.ExeName);
+end;
 
 {**
   Save a textfile with unicode
@@ -2698,7 +2704,7 @@ begin
   // Initialize .mo file in the given language, so we can use that for translating via _()
   if LangCode.IsEmpty then
     LangCode := SysLanguage;
-  LocaleDir := AppendPathDelim(ExtractFilePath(Application.ExeName)) + AppendPathDelim('locale');
+  LocaleDir := GetAppDir + AppendPathDelim('locale');
   AppLanguageMoBasePath := LocaleDir + GetApplicationName;
   MOFileName := '';
   if not LangCode.IsEmpty then begin
@@ -3662,7 +3668,7 @@ begin
   FReads := 0;
   FWrites := 0;
 
-  PortableLockFile := ExtractFilePath(ParamStr(0)) + FPortableLockFileBase;
+  PortableLockFile := GetAppDir + FPortableLockFileBase;
 
   // Use filename from command line. If not given, use file in directory of executable.
   rx := TRegExpr.Create;
@@ -3675,7 +3681,7 @@ begin
   end;
   // Default settings file, if not given per command line
   if FSettingsFile = '' then
-    FSettingsFile := ExtractFilePath(ParamStr(0)) + 'portable_settings.txt';
+    FSettingsFile := GetAppDir + 'portable_settings.txt';
   // Backwards compatibility: only settings file exists, create lock file in that case
   if FileExists(FSettingsFile) and (not FileExists(PortableLockFile)) then begin
     NewFileHandle := FileCreate(PortableLockFile);
@@ -3932,7 +3938,7 @@ begin
 
   // Default folder for snippets
   if FPortableMode then
-    DefaultSnippetsDirectory := ExtractFilePath(ParamStr(0))
+    DefaultSnippetsDirectory := GetAppDir
   else
     DefaultSnippetsDirectory := DirnameUserDocuments;
   DefaultSnippetsDirectory := DefaultSnippetsDirectory + 'Snippets' + DirectorySeparator;
@@ -4660,7 +4666,7 @@ function TAppSettings.DirnameBackups: String;
 begin
   // Create backup folder if it does not exist and return it
   if PortableMode then begin
-    Result := ExtractFilePath(Application.ExeName) + 'Backups' + DirectorySeparator
+    Result := GetAppDir + 'Backups' + DirectorySeparator
   end else begin
     Result := DirnameUserAppData + 'Backups' + DirectorySeparator;
   end;
@@ -4673,7 +4679,7 @@ end;
 function TAppSettings.DirnameHighlighters: string;
 begin
   if PortableMode then begin
-    Result := ExtractFilePath(Application.ExeName) + 'Highlighters' + DirectorySeparator
+    Result := GetAppDir + 'Highlighters' + DirectorySeparator
   end else begin
     Result := DirnameUserAppData + 'Highlighters' + DirectorySeparator;
   end;

@@ -1940,7 +1940,7 @@ begin
           end;
         end;
         {$Else}
-        Dlls := FindAllFiles(ExtractFilePath(ParamStr(0)), '*.' + SharedSuffix, False);
+        Dlls := FindAllFiles(GetAppDir, '*.' + SharedSuffix, False);
         for DllPath in Dlls do begin
           DllFile := ExtractFileName(DllPath);
           if rx.Exec(DllFile) then begin
@@ -2426,7 +2426,7 @@ begin
 
     {$IfDef WINDOWS}
     // Point libmysql to the folder with client plugins
-    PluginDir := AnsiString(ExtractFilePath(ParamStr(0))+'plugins');
+    PluginDir := AnsiString(GetAppDir+'plugins');
     SetOption(FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
     {$EndIf}
 
@@ -3270,7 +3270,7 @@ var
   LibraryPath: String;
 begin
   // Init libmysql before actually connecting.
-  LibraryPath := {$IFNDEF LINUX}ExtractFilePath(ParamStr(0)) + {$ENDIF} Parameters.LibraryOrProvider;
+  LibraryPath := {$IFNDEF LINUX}GetAppDir + {$ENDIF} Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
   FLib := TMySQLLib.Create(LibraryPath, Parameters.DefaultLibrary);
@@ -3285,7 +3285,7 @@ var
   msg: String;
 begin
   // Init lib before actually connecting.
-  LibraryPath := {$IFNDEF LINUX}ExtractFilePath(ParamStr(0)) + {$ENDIF} Parameters.LibraryOrProvider;
+  LibraryPath := {$IFNDEF LINUX}GetAppDir + {$ENDIF} Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   try
     FLib := TPostgreSQLLib.Create(LibraryPath, Parameters.DefaultLibrary);
@@ -3316,7 +3316,7 @@ var
   LibraryPath: String;
 begin
   // Init lib before actually connecting.
-  LibraryPath := {$IFNDEF LINUX}ExtractFilePath(ParamStr(0)) + {$ENDIF} Parameters.LibraryOrProvider;
+  LibraryPath := {$IFNDEF LINUX}GetAppDir + {$ENDIF} Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
   if Parameters.NetType = ntSQLite then
@@ -9947,6 +9947,7 @@ var
   Objects: TDBObjectList;
   Obj: TDBObject;
 begin
+  Result := '';
   Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, Column);
   FieldDb := FConnection.DecodeAPIString(Field.db);
   FieldTable := FConnection.DecodeAPIString(Field.table);
@@ -11332,7 +11333,7 @@ begin
 
   TryFiles := Explode(',', SQLFunctionsFileOrder);
   for TryFile in TryFiles do begin
-    IniFilePath := ExtractFilePath(Application.ExeName) + 'functions-'+TryFile+'.ini';
+    IniFilePath := GetAppDir + 'functions-'+TryFile+'.ini';
     FOwner.Log(lcDebug, 'Trying '+IniFilePath);
     if FileExists(IniFilePath) then begin
       FOwner.Log(lcInfo, 'Reading function definitions from '+IniFilePath);
