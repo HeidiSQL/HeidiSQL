@@ -198,6 +198,7 @@ object frmExtFileDialog: TfrmExtFileDialog
     Align = alClient
     BorderSpacing.Right = 10
     Color = clDefault
+    RowSelect = True
     SortType = stText
     TabOrder = 1
     ObjectTypes = [otNonFolders, otHidden]

@@ -8,7 +8,7 @@ uses
   SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, laz.VirtualTrees, SynExportHTML,
   extra_controls, dbstructures, lazaruscompat, RegExpr, StrUtils, comboex, EditBtn, Buttons, LCLIntf,
-  extfiledialog;
+  extfiledialog, generic_types;
 
 type
   TGridExportFormat = (
@@ -147,25 +147,6 @@ type
         ('JSON'),
         ('JSON Lines')
         );
-    const FormatToImageIndex: Array[TGridExportFormat] of Integer =
-      (
-        49,  // Excel
-        50,  // CSV
-        32,  // HTML
-        48,  // XML
-        201, // SQL
-        201, // SQL
-        201, // SQL
-        201, // SQL
-        201, // SQL
-        153, // Latex
-        154, // Textile
-        154, // Jira
-        202, // PHP
-        199, // Markdown
-        200, // JSON
-        200  // JSON Lines
-      );
     const CopyAsActionPrefix = 'actCopyAs';
     property Grid: TLazVirtualStringTree read FGrid write FGrid;
     property ExportFormat: TGridExportFormat read GetExportFormat write SetExportFormat;
@@ -199,7 +180,7 @@ begin
   for ef:=Low(TGridExportFormat) to High(TGridExportFormat) do begin
     comboItem := TComboExItem.Create(comboFormat.ItemsEx);
     comboItem.Caption := FormatToDescription[ef];
-    comboItem.ImageIndex := FormatToImageIndex[ef];
+    comboItem.ImageIndex := GetFileExtImageIndex(FormatToFileExtension[ef]);
   end;
   SenderName := Owner.Name;
   FHiddenCopyMode := SenderName.StartsWith(CopyAsActionPrefix);

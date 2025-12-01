@@ -1914,7 +1914,7 @@ begin
     CopyAsAction.Category := actExportData.Category;
     CopyAsAction.Name := TfrmExportGrid.CopyAsActionPrefix + Integer(ExportFormat).ToString;
     CopyAsAction.Caption := TfrmExportGrid.FormatToDescription[ExportFormat];
-    CopyAsAction.ImageIndex := TfrmExportGrid.FormatToImageIndex[ExportFormat];
+    CopyAsAction.ImageIndex := GetFileExtImageIndex(TfrmExportGrid.FormatToFileExtension[ExportFormat]);
     CopyAsAction.Tag := Integer(ExportFormat);
     CopyAsAction.OnExecute := actCopyOrCutExecute;
     CopyAsMenu := TMenuItem.Create(popupDataGrid);

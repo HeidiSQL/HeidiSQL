@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LCLType, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls, StdCtrls, ShellCtrls, ComCtrls, apphelpers, extra_controls, Math;
+  ExtCtrls, StdCtrls, ShellCtrls, ComCtrls, apphelpers, extra_controls, Math, generic_types;
 
 type
 
@@ -44,6 +44,7 @@ type
       Y: Integer);
     procedure ShellListViewClick(Sender: TObject);
     procedure ShellListViewDblClick(Sender: TObject);
+    procedure ShellListViewFileAdded(Sender: TObject; Item: TListItem);
     procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure ShellTreeViewChange(Sender: TObject; Node: TTreeNode);
@@ -126,6 +127,8 @@ begin
   ShellTreeView.Images := MainForm.ImageListMain;
   ShellTreeView.OnGetImageIndex := ShellTreeViewGetImageIndex;
   ShellTreeView.OnGetSelectedIndex := ShellTreeViewGetSelectedIndex;
+  ShellListView.SmallImages := MainForm.ImageListMain;
+  ShellListView.OnFileAdded := ShellListViewFileAdded;
   {$ENDIF}
   FFilterNames := TStringList.Create;
   FFilterMasks := TStringList.Create;
@@ -312,6 +315,21 @@ procedure TfrmExtFileDialog.ShellListViewDblClick(Sender: TObject);
 begin
   if ShellListView.Selected <> nil then
     ModalResult := mrOK;
+end;
+
+procedure TfrmExtFileDialog.ShellListViewFileAdded(Sender: TObject;
+  Item: TListItem);
+var
+  Ext: String;
+begin
+  if TShellListItem(Item).IsFolder then
+    Item.ImageIndex := 51
+  else begin
+    Ext := ExtractFileExt(ShellListView.GetPathFromItem(Item));
+    Item.ImageIndex := GetFileExtImageIndex(Ext);
+    if Item.ImageIndex = -1 then
+      Item.ImageIndex := 66; // page with question mark
+  end;
 end;
 
 procedure TfrmExtFileDialog.ShellListViewSelectItem(Sender: TObject;
