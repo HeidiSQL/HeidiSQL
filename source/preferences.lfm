@@ -1689,6 +1689,7 @@ object frmPreferences: TfrmPreferences
         Images = MainForm.ImageListMain
         TabOrder = 0
         OnFocusChanged = TreeShortcutItemsFocusChanged
+        OnFocusChanging = TreeShortcutItemsFocusChanging
         OnGetText = TreeShortcutItemsGetText
         OnGetImageIndex = TreeShortcutItemsGetImageIndex
         OnGetNodeDataSize = TreeShortcutItemsGetNodeDataSize

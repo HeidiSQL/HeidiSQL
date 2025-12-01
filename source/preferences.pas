@@ -13,7 +13,7 @@ uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, laz.VirtualTrees, SynEditKeyCmds, ActnList, Menus,
-  dbstructures, RegExpr, Generics.Collections, EditBtn, LCLType,
+  dbstructures, RegExpr, Generics.Collections, EditBtn, LCLType, StrUtils,
   extra_controls, reformatter, Buttons, ColorBox, LCLProc, LCLIntf, lazaruscompat, FileUtil,
   vktable;
 
@@ -217,8 +217,9 @@ type
       Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
     procedure TreeShortcutItemsFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure TreeShortcutItemsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
-    procedure HotKeyEnter(Sender: TObject);
-    procedure HotKeyExit(Sender: TObject);
+    procedure TreeShortcutItemsFocusChanging(Sender: TBaseVirtualTree; OldNode,
+      NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
+      var Allowed: Boolean);
     procedure comboGridTextColorsSelect(Sender: TObject);
     procedure colorBoxGridTextColorsSelect(Sender: TObject);
     procedure editMySQLBinariesRightButtonClick(Sender: TObject);
@@ -243,6 +244,7 @@ type
     procedure InitLanguages;
     procedure SelectDirectory(Sender: TObject; NewFolderButton: Boolean);
     function EnsureShortcutIsUnused(RequestShortcut: TShortCut): Boolean;
+    procedure ShowShortCut(Index: Integer);
   public
     { Public declarations }
   end;
@@ -405,6 +407,7 @@ begin
   AppSettings.WriteBool(asTabsToSpaces, chkTabsToSpaces.Checked);
 
   // Shortcuts
+  TreeShortcutItems.FocusedNode := nil; // Triggers OnFocusCanging and applies current changes
   CatNode := TreeShortcutItems.GetFirst;
   while Assigned(CatNode) do begin
     ItemNode := TreeShortcutItems.GetFirstChild(CatNode);
@@ -633,12 +636,8 @@ begin
   FShortcutCategories.Add(_('SQL editing'));
   TreeShortcutItems.RootNodeCount := FShortcutCategories.Count;
   comboLineBreakStyle.Items := Explode(',', _('Windows linebreaks')+','+_('UNIX linebreaks')+','+_('Mac OS linebreaks'));
-  comboShortcut1Key.Clear;
-  comboShortcut2Key.Clear;
-  for i:=Low(VKcodes) to High(VKcodes) do begin
-    comboShortcut1Key.Items.Add(VKcodes[i].Name);
-    comboShortcut2Key.Items.Add(VKcodes[i].Name);
-  end;
+  GetVKNames(comboShortcut1Key.Items);
+  GetVKNames(comboShortcut2Key.Items);
 
   comboReformatter.Items.Add(_('Always ask'));
   Reformatter := TfrmReformatter.Create(Self);
@@ -1087,18 +1086,18 @@ end;
 
 procedure TfrmPreferences.btnRemoveHotKeyClick(Sender: TObject);
 begin
-  // Clear current shortcut
+  // Clear shortcut controls, and let the OnFocusChanging event store the removed value.
   if Sender = btnRemoveHotKey1 then begin
     chkShortcut1Shift.Checked := False;
     chkShortcut1Alt.Checked := False;
     chkShortcut1Control.Checked := False;
-    comboShortcut1Key.ItemIndex := -1;
+    comboShortcut1Key.ItemIndex := GetVKIndexByCode(VK_UNKNOWN);
   end
   else if Sender = btnRemoveHotKey2 then begin
     chkShortcut2Shift.Checked := False;
     chkShortcut2Alt.Checked := False;
     chkShortcut2Control.Checked := False;
-    comboShortcut2Key.ItemIndex := -1;
+    comboShortcut2Key.ItemIndex := GetVKIndexByCode(VK_UNKNOWN);
   end
   else
     Beep;
@@ -1127,8 +1126,6 @@ procedure TfrmPreferences.TreeShortcutItemsFocusChanged(Sender: TBaseVirtualTree
 var
   ShortcutFocused: Boolean;
   Data: PShortcutItemData;
-  Key: Word;
-  Shift: TShiftState;
 begin
   // Shortcut item focus change in tree
   ShortcutFocused := Assigned(Node) and (Sender.GetNodeLevel(Node) = 1);
@@ -1148,13 +1145,9 @@ begin
       if MainForm.ActionList1DefaultHints[Data.Action.Index] <> '' then
         lblShortcutHint.Caption := MainForm.ActionList1DefaultHints[Data.Action.Index];
     end;
-    //FHotKey1.HotKey := Data.ShortCut1;
-    //FHotKey2.HotKey := Data.ShortCut2;
-    ShortCutToKey(Data.ShortCut1, Key, Shift);
-    chkShortcut1Shift.Checked := ssShift in Shift;
-    chkShortcut1Alt.Checked := ssAlt in Shift;
-    chkShortcut1Control.Checked := ssCtrl in Shift;
-    comboShortcut1Key.ItemIndex := GetVKIndexByCode(Key);
+
+    ShowShortCut(1);
+    ShowShortCut(2);
   end;
   chkShortcut2Shift.Enabled := lblShortcut2.Enabled;
   chkShortcut2Alt.Enabled := lblShortcut2.Enabled;
@@ -1163,6 +1156,30 @@ begin
   btnRemoveHotKey2.Enabled := lblShortcut2.Enabled;
 end;
 
+procedure TfrmPreferences.ShowShortCut(Index: Integer);
+var
+  Data: PShortcutItemData;
+  Key: Word;
+  Shift: TShiftState;
+begin
+  Data := TreeShortcutItems.GetNodeData(TreeShortcutItems.FocusedNode);
+  case Index of
+    1: begin
+      ShortCutToKey(Data.ShortCut1, Key, Shift);
+      chkShortcut1Shift.Checked := ssShift in Shift;
+      chkShortcut1Alt.Checked := ssAlt in Shift;
+      chkShortcut1Control.Checked := ssCtrl in Shift;
+      comboShortcut1Key.ItemIndex := GetVKIndexByCode(Key);
+    end;
+    2: begin
+      ShortCutToKey(Data.ShortCut2, Key, Shift);
+      chkShortcut2Shift.Checked := ssShift in Shift;
+      chkShortcut2Alt.Checked := ssAlt in Shift;
+      chkShortcut2Control.Checked := ssCtrl in Shift;
+      comboShortcut2Key.ItemIndex := GetVKIndexByCode(Key);
+    end;
+  end;
+end;
 
 procedure TfrmPreferences.TreeShortcutItemsGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
@@ -1323,22 +1340,50 @@ begin
 
 end;
 
-
-procedure TfrmPreferences.HotKeyEnter(Sender: TObject);
+procedure TfrmPreferences.TreeShortcutItemsFocusChanging(
+  Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode; OldColumn,
+  NewColumn: TColumnIndex; var Allowed: Boolean);
+var
+  Data: PShortcutItemData;
+  NewShortCut: TShortCut;
+  Shift: TShiftState;
 begin
-  // Remove Esc and Enter shortcuts from buttons
-  btnOk.Default := False;
-  btnCancel.Cancel := False;
+  // Check if shortcut 1 or 2 changed
+  if (not Assigned(OldNode)) or (TreeShortcutItems.GetNodeLevel(OldNode) = 0) then
+    Exit;
+  Data := TreeShortcutItems.GetNodeData(OldNode);
+  Allowed := True;
+
+  Shift := [];
+  if chkShortcut1Shift.Checked then Include(Shift, ssShift);
+  if chkShortcut1Alt.Checked then Include(Shift, ssAlt);
+  if chkShortcut1Control.Checked then Include(Shift, ssCtrl);
+  NewShortCut := KeyToShortCut(VKcodes[comboShortcut1Key.ItemIndex].Code, Shift);
+  if NewShortCut <> Data.ShortCut1 then begin
+    if EnsureShortcutIsUnused(NewShortCut) then begin
+      Data.ShortCut1 := NewShortCut;
+      Modified(Sender);
+    end
+    else
+      ShowShortCut(1);
+  end;
+
+  if chkShortcut2Shift.Enabled then begin
+    Shift := [];
+    if chkShortcut2Shift.Checked then Include(Shift, ssShift);
+    if chkShortcut2Alt.Checked then Include(Shift, ssAlt);
+    if chkShortcut2Control.Checked then Include(Shift, ssCtrl);
+    NewShortCut := KeyToShortCut(VKcodes[comboShortcut2Key.ItemIndex].Code, Shift);
+    if NewShortCut <> Data.ShortCut2 then begin
+      if EnsureShortcutIsUnused(NewShortCut) then begin
+        Data.ShortCut2 := NewShortCut;
+        Modified(Sender);
+      end
+      else
+        ShowShortCut(2);
+    end;
+  end;
 end;
-
-
-procedure TfrmPreferences.HotKeyExit(Sender: TObject);
-begin
-  // Readd Esc and Enter shortcuts to buttons
-  btnOk.Default := True;
-  btnCancel.Cancel := True;
-end;
-
 
 procedure TfrmPreferences.InitLanguages;
 var
