@@ -49,10 +49,12 @@ begin
   //Application.UpdateFormatSettings := False;
 
   Application.CreateForm(TMainForm, MainForm);
+  Application.OnException := MainForm.ApplicationException;
   MainForm.AfterFormCreate;
   Application.OnDeactivate := MainForm.ApplicationDeActivate;
+  Application.OnIdle := MainForm.ApplicationIdle;
+  Application.OnShortcut := MainForm.ApplicationShortCut;
   Application.OnShowHint := MainForm.ApplicationShowHint;
-  //Application.MainFormOnTaskBar := True;
   Application.Run;
 end.
 

@@ -1073,7 +1073,6 @@ type
     procedure treeQueryHelpersFocusChanging(Sender: TBaseVirtualTree; OldNode,
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
     procedure treeQueryHelpersResize(Sender: TObject);
-    procedure ApplicationEvents1Deactivate(Sender: TObject);
     procedure actDisconnectExecute(Sender: TObject);
     procedure menuEditObjectClick(Sender: TObject);
     procedure Copylinetonewquerytab1Click(Sender: TObject);
@@ -1130,7 +1129,7 @@ type
     procedure actPreviousResultExecute(Sender: TObject);
     procedure actNextResultExecute(Sender: TObject);
     procedure actSaveSynMemoToTextfileExecute(Sender: TObject);
-    procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
+    procedure ApplicationIdle(Sender: TObject; var Done: Boolean);
     procedure buttonedEditClear(Sender: TObject);
     procedure menuDoubleClickInsertsNodeTextClick(Sender: TObject);
     procedure DBtreeDblClick(Sender: TObject);
@@ -1149,7 +1148,7 @@ type
     procedure actGoToQueryResultsExecute(Sender: TObject);
     procedure actGoToDataMultiFilterExecute(Sender: TObject);
     procedure actDataOpenUrlExecute(Sender: TObject);
-    procedure ApplicationEvents1ShortCut(var Msg: TLMKey; var Handled: Boolean);
+    procedure ApplicationShortCut(var Msg: TLMKey; var Handled: Boolean);
     procedure actDetachDatabaseExecute(Sender: TObject);
     procedure actAttachDatabaseExecute(Sender: TObject);
     procedure actSynEditCompletionProposeExecute(Sender: TObject);
@@ -2315,11 +2314,6 @@ begin
         SetMainTab(Tab.TabSheet);
     end;
   end;
-
-  Application.OnException := ApplicationException;
-  Application.OnIdle := ApplicationEvents1Idle;
-  Application.OnDeactivate := ApplicationEvents1Deactivate;
-  Application.OnShortcut := ApplicationEvents1ShortCut;
 
   MainFormAfterCreateDone := True;
 end;
@@ -14613,14 +14607,7 @@ begin
 end;
 
 
-procedure TMainForm.ApplicationEvents1Deactivate(Sender: TObject);
-begin
-  // Force result tab balloon hint to disappear. Does not do so when mouse was moved too fast.
-  tabsetQueryMouseLeave(Sender);
-end;
-
-
-procedure TMainForm.ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
+procedure TMainForm.ApplicationIdle(Sender: TObject; var Done: Boolean);
 begin
   if AppSettings.PortableMode
     and (not AppSettings.PortableModeReadOnly)
@@ -14657,7 +14644,7 @@ begin
 end;
 
 
-procedure TMainForm.ApplicationEvents1ShortCut(var Msg: TLMKey;
+procedure TMainForm.ApplicationShortCut(var Msg: TLMKey;
   var Handled: Boolean);
 var
   SendingControl: TComponent;
@@ -14744,6 +14731,9 @@ begin
       LogSQL(E.Message, lcError);
   end;
   // Gets activated again in SynCompletionProposalExecute
+
+  // Force result tab balloon hint to disappear. Does not do so when mouse was moved too fast.
+  tabsetQueryMouseLeave(Sender);
 end;
 
 
