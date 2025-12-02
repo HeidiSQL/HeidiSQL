@@ -252,6 +252,8 @@ begin
     FileMask := FFilterMasks[comboFileType.ItemIndex]
   else
     FileMask := '*.*';
+  if ShellListView.Items.Count > 0 then
+    ShellListView.Items[0].MakeVisible(false);
   ShellListView.Mask := FileMask;
   if Assigned(FOnTypeChange) then
     FOnTypeChange(Self);
@@ -355,6 +357,8 @@ procedure TfrmExtFileDialog.ShellTreeViewChanging(Sender: TObject;
   Node: TTreeNode; var AllowChange: Boolean);
 begin
   AllowChange := not (ofNoChangeDir in FOptions);
+  if AllowChange and (ShellListView.Items.Count > 0) then
+    ShellListView.Items[0].MakeVisible(false);
 end;
 
 procedure TfrmExtFileDialog.ShellTreeViewGetImageIndex(Sender: TObject;
