@@ -1408,6 +1408,7 @@ var
   SysLanguage: String;
   MainFormCreated: Boolean = False;
   MainFormAfterCreateDone: Boolean = False;
+  SessionManagerStartupDone: Boolean = False;
   PostponedLogItems: TDBLogItems;
 
 const
@@ -2167,9 +2168,7 @@ var
   StatsCall: THttpDownload;
   StatsURL: String;
   SessionPaths: TStringlist;
-  DlgResult: TModalResult;
   Tab: TQueryTab;
-  SessionManager: TConnForm;
 begin
   // Check for connection parameters on commandline or show connections form.
   if AppSettings.ReadBool(asUpdatecheck) then begin
@@ -2278,25 +2277,6 @@ begin
           ErrorDialog(E.Message);
         end;
       end;
-    end;
-  end;
-
-  // Display session manager
-  if Connections.Count = 0 then begin
-    // Cannot be done in OnCreate because we need ready forms here:
-    SessionManager := TConnForm.Create(Self);
-    DlgResult := mrCancel;
-    try
-      DlgResult := SessionManager.ShowModal;
-      SessionManager.Free;
-    except
-      // Work around VCL bug: Suppress access violation in TCustomForm.IsFormSizeStored
-      // when closing dialog via Alt+F4
-    end;
-    if DlgResult = mrCancel then begin
-      //Free;
-      //Exit;
-      actExitApplicationExecute(nil);
     end;
   end;
 
@@ -14608,7 +14588,23 @@ end;
 
 
 procedure TMainForm.ApplicationIdle(Sender: TObject; var Done: Boolean);
+var
+  DlgResult: TModalResult;
+  SessionManager: TConnForm;
 begin
+  // Display session manager
+  // Cannot be done in OnCreate because we need ready forms here
+  if (not SessionManagerStartupDone) and (Connections.Count = 0) then begin
+    SessionManagerStartupDone := True;
+    SessionManager := TConnForm.Create(Self);
+    DlgResult := SessionManager.ShowModal;
+    SessionManager.Free;
+    if DlgResult = mrCancel then begin
+      actExitApplicationExecute(nil);
+    end;
+  end;
+  SessionManagerStartupDone := True;
+
   if AppSettings.PortableMode
     and (not AppSettings.PortableModeReadOnly)
     and (FLastPortableSettingsSave < GetTickCount-60000) then begin
