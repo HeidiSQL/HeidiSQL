@@ -1719,7 +1719,7 @@ end;
 function TConnectionParameters.GetImageIndex: Integer;
 begin
   if IsFolder then
-    Result := 174
+    Result := ICONINDEX_FOLDER
   else case NetTypeGroup of
     ngMySQL: begin
       if IsPercona then Result := 169

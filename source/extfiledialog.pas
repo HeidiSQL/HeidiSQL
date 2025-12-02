@@ -323,7 +323,7 @@ var
   Ext: String;
 begin
   if TShellListItem(Item).IsFolder then
-    Item.ImageIndex := 51
+    Item.ImageIndex := ICONINDEX_FOLDER
   else begin
     Ext := ExtractFileExt(ShellListView.GetPathFromItem(Item));
     Item.ImageIndex := GetFileExtImageIndex(Ext);
@@ -360,13 +360,13 @@ end;
 procedure TfrmExtFileDialog.ShellTreeViewGetImageIndex(Sender: TObject;
   Node: TTreeNode);
 begin
-  Node.ImageIndex := IfThen(Node.Level = 0, 1, 51);
+  Node.ImageIndex := IfThen(Node.Level = 0, 1, ICONINDEX_FOLDER);
 end;
 
 procedure TfrmExtFileDialog.ShellTreeViewGetSelectedIndex(Sender: TObject;
   Node: TTreeNode);
 begin
-  Node.ImageIndex := IfThen(Node.Level = 0, 1, 51);
+  Node.SelectedIndex := IfThen(Node.Level = 0, 1, ICONINDEX_FOLDER);
 end;
 
 procedure TfrmExtFileDialog.SetTitle(AValue: String);

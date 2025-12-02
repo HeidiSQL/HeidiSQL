@@ -8,6 +8,7 @@ object frmExtFileDialog: TfrmExtFileDialog
   ClientHeight = 544
   ClientWidth = 872
   DesignTimePPI = 120
+  Position = poOwnerFormCenter
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
