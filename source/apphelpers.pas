@@ -3296,13 +3296,14 @@ procedure TQueryThread.LogFromThread(Msg: String; Category: TDBLogCategory);
 begin
   FLogMsg := Msg;
   FLogCategory := Category;
-  Queue(Log);
+  Synchronize(Log);
 end;
 
 
 procedure TQueryThread.Log;
 begin
-  FConnection.OnLog(FLogMsg, FLogCategory, FConnection);
+  if Assigned(FConnection.OnLog) then
+    FConnection.OnLog(FLogMsg, FLogCategory, FConnection);
 end;
 
 
