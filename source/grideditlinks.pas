@@ -1187,7 +1187,7 @@ begin
   FButton := TButton.Create(FPanel);
   FButton.Parent := FPanel;
   FButton.TabStop := False;
-  FButton.Caption := '…';
+  FButton.Caption := '...';
   FButton.Hint := _('Edit text in popup editor ...');
   FButton.ShowHint := True;
   FButton.OnClick := ButtonClick;
