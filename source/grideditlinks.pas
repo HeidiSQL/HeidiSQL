@@ -1181,16 +1181,31 @@ begin
   FEdit.Parent := FPanel;
   FEdit.ParentColor := True;
   FEdit.BorderStyle := bsNone;
+  FEdit.AnchorSideLeft.Control := FPanel;
+  FEdit.AnchorSideTop.Control := FPanel;
+  FEdit.AnchorSideBottom.Control := FPanel;
+  FEdit.AnchorSideBottom.Side := asrBottom;
+  FEdit.Anchors := [akTop, akLeft, akRight, akBottom];
   FEdit.OnKeyDown := DoKeyDown;
   FMainControl := FEdit;
 
   FButton := TButton.Create(FPanel);
   FButton.Parent := FPanel;
+  FButton.AnchorSideLeft.Side := asrBottom;
+  FButton.AnchorSideTop.Control := FPanel;
+  FButton.AnchorSideRight.Control := FPanel;
+  FButton.AnchorSideRight.Side := asrBottom;
+  FButton.AnchorSideBottom.Control := FPanel;
+  FButton.AnchorSideBottom.Side := asrBottom;
+  FButton.Anchors := [akTop, akRight, akBottom];
+  FButton.Constraints.MaxWidth := TExtForm.ScaleSize(20, FPanel);
   FButton.TabStop := False;
   FButton.Caption := '...';
   FButton.Hint := _('Edit text in popup editor ...');
   FButton.ShowHint := True;
   FButton.OnClick := ButtonClick;
+
+  FEdit.AnchorSideRight.Control := FButton;
 end;
 
 destructor TInplaceEditorLink.Destroy;
@@ -1285,12 +1300,7 @@ begin
   if not FStopping then begin
     // Position edit control according to cell text bounds
     FPanel.BoundsRect := GetCellRect(False);
-    R := GetCellRect(True);
-    if FButton.Visible then
-      Dec(R.Right, TExtForm.ScaleSize(20, FPanel));
-    FEdit.BoundsRect := R;
-
-    FButton.BoundsRect := Rect(FEdit.BoundsRect.Right, 0, FPanel.Width, FPanel.Height);
+    // R is too big in a grid, for some reason
   end;
 end;
 
