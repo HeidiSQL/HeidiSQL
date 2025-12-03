@@ -197,6 +197,7 @@ type
     FileNewItem: TMenuItem;
     MainMenuHelp: TMenuItem;
     FollowForeignKey: TMenuItem;
+    menuQFdummy: TMenuItem;
     N1: TMenuItem;
     FileExitItem: TMenuItem;
     menuAbout: TMenuItem;
@@ -8222,7 +8223,7 @@ begin
     if DbObj.Size > MaxSize then
       raise Exception.Create(f_('Table too large (>%s), avoiding long running SELECT query', [FormatByteNumber(MaxSize)]));
     Query := Conn.QuoteIdent(ColName)+', COUNT(*) AS c FROM '+DbObj.QuotedName;
-    if SynMemoFilter.Text <> '' then
+    if not SynMemoFilter.Text.Trim.IsEmpty then
       Query := Query + ' WHERE ' + SynMemoFilter.Text + CRLF;
     Query := Query + ' GROUP BY '+Conn.QuoteIdent(ColName)+' ORDER BY c DESC, '+Conn.QuoteIdent(ColName);
     Data := Conn.GetResults(Conn.ApplyLimitClause('SELECT', Query, 30, 0));
@@ -8240,7 +8241,7 @@ begin
       else
         Item.Hint := Conn.QuoteIdent(ColName)+'='+Conn.EscapeString(Data.Col(ColName));
       Item.Caption := StrEllipsis(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
-      if SynMemoFilter.Text <> '' then begin
+      if not SynMemoFilter.Text.Trim.IsEmpty then begin
         if Pos(Item.Hint, SynMemoFilter.Text) > 0 then
           Item.Hint := SynMemoFilter.Text
         else
