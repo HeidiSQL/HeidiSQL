@@ -10,7 +10,7 @@ uses
   Forms, Graphics, Messages, laz.VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, MaskEdit, DateUtils, Math,
   dbconnection, dbstructures, apphelpers, texteditor, bineditor, lazaruscompat,
-  StrUtils, System.UITypes, RegExpr, extra_controls, EditBtn, LCLType, LCLIntf;
+  System.UITypes, RegExpr, extra_controls, EditBtn, LCLType, LCLIntf;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
@@ -919,6 +919,8 @@ begin
       Result := Length(msStr);
     end;
 
+    else
+      Result := 0;
   end;
 end;
 

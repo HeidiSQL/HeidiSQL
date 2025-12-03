@@ -415,8 +415,6 @@ type
   function GetExecutableBits: Byte;
   procedure Help(Sender: TObject; Anchor: String);
   function PortOpen(Port: Word): Boolean;
-  function IsValidFilePath(FilePath: String): Boolean;
-  //function FileIsWritable(FilePath: String): Boolean;
   //function GetProductInfo(dwOSMajorVersion, dwOSMinorVersion, dwSpMajorVersion, dwSpMinorVersion: DWORD; out pdwReturnedProductType: DWORD): BOOL stdcall; external kernel32 delayed;
   //function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
   function GetThemeColor(Color: TColor): TColor;
@@ -1479,7 +1477,7 @@ begin
   VT.TextMargin := 6;
   VT.Margin := 2;
   // Disable hottracking in non-Vista mode, looks ugly in XP, but nice in Vista
-  if (toUseExplorerTheme in VT.TreeOptions.PaintOptions) {$IfDef WINDOWS} and true {$EndIf} then
+  if (toUseExplorerTheme in VT.TreeOptions.PaintOptions) then
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
   else
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toHotTrack];
@@ -2871,39 +2869,6 @@ begin
   {$EndIf}
 end;
 
-function IsValidFilePath(FilePath: String): Boolean;
-var
-  Pieces: TStringList;
-  i: Integer;
-begin
-  // Check file path for invalid characters. See http://www.heidisql.com/forum.php?t=20873
-  Result := True;
-  Pieces := TStringList.Create;
-  SplitRegExpr('[\\\/]', FilePath, Pieces);
-  // Todo: implement cross platformic
-  {for i:=1 to Pieces.Count-1 do begin
-    Result := Result and TPath.HasValidFileNameChars(Pieces[i], False);
-  end;}
-  Pieces.Free;
-end;
-
-
-{function FileIsWritable(FilePath: String): Boolean;
-var
-  hFile: DWORD;
-begin
-  // Check if file is writable
-  // replaced through LazFileUtils.FileIsWritable
-  if not FileExists(FilePath) then begin
-    // Return true if file does not exist
-    Result := True;
-  end else begin
-    hFile := CreateFile(PChar(FilePath), GENERIC_WRITE, 0, nil, OPEN_EXISTING, 0, 0);
-    Result := hFile <> INVALID_HANDLE_VALUE;
-    CloseHandle(hFile);
-  end;
-end;}
-
 
 function GetThemeColor(Color: TColor): TColor;
 begin
@@ -3155,7 +3120,7 @@ end;
 
 procedure CopyImageList(SourceList, TargetList: TImageList);
 var
-  i, j, ResIdx, ResWidth: Integer;
+  i, ResIdx, ResWidth: Integer;
   TempBitmap: TBitmap;
   TempBitmapList: Array of TRasterImage;
 const

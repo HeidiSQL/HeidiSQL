@@ -2304,27 +2304,13 @@ end;
 
 function TMainForm.InitTabsIniFile: TIniFile;
 var
-  //WaitingSince: UInt64;
-  //Attempts: Integer;
   TabsIniFilename: String;
 begin
   // Try to open tabs.ini for writing or reading
-  // Taking multiple application instances into account
   if AppSettings.PortableMode then
     TabsIniFilename := GetAppDir + 'tabs.ini'
   else
     TabsIniFilename := AppSettings.DirnameUserAppData + 'tabs.ini';
-  {WaitingSince := GetTickCount64;
-  Attempts := 0;
-  while not FileIsWritable(TabsIniFilename) do begin
-    if GetTickCount64 - WaitingSince > 3000 then
-      Raise Exception.Create(f_('Could not open file %s', [TabsIniFilename]));
-    Sleep(200);
-    Inc(Attempts);
-  end;
-  if Attempts > 0 then begin
-    LogSQL(Format('Had to wait %d ms before opening %s', [GetTickCount64 - WaitingSince, TabsIniFilename]), lcDebug);
-  end;}
   // Catch errors when file cannot be created
   if not FileExists(TabsIniFilename) then begin
     SaveUnicodeFile(TabsIniFilename, '', UTF8NoBOMEncoding);
