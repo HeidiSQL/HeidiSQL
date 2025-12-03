@@ -2652,7 +2652,8 @@ procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectio
 var
   rx: TRegExpr;
   ExeName, SessName, Host, Lib, Port, User, Pass, Socket, AllDatabases,
-  SSLPrivateKey, SSLCACertificate, SSLCertificate, SSLCipher: String;
+  SSLPrivateKey, SSLCACertificate, SSLCertificate, SSLCipher,
+  SshExe, SshHost, SshPort, SshLocalPort, SshUser, SshPassword, SshKey, SshTimeout: String;
   NetType, WindowsAuth, WantSSL, CleartextPluginEnabled, SSLVerification: Integer;
   AbsentFiles: TStringList;
 
@@ -2734,6 +2735,14 @@ begin
   SSLCipher := GetParamValue('sslcip', 'sslcipher');
   SSLVerification := StrToIntDef(GetParamValue('sslvrf', 'sslverification'), -1);
   // Leave out support for startup script, seems reasonable for command line connecting
+  SshExe := GetParamValue('se', 'ssh-executable');
+  SshHost := GetParamValue('sh', 'ssh-host');
+  SshPort := GetParamValue('sP', 'ssh-port');
+  SshLocalPort := GetParamValue('sLP', 'ssh-local-port');
+  SshUser := GetParamValue('su', 'ssh-user');
+  SshPassword := GetParamValue('sp', 'ssh-password');
+  SshKey := GetParamValue('sk', 'ssh-key');
+  SshTimeout := GetParamValue('st', 'ssh-timeout');
 
   if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> '') or (Socket <> '') or (AllDatabases <> '') then begin
     if not Assigned(ConnectionParams) then begin
@@ -2774,6 +2783,26 @@ begin
 
     if WindowsAuth in [0,1] then
       ConnectionParams.WindowsAuth := Boolean(WindowsAuth);
+
+    if not SshHost.IsEmpty then begin
+      ConnectionParams.SSHActive := True;
+      if not SshExe.IsEmpty then
+        ConnectionParams.SSHExe := SshExe;
+      if not SshHost.IsEmpty then
+        ConnectionParams.SSHHost := SshHost;
+      if not SshPort.IsEmpty then
+        ConnectionParams.SSHPort := StrToIntDef(SshPort, ConnectionParams.SSHPort);
+      if not SshLocalPort.IsEmpty then
+        ConnectionParams.SSHLocalPort := StrToIntDef(SshLocalPort, ConnectionParams.SSHLocalPort);
+      if not SshUser.IsEmpty then
+        ConnectionParams.SSHUser := SshUser;
+      if not SshPassword.IsEmpty then
+        ConnectionParams.SSHPassword := SshPassword;
+      if not SshKey.IsEmpty then
+        ConnectionParams.SSHPrivateKey := SshKey;
+      if not SshTimeout.IsEmpty then
+        ConnectionParams.SSHTimeout := StrToIntDef(SshTimeout, ConnectionParams.SSHTimeout);
+    end;
 
     // Ensure we have a session name to pass to InitConnection
     if (ConnectionParams.SessionPath = '') and (ConnectionParams.Hostname <> '') then
