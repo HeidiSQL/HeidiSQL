@@ -1216,6 +1216,7 @@ type
     FLastMouseUpOnPageControl: Cardinal;
     FLastTabNumberOnMouseUp: Integer;
     FLastMouseDownCloseButton: TObject;
+    FLastMouseButtonUpOnGrid: TMouseButton;
     //FJumpList: TJumpList;
     // Filter text per tab for filter panel
     FFilterTextDatabases,
@@ -2133,6 +2134,7 @@ begin
   // Set noderoot for query helpers box
   treeQueryHelpers.RootNodeCount := 7;
 
+  FLastMouseButtonUpOnGrid := mbLeft;
   FLastCaptionChange := 0;
   FLastPortableSettingsSave := 0;
   FLastAppSettingsWrites := 0;
@@ -10784,6 +10786,9 @@ procedure TMainForm.AnyGridEditing(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 begin
   Allowed := False;
+  // Do not edit on right-click
+  if FLastMouseButtonUpOnGrid = mbRight then
+    Exit;
   try
     if not AnyGridEnsureFullRow(Sender as TVirtualStringTree, Node) then
       ErrorDialog(_('Could not load full row data.'))
@@ -11315,6 +11320,7 @@ var
   Hit: THitInfo;
   Results: TDBQuery;
 begin
+  FLastMouseButtonUpOnGrid := Button;
   // Detect mouse hit in grid whitespace and apply changes.
   Grid := Sender as TVirtualStringTree;
   if not Assigned(Grid.FocusedNode) then
