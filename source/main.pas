@@ -7475,10 +7475,10 @@ begin
     //SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.SelectAll;
     if ShiftKeyPressed
-      and (Pos(Filter, SynMemoFilter.Text) = 0) and (Pos(SynMemoFilter.Text, Filter) = 0)
+      and (Pos(Filter, SynMemoFilter.Text.Trim) = 0) and (Pos(SynMemoFilter.Text.Trim, Filter) = 0)
       and (not SynMemoFilter.Text.Trim.IsEmpty)
       then begin
-      SynMemoFilter.SelText := SynMemoFilter.Text + ' AND ' + Filter
+      SynMemoFilter.SelText := SynMemoFilter.Text.Trim + ' AND ' + Filter
     end else begin
       SynMemoFilter.SelText := Filter;
     end;
@@ -8210,7 +8210,7 @@ begin
       raise Exception.Create(f_('Table too large (>%s), avoiding long running SELECT query', [FormatByteNumber(MaxSize)]));
     Query := Conn.QuoteIdent(ColName)+', COUNT(*) AS c FROM '+DbObj.QuotedName;
     if not SynMemoFilter.Text.Trim.IsEmpty then
-      Query := Query + ' WHERE ' + SynMemoFilter.Text + CRLF;
+      Query := Query + ' WHERE ' + SynMemoFilter.Text.Trim + CRLF;
     Query := Query + ' GROUP BY '+Conn.QuoteIdent(ColName)+' ORDER BY c DESC, '+Conn.QuoteIdent(ColName);
     Data := Conn.GetResults(Conn.ApplyLimitClause('SELECT', Query, 30, 0));
     for i:=0 to Data.RecordCount-1 do begin
@@ -8228,10 +8228,10 @@ begin
         Item.Hint := Conn.QuoteIdent(ColName)+'='+Conn.EscapeString(Data.Col(ColName));
       Item.Caption := StrEllipsis(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
       if not SynMemoFilter.Text.Trim.IsEmpty then begin
-        if Pos(Item.Hint, SynMemoFilter.Text) > 0 then
-          Item.Hint := SynMemoFilter.Text
+        if Pos(Item.Hint, SynMemoFilter.Text.Trim) > 0 then
+          Item.Hint := SynMemoFilter.Text.Trim
         else
-          Item.Hint := SynMemoFilter.Text + ' AND ' + Item.Hint;
+          Item.Hint := SynMemoFilter.Text.Trim + ' AND ' + Item.Hint;
       end;
       Item.OnClick := QuickFilterClick;
       Data.Next;
@@ -11225,7 +11225,7 @@ begin
       AppSettings.DeleteValue(asHiddenColumns);
 
     if SynMemoFilter.GetTextLen > 0 then
-      AppSettings.WriteString(asFilter, SynMemoFilter.Text)
+      AppSettings.WriteString(asFilter, SynMemoFilter.Text.Trim)
     else if AppSettings.ValueExists(asFilter) then
       AppSettings.DeleteValue(asFilter);
 
@@ -11257,7 +11257,7 @@ begin
   // Set filter, without changing cursor position
   if AppSettings.ValueExists(asFilter) then begin
     Filter := AppSettings.ReadString(asFilter);
-    if SynMemoFilter.Text <> Filter then begin
+    if SynMemoFilter.Text.Trim <> Filter then begin
       SynMemoFilter.Text := Filter;
       SynMemoFilter.Modified := True;
     end;
