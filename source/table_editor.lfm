@@ -1081,7 +1081,7 @@ object frmTableEditor: TfrmTableEditor
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toWheelPanning, toFullRowDrag, toEditOnClick]
     TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
-    TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+    TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect]
     WantTabs = True
     OnAfterCellPaint = listColumnsAfterCellPaint
     OnBeforeCellPaint = listColumnsBeforeCellPaint

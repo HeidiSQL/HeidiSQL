@@ -1276,8 +1276,8 @@ begin
     X := 0;
     ImageIndexes := GetKeyImageIndexes(Col^);
     for i in ImageIndexes do begin
-      VT.Images.Draw(TargetCanvas, X, Y, i);
-      Inc(X, VT.Images.Width);
+      VT.Images.DrawForControl(TargetCanvas, X, Y, i, VT.Images.Width, VT);
+      Inc(X, Scale96ToForm(VT.Images.Width));
     end;
     ImageIndexes.Free;
   end;
@@ -1299,7 +1299,7 @@ begin
       else ImageIndex := 175;
     end;
     X := CellRect.Left + (VT.Header.Columns[Column].Width div 2) - (VT.Images.Width div 2);
-    VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
+    VT.Images.DrawForControl(TargetCanvas, X, Y, ImageIndex, VT.Images.Width, VT);
   end;
 end;
 

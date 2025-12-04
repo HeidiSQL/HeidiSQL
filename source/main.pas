@@ -1513,7 +1513,7 @@ begin
   PanelRect := Rect;
   //StatusBar.Canvas.FillRect(PanelRect);
   if ImageIndex > -1 then begin
-    ImageListMain.DrawForControl(StatusBar.Canvas, PanelRect.Left, PanelRect.Top+2, ImageIndex, ImageListMain.Width, StatusBar, True);
+    ImageListMain.DrawForControl(StatusBar.Canvas, PanelRect.Left, PanelRect.Top+2, ImageIndex, ImageListMain.Width, StatusBar);
     OffsetRect(PanelRect, Scale96ToForm(ImageListMain.Width)+4, 0);
   end;
   StatusBar.Canvas.TextRect(PanelRect, PanelRect.Left, PanelRect.Top+2, Panel.Text);
@@ -5813,7 +5813,7 @@ begin
     GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
     if ColSortIndex > -1 then
       Dec(IconArea.Left, Sender.Images.Width);
-    Sender.Images.Draw(PaintInfo.TargetCanvas, IconArea.Left, IconArea.Top, PaintInfo.Column.ImageIndex);
+    Sender.Images.DrawForControl(PaintInfo.TargetCanvas, IconArea.Left, IconArea.Top, PaintInfo.Column.ImageIndex, Sender.Images.Width, Sender.Treeview);
   end;
 
   // Paint sort icon and number
