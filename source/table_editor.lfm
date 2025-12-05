@@ -336,6 +336,7 @@ object frmTableEditor: TfrmTableEditor
         Width = 784
         Align = alClient
         DragMode = dmAutomatic
+        DragType = dtVCL
         EditDelay = 0
         Header.AutoSizeIndex = 0
         Header.Columns = <        
@@ -993,6 +994,7 @@ object frmTableEditor: TfrmTableEditor
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinHeight = 25
     DragMode = dmAutomatic
+    DragType = dtVCL
     EditDelay = 0
     Header.AutoSizeIndex = -1
     Header.Columns = <    

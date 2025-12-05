@@ -1063,6 +1063,7 @@ object connform: Tconnform
       Width = 250
       Align = alClient
       DragMode = dmAutomatic
+      DragType = dtVCL
       Header.AutoSizeIndex = -1
       Header.Columns = <      
         item
