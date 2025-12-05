@@ -5261,7 +5261,7 @@ begin
       else if not InLiteral then
         break;
     end;
-    Result := Copy(SQL, LitStart, i-LitStart-1);
+    Result := Copy(SQL, LitStart, i-LitStart);
     Result := UnescapeString(Result);
     Delete(SQL, 1, i);
   end;
@@ -5862,7 +5862,10 @@ begin
     end
     else if IsTextDefault(DefText, Col.DataType) then begin
       Col.DefaultType := cdtText;
-      Col.DefaultText := IfThen(DefText.StartsWith(''''), ExtractLiteral(DefText, ''), DefText);
+      if DefText.StartsWith('''') then
+        Col.DefaultText := ExtractLiteral(DefText, '')
+      else
+        Col.DefaultText := DefText;
     end
     else begin
       Col.DefaultType := cdtExpression;
