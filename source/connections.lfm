@@ -1118,6 +1118,8 @@ object connform: Tconnform
       OnBeforeCellPaint = ListSessionsBeforeCellPaint
       OnCompareNodes = ListSessionsCompareNodes
       OnCreateEditor = ListSessionsCreateEditor
+      OnDragOver = ListSessionsDragOver
+      OnDragDrop = ListSessionsDragDrop
       OnFocusChanged = ListSessionsFocusChanged
       OnFocusChanging = ListSessionsFocusChanging
       OnGetText = ListSessionsGetText

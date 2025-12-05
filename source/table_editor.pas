@@ -7,6 +7,7 @@ interface
 uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   ComCtrls, laz.VirtualTrees, RegExpr, ExtCtrls, SynEdit,
+  {$IFDEF Windows} ActiveX {$ELSE} laz.FakeActiveX {$ENDIF},
   Menus, Clipbrd, Math, System.UITypes, Generics.Collections, LCLProc, LCLType,
   {grideditlinks,} dbstructures, dbstructures.mysql, dbconnection, apphelpers, StrUtils, extra_controls;
 
@@ -111,6 +112,9 @@ type
     procedure btnMoveDownColumnClick(Sender: TObject);
     procedure listColumnsDragOver(Sender: TBaseVirtualTree; Source: TObject; Shift: TShiftState; State: TDragState;
 		  Pt: TPoint; Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
+    procedure listColumnsDragDrop(Sender: TBaseVirtualTree; Source: TObject;
+      DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
+      const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
     procedure listColumnsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
 		  Column: TColumnIndex; TextType: TVSTTextType);
     procedure listColumnsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
@@ -136,6 +140,9 @@ type
     procedure treeIndexesDragOver(Sender: TBaseVirtualTree; Source: TObject;
       Shift: TShiftState; State: TDragState; Pt: TPoint; Mode: TDropMode;
       var Effect: Integer; var Accept: Boolean);
+    procedure treeIndexesDragDrop(Sender: TBaseVirtualTree; Source: TObject;
+      DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
+      const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
     procedure treeIndexesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: String);
     procedure treeIndexesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
     procedure treeIndexesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
@@ -1191,6 +1198,30 @@ procedure TfrmTableEditor.listColumnsDragOver(Sender: TBaseVirtualTree;
   Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
 begin
   Accept := (Source = Sender) and MoveNodeAllowed(listColumns) and (Mode <> dmNowhere);
+end;
+
+
+procedure TfrmTableEditor.listColumnsDragDrop(Sender: TBaseVirtualTree;
+  Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
+  Shift: TShiftState; const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
+var
+  ToNode: PVirtualNode;
+  ToCol, FocusedCol: PTableColumn;
+  NewIndex: NativeInt;
+begin
+  ToNode := Sender.GetNodeAt(Pt.X, Pt.Y);
+  if Assigned(ToNode) then begin
+    FocusedCol := Sender.GetNodeData(Sender.FocusedNode);
+    ToCol := Sender.GetNodeData(ToNode);
+    NewIndex := FColumns.IndexOf(ToCol^);
+    if Mode = dmBelow then
+      Inc(NewIndex);
+    FColumns.Move(FColumns.IndexOf(FocusedCol^), NewIndex);
+    FocusedCol.Status := esModified;
+    Modification(Sender);
+    Sender.SortTree(listColumns.Header.SortColumn, listColumns.Header.SortDirection);
+    ValidateColumnControls;
+  end;
 end;
 
 
@@ -2391,6 +2422,86 @@ begin
     Accept := Assigned(TargetNode) and (Sender.GetNodeLevel(TargetNode) = 1) and
       (TargetNode <> Sender.FocusedNode) and (TargetNode.Parent = Sender.FocusedNode.Parent);
   end;
+end;
+
+
+procedure TfrmTableEditor.treeIndexesDragDrop(Sender: TBaseVirtualTree;
+  Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
+  Shift: TShiftState; const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
+var
+  FocusedNode, TargetNode, IndexNode: PVirtualNode;
+  ColName, PartLength: String;
+  ColPos: Cardinal;
+  VT, SourceVT: TlazVirtualStringtree;
+  Col: PTableColumn;
+  TblKey: TTableKey;
+begin
+  // Column node dropped here
+  VT := Sender as TlazVirtualStringtree;
+  SourceVT := Source as TlazVirtualStringtree;
+  TargetNode := VT.GetNodeAt(Pt.X, Pt.Y);
+  FocusedNode := VT.FocusedNode;
+  IndexNode := nil;
+  ColPos := 0;
+  if not Assigned(TargetNode) then begin
+    Beep;
+    Exit;
+  end;
+  Mainform.LogSQL('TargetNode.Index: '+TargetNode.Index.ToString, lcDebug);
+
+  case VT.GetNodeLevel(TargetNode) of
+    0: begin
+      // DragOver only accepts dmOnNode in root tree level
+      IndexNode := TargetNode;
+      ColPos := IndexNode.ChildCount;
+    end;
+
+    1: begin
+      IndexNode := TargetNode.Parent;
+      // Find the right new position for the dropped column
+      ColPos := TargetNode.Index;
+      if Source = Sender then begin
+        // Drop within index tree: Take care if user dragged from above or from below the target node
+        if FocusedNode <> nil then begin
+          if (FocusedNode.Index < TargetNode.Index) and (Mode = dmAbove) and (ColPos > 0) then
+            Dec(ColPos);
+          if (FocusedNode.Index > TargetNode.Index) and (Mode = dmBelow) and (ColPos < IndexNode.ChildCount-1) then
+            Inc(ColPos);
+        end;
+      end else begin
+        // Drop from columns list
+        if Mode = dmBelow then
+          Inc(ColPos);
+      end;
+    end;
+
+  end;
+
+  if Source = Sender then
+    MoveFocusedIndexPart(ColPos)
+  else begin
+    TblKey := FKeys[IndexNode.Index];
+    Col := SourceVT.GetNodeData(SourceVT.FocusedNode);
+    ColName := Col.Name;
+    if TblKey.Columns.IndexOf(ColName) > -1 then begin
+      if MessageDialog(_('Add duplicated column to index?'),
+        f_('Index "%s" already contains the column "%s". It is possible to add a column twice into a index, but total nonsense in practice.', [VT.Text[IndexNode, 0], ColName]),
+        mtConfirmation, [mbYes, mbNo]) = mrNo then
+        Exit;
+    end;
+
+    TblKey.Columns.Insert(ColPos, ColName);
+    PartLength := '';
+    if (not TblKey.IsFulltext) and (Col.DataType.Index in [dbdtTinyText, dbdtText, dbdtMediumText, dbdtLongText, dbdtTinyBlob, dbdtBlob, dbdtMediumBlob, dbdtLongBlob]) then
+      PartLength := '100';
+    TblKey.Subparts.Insert(ColPos, PartLength);
+    TblKey.Collations.Insert(ColPos, 'A');
+    IndexNode.States := IndexNode.States + [vsHasChildren, vsExpanded];
+  end;
+  Modification(Sender);
+  // Finally tell parent node to update its children
+  VT.ReinitChildren(IndexNode, False);
+  VT.Repaint;
 end;
 
 

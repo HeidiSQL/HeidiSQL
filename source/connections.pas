@@ -12,6 +12,7 @@ interface
 uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   laz.VirtualTrees, Menus, Graphics, extra_controls, lazaruscompat,
+  {$IFDEF Windows} ActiveX {$ELSE} laz.FakeActiveX {$ENDIF},
   dbconnection, RegExpr, Types, FileUtil,
   Math, ActnList, ComboEx, EditBtn, Buttons, ColorBox, extfiledialog;
 
@@ -181,12 +182,12 @@ type
     procedure timerSettingsImportTimer(Sender: TObject);
     procedure ListSessionsStructureChange(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Reason: TChangeReason);
-    {procedure ListSessionsDragOver(Sender: TBaseVirtualTree; Source: TObject;
-      Shift: TShiftState; State: TDragState; Pt: TPoint; Mode: TDropMode;
-      var Effect: Integer; var Accept: Boolean);}
-    {procedure ListSessionsDragDrop(Sender: TBaseVirtualTree; Source: TObject;
+    procedure ListSessionsDragOver(Sender: TBaseVirtualTree; Source: TObject;
+      Shift: TShiftState; State: TDragState; const Pt: TPoint; Mode: TDropMode;
+      var Effect: LongWord; var Accept: Boolean);
+    procedure ListSessionsDragDrop(Sender: TBaseVirtualTree; Source: TObject;
       DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
-      const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);}
+      const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
     procedure btnMoreClick(Sender: TObject);
     procedure menuRenameClick(Sender: TObject);
     procedure TimerButtonAnimationTimer(Sender: TObject);
@@ -908,9 +909,9 @@ begin
 end;
 
 
-{procedure Tconnform.ListSessionsDragDrop(Sender: TBaseVirtualTree; Source: TObject;
-      DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
-      const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
+procedure Tconnform.ListSessionsDragDrop(Sender: TBaseVirtualTree;
+  Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
+  Shift: TShiftState; const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
 var
   TargetNode, ParentNode: PVirtualNode;
   AttachMode: TVTNodeAttachMode;
@@ -920,7 +921,7 @@ var
 begin
   TargetNode := Sender.GetNodeAt(Pt.X, Pt.Y);
   if not Assigned(TargetNode) then begin
-    MessageBeep(MB_ICONEXCLAMATION);
+    Beep;
     Exit;
   end;
   TargetSess := Sender.GetNodeData(TargetNode);
@@ -959,12 +960,12 @@ begin
     end;
   end;
   SiblingSessions.Free;
-end;}
+end;
 
 
-{procedure Tconnform.ListSessionsDragOver(Sender: TBaseVirtualTree;
-  Source: TObject; Shift: TShiftState; State: TDragState; Pt: TPoint;
-  Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
+procedure Tconnform.ListSessionsDragOver(Sender: TBaseVirtualTree;
+  Source: TObject; Shift: TShiftState; State: TDragState; const Pt: TPoint;
+  Mode: TDropMode; var Effect: LongWord; var Accept: Boolean);
 var
   TargetNode, ParentNode: PVirtualNode;
   TargetSess: PConnectionParameters;
@@ -997,7 +998,7 @@ begin
     // Shows the right tooltip on Aero GUI
     Effect := DROPEFFECT_MOVE;
   end;
-end;}
+end;
 
 
 procedure Tconnform.ListSessionsFocusChanged(Sender: TBaseVirtualTree;
