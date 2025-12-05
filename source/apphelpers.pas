@@ -3334,7 +3334,7 @@ begin
       Inc(FWarningCount, FConnection.WarningCount);
     except
       on E:EDbError do begin
-        if FStopOnErrors or (i = FBatch.Count - 1) then begin
+        if FStopOnErrors or (i = FBatch.Count) then begin
           FErrorMessage := E.Message;
           ErrorAborted := True;
         end;
