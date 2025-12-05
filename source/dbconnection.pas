@@ -320,6 +320,8 @@ type
 
   TConnectionParameters = class(TObject)
     strict private
+      FDeleteAfterUse: Boolean;
+      FLoadedFromSettings: Boolean;
       FNetType: TNetType;
       FHostname, FUsername, FPassword, FAllDatabases, FLibraryOrProvider, FComment, FStartupScriptFilename,
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FSSLCipher, FServerVersion,
@@ -340,7 +342,9 @@ type
     public
       constructor Create; overload;
       constructor Create(SessionRegPath: String); overload;
+      destructor Destroy; override;
       procedure SaveToRegistry;
+      property DeleteAfterUse: Boolean read FDeleteAfterUse write FDeleteAfterUse;
       function CreateConnection(AOwner: TComponent): TDBConnection;
       function CreateQuery(Connection: TDbConnection): TDBQuery;
       function NetTypeName(LongFormat: Boolean): String;
@@ -1420,6 +1424,8 @@ constructor TConnectionParameters.Create;
 begin
   inherited Create;
   FIsFolder := False;
+  FDeleteAfterUse := False;
+  FLoadedFromSettings := False;
 
   FNetType := TNetType(AppSettings.GetDefaultInt(asNetType));
   FHostname := DefaultHost;
@@ -1493,6 +1499,7 @@ begin
         );
       FNetType := ntMySQL_TCPIP;
     end;
+    FLoadedFromSettings := True;
     FHostname := AppSettings.ReadString(asHost);
     FUsername := AppSettings.ReadString(asUser);
     FPassword := decrypt(AppSettings.ReadString(asPassword));
@@ -1545,6 +1552,16 @@ begin
       // Legacy support: was a global setting
       // Globals must be read without session path
       FSSHExe := AppSettings.ReadString(asPlinkExecutable);
+    end;
+  end;
+end;
+
+destructor TConnectionParameters.Destroy;
+begin
+  if FDeleteAfterUse and (not FLoadedFromSettings) and (not FSessionPath.IsEmpty) then begin
+    if AppSettings.SessionPathExists(FSessionPath) then begin
+      AppSettings.SessionPath := FSessionPath;
+      AppSettings.DeleteCurrentKey;
     end;
   end;
 end;
@@ -2245,6 +2262,7 @@ begin
   FKeepAliveTimer.Free;
   FFavorites.Free;
   FInformationSchemaObjects.Free;
+  FParameters.Free;
   inherited;
 end;
 

@@ -2804,9 +2804,13 @@ begin
         ConnectionParams.SSHTimeout := StrToIntDef(SshTimeout, ConnectionParams.SSHTimeout);
     end;
 
-    // Ensure we have a session name to pass to InitConnection
-    if (ConnectionParams.SessionPath = '') and (ConnectionParams.Hostname <> '') then
-      ConnectionParams.SessionPath := ConnectionParams.Hostname;
+    if ConnectionParams.SessionPath.IsEmpty then begin
+      // Ensure we have a (random) session name to pass to InitConnection
+      ConnectionParams.SessionPath := IfEmpty(ConnectionParams.Hostname, 'temp')+'-'+GeneratePassword(4);
+    end;
+
+    // Delete stored session in Destroy:
+    ConnectionParams.DeleteAfterUse := True;
   end;
 
   // Check for valid filename(s) in parameters.
