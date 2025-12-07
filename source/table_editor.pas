@@ -950,7 +950,8 @@ begin
   CreateLines := TStringList.Create;
   // Lines with columns, indexes, foreign keys and check constraints
   for Col in FColumns do begin
-    CreateLines.Add(Col.SQLCode);
+    if not (Col.Status in [esDeleted, esAddedDeleted]) then
+      CreateLines.Add(Col.SQLCode);
   end;
   for i:=0 to FKeys.Count-1 do begin
     if not FKeys[i].InsideCreateCode then
