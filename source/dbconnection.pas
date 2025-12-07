@@ -2,14 +2,18 @@ unit dbconnection;
 
 {$mode delphi}{$H+}
 
+{$IF defined(LINUX) or defined(WINDOWS)}
+  {$DEFINE HASMSSQL}
+{$ENDIF}
+
 interface
 
 uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, Graphics, ExtCtrls, StrUtils,
   Controls, Forms, IniFiles, Variants, FileUtil,
-  RegExpr, process, Pipes,
-  MSSQLConn, SQLDBLib, SQLDB, DB,
+  RegExpr, process, Pipes, SQLDB,
+  {$IFDEF HASMSSQL}MSSQLConn, SQLDBLib, DB, {$ENDIF}
   generic_types, lazaruscompat,
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase;
 
@@ -682,6 +686,7 @@ type
       procedure SetLockedByThread(Value: TThread); override;
   end;
 
+  {$IFDEF HASMSSQL}
   TSqlSrvResults = TObjectList<TSQLQuery>;
   TSqlSrvConnection = class(TDBConnection)
     private
@@ -711,6 +716,7 @@ type
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
   end;
+  {$ENDIF}
 
   TPGRawResults = Array of PPGresult;
   TPQerrorfields = (PG_DIAG_SEVERITY, PG_DIAG_SQLSTATE, PG_DIAG_MESSAGE_PRIMARY, PG_DIAG_MESSAGE_DETAIL, PG_DIAG_MESSAGE_HINT, PG_DIAG_STATEMENT_POSITION, PG_DIAG_INTERNAL_POSITION, PG_DIAG_INTERNAL_QUERY, PG_DIAG_CONTEXT, PG_DIAG_SOURCE_FILE, PG_DIAG_SOURCE_LINE, PG_DIAG_SOURCE_FUNCTION);
@@ -935,6 +941,7 @@ type
       function TableName(Column: Integer): String; overload; override;
   end;
 
+  {$IFDEF HASMSSQL}
   TSqlSrvQuery = class(TDBQuery)
     private
       FCurrentResults: TSQLQuery;
@@ -953,6 +960,7 @@ type
       function DatabaseName: String; override;
       function TableName(Column: Integer): String; overload; override;
   end;
+  {$ENDIF}
 
   TPGQuery = class(TDBQuery)
     private
@@ -1462,8 +1470,10 @@ begin
   case NetTypeGroup of
     ngMySQL:
       Result := TMySQLConnection.Create(AOwner);
+    {$IFDEF HASMSSQL}
     ngMSSQL:
       Result := TSqlSrvConnection.Create(AOwner);
+    {$ENDIF}
     ngPgSQL:
       Result := TPgConnection.Create(AOwner);
     ngSQLite:
@@ -1482,8 +1492,10 @@ begin
   case NetTypeGroup of
     ngMySQL:
       Result := TMySQLQuery.Create(Connection);
+    {$IFDEF HASMSSQL}
     ngMSSQL:
       Result := TSqlSrvQuery.Create(Connection);
+    {$ENDIF}
     ngPgSQL:
       Result := TPGQuery.Create(Connection);
     ngSQLite:
@@ -2048,7 +2060,7 @@ begin
     FDatatypes[i] := MySQLDatatypes[i];
 end;
 
-
+{$IFDEF HASMSSQL}
 constructor TSqlSrvConnection.Create(AOwner: TComponent);
 var
   i: Integer;
@@ -2063,7 +2075,7 @@ begin
   FMaxRowsPerInsert := 1000;
   FLastRawResults := TSqlSrvResults.Create(False);
 end;
-
+{$ENDIF}
 
 constructor TPgConnection.Create(AOwner: TComponent);
 var
@@ -2128,7 +2140,7 @@ begin
   inherited;
 end;
 
-
+{$IFDEF HASMSSQL}
 destructor TSqlSrvConnection.Destroy;
 begin
   if Active then Active := False;
@@ -2142,7 +2154,7 @@ begin
   end;
   inherited;
 end;
-
+{$ENDIF}
 
 destructor TPgConnection.Destroy;
 begin
@@ -2580,7 +2592,7 @@ begin
 
 end;
 
-
+{$IFDEF HASMSSQL}
 procedure TSqlSrvConnection.SetActive(Value: Boolean);
 var
   Error, ServerVersion, ErrorHint: String;
@@ -2698,7 +2710,7 @@ begin
     Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 end;
-
+{$ENDIF}
 
 procedure TPgConnection.SetActive(Value: Boolean);
 var
@@ -3440,7 +3452,7 @@ begin
     FSQLSpecifities[spLockedTables] := 'SHOW OPEN TABLES FROM %s WHERE '+QuoteIdent('in_use')+'!=0';
 end;
 
-
+{$IFDEF HASMSSQL}
 procedure TSqlSrvConnection.DoAfterConnect;
 begin
   inherited;
@@ -3485,7 +3497,7 @@ begin
     'VIEW_TABLE_USAGE,'+
     'VIEWS';
 end;
-
+{$ENDIF}
 
 procedure TPgConnection.DoAfterConnect;
 var
@@ -3525,7 +3537,7 @@ begin
   FKeepAliveTimer.Enabled := True;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvConnection.Ping(Reconnect: Boolean): Boolean;
 begin
   Log(lcDebug, 'Ping server ...');
@@ -3545,7 +3557,7 @@ begin
   FKeepAliveTimer.Enabled := False;
   FKeepAliveTimer.Enabled := True;
 end;
-
+{$ENDIF}
 
 function TPGConnection.Ping(Reconnect: Boolean): Boolean;
 var
@@ -3727,7 +3739,7 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 procedure TSqlSrvConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 var
   TimerStart: QWord;
@@ -3757,7 +3769,7 @@ begin
     end;
   end;
 end;
-
+{$ENDIF}
 
 procedure TPGConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 var
@@ -3949,7 +3961,7 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvConnection.GetLastResults: TDBQueryList;
 var
   r: TDBQuery;
@@ -3970,7 +3982,7 @@ begin
   end;
   Batch.Free;
 end;
-
+{$ENDIF}
 
 function TMySQLConnection.GetCreateCode(Obj: TDBObject): String;
 var
@@ -4417,7 +4429,7 @@ begin
   Result := FThreadID;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvConnection.GetThreadId: Int64;
 begin
   if FThreadId = 0 then begin
@@ -4427,7 +4439,7 @@ begin
   end;
   Result := FThreadID;
 end;
-
+{$ENDIF}
 
 function TPGConnection.GetThreadId: Int64;
 begin
@@ -4508,12 +4520,12 @@ begin
   Result := FLib.mysql_errno(FHandle);
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvConnection.GetLastErrorCode: Cardinal;
 begin
   Result := 0;
 end;
-
+{$ENDIF}
 
 function TPgConnection.GetLastErrorCode: Cardinal;
 begin
@@ -4579,7 +4591,7 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvConnection.GetLastErrorMsg: String;
 begin
   if FLastError <> '' then
@@ -4587,7 +4599,7 @@ begin
   else
     Result := '';
 end;
-
+{$ENDIF}
 
 function TPgConnection.GetLastErrorMsg: String;
 begin
@@ -4764,7 +4776,7 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvConnection.GetAllDatabases: TStringList;
 begin
   Result := inherited;
@@ -4778,7 +4790,7 @@ begin
     Result := FAllDatabases;
   end;
 end;
-
+{$ENDIF}
 
 function TPGConnection.GetAllDatabases: TStringList;
 var
@@ -5508,7 +5520,7 @@ begin
   Result := FCollationTable;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvConnection.GetCollationTable: TDBQuery;
 begin
   inherited;
@@ -5521,7 +5533,7 @@ begin
     FCollationTable.First;
   Result := FCollationTable;
 end;
-
+{$ENDIF}
 
 {function TInterbaseConnection.GetCollationTable: TDBQuery;
 begin
@@ -5572,7 +5584,7 @@ begin
   Result := FCharsetTable;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvConnection.GetCharsetTable: TDBQuery;
 begin
   inherited;
@@ -5582,7 +5594,7 @@ begin
       );
   Result := FCharsetTable;
 end;
-
+{$ENDIF}
 
 function TPgConnection.GetCharsetTable: TDBQuery;
 begin
@@ -5962,7 +5974,7 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
 var
   Comments: TDBQuery;
@@ -6003,6 +6015,7 @@ begin
   end;
 
 end;
+{$ENDIF}
 
 function TPgConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
 var
@@ -6438,7 +6451,7 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
 var
   ForeignQuery: TDBQuery;
@@ -6475,7 +6488,7 @@ begin
   end;
   ForeignQuery.Free;
 end;
-
+{$ENDIF}
 
 function TPgConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
 var
@@ -6759,7 +6772,7 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
 var
   Rows: String;
@@ -6775,7 +6788,7 @@ begin
   end;
   Result := MakeInt(Rows);
 end;
-
+{$ENDIF}
 
 function TPgConnection.GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64;
 var
@@ -6845,8 +6858,10 @@ begin
   case Parameters.NetTypeGroup of
     ngMySQL:
       Result := Length(TMySQLConnection(Self).LastRawResults);
+    {$IFDEF HASMSSQL}
     ngMSSQL:
       Result := TSqlSrvConnection(Self).LastRawResults.Count;
+    {$ENDIF}
     ngPgSQL:
       Result := Length(TPGConnection(Self).LastRawResults);
     ngSQLite:
@@ -7330,7 +7345,7 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 procedure TSqlSrvConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
 var
   obj: TDBObject;
@@ -7380,7 +7395,7 @@ begin
     FreeAndNil(Results);
   end;
 end;
-
+{$ENDIF}
 
 procedure TPGConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
 var
@@ -7744,7 +7759,7 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvConnection.ConnectionInfo: TStringList;
 begin
   Result := Inherited;
@@ -7755,6 +7770,7 @@ begin
     Result.Values[_('Client version')] := FHandle.GetConnectionInfo(citClientVersion);
   end;
 end;
+{$ENDIF}
 
 
 function TPgConnection.ConnectionInfo: TStringList;
@@ -8074,7 +8090,7 @@ begin
   inherited;
 end;
 
-
+{$IFDEF HASMSSQL}
 constructor TSqlSrvQuery.Create(AOwner: TComponent);
 begin
   inherited;
@@ -8094,7 +8110,7 @@ begin
   FResultList.Clear;
   inherited;
 end;
-
+{$ENDIF}
 
 destructor TPGQuery.Destroy;
 var
@@ -8242,7 +8258,7 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 procedure TSqlSrvQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
   i, j, NumFields, NumResults: Integer;
@@ -8355,7 +8371,7 @@ begin
     end;
   end;
 end;
-
+{$ENDIF}
 
 procedure TPGQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
@@ -8691,7 +8707,7 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 procedure TSqlSrvQuery.SetRecNo(Value: Int64);
 var
   i, j: Integer;
@@ -8750,7 +8766,7 @@ begin
     FEof := False;
   end;
 end;
-
+{$ENDIF}
 
 procedure TPGQuery.SetRecNo(Value: Int64);
 var
@@ -9021,7 +9037,7 @@ begin
     Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 begin
   if ColumnExists(Column) then begin
@@ -9050,7 +9066,7 @@ begin
   end else if not IgnoreErrors then
     Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
 end;
-
+{$ENDIF}
 
 function TPGQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 var
@@ -9225,13 +9241,13 @@ begin
   Result := (FColumnFlags[Column] and PRI_KEY_FLAG) = PRI_KEY_FLAG;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
 begin
 //  Result := FCurrentResults.Fields[0].KeyFields
   Result := False;
 end;
-
+{$ENDIF}
 
 function TPGQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
 begin
@@ -9275,12 +9291,12 @@ begin
   Result := (FColumnFlags[Column] and UNIQUE_KEY_FLAG) = UNIQUE_KEY_FLAG;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
 begin
   Result := False;
 end;
-
+{$ENDIF}
 
 function TPGQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
 begin
@@ -9306,12 +9322,12 @@ begin
   Result := (FColumnFlags[Column] and MULTIPLE_KEY_FLAG) = MULTIPLE_KEY_FLAG;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
   Result := FCurrentResults.Fields[Column].IsIndexField;
 end;
-
+{$ENDIF}
 
 function TPGQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
@@ -9370,7 +9386,7 @@ begin
     Result := True;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvQuery.IsNull(Column: Integer): Boolean;
 begin
   Result := False;
@@ -9390,7 +9406,7 @@ begin
     end;
   end;
 end;
-
+{$ENDIF}
 
 function TPGQuery.IsNull(Column: Integer): Boolean;
 begin
@@ -9433,12 +9449,12 @@ begin
   Result := Length(FResultList) > 0;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvQuery.HasResult: Boolean;
 begin
   Result := FResultList.Count > 0;
 end;
-
+{$ENDIF}
 
 function TPGQuery.HasResult: Boolean;
 begin
@@ -9895,12 +9911,12 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvQuery.DatabaseName: String;
 begin
   Result := Connection.Database;
 end;
-
+{$ENDIF}
 
 function TPGQuery.DatabaseName: String;
 begin
@@ -9988,11 +10004,12 @@ begin
   end;
 end;
 
-
+{$IFDEF HASMSSQL}
 function TSqlSrvQuery.TableName(Column: Integer): String;
 begin
   Result := '';
 end;
+{$ENDIF}
 
 function TPGQuery.TableName(Column: Integer): String;
 var
