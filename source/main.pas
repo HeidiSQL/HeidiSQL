@@ -13419,6 +13419,7 @@ begin
   if Editor = SynMemoSQLLog then
     Editor.Options := Editor.Options + [eoRightMouseMovesCursor];
   Editor.TabWidth := AppSettings.ReadInt(asTabWidth);
+  Editor.RightEdge := BaseEditor.RightEdge;
   //Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
   Editor.WantTabs := BaseEditor.WantTabs;
   //Editor.HintMode := BaseEditor.HintMode;
