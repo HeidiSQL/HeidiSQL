@@ -407,19 +407,17 @@ end;
 class procedure TExtForm.PageControlTabHighlight(PageControl: TPageControl);
 var
   i, CurrentImage, CountOriginals: Integer;
-  Images: TImageList;
+  Images: TCustomImageList;
   GrayscaleMode: Integer;
   IsQueryTab: Boolean;
 begin
-  // Unsupported yet. We have no TVirtualImageList, see MainForm.PrepareImageList
-  Exit;
   // Set grayscale icon on inactive tabs
   if not (PageControl.Images is TImageList) then
     Exit;
   GrayscaleMode := AppSettings.ReadInt(asTabIconsGrayscaleMode);
 
-  Images := PageControl.Images as TImageList;
-  CountOriginals := Images.Count;
+  Images := PageControl.Images;
+  CountOriginals := Images.Count div 2;
 
   for i:=0 to PageControl.PageCount-1 do begin
     CurrentImage := PageControl.Pages[i].ImageIndex;
@@ -437,7 +435,7 @@ begin
           PageControl.Pages[i].ImageIndex := CurrentImage + CountOriginals;
       end;
     end;
-  end;;
+  end;
 end;
 
 class procedure TExtForm.ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);

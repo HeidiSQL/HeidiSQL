@@ -9,7 +9,7 @@ uses
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient,
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8, LConvEncoding,
-  IniFiles;
+  IniFiles, GraphType;
 
 type
 
@@ -435,7 +435,7 @@ type
   function GetCommandLine: String;
   // This returns a stable, lowercase name "heidisql", used for configuration files and translations
   function GetApplicationName: String;
-  procedure CopyImageList(SourceList, TargetList: TImageList);
+  procedure CopyImageList(SourceList, TargetList: TImageList; AppendDisabled: Boolean);
 
 var
   AppSettings: TAppSettings;
@@ -3147,7 +3147,7 @@ begin
   Result := LowerCase(APPNAME);
 end;
 
-procedure CopyImageList(SourceList, TargetList: TImageList);
+procedure CopyImageList(SourceList, TargetList: TImageList; AppendDisabled: Boolean);
 var
   i, ResIdx, ResWidth: Integer;
   TempBitmap: TBitmap;
@@ -3169,6 +3169,20 @@ begin
       TempBitmapList[ResIdx] := TempBitmap;
     end;
     TargetList.AddMultipleResolutions(TempBitmapList);
+  end;
+  if AppendDisabled then begin
+    for i:=0 to SourceList.Count-1 do
+    begin
+      SetLength(TempBitmapList, 0);
+      SetLength(TempBitmapList, Length(Resolutions));
+      for ResIdx:=Low(Resolutions) to High(Resolutions) do begin
+        ResWidth := Resolutions[ResIdx];
+        TempBitmap := TBitmap.Create;
+        SourceList.Resolution[ResWidth].GetBitmap(i, TempBitmap, gdeDisabled);
+        TempBitmapList[ResIdx] := TempBitmap;
+      end;
+      TargetList.AddMultipleResolutions(TempBitmapList);
+    end;
   end;
 end;
 

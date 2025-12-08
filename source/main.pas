@@ -9239,16 +9239,15 @@ var
 begin
   // Load preferred ImageList into ImageListMain
   if ImageListIcons8.Count = 0 then begin
-    CopyImageList(ImageListMain, ImageListIcons8);
+    CopyImageList(ImageListMain, ImageListIcons8, False);
   end;
   IconPack := AppSettings.ReadString(asIconPack);
   WantedImageCollection := FindComponent('ImageList' + IconPack);
   if (WantedImageCollection <> nil) and (WantedImageCollection is TImageList) and (WantedImageCollection.Tag <> 0) then begin
     SourceList := WantedImageCollection as TImageList;
-    CopyImageList(SourceList, ImageListMain);
+    // Add all icons again in disabled/grayscale mode, used in TExtForm.PageControlTabHighlight
+    CopyImageList(SourceList, ImageListMain, True);
   end;
-  // Add all icons again in disabled/grayscale mode, used in TExtForm.PageControlTabHighlight
-  //VirtualImageListMain.AddDisabled('', 0, VirtualImageListMain.ImageCollection.Count-1);
 end;
 
 
