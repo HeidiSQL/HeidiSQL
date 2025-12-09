@@ -10145,7 +10145,7 @@ begin
   for i:=0 to NeededCols.Count-1 do begin
     j := FColumnOrgNames.IndexOf(NeededCols[i].Name);
     if j = -1 then
-      raise EDbError.CreateFmt(_('Cannot compose WHERE clause - column missing: %s'), [NeededCols[i]]);
+      raise EDbError.CreateFmt(_('Cannot compose WHERE clause - column missing: %s'), [NeededCols[i].Name]);
     if Result <> '' then
       Result := Result + ' AND';
     // See issue #769 and #2031 for why we need CastAsText
