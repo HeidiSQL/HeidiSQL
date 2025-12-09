@@ -13,7 +13,6 @@ object connform: Tconnform
   Constraints.MinWidth = 550
   DesignTimePPI = 120
   ShowHint = True
-  LCLVersion = '4.2.0.0'
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -23,14 +22,14 @@ object connform: Tconnform
   object splitterMain: TSplitter
     Cursor = crSizeWE
     Left = 260
-    Height = 574
+    Height = 575
     Top = 10
     Width = 10
     OnMoved = splitterMainMoved
   end
   object PageControlDetails: TPageControl
     Left = 270
-    Height = 574
+    Height = 575
     Top = 10
     Width = 656
     ActivePage = tabSettings
@@ -41,7 +40,7 @@ object connform: Tconnform
     OnChange = PageControlDetailsChange
     object tabStart: TTabSheet
       Caption = 'Start'
-      ClientHeight = 541
+      ClientHeight = 542
       ClientWidth = 648
       ImageIndex = 112
       object lblHelp: TLabel
@@ -68,7 +67,7 @@ object connform: Tconnform
     end
     object tabSettings: TTabSheet
       Caption = 'Settings'
-      ClientHeight = 541
+      ClientHeight = 542
       ClientWidth = 648
       ImageIndex = 39
       object lblPort: TLabel
@@ -285,7 +284,7 @@ object connform: Tconnform
         AnchorSideTop.Control = editDatabases
         AnchorSideTop.Side = asrBottom
         Left = 242
-        Height = 194
+        Height = 195
         Top = 332
         Width = 400
         Anchors = [akTop, akLeft, akRight, akBottom]
@@ -332,7 +331,7 @@ object connform: Tconnform
     end
     object tabSSHtunnel: TTabSheet
       Caption = 'SSH tunnel'
-      ClientHeight = 541
+      ClientHeight = 542
       ClientWidth = 648
       ImageIndex = 147
       object lblSSHLocalPort: TLabel
@@ -560,7 +559,7 @@ object connform: Tconnform
     end
     object tabAdvanced: TTabSheet
       Caption = 'Advanced'
-      ClientHeight = 541
+      ClientHeight = 542
       ClientWidth = 648
       ImageIndex = 98
       object lblStartupScript: TLabel
@@ -791,7 +790,7 @@ object connform: Tconnform
     end
     object tabSSL: TTabSheet
       Caption = 'SSL'
-      ClientHeight = 541
+      ClientHeight = 542
       ClientWidth = 648
       ImageIndex = 25
       object lblSSLPrivateKey: TLabel
@@ -961,7 +960,7 @@ object connform: Tconnform
     end
     object tabStatistics: TTabSheet
       Caption = 'Statistics'
-      ClientHeight = 541
+      ClientHeight = 542
       ClientWidth = 648
       ImageIndex = 145
       object lblLastConnectLeft: TLabel
@@ -1046,19 +1045,19 @@ object connform: Tconnform
   end
   object pnlLeft: TPanel
     Left = 10
-    Height = 574
+    Height = 575
     Top = 10
     Width = 250
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 574
+    ClientHeight = 575
     ClientWidth = 250
     Constraints.MinWidth = 125
     ParentBackground = False
     TabOrder = 2
     object ListSessions: TLazVirtualStringTree
       Left = 0
-      Height = 540
+      Height = 541
       Top = 34
       Width = 250
       Align = alClient
@@ -1151,74 +1150,94 @@ object connform: Tconnform
   end
   object pnlBottom: TPanel
     Left = 10
-    Height = 38
-    Top = 584
+    Height = 31
+    Top = 591
     Width = 916
     Align = alBottom
+    AutoSize = True
+    BorderSpacing.Top = 6
     BevelOuter = bvNone
-    ClientHeight = 38
+    ClientHeight = 31
     ClientWidth = 916
     ParentBackground = False
     TabOrder = 3
     object btnSave: TSpeedButton
-      Left = 80
+      AnchorSideLeft.Control = btnNew
+      AnchorSideLeft.Side = asrBottom
+      Left = 68
       Height = 31
-      Top = 8
+      Top = 0
       Width = 62
+      BorderSpacing.Right = 6
       Caption = 'Save'
       Images = MainForm.ImageListMain
       ImageIndex = 10
       OnClick = btnSaveClick
     end
     object btnOpen: TButton
-      Left = 588
-      Height = 31
-      Top = 8
-      Width = 100
+      AnchorSideRight.Control = btnCancel
+      Left = 589
+      Height = 30
+      Top = 0
+      Width = 105
       Anchors = [akTop, akRight]
+      AutoSize = True
+      BorderSpacing.Left = 6
       Caption = 'Open'
-      Default = True
+      Constraints.MinWidth = 105
       Enabled = False
       TabOrder = 0
       OnClick = btnOpenClick
     end
     object btnCancel: TButton
-      Left = 696
-      Height = 31
-      Top = 8
-      Width = 100
+      AnchorSideRight.Control = btnMore
+      Left = 700
+      Height = 30
+      Top = 0
+      Width = 105
       Anchors = [akTop, akRight]
-      Cancel = True
+      AutoSize = True
+      BorderSpacing.Left = 6
       Caption = 'Cancel'
+      Constraints.MinWidth = 105
       ModalResult = 2
       TabOrder = 1
     end
     object btnNew: TSpeedButton
-      Left = 10
+      Left = 0
       Height = 31
-      Top = 8
+      Top = 0
       Width = 62
+      BorderSpacing.Right = 6
       Caption = 'New'
       Images = MainForm.ImageListMain
       ImageIndex = 45
       OnClick = btnNewDropdown
     end
     object btnDelete: TSpeedButton
-      Left = 150
+      AnchorSideLeft.Control = btnSave
+      AnchorSideLeft.Side = asrBottom
+      Left = 136
       Height = 31
-      Top = 8
+      Top = 0
       Width = 62
+      BorderSpacing.Right = 6
       Caption = 'Delete'
       Images = MainForm.ImageListMain
       ImageIndex = 46
       OnClick = btnDeleteClick
     end
     object btnMore: TSpeedButton
-      Left = 803
-      Height = 31
-      Top = 8
-      Width = 100
+      AnchorSideRight.Control = pnlBottom
+      AnchorSideRight.Side = asrBottom
+      Left = 811
+      Height = 30
+      Top = 0
+      Width = 105
       Anchors = [akTop, akRight]
+      AutoSize = True
+      BorderSpacing.Left = 6
+      Constraints.MinWidth = 105
       Caption = 'More'
       OnClick = btnMoreClick
     end
