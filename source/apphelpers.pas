@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient,
-  dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8, LConvEncoding,
+  dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
   IniFiles, GraphType;
 
 type
@@ -1049,7 +1049,6 @@ begin
         Insert(FormatSettings.ThousandSeparator, Result, i);
     end;
   end;
-  Result := CP1251ToUTF8(Result);
 end;
 
 
@@ -1078,9 +1077,6 @@ end;
 function FormatNumber(flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
 begin
   Result := Format('%10.'+IntToStr(decimals)+'f', [flt]);
-  // Convert formatted value to UTF8
-  // See https://forum.lazarus.freepascal.org/index.php/topic,71428.msg557355.html#msg557355
-  Result := CP1251ToUTF8(Result);
   Result := Trim(Result);
   Result := FormatNumber(Result, Thousands);
 end;

@@ -29,8 +29,11 @@ begin
   DefaultFormatSettings.TimeSeparator := ':';
   DefaultFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
   DefaultFormatSettings.LongTimeFormat := 'hh:nn:ss';
-  // Testing issue #2189:
-  // DefaultFormatSettings.ThousandSeparator:= chr(160);
+  // Issue #2189 and #2325:
+  // Auto-replace French and Russian non-breaking white space, broken through the Char type
+  // DefaultFormatSettings.ThousandSeparator:= #160;
+  if DefaultFormatSettings.ThousandSeparator in [#226, #160] then
+    DefaultFormatSettings.ThousandSeparator := ' ';
 
   AppSettings := TAppSettings.Create;
 
