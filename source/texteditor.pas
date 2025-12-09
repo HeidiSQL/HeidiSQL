@@ -9,6 +9,7 @@ uses
   ComCtrls, Dialogs, SysUtils, Menus, LCLType,
   apphelpers, ActnList, extra_controls,
   ExtCtrls, dbconnection, SynEdit, SynEditHighlighter, customize_highlighter,
+  Laz2_DOM, Laz2_XMLRead, Laz2_XMLWrite,
   reformatter, jsonparser, extfiledialog,
 
   SynHighlighterBat,
@@ -455,8 +456,8 @@ end;
 procedure TfrmTextEditor.menuFormatCodeOnceClick(Sender: TObject);
 var
   JsonParser: TJSONParser;
-  //Xml: TXmlVerySimple;
-  //XmlTmp: IXMLDocument;
+  Doc: TXMLDocument;
+  InStream, OutStream: TStringStream;
 begin
   // Reformat code if possible
   try
@@ -475,23 +476,26 @@ begin
       MemoText.SelEnd := 0;
       frmReformatter.Free;
     end
-    {else if FHighlighter is TSynXMLSyn then begin
-      XmlTmp := TXMLDocument.Create(nil);
-      XmlTmp.LoadFromXML(MemoText.Text);
-      MemoText.BeginUpdate;
-      MemoText.Text := XMLDoc.FormatXMLData(MemoText.Text);
-      MemoText.EndUpdate;
-      Xml := TXmlVerySimple.Create;
-      //Xml.Options := [doNodeAutoIndent, doParseProcessingInstr, doCaseInsensitive, doWriteBOM, doSimplifyTextNodes];
-      Xml.Clear;
-      Xml.Text := MemoText.Lines.Text.Trim;
-      MemoText.BeginUpdate;
-      MemoText.Lines.Text := Xml.Text;
-      MemoText.EndUpdate;
-      Xml.Free;
-      MemoText.SelStart := 0;
-      MemoText.SelLength := 0;
-    end}
+    else if FHighlighter is TSynXMLSyn then begin
+      InStream := TStringStream.Create(MemoText.Text);
+      OutStream := TStringStream.Create('');
+      try
+        ReadXMLFile(Doc, InStream);  // parse XML
+        try
+          WriteXMLFile(Doc, OutStream); // pretty-print XML
+        finally
+          Doc.Free;
+        end;
+        MemoText.BeginUpdate;
+        MemoText.Text := OutStream.DataString; // show formatted XML
+        MemoText.EndUpdate;
+        MemoText.SelStart := 0;
+        MemoText.SelEnd := 0;
+      finally
+        InStream.Free;
+        OutStream.Free;
+      end;
+    end
     else begin
       Beep;
     end;
