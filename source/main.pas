@@ -10041,49 +10041,39 @@ begin
     Exit;
   end;
 
-  case Column of
-    0: begin
-      // Set bold text if painted node is in focused path
-      WalkNode := Sender.FocusedNode;
-      while Assigned(WalkNode) do begin
-        if WalkNode = Node then begin
-          TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
-          Break;
-        end;
-        try
-          // This crashes in some situations, which I could never reproduce.
-          // See uploaded crash reports and issue #1270.
-          WalkNode := Sender.NodeParent[WalkNode];
-        except
-          on E:EAccessViolation do begin
-            LogSQL('DBtreePaintText, NodeParent: '+E.Message, lcError);
-            Break;
-          end;
-        end;
-      end;
-
-      // Moved from OnGetImageIndex, where the icon used to be painted lighter if the node was yet unseen
-      Ghosted := (DBObj.NodeType = lntNone) and (not DBObj.Connection.Active);
-      Ghosted := Ghosted or ((DBObj.NodeType = lntDB)
-        and (not DBObj.Connection.DbObjectsCached(DBObj.Database))
-        );
-      Ghosted := Ghosted or ((DBObj.NodeType = lntGroup)
-        and Sender.ChildrenInitialized[Node]
-        and (Sender.ChildCount[Node] = 0)
-        );
-      Ghosted := Ghosted or ((DBObj.NodeType in [lntTable..lntEvent])
-        and (not DBObj.WasSelected)
-        );
-      if Ghosted then
-        TargetCanvas.Font.Color := clGrayText;
-
+  // Set bold text if painted node is in focused path
+  WalkNode := Sender.FocusedNode;
+  while Assigned(WalkNode) do begin
+    if WalkNode = Node then begin
+      TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
+      Break;
     end;
-
-    1: begin
-      if DBObj.NodeType in [lntTable..lntEvent] then
-        TargetCanvas.Font.Color := clGrayText;
+    try
+      // This crashes in some situations, which I could never reproduce.
+      // See uploaded crash reports and issue #1270.
+      WalkNode := Sender.NodeParent[WalkNode];
+    except
+      on E:EAccessViolation do begin
+        LogSQL('DBtreePaintText, NodeParent: '+E.Message, lcError);
+        Break;
+      end;
     end;
   end;
+
+  // Moved from OnGetImageIndex, where the icon used to be painted lighter if the node was yet unseen
+  Ghosted := (DBObj.NodeType = lntNone) and (not DBObj.Connection.Active);
+  Ghosted := Ghosted or ((DBObj.NodeType = lntDB)
+    and (not DBObj.Connection.DbObjectsCached(DBObj.Database))
+    );
+  Ghosted := Ghosted or ((DBObj.NodeType = lntGroup)
+    and Sender.ChildrenInitialized[Node]
+    and (Sender.ChildCount[Node] = 0)
+    );
+  Ghosted := Ghosted or ((DBObj.NodeType in [lntTable..lntEvent])
+    and (not DBObj.WasSelected)
+    );
+  if Ghosted then
+    TargetCanvas.Font.Color := clGrayText;
 
 end;
 
