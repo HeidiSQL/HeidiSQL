@@ -12641,8 +12641,7 @@ end;
 procedure TMainForm.actFavoriteObjectsOnlyExecute(Sender: TObject);
 begin
   // Click on "tree favorites" main button
-  // actFavoriteObjectsOnly.AutoCheck does not work?
-  //actFavoriteObjectsOnly.Checked := not actFavoriteObjectsOnly.Checked;
+  // Note: a TSpeedButton connected to an auto-checked TAction needs AllowAllUp + GroupIndex>0
   editDatabaseTableFilterChange(Sender);
   if actFavoriteObjectsOnly.Checked then
     actFavoriteObjectsOnly.ImageIndex := 112
