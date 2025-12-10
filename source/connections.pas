@@ -291,8 +291,6 @@ var
 begin
   Width := AppSettings.ReadInt(asSessionManagerWindowWidth);
   Height := AppSettings.ReadInt(asSessionManagerWindowHeight);
-  Left := AppSettings.ReadInt(asSessionManagerWindowLeft, '', Left);
-  Top := AppSettings.ReadInt(asSessionManagerWindowTop, '', Top);
   // Move to visible area if window was on a now plugged off monitor previously
   MakeFullyVisible;
   pnlLeft.Width := AppSettings.ReadInt(asSessionManagerListWidth);
@@ -491,8 +489,6 @@ begin
   AppSettings.WriteInt(asSessionManagerListWidth, ScaleFormToDesign(pnlLeft.Width));
   AppSettings.WriteInt(asSessionManagerWindowWidth, ScaleFormToDesign(Width));
   AppSettings.WriteInt(asSessionManagerWindowHeight, ScaleFormToDesign(Height));
-  AppSettings.WriteInt(asSessionManagerWindowLeft, ScaleFormToDesign(Left));
-  AppSettings.WriteInt(asSessionManagerWindowTop, ScaleFormToDesign(Top));
   SaveListSetup(ListSessions);
 end;
 

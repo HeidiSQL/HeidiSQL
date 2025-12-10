@@ -12,6 +12,7 @@ object connform: Tconnform
   Constraints.MinHeight = 338
   Constraints.MinWidth = 550
   DesignTimePPI = 120
+  Position = poMainFormCenter
   ShowHint = True
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
