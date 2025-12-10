@@ -5269,7 +5269,7 @@ begin
     Msg := _('Empty value.')
   else begin
     rx := TRegExpr.Create;
-    rx.Expression := '(/\*|--|#|\''|\"|`)';
+    rx.Expression := '(/\*|--|#|\''|\"|`|\$\$)';
     if rx.Exec(Value) then
       Msg := _('Start-of-comment tokens or string literal markers are not allowed.')
   end;
