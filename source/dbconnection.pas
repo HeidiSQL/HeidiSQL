@@ -3761,19 +3761,21 @@ end;
 procedure TSqlSrvConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 var
   TimerStart: QWord;
-  VarRowsAffected: OleVariant;
-  QueryResult, NextResult: TSQLQuery;
-  Affected: Int64;
+  QueryResult: TSQLQuery;
 begin
   inherited;
 
   TimerStart := GetTickCount64;
   FLastRawResults.Clear;
   try
-    QueryResult := TSQLQuery.Create(FHandle); // FAdoHandle.ConnectionObject.Execute(SQL, VarRowsAffected, 1);
+    QueryResult := TSQLQuery.Create(FHandle);
     FLastRawResults.Add(QueryResult);
     QueryResult.DataBase := FHandle;
+    QueryResult.Transaction := FTransaction;
     QueryResult.SQL.Text := SQL;
+    QueryResult.Options := [sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh];
+    QueryResult.PacketRecords := 10000;
+    QueryResult.ExecSQL;
     Inc(FRowsAffected, QueryResult.RowsAffected);
     FLastQueryDuration := GetTickCount64 - TimerStart;
     FLastQueryNetworkDuration := 0;
