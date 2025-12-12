@@ -1007,8 +1007,6 @@ type
     procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure menuQueryHelpersGenerateStatementClick(Sender: TObject);
     procedure actSelectInverseExecute(Sender: TObject);
-    procedure FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
-      var Handled: Boolean);
     procedure actDataResetSortingExecute(Sender: TObject);
     procedure actReformatSQLExecute(Sender: TObject);
     procedure DBtreeFocusChanging(Sender: TBaseVirtualTree; OldNode,
@@ -3285,7 +3283,6 @@ var
   col: TVirtualTreeColumn;
   TabCaption, TabCaptions, BatchHead: String;
   TabCaptionsList: TStringList;
-  TabsetColor: TColor;
   Results: TDBQuery;
   i, HeaderPadding, HeaderLineBreaks: Integer;
 begin
@@ -3293,17 +3290,6 @@ begin
 
   ShowStatusMsg(_('Setting up result grid(s) ...'));
   Tab := QueryTabs.TabByNumber(Thread.TabNumber);
-
-  // Use session color on result tabs
-  TabsetColor := Thread.Connection.Parameters.SessionColor;
-  if TabsetColor <> clNone then begin
-    Tab.tabsetQuery.Color := TabsetColor;
-    //Tab.tabsetQuery.UnselectedColor := ColorAdjustLuma(TabsetColor, 20, False);
-  end
-  else begin
-    Tab.tabsetQuery.Color := clWindow;
-    //Tab.tabsetQuery.UnselectedColor := clBtnFace;
-  end;
 
   // Get tab caption list from comment, similar to a name:xyz in a single query
   BatchHead := Copy(Thread.Batch.SQL, 1, SIZE_KB);
@@ -13655,41 +13641,6 @@ begin
   VT := Sender as TVirtualStringTree;
   if (VT.Header.Columns.Count >= 2) and (coVisible in VT.Header.Columns[1].Options) then
     VT.Header.Columns[1].Width := VT.Canvas.TextWidth(FormatByteNumber(SIZE_MB*100)) + VT.TextMargin*2 + 8;
-end;
-
-
-procedure TMainForm.FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
-  var Handled: Boolean);
-{var
-  Control: TControl;
-  VT: TBaseVirtualTree;
-  PageControl: TPageControl;}
-begin
-  // Wheel scrolling only works in component which has focus. Help out by doing that by hand at least for any VirtualTree.
-  // See http://www.delphipraxis.net/viewtopic.php?p=1113607
-  // TODO: Does not work when a SynMemo has focus, probably related to the broken solution of this issue:
-  // http://sourceforge.net/tracker/index.php?func=detail&aid=1574059&group_id=3221&atid=103221
-  // Likely not required with Lazarus
-  {Control := ControlAtPos(Mouse.CursorPos, True, True);
-  if (Control is TBaseVirtualTree) and (not Control.Focused) and PtInRect(Control.ClientRect, Control.ScreenToClient(MousePos)) then begin
-    VT := Control as TBaseVirtualTree;
-    VT.OffsetY := VT.OffsetY + (WheelDelta div 2); // Don't know why, but WheelDelta is twice as big as it normally appears
-    VT.UpdateScrollBars(True);
-    Handled := True;
-  end else if Control is TPageControl then begin
-    // Scroll tabs horizontally per mouse wheel
-    PageControl := Control as TPageControl;
-    if PageControl.MultiLine then begin
-      Handled := False;
-    end
-    else begin
-      PageControl.ScrollTabs(WheelDelta div WHEEL_DELTA);
-      if PageControl = PageControlMain then
-        FixQueryTabCloseButtons;
-      Handled := True;
-    end;
-  end else}
-    Handled := False;
 end;
 
 
