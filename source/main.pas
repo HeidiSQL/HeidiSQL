@@ -1194,9 +1194,7 @@ type
     procedure menuTabsInMultipleLinesClick(Sender: TObject);
     procedure actResetPanelDimensionsExecute(Sender: TObject);
     procedure menuAlwaysGenerateFilterClick(Sender: TObject);
-    //procedure SynMemoQueryTokenHint(Sender: TObject; Coords: TBufferCoord;
-    //  const Token: string; TokenType: Integer; Attri: TSynHighlighterAttributes;
-    //  var HintText: string);
+    procedure SynMemoQueryShowHint(Sender: TObject; HintInfo: PHintInfo);
     procedure actCopyGridNodesExecute(Sender: TObject);
     procedure ApplicationException(Sender: TObject; E: Exception);
     procedure actQueryTableExecute(Sender: TObject);
@@ -7069,7 +7067,7 @@ begin
       Exit;
     Editor := Sender as TSynMemo;
     Editor.GetHighlighterAttriAtRowColEx(Editor.CaretXY, CaretToken, CaretTokenTypeInt, CaretStart, CaretAttri);
-    if not (TtkTokenKind(CaretTokenTypeInt) in [SynHighlighterSQL.tkString, SynHighlighterSQL.tkComment])
+    if not (SynHighlighterSQL.TtkTokenKind(CaretTokenTypeInt) in [SynHighlighterSQL.tkString, SynHighlighterSQL.tkComment])
       then begin
         Proposal := SynCompletionProposal;
         p := Editor.ClientToScreen(Point(Editor.CaretXPix, Editor.CaretYPix + Editor.LineHeight + 1));
@@ -7194,10 +7192,13 @@ begin
 end;
 
 
-{procedure TMainForm.SynMemoQueryTokenHint(Sender: TObject; Coords: TBufferCoord;
-  const Token: string; TokenType: Integer; Attri: TSynHighlighterAttributes;
-  var HintText: string);
+procedure TMainForm.SynMemoQueryShowHint(Sender: TObject; HintInfo: PHintInfo);
 var
+  Edit: TSynEdit;
+  Token: String;
+  Attri: TSynHighlighterAttributes;
+  TokenType, TokenStart: Integer;
+  RowColPos: TPoint;
   SQLFunc: TSQLFunction;
   Conn: TDBConnection;
   AllObjects: TDBObjectList;
@@ -7209,14 +7210,20 @@ var
   Param: TRoutineParam;
 begin
   // Activate hint for SQL function in query editors
+  Edit := Sender as TSynEdit;
+  RowColPos := Edit.PixelsToRowColumn(HintInfo.CursorPos);
+  if not Edit.GetHighlighterAttriAtRowColEx(RowColPos, Token, TokenType, TokenStart, Attri) then
+    Exit;
+
+  LogSQL('TokenType:'+TokenType.ToString+' Token:"'+Token+'"', lcDebug);
   Conn := ActiveConnection;
   if Assigned(Conn) then begin
-    case TtkTokenKind(TokenType) of
+    case SynHighlighterSQL.TtkTokenKind(TokenType) of
 
       SynHighlighterSQL.tkFunction: begin
         for SQLFunc in ActiveConnection.SQLFunctions do begin
           if SQLFunc.Name.ToUpper = Token.ToUpper then begin
-            HintText := SQLFunc.Name + SQLFunc.Declaration + sLineBreak + sLineBreak + SQLFunc.Description;
+            HintInfo.HintStr := SQLFunc.Name + SQLFunc.Declaration + sLineBreak + sLineBreak + SQLFunc.Description;
             Break;
           end;
         end;
@@ -7228,7 +7235,7 @@ begin
           AllObjects := Conn.GetDBObjects(Conn.Database);
           for Obj in AllObjects do begin
             if (Obj.NodeType = lntTable) and (Obj.Name.ToLower = Token.ToLower) then begin
-              HintText := _(Obj.ObjType) + ' ' + Obj.Name + ':' + sLineBreak +
+              HintInfo.HintStr := _(Obj.ObjType) + ' ' + Obj.Name + ':' + sLineBreak +
                 _('Rows') + ': ' + FormatNumber(Obj.Rows) + sLineBreak +
                 _('Size') + ': ' + FormatByteNumber(Obj.DataLen + Obj.IndexLen) + SLineBreak;
               ColumnNameChars := 0;
@@ -7236,7 +7243,7 @@ begin
                 ColumnNameChars := Max(ColumnNameChars, Length(Column.Name));
               end;
               for Column in Obj.TableColumns do begin
-                HintText := HintText + Format('%s%'+ColumnNameChars.ToString+'s: %s', [SLineBreak, Column.Name, Column.FullDataType]);
+                HintInfo.HintStr := HintInfo.HintStr + Format('%s%'+ColumnNameChars.ToString+'s: %s', [SLineBreak, Column.Name, Column.FullDataType]);
               end;
 
               Break;
@@ -7245,7 +7252,8 @@ begin
         end;
       end;
 
-      SynHighlighterSQL.tkProcName: begin
+      {SynHighlighterSQL.tkProcName: begin
+        // tkProcName not available in Laz SynEdit
         // Show routine parameters, comment and body
         if (not Conn.IsLockedByThread) and Conn.DbObjectsCached(Conn.Database) then begin
           AllObjects := Conn.GetDBObjects(Conn.Database);
@@ -7253,42 +7261,43 @@ begin
             if (Obj.NodeType in [lntFunction, lntProcedure]) and (Obj.Name.ToLower = Token.ToLower) then begin
               Parameters := TRoutineParamList.Create;
               Conn.ParseRoutineStructure(Obj, Parameters);
-              HintText := _(Obj.ObjType) + ' ' + Obj.Name;
+              HintInfo.HintStr := _(Obj.ObjType) + ' ' + Obj.Name;
               Params := TStringList.Create;
               for Param in Parameters do begin
                 Params.Add(Param.Name + ' ['+Param.Datatype+']');
               end;
-              HintText := HintText + '(' + Implode(', ', Params) + ')' + sLineBreak + sLineBreak;
+              HintInfo.HintStr := HintInfo.HintStr + '(' + Implode(', ', Params) + ')' + sLineBreak + sLineBreak;
               Params.Free;
               if not Obj.Returns.IsEmpty then
-                HintText := HintText + 'Returns: ' + Obj.Returns + sLineBreak + sLineBreak;
+                HintInfo.HintStr := HintInfo.HintStr + 'Returns: ' + Obj.Returns + sLineBreak + sLineBreak;
               if not Obj.Comment.IsEmpty then
-                HintText := HintText + Obj.Comment + sLineBreak + sLineBreak;
+                HintInfo.HintStr := HintInfo.HintStr + Obj.Comment + sLineBreak + sLineBreak;
               if not Obj.Body.IsEmpty then
-                HintText := HintText + StrEllipsis(Obj.Body, SIZE_KB);
-              HintText := Trim(HintText);
+                HintInfo.HintStr := HintInfo.HintStr + StrEllipsis(Obj.Body, SIZE_KB);
+              HintInfo.HintStr := Trim(HintInfo.HintStr);
               Break;
             end;
           end;
         end;
-      end;
+      end;}
 
       SynHighlighterSQL.tkDatatype: begin
         for i:=Low(Conn.Datatypes) to High(Conn.Datatypes) do begin
           if Conn.Datatypes[i].Name.ToLower = Token.ToLower then begin
-            HintText := WrapText(Conn.Datatypes[i].Description, 100);
+            HintInfo.HintStr := WrapText(Conn.Datatypes[i].Description, 100);
             Break;
           end;
         end;
       end;
 
       SynHighlighterSQL.tkString: begin
-        HintText := _('String:') + ' ' + FormatByteNumber(Length(Token));
+        HintInfo.HintStr := _('String:') + ' ' + FormatByteNumber(Length(Token));
       end;
 
     end;
   end;
-end;}
+
+end;
 
 procedure TMainForm.TimerHostUptimeTimer(Sender: TObject);
 var
@@ -12295,7 +12304,7 @@ begin
   QueryTab.Memo.Parent := QueryTab.pnlMemo;
   QueryTab.Memo.Align := SynMemoQuery.Align;
   QueryTab.Memo.Constraints := SynMemoQuery.Constraints;
-  //QueryTab.Memo.HintMode := SynMemoQuery.HintMode;
+  QueryTab.Memo.ShowHint := SynMemoQuery.ShowHint;
   QueryTab.Memo.Left := SynMemoQuery.Left;
   QueryTab.Memo.Options := SynMemoQuery.Options;
   QueryTab.Memo.Options2 := SynMemoQuery.Options2;
@@ -12323,7 +12332,7 @@ begin
   QueryTab.Memo.OnProcessCommand := SynMemoQuery.OnProcessCommand;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
   //QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
-  //QueryTab.Memo.OnTokenHint := SynMemoQuery.OnTokenHint;
+  QueryTab.Memo.OnShowHint := SynMemoQuery.OnShowHint;
   QueryTab.MemoLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
   SynCompletionProposal.AddEditor(QueryTab.Memo);
 
@@ -13411,10 +13420,10 @@ begin
   Editor.RightEdge := BaseEditor.RightEdge;
   //Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
   Editor.WantTabs := BaseEditor.WantTabs;
-  //Editor.HintMode := BaseEditor.HintMode;
+  Editor.ShowHint := BaseEditor.ShowHint;
   Editor.OnKeyPress := BaseEditor.OnKeyPress;
   Editor.OnMouseWheel := BaseEditor.OnMouseWheel;
-  //Editor.OnTokenHint := BaseEditor.OnTokenHint;
+  Editor.OnShowHint := BaseEditor.OnShowHint;
   if Editor <> SynMemoSQLLog then begin
     //Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
   end;
@@ -14754,7 +14763,7 @@ begin
     SetHintFontByControl;
   end
   else if HintInfo.HintControl is TSynMemo then begin
-    // Token hint displaying through SynEdit's OnTokenHint event
+    // Token hint displaying through SynEdit's OnShowHint event
     Editor := TSynMemo(HintInfo.HintControl);
     SetHintFontByControl(Editor);
     NewHideTimeout := Min(Length(HintStr) * 100, 60*1000);
