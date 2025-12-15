@@ -1,58 +1,62 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-### CONFIGURATION #########################################################
+### CONFIGURATION
 
 APP_NAME="heidisql"
 BUNDLE_NAME="${APP_NAME}.app"
 APP_DIR="$(pwd)/${BUNDLE_NAME}"
 
 # Path to the already built Lazarus executable
-EXECUTABLE_PATH="$(pwd)/out/heidisql"   # change if needed
+EXECUTABLE_SRC="$(pwd)/out/heidisql"
+EXECUTABLE_TRG="${APP_DIR}/Contents/MacOS/${APP_NAME}"
 
 # Directory that contains your ini files
 INI_SOURCE_DIR="$(pwd)/extra/ini"             # change if needed
 
-# List your ini files here (5 files as requested)
-INI_FILES=(
-  "functions.mariadb.ini"
-  "functions.mysql.ini"
-  "functions.mysql8.ini"
-  "functions.postgresql.ini"
-  "functions.redshift.ini"
-  "functions.sqlite.ini"
-)
-
 # Homebrew prefix (auto-detected; override if needed)
 BREW_PREFIX="$(brew --prefix 2>/dev/null || echo "/opt/homebrew")"
 
-### INSTALL REQUIRED LIBRARIES VIA HOMEBREW ##############################
+# Your Developer ID identity, as shown by: security find-identity -v -p codesigning
+CODESIGN_IDENTITY="Developer ID Application: Ansgar Becker (???)"
+
+# Your Apple ID email and team ID
+APPLE_ID_EMAIL="apple@???"
+TEAM_ID="???"
+
+# Name for notarytool keychain profile (store once with notarytool store-credentials)
+NOTARY_PROFILE="notarytool-profile"
+
+
+### INSTALL REQUIRED LIBRARIES VIA HOMEBREW
 
 # MySQL client (libmysqlclient.dylib)
-brew list mysql-client >/dev/null 2>&1 || brew install mysql-client      # [web:26]
+brew list mysql-client >/dev/null 2>&1 || brew install mysql-client
 
 # PostgreSQL client (libpq.dylib)
-brew list libpq >/dev/null 2>&1 || brew install libpq                    # [web:28]
+brew list libpq >/dev/null 2>&1 || brew install libpq
 
 # SQLite (libsqlite3.dylib; comes with macOS, but install via brew for consistency)
-brew list sqlite >/dev/null 2>&1 || brew install sqlite                  # [web:28]
+brew list sqlite >/dev/null 2>&1 || brew install sqlite
 
 MYSQL_LIB_DIR="${BREW_PREFIX}/opt/mysql-client/lib"
 PG_LIB_DIR="${BREW_PREFIX}/opt/libpq/lib"
 SQLITE_LIB_DIR="${BREW_PREFIX}/opt/sqlite/lib"
 
-### PREPARE APP BUNDLE STRUCTURE #########################################
+
+### PREPARE APP BUNDLE STRUCTURE
 
 rm -rf "${APP_DIR}"
 mkdir -p "${APP_DIR}/Contents/MacOS"
 mkdir -p "${APP_DIR}/Contents/Resources"
-mkdir -p "${APP_DIR}/Contents/Frameworks"   # where we will put .dylib files [web:12][web:19]
+mkdir -p "${APP_DIR}/Contents/Frameworks"   # where we will put .dylib files
 
 # Copy main executable
-cp "${EXECUTABLE_PATH}" "${APP_DIR}/Contents/MacOS/${APP_NAME}"
-chmod +x "${APP_DIR}/Contents/MacOS/${APP_NAME}"
+cp "${EXECUTABLE_SRC}" "${EXECUTABLE_TRG}"
+chmod +x "${EXECUTABLE_TRG}"
+codesign --force --options runtime --timestamp --sign "${CODESIGN_IDENTITY}" "${EXECUTABLE_TRG}"
 
-# Minimal Info.plist (adjust identifiers/versions as needed) [web:12][web:16]
+# Minimal Info.plist (adjust identifiers/versions as needed)
 cat > "${APP_DIR}/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -74,21 +78,18 @@ cat > "${APP_DIR}/Contents/Info.plist" <<EOF
   <string>APPL</string>
   <key>LSMinimumSystemVersion</key>
   <string>15.0</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
 </dict>
 </plist>
 EOF
 
-### COPY INI FILES INTO RESOURCES ########################################
 
-for ini in "${INI_FILES[@]}"; do
-  if [[ -f "${INI_SOURCE_DIR}/${ini}" ]]; then
-    cp "${INI_SOURCE_DIR}/${ini}" "${APP_DIR}/Contents/Resources/${ini}"
-  else
-    echo "WARNING: INI file not found: ${INI_SOURCE_DIR}/${ini}" >&2
-  fi
-done
+### COPY INI FILES INTO RESOURCES
+cp ${INI_SOURCE_DIR}/*.ini "${APP_DIR}/Contents/MacOS/"
 
-### FUNCTION: COPY A DYLIB AND ITS DEPENDENCIES ##########################
+
+### FUNCTION: COPY A DYLIB AND ITS DEPENDENCIES
 
 copy_and_rewrite_dylib() {
   local src_dylib="$1"
@@ -110,12 +111,12 @@ copy_and_rewrite_dylib() {
   # Make it writable for install_name_tool
   chmod u+w "${dest_dylib}"
 
-  # Change its own install name to @rpath/@loader_path-style inside the app [web:18]
+  # Change its own install name to @rpath/@loader_path-style inside the app
   install_name_tool -id "@rpath/${base}" "${dest_dylib}"
 
   # Find direct dependencies
   local deps
-  # otool -L output: first line is the file itself, subsequent lines are dependencies [web:18][web:31]
+  # otool -L output: first line is the file itself, subsequent lines are dependencies
   deps=$(otool -L "${dest_dylib}" | tail -n +2 | awk '{print $1}')
 
   for dep in ${deps}; do
@@ -141,9 +142,10 @@ copy_and_rewrite_dylib() {
   done
 }
 
-### COPY CLIENT LIBRARIES AND DEPENDENCIES ################################
 
-# libmysqlclient.dylib [web:20][web:26]
+### COPY CLIENT LIBRARIES AND DEPENDENCIES
+
+# libmysqlclient.dylib
 if ls "${MYSQL_LIB_DIR}"/libmysqlclient*.dylib >/dev/null 2>&1; then
   for f in "${MYSQL_LIB_DIR}"/libmysqlclient*.dylib; do
     copy_and_rewrite_dylib "${f}"
@@ -152,7 +154,7 @@ else
   echo "WARNING: No libmysqlclient*.dylib found in ${MYSQL_LIB_DIR}" >&2
 fi
 
-# libpq.dylib [web:20]
+# libpq.dylib
 if [[ -f "${PG_LIB_DIR}/libpq.dylib" ]]; then
   copy_and_rewrite_dylib "${PG_LIB_DIR}/libpq.dylib"
 else
@@ -166,7 +168,7 @@ else
   fi
 fi
 
-# libsqlite3.dylib [web:20]
+# libsqlite3.dylib
 if [[ -f "${SQLITE_LIB_DIR}/libsqlite3.dylib" ]]; then
   copy_and_rewrite_dylib "${SQLITE_LIB_DIR}/libsqlite3.dylib"
 elif ls "${SQLITE_LIB_DIR}"/libsqlite3*.dylib >/dev/null 2>&1; then
@@ -177,22 +179,21 @@ else
   echo "WARNING: No libsqlite3*.dylib found in ${SQLITE_LIB_DIR}" >&2
 fi
 
-### FIX MAIN EXECUTABLE’S REFERENCES TO CLIENT LIBS #######################
 
-EXE="${APP_DIR}/Contents/MacOS/${APP_NAME}"
+### FIX MAIN EXECUTABLE’S REFERENCES TO CLIENT LIBS
 
-# Helper: rewrite dependency of the main executable to bundled Frameworks [web:18]
+# Helper: rewrite dependency of the main executable to bundled Frameworks
 rewrite_exe_dep () {
   local pattern="$1"   # e.g. libmysqlclient
   local dep
-  dep=$(otool -L "${EXE}" | awk "/${pattern}.*dylib/ {print \$1}" | head -n1 || true)
+  dep=$(otool -L "${EXECUTABLE_TRG}" | awk "/${pattern}.*dylib/ {print \$1}" | head -n1 || true)
   if [[ -n "${dep}" ]]; then
     local base
     base="$(basename "${dep}")"
     local new="@loader_path/../Frameworks/${base}"
-    echo "Rewriting ${EXE} dep ${dep} -> ${new}"
-    chmod u+w "${EXE}"
-    install_name_tool -change "${dep}" "${new}" "${EXE}"
+    echo "Rewriting ${EXECUTABLE_TRG} dep ${dep} -> ${new}"
+    chmod u+w "${EXECUTABLE_TRG}"
+    install_name_tool -change "${dep}" "${new}" "${EXECUTABLE_TRG}"
   fi
 }
 
@@ -201,3 +202,37 @@ rewrite_exe_dep "libpq"
 rewrite_exe_dep "libsqlite3"
 
 echo "Done. Bundled app is at: ${APP_DIR}"
+
+
+### SIGN ALL DYLIBS AND THE APP BUNDLE
+
+echo "Signing embedded libraries..."
+find "${APP_DIR}/Contents" -type f -name "*.dylib" | while read -r dylib; do
+  echo "  Signing ${dylib}"
+  codesign --force --options runtime --timestamp --sign "${CODESIGN_IDENTITY}" "${dylib}"
+done
+
+echo "Signing main app bundle..."
+codesign --force --options runtime --timestamp --deep --sign "${CODESIGN_IDENTITY}" "${APP_DIR}"
+
+echo "Verifying code signature..."
+codesign --verify --deep --strict --verbose=2 "${APP_DIR}"
+
+
+### ZIP, NOTARIZE, AND STAPLE
+
+ZIP_PATH="${APP_DIR}.zip"
+rm -f "${ZIP_PATH}"
+echo "Zipping app for notarization..."
+/usr/bin/zip -r -y "${ZIP_PATH}" "${BUNDLE_NAME}"
+
+echo "Submitting to Apple notary service..."
+xcrun notarytool submit "${ZIP_PATH}" \
+  --keychain-profile "${NOTARY_PROFILE}" \
+  --team-id "${TEAM_ID}" \
+  --wait
+
+echo "Stapling notarization ticket..."
+xcrun stapler staple "${APP_DIR}"
+
+echo "Notarization complete. Distribute: ${APP_DIR}"
