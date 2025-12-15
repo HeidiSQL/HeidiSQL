@@ -11,9 +11,6 @@ APP_DIR="$(pwd)/${BUNDLE_NAME}"
 EXECUTABLE_SRC="$(pwd)/out/heidisql"
 EXECUTABLE_TRG="${APP_DIR}/Contents/MacOS/${APP_NAME}"
 
-# Directory that contains your ini files
-INI_SOURCE_DIR="$(pwd)/extra/ini"             # change if needed
-
 # Homebrew prefix (auto-detected; override if needed)
 BREW_PREFIX="$(brew --prefix 2>/dev/null || echo "/opt/homebrew")"
 
@@ -80,13 +77,16 @@ cat > "${APP_DIR}/Contents/Info.plist" <<EOF
   <string>15.0</string>
   <key>NSHighResolutionCapable</key>
   <true/>
+  <key>CFBundleIconFile</key>
+  <string>heidisql</string>
 </dict>
 </plist>
 EOF
 
 
 ### COPY INI FILES INTO RESOURCES
-cp ${INI_SOURCE_DIR}/*.ini "${APP_DIR}/Contents/MacOS/"
+cp extra/ini/*.ini "${APP_DIR}/Contents/Resources/"
+cp res/heidisql.icns "${APP_DIR}/Contents/Resources/" 
 
 
 ### FUNCTION: COPY A DYLIB AND ITS DEPENDENCIES

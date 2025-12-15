@@ -11382,7 +11382,7 @@ begin
 
   TryFiles := Explode(',', SQLFunctionsFileOrder);
   for TryFile in TryFiles do begin
-    IniFilePath := GetAppDir + 'functions-'+TryFile+'.ini';
+    IniFilePath := GetResourcesDir + 'functions-'+TryFile+'.ini';
     FOwner.Log(lcDebug, 'Trying '+IniFilePath);
     if FileExists(IniFilePath) then begin
       FOwner.Log(lcInfo, 'Reading function definitions from '+IniFilePath);

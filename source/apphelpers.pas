@@ -358,6 +358,7 @@ type
   //function GetTempDir: String;
   function GetAppDir: String;
   function GetLibDir: String;
+  function GetResourcesDir: String;
   procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
   function DetectEncoding(Stream: TStream): TEncoding;
@@ -1314,6 +1315,16 @@ begin
   {$ENDIF}
   {$IFDEF LINUX}
   Result := '';
+  {$ENDIF}
+end;
+
+function GetResourcesDir: String;
+begin
+  // point to resources dir in macOS app bundle
+  {$IFDEF DARWIN}
+  Result := GetAppDir + '..' + DirectorySeparator + 'Resources' + DirectorySeparator;
+  {$ELSE}
+  Result := GetAppDir;
   {$ENDIF}
 end;
 
