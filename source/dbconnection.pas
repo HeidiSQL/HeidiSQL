@@ -1949,9 +1949,9 @@ begin
         rx.Expression := '^\s*(libsqlite3)[^=]+=>\s*(\S+)$';
         {$Else}
         if NetType = ntSQLite then
-          rx.Expression := '^sqlite.*\.' + SharedSuffix
+          rx.Expression := '^(lib)?sqlite.*\.' + SharedSuffix
         else
-          rx.Expression := '^sqlite3mc.*\.' + SharedSuffix;
+          rx.Expression := '^(lib)?sqlite3mc.*\.' + SharedSuffix;
         {$EndIf}
       end;
       ngInterbase:
@@ -1969,7 +1969,7 @@ begin
           end;
         end;
         {$Else}
-        Dlls := FindAllFiles(GetAppDir, '*.' + SharedSuffix, False);
+        Dlls := FindAllFiles(GetLibDir, '*.' + SharedSuffix, False);
         for DllPath in Dlls do begin
           DllFile := ExtractFileName(DllPath);
           if rx.Exec(DllFile) then begin
@@ -3300,7 +3300,7 @@ var
   LibraryPath: String;
 begin
   // Init libmysql before actually connecting.
-  LibraryPath := {$IFNDEF LINUX}GetAppDir + {$ENDIF} Parameters.LibraryOrProvider;
+  LibraryPath := GetLibDir + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
   FLib := TMySQLLib.Create(LibraryPath, Parameters.DefaultLibrary);
@@ -3315,7 +3315,7 @@ var
   msg: String;
 begin
   // Init lib before actually connecting.
-  LibraryPath := {$IFNDEF LINUX}GetAppDir + {$ENDIF} Parameters.LibraryOrProvider;
+  LibraryPath := GetLibDir + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   try
     FLib := TPostgreSQLLib.Create(LibraryPath, Parameters.DefaultLibrary);
@@ -3346,7 +3346,7 @@ var
   LibraryPath: String;
 begin
   // Init lib before actually connecting.
-  LibraryPath := {$IFNDEF LINUX}GetAppDir + {$ENDIF} Parameters.LibraryOrProvider;
+  LibraryPath := GetLibDir + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
   if Parameters.NetType = ntSQLite then

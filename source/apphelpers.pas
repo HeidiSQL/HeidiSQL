@@ -357,6 +357,7 @@ type
   function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
   //function GetTempDir: String;
   function GetAppDir: String;
+  function GetLibDir: String;
   procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
   function DetectEncoding(Stream: TStream): TEncoding;
@@ -1301,6 +1302,19 @@ end;}
 function GetAppDir: String;
 begin
   Result := ExtractFilePath(Application.ExeName);
+end;
+
+function GetLibDir: String;
+begin
+  {$IFDEF WINDOWS}
+  Result := GetAppDir;
+  {$ENDIF}
+  {$IFDEF DARWIN}
+  Result := GetAppDir + '..' + DirectorySeparator + 'Frameworks' + DirectorySeparator;
+  {$ENDIF}
+  {$IFDEF LINUX}
+  Result := '';
+  {$ENDIF}
 end;
 
 {**
