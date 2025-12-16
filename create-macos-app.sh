@@ -44,7 +44,8 @@ MYSQL_LIB_DIR="${BREW_PREFIX}/opt/mysql-client/lib"
 PG_LIB_DIR="${BREW_PREFIX}/opt/libpq/lib"
 SQLITE_LIB_DIR="${BREW_PREFIX}/opt/sqlite/lib"
 MARIADB_LIB_DIR="${BREW_PREFIX}/opt/mariadb-connector-c/lib"
-
+MARIADB_PLUGIN_DIR="${MARIADB_LIB_DIR}/mariadb/plugin"
+MARIADB_PLUGIN_DEST="${APP_DIR}/Contents/Frameworks/plugins"
 
 ### PREPARE APP BUNDLE STRUCTURE
 
@@ -52,6 +53,7 @@ rm -rf "${APP_DIR}"
 mkdir -p "${APP_DIR}/Contents/MacOS"
 mkdir -p "${APP_DIR}/Contents/Resources"
 mkdir -p "${APP_DIR}/Contents/Frameworks"   # where we will put .dylib files
+mkdir -p "${MARIADB_PLUGIN_DEST}"
 
 # Copy main executable
 cp "${EXECUTABLE_SRC}" "${EXECUTABLE_TRG}"
@@ -193,6 +195,27 @@ else
   echo "WARNING: No libmariadb*.dylib found in ${MARIADB_LIB_DIR}" >&2
 fi
 
+# MARIADB PLUGIN .so FILES
+if [[ -d "${MARIADB_PLUGIN_DIR}" ]]; then
+  echo "Copying MariaDB plugins from ${MARIADB_PLUGIN_DIR}..."
+  mkdir -p "${MARIADB_PLUGIN_DEST}"
+
+  # Copy all .so plugins into the app plugin directory
+  for so in "${MARIADB_PLUGIN_DIR}"/*.so; do
+    [[ -f "${so}" ]] || continue
+    base="$(basename "${so}")"
+    dest_so="${MARIADB_PLUGIN_DEST}/${base}"
+
+    echo "  Copying plugin ${so} -> ${dest_so}"
+    cp "${so}" "${dest_so}"
+    chmod u+w "${dest_so}"
+
+    # Fix plugin’s own deps and copy any non-system libs into Frameworks
+    copy_and_rewrite_dylib "${dest_so}"
+  done
+else
+  echo "WARNING: MariaDB plugin directory not found: ${MARIADB_PLUGIN_DIR}" >&2
+fi
 
 ### FIX MAIN EXECUTABLE’S REFERENCES TO CLIENT LIBS
 
@@ -240,9 +263,9 @@ echo "Done. Bundled app is at: ${APP_DIR}"
 ### SIGN ALL DYLIBS AND THE APP BUNDLE
 
 echo "Signing embedded libraries..."
-find "${APP_DIR}/Contents" -type f -name "*.dylib" | while read -r dylib; do
-  echo "  Signing ${dylib}"
-  codesign --force --options runtime --timestamp --sign "${CODESIGN_IDENTITY}" "${dylib}"
+find "${APP_DIR}/Contents" -type f \( -name "*.dylib" -o -name "*.so" \) | while read -r f; do
+  echo "  Signing ${f}"
+  codesign --force --options runtime --timestamp --sign "${CODESIGN_IDENTITY}" "${f}"
 done
 
 echo "Signing main app bundle..."

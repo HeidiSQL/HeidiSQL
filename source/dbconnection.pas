@@ -2454,11 +2454,11 @@ begin
     if Parameters.WantSSL and (not FLib.IsLibMariadb) then
       ClientFlags := ClientFlags or CLIENT_SSL;
 
-    {$IfDef WINDOWS}
-    // Point libmysql to the folder with client plugins
-    PluginDir := AnsiString(GetAppDir+'plugins');
-    SetOption(FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
-    {$EndIf}
+    if not GetLibDir.IsEmpty then begin
+      // Point libmysql to the folder with client plugins
+      PluginDir := AnsiString(GetLibDir+'plugins');
+      SetOption(FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
+    end;
 
     // Enable cleartext plugin
     if Parameters.CleartextPluginEnabled then
