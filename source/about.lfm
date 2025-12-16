@@ -1,32 +1,38 @@
 object AboutBox: TAboutBox
   Left = 718
-  Height = 386
+  Height = 408
   Top = 243
-  Width = 575
+  Width = 491
+  AutoSize = True
   BorderStyle = bsDialog
   Caption = 'About'
-  ClientHeight = 386
-  ClientWidth = 575
+  ClientHeight = 408
+  ClientWidth = 491
   Color = clBtnFace
   DesignTimePPI = 120
   FormStyle = fsStayOnTop
-  OnShow = FormShow
   Position = poOwnerFormCenter
+  OnShow = FormShow
   object lblAppName: TLabel
-    Left = 146
+    AnchorSideLeft.Control = ImageHeidisql
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Owner
+    Left = 102
     Height = 20
-    Top = 10
+    Top = 6
     Width = 85
     BorderSpacing.Around = 6
     Caption = 'lblAppName'
     PopupMenu = popupLabels
   end
   object lblAppVersion: TLabel
+    AnchorSideLeft.Control = ImageHeidisql
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = lblAppName
     AnchorSideTop.Side = asrBottom
-    Left = 146
+    Left = 102
     Height = 20
-    Top = 42
+    Top = 38
     Width = 93
     BorderSpacing.Top = 6
     BorderSpacing.Around = 6
@@ -34,25 +40,28 @@ object AboutBox: TAboutBox
     PopupMenu = popupLabels
   end
   object lblAppCompiled: TLabel
+    AnchorSideLeft.Control = ImageHeidisql
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = lblAppVersion
     AnchorSideTop.Side = asrBottom
-    Left = 146
+    Left = 102
     Height = 20
-    Top = 68
+    Top = 64
     Width = 110
     BorderSpacing.Around = 6
     Caption = 'lblAppCompiled'
     PopupMenu = popupLabels
   end
   object ImageHeidisql: TImage
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
     Cursor = crHandPoint
-    Left = 10
+    Left = 6
     Height = 90
-    Top = 10
+    Top = 6
     Width = 90
     AutoSize = True
     BorderSpacing.Around = 6
-    OnClick = OpenURL
     Picture.Data = {
       1754506F727461626C654E6574776F726B477261706869637B19000089504E47
       0D0A1A0A0000000D494844520000005A0000005A080600000038A84102000000
@@ -261,36 +270,44 @@ object AboutBox: TAboutBox
       00F87FF924EC272BA4FA450000000049454E44AE426082
     }
     Transparent = True
+    OnClick = OpenURL
   end
   object lblDonated: TLabel
+    AnchorSideLeft.Control = ImageHeidisql
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = lnklblCredits
     AnchorSideTop.Side = asrBottom
-    Left = 146
+    AnchorSideBottom.Control = editDonated
+    Left = 102
     Height = 20
-    Top = 178
+    Top = 188
     Width = 291
-    BorderSpacing.Top = 6
+    BorderSpacing.Top = 20
     BorderSpacing.Around = 6
     Caption = 'I have donated per following email address:'
   end
   object lblEnvironment: TLabel
+    AnchorSideLeft.Control = ImageHeidisql
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = lblAppCompiled
     AnchorSideTop.Side = asrBottom
-    Left = 146
+    Left = 102
     Height = 20
-    Top = 94
+    Top = 90
     Width = 100
     BorderSpacing.Around = 6
     Caption = 'lblEnvironment'
     PopupMenu = popupLabels
   end
   object lnklblWebpage: TLabel
+    AnchorSideLeft.Control = ImageHeidisql
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = lblEnvironment
     AnchorSideTop.Side = asrBottom
     Cursor = crHandPoint
-    Left = 146
+    Left = 102
     Height = 20
-    Top = 120
+    Top = 116
     Width = 100
     BorderSpacing.Around = 6
     Caption = 'lnklblWebpage'
@@ -299,12 +316,14 @@ object AboutBox: TAboutBox
     OnClick = lnklblWebpageClick
   end
   object lnklblCredits: TLabel
+    AnchorSideLeft.Control = ImageHeidisql
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = lnklblWebpage
     AnchorSideTop.Side = asrBottom
     Cursor = crHandPoint
-    Left = 146
+    Left = 102
     Height = 20
-    Top = 146
+    Top = 142
     Width = 46
     BorderSpacing.Around = 6
     Caption = 'Credits'
@@ -313,37 +332,55 @@ object AboutBox: TAboutBox
     OnClick = lnklblCreditsClick
   end
   object btnClose: TButton
+    AnchorSideTop.Control = btnDonate
     AnchorSideTop.Side = asrBottom
-    Left = 437
-    Height = 31
-    Top = 345
-    Width = 128
-    Anchors = [akRight, akBottom]
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 385
+    Height = 30
+    Top = 324
+    Width = 100
+    Anchors = [akTop, akRight]
+    AutoSize = True
+    BorderSpacing.Top = 20
     BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Close'
+    Constraints.MinWidth = 100
     ModalResult = 1
     TabOrder = 0
   end
   object btnUpdateCheck: TButton
+    AnchorSideLeft.Control = ImageHeidisql
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = btnDonate
     AnchorSideTop.Side = asrBottom
-    Left = 146
+    AnchorSideRight.Control = btnClose
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 102
     Height = 31
-    Top = 345
-    Width = 286
+    Top = 324
+    Width = 277
     Action = MainForm.actUpdateCheck
-    Anchors = [akLeft, akRight, akBottom]
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 20
     BorderSpacing.Around = 6
     TabOrder = 1
   end
   object editDonated: TEdit
+    AnchorSideLeft.Control = ImageHeidisql
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = lblDonated
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = btnDonatedOK
-    Left = 146
+    AnchorSideBottom.Control = btnDonate
+    Left = 102
     Height = 28
-    Top = 204
-    Width = 285
+    Top = 214
+    Width = 277
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Around = 6
     TabOrder = 2
@@ -352,30 +389,43 @@ object AboutBox: TAboutBox
     OnExit = editDonatedExit
   end
   object btnDonatedOK: TButton
+    AnchorSideLeft.Control = editDonated
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = lblDonated
     AnchorSideTop.Side = asrBottom
-    Left = 437
-    Height = 31
-    Top = 204
-    Width = 128
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = btnDonate
+    Left = 385
+    Height = 30
+    Top = 214
+    Width = 100
     Anchors = [akTop, akRight]
+    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'OK'
+    Constraints.MinWidth = 100
     TabOrder = 3
     OnClick = btnDonatedOKClick
   end
   object btnDonate: TButton
+    AnchorSideLeft.Control = ImageHeidisql
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = editDonated
     AnchorSideTop.Side = asrBottom
-    Left = 146
-    Height = 30
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = btnUpdateCheck
+    Left = 102
+    Height = 50
     Hint = 'Send an arbitrary amount as donation to the author - per PayPal (also supports credit cards)'
-    Top = 238
-    Width = 419
+    Top = 248
+    Width = 383
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'Donate'
+    Constraints.MinHeight = 50
     ParentShowHint = False
     ShowHint = True
     TabOrder = 4
@@ -386,9 +436,9 @@ object AboutBox: TAboutBox
     AnchorSideTop.Control = lblAppVersion
     AnchorSideTop.Side = asrBottom
     Cursor = crHandPoint
-    Left = 262
+    Left = 218
     Height = 20
-    Top = 68
+    Top = 64
     Width = 97
     BorderSpacing.Around = 6
     Caption = 'lnklblCompiler'
