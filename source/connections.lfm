@@ -1186,6 +1186,7 @@ object connform: Tconnform
       BorderSpacing.Left = 6
       Caption = 'Open'
       Constraints.MinWidth = 105
+      Default = True
       Enabled = False
       TabOrder = 0
       OnClick = btnOpenClick
@@ -1199,6 +1200,7 @@ object connform: Tconnform
       Anchors = [akTop, akRight]
       AutoSize = True
       BorderSpacing.Left = 6
+      Cancel = True
       Caption = 'Cancel'
       Constraints.MinWidth = 105
       ModalResult = 2
