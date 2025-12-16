@@ -24,6 +24,7 @@ TEAM_ID="???"
 # Name for notarytool keychain profile (store once with notarytool store-credentials)
 NOTARY_PROFILE="notarytool-profile"
 
+LOCALES_ZIP_URL="https://www.heidisql.com/downloads/locale/HeidiSQL-locale.zip"
 
 ### INSTALL REQUIRED LIBRARIES VIA HOMEBREW
 
@@ -214,6 +215,24 @@ rewrite_exe_dep "libmysqlclient"
 rewrite_exe_dep "libpq"
 rewrite_exe_dep "libsqlite3"
 rewrite_exe_dep "libmariadb"
+
+
+### DOWNLOAD AND EXTRACT LOCALE FILES
+
+if [[ -n "${LOCALES_ZIP_URL}" ]]; then
+  LOCALE_DEST="${APP_DIR}/Contents/Resources/locale"
+  mkdir -p "${LOCALE_DEST}"
+
+  TMP_ZIP="$(mktemp -t heidisql_locales.XXXXXX).zip"
+  echo "Downloading locales from ${LOCALES_ZIP_URL}..."
+  curl -L --fail --show-error "${LOCALES_ZIP_URL}" -o "${TMP_ZIP}"
+
+  echo "Extracting locales to ${LOCALE_DEST}..."
+  /usr/bin/unzip -o "${TMP_ZIP}" -d "${LOCALE_DEST}" >/dev/null
+
+  rm -f "${TMP_ZIP}"
+fi
+
 
 echo "Done. Bundled app is at: ${APP_DIR}"
 
