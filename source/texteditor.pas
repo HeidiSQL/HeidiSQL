@@ -251,6 +251,7 @@ begin
   menuMixedLB.Tag := Integer(lbsMixed);
 
   Highlighters := SynEditHighlighter.GetPlaceableHighlighters;
+  comboHighlighter.Items.Add(_('Text'));
   for i:=0 to Highlighters.Count-1 do begin
     comboHighlighter.Items.Add(Highlighters[i].GetLanguageName);
   end;
@@ -385,6 +386,7 @@ begin
   SelLength := MemoText.SelEnd - MemoText.SelStart;
   MemoText.Highlighter := nil;
   FHighlighter.Free;
+  FHighlighter := nil;
   Highlighters := SynEditHighlighter.GetPlaceableHighlighters;
   for i:=0 to Highlighters.Count-1 do begin
     if comboHighlighter.Text = Highlighters[i].GetLanguageName then begin
@@ -393,21 +395,18 @@ begin
       Break;
     end;
   end;
-  // In case the combobox is empty:
-  if MemoText.Highlighter = nil then begin
-    FHighlighter := TSynSQLSyn.Create(Self);
-    MemoText.Highlighter := FHighlighter;
-  end;
 
-  menuFormatCodeOnce.Enabled := FHighlighterFormatters.IndexOf(FHighlighter.ClassName) > -1;
+  menuFormatCodeOnce.Enabled := Assigned(FHighlighter) and (FHighlighterFormatters.IndexOf(FHighlighter.ClassName) > -1);
   if menuAlwaysFormatCode.Checked and menuFormatCodeOnce.Enabled then begin
     menuFormatCodeOnce.OnClick(Sender);
     SelStart := 0;
     SelLength := 0;
   end;
 
-  // Load custom highlighter settings from ini file, if exists:
-  MemoText.Highlighter.LoadFromFile(AppSettings.DirnameHighlighters + MemoText.Highlighter.LanguageName + '.ini');
+  if Assigned(FHighlighter) then begin
+    // Load custom highlighter settings from ini file, if exists:
+    MemoText.Highlighter.LoadFromFile(AppSettings.DirnameHighlighters + MemoText.Highlighter.LanguageName + '.ini');
+  end;
 
   MemoText.SelStart := SelStart;
   MemoText.SelEnd := SelStart + SelLength;

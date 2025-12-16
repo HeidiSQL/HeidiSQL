@@ -3812,7 +3812,7 @@ begin
   InitSetting(asMemoEditorHeight,                 'MemoEditorHeight',                      200);
   InitSetting(asMemoEditorMaximized,              'MemoEditorMaximized',                   0, False);
   InitSetting(asMemoEditorWrap,                   'MemoEditorWrap',                        0, False);
-  InitSetting(asMemoEditorHighlighter,            'MemoEditorHighlighter_%s',              0, False, 'General', True);
+  InitSetting(asMemoEditorHighlighter,            'MemoEditorHighlighter_%s',              0, False, 'Text', True);
   InitSetting(asMemoEditorAlwaysFormatCode,       'MemoEditorAlwaysFormatCode',            0, False);
   InitSetting(asDelimiter,                        'Delimiter',                             0, False, ';');
   InitSetting(asSQLHelpWindowLeft,                'SQLHelp_WindowLeft',                    0);
