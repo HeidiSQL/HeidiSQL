@@ -36,9 +36,13 @@ brew list libpq >/dev/null 2>&1 || brew install libpq
 # SQLite (libsqlite3.dylib; comes with macOS, but install via brew for consistency)
 brew list sqlite >/dev/null 2>&1 || brew install sqlite
 
+# MariaDB Connector/C (libmariadb*.dylib)
+brew list mariadb-connector-c >/dev/null 2>&1 || brew install mariadb-connector-c
+
 MYSQL_LIB_DIR="${BREW_PREFIX}/opt/mysql-client/lib"
 PG_LIB_DIR="${BREW_PREFIX}/opt/libpq/lib"
 SQLITE_LIB_DIR="${BREW_PREFIX}/opt/sqlite/lib"
+MARIADB_LIB_DIR="${BREW_PREFIX}/opt/mariadb-connector-c/lib"
 
 
 ### PREPARE APP BUNDLE STRUCTURE
@@ -179,6 +183,15 @@ else
   echo "WARNING: No libsqlite3*.dylib found in ${SQLITE_LIB_DIR}" >&2
 fi
 
+# libmariadb*.dylib (MariaDB Connector/C)
+if ls "${MARIADB_LIB_DIR}"/libmariadb*.dylib >/dev/null 2>&1; then
+  for f in "${MARIADB_LIB_DIR}"/libmariadb*.dylib; do
+    copy_and_rewrite_dylib "${f}"
+  done
+else
+  echo "WARNING: No libmariadb*.dylib found in ${MARIADB_LIB_DIR}" >&2
+fi
+
 
 ### FIX MAIN EXECUTABLE’S REFERENCES TO CLIENT LIBS
 
@@ -200,6 +213,7 @@ rewrite_exe_dep () {
 rewrite_exe_dep "libmysqlclient"
 rewrite_exe_dep "libpq"
 rewrite_exe_dep "libsqlite3"
+rewrite_exe_dep "libmariadb"
 
 echo "Done. Bundled app is at: ${APP_DIR}"
 
