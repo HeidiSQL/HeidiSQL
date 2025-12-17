@@ -23,9 +23,9 @@ type
   Tconnform = class(TExtForm)
     btnCancel: TButton;
     btnOpen: TButton;
-    btnSave: TSpeedButton;
-    btnNew: TSpeedButton;
-    btnDelete: TSpeedButton;
+    btnSave: TBitBtn;
+    btnNew: TBitBtn;
+    btnDelete: TBitBtn;
     lblSshPassHint: TLabel;
     pnlBottom: TPanel;
     popupSessions: TPopupMenu;
@@ -90,7 +90,7 @@ type
     editStartupScript: TEditButton;
     lblStartupScript: TLabel;
     chkFullTableStatus: TCheckBox;
-    btnMore: TSpeedButton;
+    btnMore: TBitBtn;
     popupMore: TPopupMenu;
     Checkforupdates1: TMenuItem;
     About1: TMenuItem;
