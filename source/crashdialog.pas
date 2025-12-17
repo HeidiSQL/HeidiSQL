@@ -49,5 +49,6 @@ begin
   memoDetails.Text := AValue;
 end;
 
+
 end.
 

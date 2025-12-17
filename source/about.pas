@@ -153,5 +153,6 @@ begin
   Result := 'Lazarus IDE v' + LazVersion.laz_version + ' and FreePascal v' + {$I %FPCVERSION%};
 end;
 
+
 end.
 
