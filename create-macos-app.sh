@@ -40,12 +40,16 @@ brew list sqlite >/dev/null 2>&1 || brew install sqlite
 # MariaDB Connector/C (libmariadb*.dylib)
 brew list mariadb-connector-c >/dev/null 2>&1 || brew install mariadb-connector-c
 
+# OpenSSL 1.1 for TFPHTTPClient
+brew list openssl@1.1 >/dev/null 2>&1 || brew install openssl@1.1
+
 MYSQL_LIB_DIR="${BREW_PREFIX}/opt/mysql-client/lib"
 PG_LIB_DIR="${BREW_PREFIX}/opt/libpq/lib"
 SQLITE_LIB_DIR="${BREW_PREFIX}/opt/sqlite/lib"
 MARIADB_LIB_DIR="${BREW_PREFIX}/opt/mariadb-connector-c/lib"
 MYSQL_PLUGIN_DIR="${MYSQL_LIB_DIR}/plugin"
 MARIADB_PLUGIN_DIR="${MARIADB_LIB_DIR}/mariadb/plugin"
+OPENSSL11_LIB_DIR="${BREW_PREFIX}/opt/openssl@1.1/lib"
 
 ### PREPARE APP BUNDLE STRUCTURE
 
@@ -214,6 +218,23 @@ else
   echo "WARNING: MySQL plugin directory not found: ${MYSQL_PLUGIN_DIR}" >&2
 fi
 
+# libssl.1.1.dylib and libcrypto.1.1.dylib (names may vary slightly)
+if ls "${OPENSSL11_LIB_DIR}"/libssl*.1.1*.dylib >/dev/null 2>&1; then
+  for f in "${OPENSSL11_LIB_DIR}"/libssl*.1.1*.dylib; do
+    copy_and_rewrite_dylib "${f}"
+  done
+else
+  echo "WARNING: No libssl*.1.1*.dylib found in ${OPENSSL11_LIB_DIR}" >&2
+fi
+
+if ls "${OPENSSL11_LIB_DIR}"/libcrypto*.1.1*.dylib >/dev/null 2>&1; then
+  for f in "${OPENSSL11_LIB_DIR}"/libcrypto*.1.1*.dylib; do
+    copy_and_rewrite_dylib "${f}"
+  done
+else
+  echo "WARNING: No libcrypto*.1.1*.dylib found in ${OPENSSL11_LIB_DIR}" >&2
+fi
+
 
 ### FIX MAIN EXECUTABLE’S REFERENCES TO CLIENT LIBS
 
@@ -237,6 +258,8 @@ rewrite_exe_dep "libpq"
 rewrite_exe_dep "libsqlite3"
 rewrite_exe_dep "libmariadb"
 rewrite_exe_dep "libssl.3"
+rewrite_exe_dep "libssl" # OpenSSL 1.1
+rewrite_exe_dep "libcrypto"
 
 ### DOWNLOAD AND EXTRACT LOCALE FILES
 
