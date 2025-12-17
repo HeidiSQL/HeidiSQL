@@ -2756,7 +2756,7 @@ begin
   // Initialize .mo file in the given language, so we can use that for translating via _()
   if LangCode.IsEmpty then
     LangCode := SysLanguage;
-  LocaleDir := GetAppDir + AppendPathDelim('locale');
+  LocaleDir := GetResourcesDir + AppendPathDelim('locale');
   AppLanguageMoBasePath := LocaleDir + GetApplicationName;
   MOFileName := '';
   if not LangCode.IsEmpty then begin
