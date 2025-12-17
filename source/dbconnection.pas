@@ -2456,7 +2456,7 @@ begin
 
     if not GetLibDir.IsEmpty then begin
       // Point libmysql to the folder with client plugins
-      PluginDir := AnsiString(GetLibDir+'plugins');
+      PluginDir := AnsiString(GetLibDir);
       SetOption(FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
     end;
 

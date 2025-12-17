@@ -44,16 +44,15 @@ MYSQL_LIB_DIR="${BREW_PREFIX}/opt/mysql-client/lib"
 PG_LIB_DIR="${BREW_PREFIX}/opt/libpq/lib"
 SQLITE_LIB_DIR="${BREW_PREFIX}/opt/sqlite/lib"
 MARIADB_LIB_DIR="${BREW_PREFIX}/opt/mariadb-connector-c/lib"
+MYSQL_PLUGIN_DIR="${MYSQL_LIB_DIR}/plugin"
 MARIADB_PLUGIN_DIR="${MARIADB_LIB_DIR}/mariadb/plugin"
-MARIADB_PLUGIN_DEST="${APP_DIR}/Contents/Frameworks/plugins"
 
 ### PREPARE APP BUNDLE STRUCTURE
 
 rm -rf "${APP_DIR}"
 mkdir -p "${APP_DIR}/Contents/MacOS"
 mkdir -p "${APP_DIR}/Contents/Resources"
-mkdir -p "${APP_DIR}/Contents/Frameworks"   # where we will put .dylib files
-mkdir -p "${MARIADB_PLUGIN_DEST}"
+mkdir -p "${APP_DIR}/Contents/Frameworks"   # where we will put .dylib and .so files
 
 # Copy main executable
 cp "${EXECUTABLE_SRC}" "${EXECUTABLE_TRG}"
@@ -196,26 +195,25 @@ else
 fi
 
 # MARIADB PLUGIN .so FILES
-if [[ -d "${MARIADB_PLUGIN_DIR}" ]]; then
-  echo "Copying MariaDB plugins from ${MARIADB_PLUGIN_DIR}..."
-  mkdir -p "${MARIADB_PLUGIN_DEST}"
-
-  # Copy all .so plugins into the app plugin directory
-  for so in "${MARIADB_PLUGIN_DIR}"/*.so; do
-    [[ -f "${so}" ]] || continue
-    base="$(basename "${so}")"
-    dest_so="${MARIADB_PLUGIN_DEST}/${base}"
-
-    echo "  Copying plugin ${so} -> ${dest_so}"
-    cp "${so}" "${dest_so}"
-    chmod u+w "${dest_so}"
-
-    # Fix plugin’s own deps and copy any non-system libs into Frameworks
-    copy_and_rewrite_dylib "${dest_so}"
+if ls "${MARIADB_PLUGIN_DIR}"/*.so >/dev/null 2>&1; then
+  for f in "${MARIADB_PLUGIN_DIR}"/*.so; do
+    [[ -f "${f}" ]] || continue
+    copy_and_rewrite_dylib "${f}"
   done
 else
   echo "WARNING: MariaDB plugin directory not found: ${MARIADB_PLUGIN_DIR}" >&2
 fi
+
+# MYSQL PLUGIN .so FILES
+if ls "${MYSQL_PLUGIN_DIR}"/*.so >/dev/null 2>&1; then
+  for f in "${MYSQL_PLUGIN_DIR}"/*.so; do
+    [[ -f "${f}" ]] || continue
+    copy_and_rewrite_dylib "${f}"
+  done
+else
+  echo "WARNING: MySQL plugin directory not found: ${MYSQL_PLUGIN_DIR}" >&2
+fi
+
 
 ### FIX MAIN EXECUTABLE’S REFERENCES TO CLIENT LIBS
 
@@ -238,7 +236,7 @@ rewrite_exe_dep "libmysqlclient"
 rewrite_exe_dep "libpq"
 rewrite_exe_dep "libsqlite3"
 rewrite_exe_dep "libmariadb"
-
+rewrite_exe_dep "libssl.3"
 
 ### DOWNLOAD AND EXTRACT LOCALE FILES
 
