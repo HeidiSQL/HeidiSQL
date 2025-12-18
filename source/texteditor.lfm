@@ -10,11 +10,11 @@ object frmTextEditor: TfrmTextEditor
   Constraints.MinHeight = 125
   Constraints.MinWidth = 375
   DesignTimePPI = 120
+  Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  Position = poMainFormCenter
   object Panel1: TPanel
     Left = 0
     Height = 40
@@ -138,8 +138,8 @@ object frmTextEditor: TfrmTextEditor
         Caption = 'Customize highlighter'
         DropdownMenu = popupHighlighter
         ImageIndex = 39
-        OnClick = btnCustomizeHighlighterClick
         Style = tbsDropDown
+        OnClick = btnCustomizeHighlighterClick
       end
     end
     object comboHighlighter: TComboBox
@@ -182,7 +182,7 @@ object frmTextEditor: TfrmTextEditor
     TabOrder = 1
     OnClick = MemoTextClick
     OnKeyDown = MemoTextKeyDown
-    Gutter.Width = 72
+    Gutter.Width = 71
     Gutter.MouseActions = <>
     RightGutter.Width = 0
     RightGutter.MouseActions = <>
@@ -223,9 +223,10 @@ object frmTextEditor: TfrmTextEditor
       end
       object SynGutterLineNumber1: TSynGutterLineNumber
         Width = 21
+        LeftOffset = 2
         MouseActions = <>
         MarkupInfo.Background = clBtnFace
-        MarkupInfo.Foreground = clNone
+        MarkupInfo.Foreground = clGrayText
         DigitCount = 2
         ShowOnlyLineNumbersMultiplesOf = 1
         ZeroStart = False
@@ -236,12 +237,6 @@ object frmTextEditor: TfrmTextEditor
         MouseActions = <>
         ModifiedColor = 59900
         SavedColor = clGreen
-      end
-      object SynGutterSeparator1: TSynGutterSeparator
-        Width = 3
-        MouseActions = <>
-        MarkupInfo.Background = clWhite
-        MarkupInfo.Foreground = clGray
       end
       object SynGutterCodeFolding1: TSynGutterCodeFolding
         Width = 13

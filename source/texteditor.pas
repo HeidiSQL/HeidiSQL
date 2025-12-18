@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, Graphics, Forms, Controls, StdCtrls, laz.VirtualTrees,
-  ComCtrls, Dialogs, SysUtils, Menus, LCLType,
+  ComCtrls, Dialogs, SysUtils, Menus, LCLType, SynGutterCodeFolding,
   apphelpers, ActnList, extra_controls,
   ExtCtrls, dbconnection, SynEdit, SynEditHighlighter, customize_highlighter,
   Laz2_DOM, Laz2_XMLRead, Laz2_XMLWrite,
@@ -240,6 +240,7 @@ procedure TfrmTextEditor.FormCreate(Sender: TObject);
 var
   Highlighters: TSynHighlighterList;
   i: Integer;
+  CodeFoldingPart: TSynGutterCodeFolding;
 begin
   HasSizeGrip := True;
   FClosingByApplyButton := False;
@@ -272,6 +273,10 @@ begin
   MemoText.Options := MainForm.SynMemoQuery.Options;
   MemoText.Options2 := MainForm.SynMemoQuery.Options2;
   MemoText.Keystrokes := MainForm.SynMemoQuery.Keystrokes;
+  CodeFoldingPart := MemoText.Gutter.CodeFoldPart(0);
+  if Assigned(CodeFoldingPart) then begin
+    CodeFoldingPart.Visible := MainForm.actCodeFolding.Checked;
+  end;
   if AppSettings.ReadBool(asMemoEditorMaximized) then
     WindowState := wsMaximized;
   // Restore form dimensions
