@@ -3,6 +3,7 @@ object frmColumnSelection: TfrmColumnSelection
   Height = 304
   Top = 0
   Width = 250
+  AutoSize = True
   BorderStyle = bsSizeToolWin
   Caption = 'Select columns'
   ClientHeight = 304
@@ -17,74 +18,96 @@ object frmColumnSelection: TfrmColumnSelection
   OnDestroy = FormDestroy
   OnShow = FormShow
   object btnCancel: TButton
-    Left = 146
-    Height = 31
-    Top = 264
-    Width = 94
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 144
+    Height = 30
+    Top = 268
+    Width = 100
     Anchors = [akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
+    Constraints.MinWidth = 100
     ModalResult = 2
-    TabOrder = 0
+    TabOrder = 6
     OnClick = btnCancelClick
   end
   object btnOK: TButton
-    Left = 48
-    Height = 31
-    Top = 264
-    Width = 94
+    AnchorSideRight.Control = btnCancel
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 38
+    Height = 30
+    Top = 268
+    Width = 100
     Anchors = [akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'OK'
+    Constraints.MinWidth = 100
     Default = True
-    TabOrder = 1
+    TabOrder = 5
     OnClick = btnOKClick
   end
   object chkSort: TCheckBox
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = chklistColumns
     AnchorSideTop.Side = asrBottom
-    Left = 10
+    AnchorSideBottom.Control = chkShowRowId
+    Left = 6
     Height = 24
-    Top = 198
-    Width = 230
-    Anchors = [akLeft, akRight, akBottom]
+    Top = 208
+    Width = 145
+    Anchors = [akLeft, akBottom]
     BorderSpacing.Around = 6
     Caption = 'Sort alphabetically'
-    TabOrder = 2
+    TabOrder = 3
     OnClick = PopulateList
   end
   object chkSelectAll: TCheckBox
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    Left = 10
+    Left = 6
     Height = 24
     Hint = 'Select / Deselect all'
     Top = 6
     Width = 39
     BorderSpacing.Around = 6
     Caption = 'All'
-    TabOrder = 3
+    TabOrder = 0
     OnClick = chkSelectAllClick
   end
   object chklistColumns: TCheckListBox
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = editFilter
     AnchorSideTop.Side = asrBottom
-    Left = 10
-    Height = 152
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = chkSort
+    Left = 6
+    Height = 162
     Top = 40
-    Width = 230
+    Width = 238
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Around = 6
     ItemHeight = 0
-    TabOrder = 4
+    TabOrder = 2
     OnClickCheck = chklistColumnsClickCheck
   end
   object editFilter: TEditButton
+    AnchorSideLeft.Control = chkSelectAll
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = Owner
-    Left = 79
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 51
     Height = 28
     Top = 6
-    Width = 161
+    Width = 193
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Around = 6
     ButtonWidth = 29
@@ -92,22 +115,24 @@ object frmColumnSelection: TfrmColumnSelection
     ImageIndex = 146
     MaxLength = 0
     NumGlyphs = 1
+    PasswordChar = #0
+    TabOrder = 1
+    TextHint = 'Filter'
     OnButtonClick = editFilterButtonClick
     OnChange = PopulateList
-    PasswordChar = #0
-    TabOrder = 5
-    TextHint = 'Filter'
   end
   object chkShowRowId: TCheckBox
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = chkSort
     AnchorSideTop.Side = asrBottom
-    Left = 10
+    AnchorSideBottom.Control = btnOK
+    Left = 6
     Height = 24
-    Top = 227
-    Width = 230
-    Anchors = [akLeft, akRight, akBottom]
+    Top = 238
+    Width = 195
+    Anchors = [akLeft, akBottom]
     BorderSpacing.Around = 6
     Caption = 'Show static row id column'
-    TabOrder = 6
+    TabOrder = 4
   end
 end
