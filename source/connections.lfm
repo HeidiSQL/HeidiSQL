@@ -1176,7 +1176,7 @@ object connform: Tconnform
       TabOrder = 1
       OnClick = btnSaveClick
     end
-    object btnOpen: TButton
+    object btnOpen: TBitBtn
       AnchorSideRight.Control = btnCancel
       Left = 589
       Height = 30
@@ -1192,7 +1192,7 @@ object connform: Tconnform
       TabOrder = 3
       OnClick = btnOpenClick
     end
-    object btnCancel: TButton
+    object btnCancel: TBitBtn
       AnchorSideRight.Control = btnMore
       Left = 700
       Height = 30

@@ -21,8 +21,8 @@ type
   { Tconnform }
 
   Tconnform = class(TExtForm)
-    btnCancel: TButton;
-    btnOpen: TButton;
+    btnCancel: TBitBtn;
+    btnOpen: TBitBtn;
     btnSave: TBitBtn;
     btnNew: TBitBtn;
     btnDelete: TBitBtn;
