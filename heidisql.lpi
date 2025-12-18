@@ -102,6 +102,8 @@
             </Debugging>
             <LinkSmart Value="True"/>
             <Options>
+              <PassLinkerOptions Value="True"/>
+              <LinkerOptions Value="-rpath @loader_path/../Frameworks"/>
               <Win32>
                 <GraphicApplication Value="True"/>
               </Win32>
