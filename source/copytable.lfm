@@ -3,87 +3,111 @@ object CopyTableForm: TCopyTableForm
   Height = 380
   Top = 115
   Width = 455
+  AutoSize = True
   Caption = 'Copy Table...'
   ClientHeight = 380
   ClientWidth = 455
   Color = clBtnFace
   DesignTimePPI = 120
+  Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
-  Position = poMainFormCenter
   object lblNewTablename: TLabel
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    Left = 10
+    Left = 6
     Height = 20
     Top = 6
     Width = 179
-    BorderSpacing.Around = 6
+    BorderSpacing.Left = 6
+    BorderSpacing.Top = 6
     Caption = 'Copy "%s" to new db.table:'
   end
   object lblItems: TLabel
+    AnchorSideLeft.Control = comboDatabase
     AnchorSideTop.Control = editNewTablename
     AnchorSideTop.Side = asrBottom
-    Left = 10
+    Left = 6
     Height = 20
     Top = 66
     Width = 211
-    BorderSpacing.Around = 6
+    BorderSpacing.Top = 6
     Caption = 'Elements to create in new table:'
   end
   object lblWhere: TLabel
+    AnchorSideLeft.Control = TreeElements
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = MemoFilter
-    Left = 10
+    Left = 6
     Height = 20
-    Top = 216
+    Top = 220
     Width = 212
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Bottom = 6
     Caption = 'WHERE clause for data copying:'
   end
   object editNewTablename: TEdit
+    AnchorSideLeft.Control = comboDatabase
+    AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = lblNewTablename
     AnchorSideTop.Side = asrBottom
-    Left = 199
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 193
     Height = 28
     Top = 32
-    Width = 246
-    BorderSpacing.Around = 6
+    Width = 256
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 6
+    BorderSpacing.Top = 6
+    BorderSpacing.Right = 6
     TabOrder = 1
     OnChange = editNewTablenameChange
   end
   object btnCancel: TButton
-    Left = 341
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 345
     Height = 31
-    Top = 339
+    Top = 343
     Width = 104
     Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 6
+    BorderSpacing.Bottom = 6
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 5
   end
   object comboDatabase: TComboBox
+    AnchorSideLeft.Control = lblNewTablename
     AnchorSideTop.Control = lblNewTablename
     AnchorSideTop.Side = asrBottom
-    Left = 10
+    Left = 6
     Height = 28
     Top = 32
     Width = 181
-    BorderSpacing.Around = 6
+    BorderSpacing.Top = 6
     ItemHeight = 20
     Style = csDropDownList
     TabOrder = 0
   end
   object btnOK: TButton
-    Left = 230
+    AnchorSideRight.Control = btnCancel
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 235
     Height = 31
-    Top = 339
+    Top = 343
     Width = 104
     Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 6
+    BorderSpacing.Bottom = 6
     Caption = 'OK'
     Default = True
     ModalResult = 1
@@ -91,14 +115,20 @@ object CopyTableForm: TCopyTableForm
     OnClick = btnOKClick
   end
   object TreeElements: TLazVirtualStringTree
+    AnchorSideLeft.Control = comboDatabase
     AnchorSideTop.Control = lblItems
     AnchorSideTop.Side = asrBottom
-    Left = 10
-    Height = 106
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = btnRecentFilters
+    Left = 6
+    Height = 112
     Top = 92
-    Width = 435
+    Width = 443
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Top = 6
+    BorderSpacing.Right = 6
+    BorderSpacing.Bottom = 6
     Header.AutoSizeIndex = 0
     Header.Columns = <>
     Header.MainColumn = -1
@@ -114,12 +144,16 @@ object CopyTableForm: TCopyTableForm
     OnInitNode = TreeElementsInitNode
   end
   inline MemoFilter: TSynEdit
+    AnchorSideLeft.Control = TreeElements
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnOK
-    Left = 10
+    Left = 6
     Height = 91
-    Top = 242
-    Width = 435
-    BorderSpacing.Around = 6
+    Top = 246
+    Width = 443
+    BorderSpacing.Right = 6
+    BorderSpacing.Bottom = 6
     Anchors = [akLeft, akRight, akBottom]
     Font.Color = clGrayText
     Font.Height = -16
@@ -129,7 +163,7 @@ object CopyTableForm: TCopyTableForm
     ParentColor = False
     ParentFont = False
     TabOrder = 3
-    Gutter.Width = 72
+    Gutter.Width = 0
     Gutter.MouseActions = <>
     RightGutter.Width = 0
     RightGutter.MouseActions = <>
@@ -160,51 +194,21 @@ object CopyTableForm: TCopyTableForm
     LineHighlightColor.Background = clNone
     LineHighlightColor.Foreground = clNone
     inline SynLeftGutterPartList1: TSynGutterPartList
-      object SynGutterMarks1: TSynGutterMarks
-        Width = 30
-        MouseActions = <>
-      end
-      object SynGutterLineNumber1: TSynGutterLineNumber
-        Width = 21
-        MouseActions = <>
-        MarkupInfo.Background = clBtnFace
-        MarkupInfo.Foreground = clNone
-        DigitCount = 2
-        ShowOnlyLineNumbersMultiplesOf = 1
-        ZeroStart = False
-        LeadingZeros = False
-      end
-      object SynGutterChanges1: TSynGutterChanges
-        Width = 5
-        MouseActions = <>
-        ModifiedColor = 59900
-        SavedColor = clGreen
-      end
-      object SynGutterSeparator1: TSynGutterSeparator
-        Width = 3
-        MouseActions = <>
-        MarkupInfo.Background = clWhite
-        MarkupInfo.Foreground = clGray
-      end
-      object SynGutterCodeFolding1: TSynGutterCodeFolding
-        Width = 13
-        MouseActions = <>
-        MarkupInfo.Background = clNone
-        MarkupInfo.Foreground = clGray
-        MouseActionsExpanded = <>
-        MouseActionsCollapsed = <>
-      end
     end
   end
   object btnRecentFilters: TSpeedButton
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = MemoFilter
-    Left = 310
-    Height = 28
-    Top = 208
-    Width = 135
+    Left = 333
+    Height = 30
+    Top = 210
+    Width = 116
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    AutoSize = True
+    BorderSpacing.Right = 6
+    BorderSpacing.Bottom = 6
     Caption = 'Recent filters'
     Images = MainForm.ImageListMain
     ImageIndex = 108
