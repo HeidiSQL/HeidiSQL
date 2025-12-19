@@ -1926,7 +1926,7 @@ begin
     rx.ModifierI := True;
     case NetTypeGroup of
       ngMySQL:
-        {$IfDef LINUX}
+        {$If defined(LINUX)}
         // libmariadb.so.0 (libc,...) => /lib/x86_64-linux-gnu/libmariadb.so
         rx.Expression := '^\s*lib(mysqlclient|mariadb|perconaserverclient)\.[^=]+=>\s*(\S+)$';
         {$ElseIf defined(FREEBSD)}
@@ -1941,7 +1941,7 @@ begin
         rx.Expression := '^(dblib|libsybdb).*\.' + SharedSuffix;
         {$EndIf}
       ngPgSQL:
-        {$IfDef LINUX}
+        {$If defined(LINUX)}
         rx.Expression := '^\s*(libpq)[^=]+=>\s*(\S+)$';
         {$ElseIf defined(FREEBSD)}
         rx.Expression := '(lpq)[^=]+=>\s*(\S+)$';
@@ -1949,7 +1949,7 @@ begin
         rx.Expression := '^libpq.*\.' + SharedSuffix;
         {$EndIf}
       ngSQLite: begin
-        {$IfDef LINUX}
+        {$If defined(LINUX)}
         rx.Expression := '^\s*(libsqlite3)[^=]+=>\s*(\S+)$';
         {$ElseIf defined(FREEBSD)}
         rx.Expression := '(lsqlite3)[^=]+=>\s*(\S+)$';
@@ -1965,7 +1965,8 @@ begin
     end;
     case NetTypeGroup of
       ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase: begin
-        {$IfDEF LINUX}
+        {$if defined(LINUX) or defined(FREEBSD)}
+        {$If defined(LINUX)}
         // See https://serverfault.com/a/513938
         Process.RunCommandInDir('', '/sbin/ldconfig', ['-p'], LibMapOutput);
         {$ElseIf defined(FREEBSD)}
