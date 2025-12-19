@@ -10,7 +10,7 @@ uses
   Forms, Graphics, Messages, laz.VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, MaskEdit, DateUtils, Math,
   dbconnection, dbstructures, apphelpers, texteditor, bineditor, lazaruscompat,
-  System.UITypes, RegExpr, extra_controls, EditBtn, LCLType, LCLIntf;
+  {$IFNDEF FREEBSD}System.UITypes,{$ENDIF} RegExpr, extra_controls, EditBtn, LCLType, LCLIntf;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control

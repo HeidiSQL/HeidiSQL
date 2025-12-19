@@ -25,7 +25,7 @@ type
   end;
   TPrivObjList = TObjectList<TPrivObj>;
   TPrivComparer = class(TComparer<TPrivObj>)
-    function Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TPrivObj): Integer; override;
+    function Compare({$IF FPC_FULLVERSION<30203}constref{$ELSE}const{$ENDIF} Left, Right: TPrivObj): Integer; override;
   end;
 
   TUserProblem = (upNone, upEmptyPassword, upInvalidPasswordLen, upSkipNameResolve, upUnknown);
@@ -1640,7 +1640,7 @@ end;
 
 { TPrivComparer }
 
-function TPrivComparer.Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TPrivObj): Integer;
+function TPrivComparer.Compare({$IF FPC_FULLVERSION<30203}constref{$ELSE}const{$ENDIF} Left, Right: TPrivObj): Integer;
 begin
   // Prio for global > db > table > view > function > proc > event > column
   if (Left.DBObj.NodeType < Right.DBObj.NodeType) then

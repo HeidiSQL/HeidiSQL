@@ -1316,15 +1316,20 @@ begin
   {$IFDEF LINUX}
   Result := '';
   {$ENDIF}
+  {$IFDEF FREEBSD}
+  Result := '';
+  {$ENDIF}
 end;
 
 function GetResourcesDir: String;
 begin
+  Result := GetAppDir;
   // point to resources dir in macOS app bundle
   {$IFDEF DARWIN}
   Result := GetAppDir + '..' + DirectorySeparator + 'Resources' + DirectorySeparator;
-  {$ELSE}
-  Result := GetAppDir;
+  {$ENDIF}
+  {$IFDEF FREEBSD}
+  Result := '/usr/local/share/heidisql/';
   {$ENDIF}
 end;
 
@@ -2911,8 +2916,8 @@ var
   Output: String;
   CmdResult: Boolean;
 begin
-  {$IfDef LINUX}
-  // Netcat on Linux
+  {$IfDef UNIX}
+  // Netcat on Linux, macOS and FreeBSD
   CmdResult := Process.RunCommandInDir('', 'nc', ['-w 1 -zv 127.0.0.1 '+Port.ToString], Output);
   Result := not CmdResult;
   {$EndIf}
@@ -3026,7 +3031,7 @@ begin
     FreeLibrary(NTHandle);
   end;
   {$EndIf}
-  {$IfDef LINUX}
+  {$IfDef UNIX}
   IsWineStored := 0;
   {$EndIf}
   Result := IsWineStored = 1;
@@ -3063,6 +3068,9 @@ end;}
 function GetOS: String;
 begin
   Result := 'Unknown';
+  {$IfDef FreeBSD}
+  Result := 'FreeBSD';
+  {$EndIf}
   {$IfDef LINUX}
   Result := 'Linux';
   {$EndIf}
@@ -4569,7 +4577,7 @@ begin
       1: begin // String
         Value := StringReplace(Value, CHR13REPLACEMENT, #13, [rfReplaceAll]);
         Value := StringReplace(Value, CHR10REPLACEMENT, #10, [rfReplaceAll]);
-        {$IfDef LINUX}
+        {$IfDef UNIX}
         Value := ConvertWindowsToLinuxPath(Value);
         {$EndIf}
         FRegistry.WriteString(Name, Value);

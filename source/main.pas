@@ -37,7 +37,7 @@ type
       property AsText: String read GetAsText write SetAsText;
   end;
   TBindParamComparer = class(TComparer<TBindParam>)
-    function Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TBindParam): Integer; override;
+    function Compare({$IF FPC_FULLVERSION<30203}constref{$ELSE}const{$ENDIF} Left, Right: TBindParam): Integer; override;
   end;
 
   // Query tabs and contained components
@@ -158,7 +158,7 @@ type
       property MaxDuration: Cardinal read FMaxDuration;
   end;
   TQueryHistoryItemComparer = class(TComparer<TQueryHistoryItem>)
-    function Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TQueryHistoryItem): Integer; override;
+    function Compare({$IF FPC_FULLVERSION<30203}constref{$ELSE}const{$ENDIF} Left, Right: TQueryHistoryItem): Integer; override;
   end;
 
   {ITaskbarList = interface(IUnknown)
@@ -1352,7 +1352,7 @@ type
     procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
     procedure SessionConnect(Sender: TObject);
     function InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
-    procedure ConnectionsNotify(Sender: TObject; {$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Item: TDBConnection; Action: TCollectionNotification);
+    procedure ConnectionsNotify(Sender: TObject; {$IF FPC_FULLVERSION<30203}constref{$ELSE}const{$ENDIF} Item: TDBConnection; Action: TCollectionNotification);
     function ActiveGrid: TVirtualStringTree;
     function GridResult(Grid: TBaseVirtualTree): TDBQuery;
     property ActiveConnection: TDBConnection read GetActiveConnection;
@@ -2584,7 +2584,7 @@ begin
 end;
 
 
-procedure TMainForm.ConnectionsNotify(Sender: TObject; {$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Item: TDBConnection; Action: TCollectionNotification);
+procedure TMainForm.ConnectionsNotify(Sender: TObject; {$IF FPC_FULLVERSION<30203}constref{$ELSE}const{$ENDIF} Item: TDBConnection; Action: TCollectionNotification);
 var
   Results: TDBQuery;
   Tab: TQueryTab;
@@ -15582,7 +15582,7 @@ begin
 end;
 
 
-function TQueryHistoryItemComparer.Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TQueryHistoryItem): Integer;
+function TQueryHistoryItemComparer.Compare({$IF FPC_FULLVERSION<30203}constref{$ELSE}const{$ENDIF} Left, Right: TQueryHistoryItem): Integer;
 begin
   // Simple sort method for a TDBObjectList
   if Left.Time > Right.Time then
@@ -15660,7 +15660,7 @@ end;
 
 { TBindParamComparer }
 
-function TBindParamComparer.Compare({$IF FPC_FULLVERSION<30204}constref{$ELSE}const{$ENDIF} Left, Right: TBindParam): Integer;
+function TBindParamComparer.Compare({$IF FPC_FULLVERSION<30203}constref{$ELSE}const{$ENDIF} Left, Right: TBindParam): Integer;
 begin
   // Simple sort method for a TDBObjectList
   Result := CompareText(Left.Name, Right.Name);
