@@ -5869,7 +5869,7 @@ begin
         Col.LengthSet := MaxLen;
     end;
     Col.Charset := ColQuery.Col('CHARACTER_SET_NAME');
-    Col.Collation := ColQuery.Col('COLLATION_NAME');
+    Col.Collation := ColQuery.Col('COLLATION_NAME', True);
     // MSSQL has no expression
     Col.GenerationExpression := ColQuery.Col('GENERATION_EXPRESSION', True);
     Col.GenerationExpression := UnescapeString(Col.GenerationExpression);
