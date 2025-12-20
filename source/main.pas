@@ -13364,12 +13364,15 @@ var
   BaseEditor: TSynMemo;
   LineNumberPart: TSynGutterLineNumber;
   CodeFoldingPart: TSynGutterCodeFolding;
+  FontName: String;
 begin
   LogSQL('Setting up TSynMemo "'+Editor.Name+'"', lcDebug);
   BaseEditor := SynMemoQuery;
   Editor.Color := GetThemeColor(clWindow);
   //Editor.ScrollHintColor := GetThemeColor(clInfoBk);
-  Editor.Font.Name := AppSettings.ReadString(asFontName);
+  FontName := AppSettings.ReadString(asFontName);
+  if not FontName.IsEmpty then
+    Editor.Font.Name := FontName;
   Editor.Font.Size := AppSettings.ReadInt(asFontSize);
   Editor.Font.Quality := fqCleartypeNatural;
   LineNumberPart := Editor.Gutter.LineNumberPart(0);
