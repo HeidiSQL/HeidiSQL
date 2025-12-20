@@ -193,6 +193,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
+    procedure GetMonoFonts(const AList: TStrings);
     procedure SQLFontChange(Sender: TObject);
     procedure DataFontsChange(Sender: TObject);
     procedure anyUpDownLimitChanging(Sender: TObject;
@@ -471,18 +472,43 @@ begin
 end;
 
 
-// Callback function used by EnumFontFamilies()
-{function EnumFixedProc(
-  lpelf: PEnumLogFont;
-  lpntm: PNewTextMetric;
-  FontType: Integer;
-  Data: LPARAM
-  ): Integer; stdcall;
+// List monospace fonts
+procedure TfrmPreferences.GetMonoFonts(const AList: TStrings);
+const
+  TestChars = 'ilMW 0';
+var
+  Bmp: TBitmap;
+  FName: string;
+  i: Integer;
+  w0, w: Integer;
+  IsMono: Boolean;
 begin
-  Result := 1;  // don't cancel
-  if (lpelf^.elfLogFont.lfPitchAndFamily and FIXED_PITCH) <> 0 then
-    (TStrings(Data)).Add(String(lpelf^.elfLogFont.lfFaceName));
-end;}
+  AList.Clear;
+  Bmp := TBitmap.Create;
+  try
+    for FName in Screen.Fonts do begin
+      Bmp.Canvas.Font.Name := FName;
+      Bmp.Canvas.Font.Size := 10; // any reasonable size
+
+      w0 := Bmp.Canvas.TextWidth(TestChars[1]);
+      IsMono := True;
+      for i := 2 to Length(TestChars) do
+      begin
+        w := Bmp.Canvas.TextWidth(TestChars[i]);
+        if w <> w0 then
+        begin
+          IsMono := False;
+          Break;
+        end;
+      end;
+
+      if IsMono then
+        AList.Add(FName);
+    end;
+  finally
+    Bmp.Free;
+  end;
+end;
 
 
 procedure TfrmPreferences.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -552,9 +578,7 @@ begin
     comboGridTextColors.Items.Add(DatatypeCategories[dtc].Name);
 
   // SQL
-  //EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, LPARAM(Pointer(comboSQLFontName.Items)));
-  comboSQLFontName.Items.Assign(Screen.Fonts);
-  comboSQLFontName.Sorted := True;
+  GetMonoFonts(comboSQLFontName.Items);
   SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + sLineBreak +
     CodeIndent + '''String literal'' AS lit' + sLineBreak +
     'FROM tableA AS ta' + sLineBreak +

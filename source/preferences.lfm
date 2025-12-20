@@ -11,6 +11,7 @@ object frmPreferences: TfrmPreferences
   Constraints.MinWidth = 375
   DesignTimePPI = 120
   Position = poMainFormCenter
+  LCLVersion = '4.2.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -788,6 +789,7 @@ object frmPreferences: TfrmPreferences
         Width = 181
         BorderSpacing.Around = 6
         ItemHeight = 20
+        Sorted = True
         Style = csDropDownList
         TabOrder = 0
         OnChange = SQLFontChange
@@ -992,6 +994,8 @@ object frmPreferences: TfrmPreferences
           object SynGutterMarks1: TSynGutterMarks
             Width = 30
             MouseActions = <>
+            MaxExtraMarksColums = 0
+            Options = [sgmoDeDuplicateMarksOnOverflow]
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
             Width = 21
