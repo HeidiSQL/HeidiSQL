@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+DO_NOTARIZE=false
+# parse args
+for arg in "$@"; do
+  case "$arg" in
+    --notarize) DO_NOTARIZE=true ;;
+  esac
+done
+
+
 ### CONFIGURATION
 
 APP_NAME="heidisql"
@@ -15,11 +24,8 @@ EXECUTABLE_TRG="${APP_DIR}/Contents/MacOS/${APP_NAME}"
 BREW_PREFIX="$(brew --prefix 2>/dev/null || echo "/opt/homebrew")"
 
 # Your Developer ID identity, as shown by: security find-identity -v -p codesigning
-CODESIGN_IDENTITY="Developer ID Application: Ansgar Becker (???)"
-
-# Your Apple ID email and team ID
-APPLE_ID_EMAIL="apple@???"
-TEAM_ID="???"
+TEAM_ID="QBD4CC6FH3"
+CODESIGN_IDENTITY="Developer ID Application: Ansgar Becker (${TEAM_ID})"
 
 # Name for notarytool keychain profile (store once with notarytool store-credentials)
 NOTARY_PROFILE="notarytool-profile"
@@ -297,6 +303,11 @@ codesign --verify --deep --strict --verbose=2 "${APP_DIR}"
 
 
 ### ZIP, NOTARIZE, AND STAPLE
+
+if ! $DO_NOTARIZE; then
+  echo "Skip notarization (--notarize not given)"
+  exit 0
+fi
 
 ZIP_PATH="${APP_DIR}.zip"
 rm -f "${ZIP_PATH}"
