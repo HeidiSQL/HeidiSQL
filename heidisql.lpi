@@ -66,6 +66,8 @@
               <UseExternalDbgSyms Value="True"/>
             </Debugging>
             <Options>
+              <PassLinkerOptions Value="True"/>
+              <LinkerOptions Value="-rpath @loader_path\..\Frameworks"/>
               <Win32>
                 <GraphicApplication Value="True"/>
               </Win32>
@@ -103,7 +105,7 @@
             <LinkSmart Value="True"/>
             <Options>
               <PassLinkerOptions Value="True"/>
-              <LinkerOptions Value="-rpath @loader_path/../Frameworks"/>
+              <LinkerOptions Value="-rpath @loader_path\..\Frameworks"/>
               <Win32>
                 <GraphicApplication Value="True"/>
               </Win32>
@@ -482,6 +484,8 @@ if TargetOS=&apos;darwin&apos; then
         <DebugInfoType Value="dsDwarf3"/>
       </Debugging>
       <Options>
+        <PassLinkerOptions Value="True"/>
+        <LinkerOptions Value="-rpath @loader_path\..\Frameworks"/>
         <Win32>
           <GraphicApplication Value="True"/>
         </Win32>
