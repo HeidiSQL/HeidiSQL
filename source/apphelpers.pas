@@ -1476,11 +1476,11 @@ begin
   VT.EndUpdate;
   VT.TextMargin := 6;
   VT.Margin := 2;
-  // Disable hottracking in non-Vista mode, looks ugly in XP, but nice in Vista
-  if (toUseExplorerTheme in VT.TreeOptions.PaintOptions) then
-    VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
-  else
-    VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toHotTrack];
+  {$IFNDEF WINDOWS}
+  // Disable grid lines, looks ok on Windows with dotted light lines, but not on macOS and Linux
+  if (toHotTrack in VT.TreeOptions.PaintOptions) then
+    VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toShowHorzGridLines, toShowVertGridLines];
+  {$ENDIF}
   VT.OnGetHint := MainForm.AnyGridGetHint;
   VT.OnScroll := MainForm.AnyGridScroll;
   VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
