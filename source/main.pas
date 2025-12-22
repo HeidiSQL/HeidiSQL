@@ -4230,6 +4230,10 @@ begin
     if ActivateMe then begin
       // Set focus on last uses db. If not wanted or db is gone, go to root node at least
       RestoreLastActiveDatabase := AppSettings.ReadBool(asRestoreLastUsedDB);
+      {$IFDEF DARWIN}
+      // Workaround: Prevent host sub-tabs from getting disabled on macOS, issue #2339
+      RestoreLastActiveDatabase := False;
+      {$ENDIF}
       AppSettings.SessionPath := Params.SessionPath;
       LastActiveDatabase := AppSettings.ReadString(asLastUsedDB);
       if RestoreLastActiveDatabase
