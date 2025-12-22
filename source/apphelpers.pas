@@ -341,7 +341,6 @@ type
   procedure StripNewLines(var txt: String; Replacement: String=' ');
   function GetLineBreak(LineBreakIndex: TLineBreaks): String;
   procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
-  //function GetShellFolder(FolderId: TGUID): String;
   function ValidFilename(Str: String): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
   function UnformatNumber(Val: String): String;
@@ -412,23 +411,17 @@ type
   function f_(const Pattern: string; const Args: array of const): string;
   function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
   function GetOutputFilenamePlaceholders: TStringList;
-  //function GetSystemImageList: TImageList;
-  //function GetSystemImageIndex(Filename: String): Integer;
   function GetExecutableBits: Byte;
   procedure Help(Sender: TObject; Anchor: String);
   function PortOpen(Port: Word): Boolean;
-  //function GetProductInfo(dwOSMajorVersion, dwOSMinorVersion, dwSpMajorVersion, dwSpMinorVersion: DWORD; out pdwReturnedProductType: DWORD): BOOL stdcall; external kernel32 delayed;
-  //function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
   function GetThemeColor(Color: TColor): TColor;
   function ThemeIsDark(ThemeName: String=''): Boolean;
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
-  //procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
   function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
   function PopupComponent(Sender: TObject): TComponent;
   function IsWine: Boolean;
   function DirSep: Char;
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList<TComponent>);
-  //function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
   function GetOS: String;
   function UserAgent(OwnerComponent: TComponent): String;
   function CodeIndent(Steps: Integer=1): String;
@@ -952,25 +945,6 @@ begin
     end;
   end;
 end;
-
-
-{***
-  Get the path of a Windows(r)-shellfolder, specified by a KNOWNFOLDERID constant
-  @see https://docs.microsoft.com/en-us/windows/win32/shell/knownfolderid
-  @param TGUID constant
-  @return string Path
-}
-{function GetShellFolder(FolderId: TGUID): String;
-var
-  Path: PWideChar;
-begin
-  if Succeeded(SHGetKnownFolderPath(FolderId, 0, 0, Path)) then begin
-    Result := Path;
-  end else begin
-    Result := EmptyStr;
-  end;
-end;}
-
 
 
 {***
@@ -2754,35 +2728,6 @@ begin
 end;
 
 
-{function GetSystemImageList: TImageList;
-var
-  Info: TSHFileInfo;
-  ImageListHandle: Cardinal;
-begin
-  // Create shared imagelist once and use in TPopupMenu and TVirtualTree or whatever
-  if SystemImageList = nil then begin
-    ImageListHandle := SHGetFileInfo('', 0, Info, SizeOf(Info), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
-    if ImageListHandle <> 0 then begin
-      SystemImageList := TImageList.Create(MainForm);
-      SystemImageList.Handle := ImageListHandle;
-      SystemImageList.ShareImages := true;
-      SystemImageList.DrawingStyle := dsTransparent;
-    end;
-  end;
-  Result := SystemImageList;
-end;}
-
-
-{function GetSystemImageIndex(Filename: String): Integer;
-var
-  Info: TSHFileInfo;
-begin
-  // Return image index of shared system image list, for a given filename
-  SHGetFileInfo(PChar(Filename), 0, Info, SizeOf(Info), SHGFI_SYSICONINDEX or SHGFI_TYPENAME);
-  Result := Info.iIcon;
-end;}
-
-
 function GetExecutableBits: Byte;
 begin
   {$IfDef CPU32}
@@ -2866,17 +2811,6 @@ begin
 end;
 
 
-{procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
-var
-  ClickEvent: TNotifyEvent;
-begin
-  ClickEvent := chk.OnClick;
-  chk.OnClick := nil;
-  chk.Checked := State;
-  chk.OnClick := ClickEvent;
-end;}
-
-
 function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String;
   LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
 const
@@ -2953,15 +2887,6 @@ begin
       FindComponentInstances(BaseForm.Components[i], ClassType, List);
   end;
 end;
-
-{function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
-begin
-  try
-    Result := WebColorStrToColor(WebColor);
-  except
-    Result := Default;
-  end;
-end;}
 
 
 function GetOS: String;

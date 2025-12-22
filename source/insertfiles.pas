@@ -118,7 +118,6 @@ const
 procedure TfrmInsertFiles.FormCreate(Sender: TObject);
 begin
   HasSizeGrip := True;
-  //ListFiles.Images := GetSystemImageList;
   //DragAcceptFiles(Handle, True);
   FixVT(ListFiles);
   FixVT(ListColumns);
@@ -384,7 +383,6 @@ begin
     Exit;
   FileInfo := TFileInfo.Create;
   FileInfo.Filename := Filename;
-  //FileInfo.ImageIndex := GetSystemImageIndex(Filename);
   FileInfo.Size := _GetFileSize(Filename);
   rx := TRegExpr.Create;
   // Decide if file is binary by excluding common text format file extensions

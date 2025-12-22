@@ -5089,9 +5089,6 @@ begin
   // Fill the popupQueryLoad menu
   popupQueryLoad.Items.Clear;
 
-  // Apply shared system image list
-  //popupQueryLoad.Images := GetSystemImageList;
-
   // Snippets
   SetSnippetFilenames;
   SnippetsFolder := TMenuItem.Create(popupQueryLoad);
@@ -5119,7 +5116,6 @@ begin
     Item := TMenuItem.Create( popupQueryLoad );
     Item.Caption := IntToStr(j) + ' ' + Filename;
     Item.OnClick := popupQueryLoadClick;
-    //Item.ImageIndex := GetSystemImageIndex(Filename);
     popupQueryLoad.Items.Add(Item);
   end;
 
