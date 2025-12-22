@@ -87,7 +87,7 @@ PrivilegesRequiredOverridesAllowed=commandline dialog
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Local options:"; MinVersion: 4,4
-Name: "install_snippets"; Description: "Create example SQL snippet files in {#SnippetsDir}"; GroupDescription: "Local options:";
+Name: "install_snippets"; Description: "Create example SQL snippet files in {#SnippetsDir}"; GroupDescription: "Local options:"; Flags: unchecked
 Name: "associatesqlfiles"; Description: "Associate .&SQL files with {#ProgName}"; GroupDescription: "Local options:";
 Name: "activate_updatechecks"; Description: "Automatically check {#WebSite} for updates"; GroupDescription: "Telemetry:";
 Name: "activate_statistics"; Description: "Automatically report client and server versions on {#WebSite}"; GroupDescription: "Telemetry:";
