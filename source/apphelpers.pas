@@ -438,7 +438,7 @@ var
   AppLanguageMoBasePath: String;
   MutexHandle: THandle = 0;
   SystemImageList: TImageList = nil;
-  mtCriticalConfirmation: TMsgDlgType = mtCustom;
+  mtCriticalConfirmation: TMsgDlgType = mtWarning;
   //ConfirmIcon: TIcon;
   NumberChars: TSysCharSet;
   LibHandleUser32: THandle;
@@ -2323,6 +2323,13 @@ var
       Btn.Default := True;
   end;
 begin
+
+  if (KeepAskingSetting = asUnused) and (FooterText.IsEmpty) then begin
+    // Show the more native MessageDlg when we don't need additional dialog features
+    Result := MessageDlg(Title, Msg, DlgType, Buttons, 0);
+    Exit;
+  end;
+
   // Remember current path and restore it later, so the caller does not try to read from the wrong path after this dialog
   AppSettings.StorePath;
 
