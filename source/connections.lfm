@@ -1215,7 +1215,7 @@ object connform: Tconnform
       BorderSpacing.Right = 6
       Caption = 'New'
       Images = MainForm.ImageListMain
-      ImageIndex = 45
+      ImageIndex = 107
       TabOrder = 0
       OnClick = btnNewDropdown
     end
@@ -1245,6 +1245,8 @@ object connform: Tconnform
       BorderSpacing.Left = 6
       Caption = 'More'
       Constraints.MinWidth = 105
+      Images = MainForm.ImageListMain
+      ImageIndex = 107
       TabOrder = 5
       OnClick = btnMoreClick
     end
