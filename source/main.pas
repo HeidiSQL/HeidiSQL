@@ -1443,7 +1443,7 @@ begin
     Msg := _(SIdle);
   if Msg <> StatusBar.Panels[PanelNr].Text then begin
     StatusBar.Panels[PanelNr].Text := Msg;
-    if (PanelNr = 6) and (not IsWine) then begin
+    if PanelNr = 6 then begin
       // Immediately repaint this special panel, as it holds critical update messages,
       // while avoiding StatusBar.Repaint which refreshes all panels
       // Caution: statusbar.Repaint crashes with QT here. See issue #2270
@@ -1460,9 +1460,6 @@ var
   PanelRect: TRect;
 begin
   // Handle click events on specific statusbar panels
-  // Prevent SendMessage on Wine
-  if IsWine then
-    Exit;
   Click := StatusBar.ScreenToClient(Mouse.CursorPos);
   for i:=0 to StatusBar.Panels.Count-1 do begin
     PanelRect := StatusBar.ClientRect;
@@ -2203,11 +2200,11 @@ begin
     LastStatsCall := StrToDateTimeDef(AppSettings.ReadString(asLastUsageStatisticCall), DateTimeNever);
     if DaysBetween(Now, LastStatsCall) >= 30 then begin
       // Report used app version, bits.
-      // Also report environment: WinDesktop, WinUWP or Wine
+      // Also report environment = OS + "Desktop" (+ "Portable")
 
-      if IsWine then Environment := 'Wine'
-      else if AppSettings.PortableMode then Environment := 'WinDesktopPortable'
-      else Environment := GetOS + 'Desktop';
+      Environment := GetOS + 'Desktop';
+      if AppSettings.PortableMode then
+        Environment := Environment + 'Portable';
 
       StatsCall := THttpDownload.Create(Self);
       StatsURL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision) +
@@ -3851,7 +3848,6 @@ end;
 procedure TMainForm.actLaunchCommandlineExecute(Sender: TObject);
 var
   path, p, log, cmd: String;
-  sep: Char;
   Conn: TDBConnection;
 begin
   // Launch mysql.exe
@@ -3859,26 +3855,20 @@ begin
   if not Conn.Parameters.IsAnyMySQL then
     ErrorDialog(_('Command line only works on MySQL connections.'))
   else begin
-    if IsWine then begin
-      cmd := 'mysql';
-      sep := '/';
-    end else begin
-      cmd := 'mysql.exe';
-      sep := '\';
-    end;
+    cmd := 'mysql' {$IFDEF WINDOWS}+ '.exe'{$ENDIF};
     path := AppSettings.ReadString(asMySQLBinaries);
-    if (Length(path)>0) and (path[Length(path)] <> sep) then
-      path := path + sep;
+    if not path.IsEmpty then
+      path := IncludeTrailingPathDelimiter(path);
     if not FileExists(path+cmd, true) then begin
       ErrorDialog(f_('You need to tell %s where your MySQL binaries reside, in %s > %s > %s.', [APPNAME, _('Tools'), _('Preferences'), _('General')])+
         CRLF+CRLF+f_('Current setting is: "%s"', [path]));
     end else begin
       p := '';
-      if IsWine then begin
-        p := ' -e '+path+cmd;
-        path := '';
-        cmd := '$TERM';
-      end;
+      {$IFNDEF WINDOWS}
+      p := ' -e '+path+cmd;
+      path := '';
+      cmd := '$TERM';
+      {$ENDIF}
 
       log := path + cmd + p + Conn.Parameters.GetExternalCliArguments(Conn, nbTrue);
       LogSQL(f_('Launching command line: %s', [log]), lcInfo);
@@ -5812,10 +5802,10 @@ begin
       if ColSortDirection = sdAscending then begin
         // This is a bit wrong - but the "Ubuntu" font doesn't have the triangle character,
         // which seems available on many Windows fonts only. See #1090
-        SortText := IfThen(IsWine, '↑', '▲');
+        SortText := {$IFDEF LINUX} '↑' {$ELSE} '▲' {$ENDIF};
         NumCharTop := 0;
       end else begin
-        SortText := IfThen(IsWine, '↓', '▼');
+        SortText := {$IFDEF LINUX} '↓' {$ELSE} '▼' {$ENDIF};
         NumCharTop := 5;
       end;
       // Paint arrow:
@@ -8846,10 +8836,6 @@ var
   Conn: TDBConnection;
   ValIsNumber: Boolean;
 begin
-  // Disable tooltips on Wine, as they prevent users from clicking + editing clipped cells
-  if IsWine then
-    Exit;
-
   Tree := TVirtualStringTree(Sender);
 
   if Tree = QueryTabs.ActiveHelpersTree then begin
@@ -14799,7 +14785,7 @@ procedure TMainForm.EnableProgress(MaxValue: Integer);
 begin
   // Initialize progres bar and button
   SetProgressState(pbsNormal);
-  ProgressBarStatus.Visible := True and (not IsWine);
+  ProgressBarStatus.Visible := True;
   SetProgressPosition(0);
   ProgressBarStatus.Max := MaxValue;
 end;

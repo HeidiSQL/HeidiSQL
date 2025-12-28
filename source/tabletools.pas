@@ -479,9 +479,9 @@ begin
   Conn := MainForm.ActiveConnection;
 
   BinPath := AppSettings.ReadString(asMySQLBinaries);
-  if (not BinPath.IsEmpty) and (BinPath[Length(BinPath)] <> DirSep) then
-    BinPath := BinPath + DirSep;
-  BinPath := BinPath + IfThen(IsWine, 'mysqldump', 'mysqldump.exe');
+  if not BinPath.IsEmpty then
+    BinPath := IncludeTrailingPathDelimiter(BinPath);
+  BinPath := BinPath + 'mysqldump' {$IFDEF WINDOWS} + '.exe' {$ENDIF};
 
   ConnectionArguments := Conn.Parameters.GetExternalCliArguments(nil, nbUnset);
 

@@ -350,8 +350,7 @@ begin
   end;
   // Adjust editor position and allow repainting mainform
   SetBounds(FCellTextBounds);
-  if not IsWine then
-    FParentForm.Repaint;
+  FParentForm.Repaint;
 end;
 
 function TBaseGridEditorLink.BeginEdit: Boolean;

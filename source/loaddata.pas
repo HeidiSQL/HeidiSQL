@@ -390,7 +390,7 @@ begin
     SQL := SQL + 'LOW_PRIORITY ';
 
   // Issue #1387: Use 8.3 filename, to prevent "file not found" error from MySQL library
-  // Todo: test on Wine
+  // Todo: test on non-Windows
   Filename := ExtractShortPathName(editFilename.Text);
   if not Filename.IsEmpty then
     MainForm.LogSQL('Converting filename to 8.3 format: '+editFilename.Text+' => '+Filename, lcInfo)

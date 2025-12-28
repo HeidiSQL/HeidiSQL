@@ -541,12 +541,7 @@ begin
   Width := AppSettings.ReadInt(asPreferencesWindowWidth);
   Height := AppSettings.ReadInt(asPreferencesWindowHeight);
 
-  // Misecllaneous
-  // Hide browse button on Wine, as the browse dialog returns Windows-style paths, while we need a Unix path
-  if IsWine then begin
-    editMySQLBinaries.Button.Enabled := False;
-    editMySQLBinaries.OnDblClick := nil;
-  end;
+  // Miscellaneous
 
   InitLanguages;
   comboAppLanguage.Items.AddStrings(FLanguages);

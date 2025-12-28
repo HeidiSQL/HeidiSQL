@@ -419,8 +419,6 @@ type
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
   function PopupComponent(Sender: TObject): TComponent;
-  function IsWine: Boolean;
-  function DirSep: Char;
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList<TComponent>);
   function GetOS: String;
   function UserAgent(OwnerComponent: TComponent): String;
@@ -444,7 +442,6 @@ var
   LibHandleUser32: THandle;
   UTF8NoBOMEncoding: TUTF8NoBOMEncoding;
   DateTimeNever: TDateTime;
-  IsWineStored: Integer = -1;
 
 implementation
 
@@ -2848,39 +2845,6 @@ begin
 
   if Menu is TPopupMenu then
     Result := (Menu as TPopupMenu).PopupComponent;
-end;
-
-
-function IsWine: Boolean;
-{$IfDef WINDOWS}
-var
-  NTHandle: THandle;
-  wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
-{$EndIf}
-begin
-  {$IfDef WINDOWS}
-  // Detect if we're running on Wine, not on native Windows
-  // Idea taken from http://ruminatedrumblings.blogspot.com/2008/04/detecting-virtualized-environment.html
-  if IsWineStored = -1 then begin
-    NTHandle := LoadLibrary('NTDLL.DLL');
-    if NTHandle>32 then
-      wine_nt_to_unix_file_name := GetProcAddress(NTHandle, 'wine_nt_to_unix_file_name')
-    else
-      wine_nt_to_unix_file_name := nil;
-    IsWineStored := IfThen(Assigned(wine_nt_to_unix_file_name), 1, 0);
-    FreeLibrary(NTHandle);
-  end;
-  {$EndIf}
-  {$IfDef UNIX}
-  IsWineStored := 0;
-  {$EndIf}
-  Result := IsWineStored = 1;
-end;
-
-
-function DirSep: Char;
-begin
-  Result := DirectorySeparator;
 end;
 
 procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList<TComponent>);
