@@ -1043,10 +1043,7 @@ type
     procedure tabsetQueryClick(Sender: TObject);
     procedure tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer; var ImageIndex: Integer);
     procedure tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    procedure tabsetQueryMouseLeave(Sender: TObject);
     procedure StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
-    //procedure StatusBarMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    //procedure StatusBarMouseLeave(Sender: TObject);
     procedure AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
     procedure AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
     procedure actDataPreviewUpdate(Sender: TObject);
@@ -1205,7 +1202,6 @@ type
     FAppVersion: String;
 
     FLastHintMousepos: TPoint;
-    FLastHintControlIndex: Integer;
     FDelimiter: String;
     FLogToFile: Boolean;
     FFileNameSessionLog: String;
@@ -1511,58 +1507,6 @@ begin
   end;
   StatusBar.Canvas.TextRect(PanelRect, PanelRect.Left, PanelRect.Top+2, Panel.Text);
 end;
-
-
-{procedure TMainForm.StatusBarMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-var
-  MouseP: TPoint;
-  Bar: TStatusBar;
-  PanelRect: TRect;
-  i: Integer;
-  Infos: TStringList;
-  HintText: String;
-  Conn: TDBConnection;
-begin
-  // Display various server, client and connection related details in a hint
-  if IsWine then
-    Exit;
-  if (FLastHintMousepos.X = X) and (FLastHintMousepos.Y = Y) then
-    Exit;
-  FLastHintMousepos := Point(X, Y);
-  MouseP := StatusBar.ClientOrigin;
-  Inc(MouseP.X, X);
-  Inc(MouseP.Y, Y);
-  Bar := Sender as TStatusBar;
-  for i:=0 to Bar.Panels.Count-1 do begin
-    SendMessage(Bar.Handle, SB_GETRECT, i, Integer(@PanelRect));
-    if PtInRect(PanelRect, FLastHintMousepos) then
-      break;
-  end;
-  if i = FLastHintControlIndex then
-    Exit;
-  FLastHintControlIndex := i;
-  if FLastHintControlIndex = 3 then begin
-    Conn := ActiveConnection;
-    if (Conn <> nil) and (not Conn.IsLockedByThread) then begin
-      Infos := Conn.ConnectionInfo;
-      HintText := '';
-      for i:=0 to Infos.Count-1 do begin
-        HintText := HintText + Infos.Names[i] + ': ' + StrEllipsis(Infos.ValueFromIndex[i], 200) + CRLF;
-      end;
-      BalloonHint1.Description := Trim(HintText);
-      OffsetRect(PanelRect, Bar.ClientOrigin.X, Bar.ClientOrigin.Y);
-      BalloonHint1.ShowHint(PanelRect);
-    end;
-  end else
-    Bar.OnMouseLeave(Sender);
-end;}
-
-
-{procedure TMainForm.StatusBarMouseLeave(Sender: TObject);
-begin
-  BalloonHint1.HideHint;
-  FLastHintControlIndex := -1;
-end;}
 
 
 procedure TMainForm.actExitApplicationExecute(Sender: TObject);
@@ -8508,9 +8452,8 @@ begin
   FLastHintMousepos := Point(X, Y);
   Tabs := Sender as TTabControl;
   idx := Tabs.IndexOfTabAt(X, Y);
-  if (idx = -1) or (idx = FLastHintControlIndex) then
+  if idx = -1 then
     Exit;
-  FLastHintControlIndex := idx;
   // Check if user wants these balloon hints
   if not AppSettings.ReadBool(asHintsOnResultTabs) then
     Exit;
@@ -8536,14 +8479,6 @@ begin
   Org := Tabs.ClientOrigin;
   OffsetRect(Rect, Org.X, Org.Y);
   //BalloonHint1.ShowHint(Rect);
-end;
-
-
-procedure TMainForm.tabsetQueryMouseLeave(Sender: TObject);
-begin
-  // BalloonHint.HideAfter is -1, so it will stay forever if we wouldn't hide it at some point
-  //BalloonHint1.HideHint;
-  FLastHintControlIndex := -1;
 end;
 
 
@@ -12408,7 +12343,6 @@ begin
   QueryTab.tabsetQuery.OnChange := tabsetQuery.OnChange;
   QueryTab.tabsetQuery.OnGetImageIndex := tabsetQuery.OnGetImageIndex;
   QueryTab.tabsetQuery.OnMouseMove := tabsetQuery.OnMouseMove;
-  QueryTab.tabsetQuery.OnMouseLeave := tabsetQuery.OnMouseLeave;
 
   SetupSynEditor(QueryTab.Memo);
 
@@ -14669,18 +14603,17 @@ begin
       LogSQL(E.Message, lcError);
   end;
   // Gets activated again in SynCompletionProposalExecute
-
-  // Force result tab balloon hint to disappear. Does not do so when mouse was moved too fast.
-  tabsetQueryMouseLeave(Sender);
 end;
 
 
 procedure TMainForm.ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
 var
-  MainTabIndex, QueryTabIndex, NewHideTimeout: integer;
+  MainTabIndex, QueryTabIndex, NewHideTimeout, PanelIndex: Integer;
   pt: TPoint;
   Conn: TDBConnection;
   Editor: TSynMemo;
+  Infos: TStringList;
+  i: Integer;
 begin
   if HintInfo.HintControl = PageControlMain then begin
     // Show full filename in tab hint. See issue #3527
@@ -14707,6 +14640,21 @@ begin
     NewHideTimeout := Min(Length(HintStr) * 100, 60*1000);
     if NewHideTimeout > HintInfo.HideTimeout then
       HintInfo.HideTimeout := NewHideTimeout;
+  end
+  else if HintInfo.HintControl = StatusBar then begin
+    pt := StatusBar.ScreenToClient(Mouse.CursorPos);
+    PanelIndex := StatusBar.GetPanelIndexAt(pt.X, pt.Y);
+    if PanelIndex = 3 then begin
+      Conn := ActiveConnection;
+      if (Conn <> nil) and (not Conn.IsLockedByThread) then begin
+        Infos := Conn.ConnectionInfo;
+        HintStr := '';
+        for i:=0 to Infos.Count-1 do begin
+          HintStr := HintStr + Infos.Names[i] + ': ' + StrEllipsis(Infos.ValueFromIndex[i], 200) + LineEnding;
+        end;
+        HintStr := Trim(HintStr);
+      end;
+    end;
   end
   else begin
     // Probably reset hint font
