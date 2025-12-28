@@ -1042,7 +1042,6 @@ type
     procedure AnyGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure tabsetQueryClick(Sender: TObject);
     procedure tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer; var ImageIndex: Integer);
-    procedure tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
     procedure AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
     procedure AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
@@ -1201,7 +1200,6 @@ type
     FAppVerRevision: Integer;
     FAppVersion: String;
 
-    FLastHintMousepos: TPoint;
     FDelimiter: String;
     FLogToFile: Boolean;
     FFileNameSessionLog: String;
@@ -8436,52 +8434,6 @@ begin
 end;
 
 
-procedure TMainForm.tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-var
-  idx, i: Integer;
-  Tabs: TTabControl;
-  Rect: TRect;
-  Org: TPoint;
-  QueryTab: TQueryTab;
-  ResultTab: TResultTab;
-  HintSQL: TStringList;
-begin
-  // Display some hint with row/col count + SQL when mouse hovers over result tab
-  if (FLastHintMousepos.X = x) and (FLastHintMousepos.Y = Y) then
-    Exit;
-  FLastHintMousepos := Point(X, Y);
-  Tabs := Sender as TTabControl;
-  idx := Tabs.IndexOfTabAt(X, Y);
-  if idx = -1 then
-    Exit;
-  // Check if user wants these balloon hints
-  if not AppSettings.ReadBool(asHintsOnResultTabs) then
-    Exit;
-  QueryTab := QueryTabs.ActiveTab;
-  if idx >= QueryTab.ResultTabs.Count then
-    Exit;
-
-  // Make SQL readable for the tooltip balloon. WrapText() is unsuitable here.
-  // See issue #2014
-  // Also, wee need to work around the awful looking balloon text:
-  // http://qc.embarcadero.com/wc/qcmain.aspx?d=73771
-  ResultTab := QueryTab.ResultTabs[idx];
-  HintSQL := TStringList.Create;
-  HintSQL.Text := Trim(ResultTab.Results.SQL);
-  for i:=0 to HintSQL.Count-1 do begin
-    HintSQL[i] := StrEllipsis(HintSQL[i], 100);
-    HintSQL[i] := StringReplace(HintSQL[i], #9, '    ', [rfReplaceAll]);
-  end;
-  //BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns × ' +
-  //  FormatNumber(ResultTab.Results.RecordCount) + ' rows' + CRLF + CRLF +
-  //  Trim(StrEllipsis(HintSQL.Text, SIZE_KB));
-  Rect := Tabs.TabRect(idx);
-  Org := Tabs.ClientOrigin;
-  OffsetRect(Rect, Org.X, Org.Y);
-  //BalloonHint1.ShowHint(Rect);
-end;
-
-
 {**
   Insert function name from popupmenu to query memo
 }
@@ -12332,6 +12284,7 @@ begin
   QueryTab.tabsetQuery.Align := tabsetQuery.Align;
   QueryTab.tabsetQuery.Font.Assign(tabsetQuery.Font);
   QueryTab.tabsetQuery.Images := tabsetQuery.Images;
+  QueryTab.tabsetQuery.ShowHint := tabsetQuery.ShowHint;
   QueryTab.tabsetQuery.Style := tabsetQuery.Style;
   QueryTab.tabsetQuery.TabHeight := tabsetQuery.TabHeight;
   QueryTab.tabsetQuery.Height := tabsetQuery.Height;
@@ -12342,7 +12295,6 @@ begin
   //QueryTab.tabsetQuery.UnselectedColor := tabsetQuery.UnselectedColor;
   QueryTab.tabsetQuery.OnChange := tabsetQuery.OnChange;
   QueryTab.tabsetQuery.OnGetImageIndex := tabsetQuery.OnGetImageIndex;
-  QueryTab.tabsetQuery.OnMouseMove := tabsetQuery.OnMouseMove;
 
   SetupSynEditor(QueryTab.Memo);
 
@@ -14608,12 +14560,15 @@ end;
 
 procedure TMainForm.ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
 var
-  MainTabIndex, QueryTabIndex, NewHideTimeout, PanelIndex: Integer;
+  MainTabIndex, QueryTabIndex, NewHideTimeout: Integer;
   pt: TPoint;
   Conn: TDBConnection;
   Editor: TSynMemo;
-  Infos: TStringList;
-  i: Integer;
+  Infos, HintSQL: TStringList;
+  i, PanelIndex, TabIndex: Integer;
+  QueryTab: TQueryTab;
+  Tabs: TTabControl;
+  ResultTab: TResultTab;
 begin
   if HintInfo.HintControl = PageControlMain then begin
     // Show full filename in tab hint. See issue #3527
@@ -14633,6 +14588,7 @@ begin
     HintInfo.ReshowTimeout := 1000;
     SetHintFontByControl;
   end
+
   else if HintInfo.HintControl is TSynMemo then begin
     // Token hint displaying through SynEdit's OnShowHint event
     Editor := TSynMemo(HintInfo.HintControl);
@@ -14641,6 +14597,7 @@ begin
     if NewHideTimeout > HintInfo.HideTimeout then
       HintInfo.HideTimeout := NewHideTimeout;
   end
+
   else if HintInfo.HintControl = StatusBar then begin
     pt := StatusBar.ScreenToClient(Mouse.CursorPos);
     PanelIndex := StatusBar.GetPanelIndexAt(pt.X, pt.Y);
@@ -14656,6 +14613,31 @@ begin
       end;
     end;
   end
+
+  else if HintInfo.HintControl is TNoteBookStringsTabControl then begin
+    Tabs := HintInfo.HintControl.Parent as TTabControl;
+    QueryTab := QueryTabs.TabByControl(Tabs);
+    if AppSettings.ReadBool(asHintsOnResultTabs) and Assigned(QueryTab) then begin
+      pt := Tabs.ScreenToClient(Mouse.CursorPos);
+      TabIndex := Tabs.IndexOfTabAt(pt.X, pt.Y);
+      if (TabIndex > -1) and (TabIndex < QueryTab.ResultTabs.Count) then begin
+        // Make SQL readable for the tooltip balloon. WrapText() is unsuitable here.
+        // See issue #2014
+        ResultTab := QueryTab.ResultTabs[TabIndex];
+        HintSQL := TStringList.Create;
+        HintSQL.Text := Trim(ResultTab.Results.SQL);
+        for i:=0 to HintSQL.Count-1 do begin
+          HintSQL[i] := StrEllipsis(HintSQL[i], 100);
+          HintSQL[i] := StringReplace(HintSQL[i], #9, '    ', [rfReplaceAll]);
+        end;
+        HintStr := FormatNumber(ResultTab.Results.ColumnCount) + ' columns × ' +
+          FormatNumber(ResultTab.Results.RecordCount) + ' rows' + LineEnding + LineEnding +
+          Trim(StrEllipsis(HintSQL.Text, SIZE_KB));
+        HintSQL.Free;
+      end;
+    end;
+  end
+
   else begin
     // Probably reset hint font
     SetHintFontByControl;
