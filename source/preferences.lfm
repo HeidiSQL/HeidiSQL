@@ -11,7 +11,6 @@ object frmPreferences: TfrmPreferences
   Constraints.MinWidth = 375
   DesignTimePPI = 120
   Position = poMainFormCenter
-  LCLVersion = '4.2.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -177,22 +176,6 @@ object frmPreferences: TfrmPreferences
         Text = '1'
         OnChange = Modified
       end
-      object chkUpdateCheckBuilds: TCheckBox
-        AnchorSideLeft.Control = editUpdatecheckInterval
-        AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = chkRestoreLastDB
-        AnchorSideTop.Side = asrBottom
-        Left = 557
-        Height = 24
-        Top = 100
-        Width = 290
-        Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        Caption = 'Also check for updated nightly builds'
-        Enabled = False
-        TabOrder = 5
-        OnClick = Modified
-      end
       object chkDoStatistics: TCheckBox
         AnchorSideTop.Control = editUpdatecheckInterval
         AnchorSideTop.Side = asrBottom
@@ -204,7 +187,7 @@ object frmPreferences: TfrmPreferences
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Send usage statistics'
-        TabOrder = 6
+        TabOrder = 5
         OnClick = Modified
       end
       object chkAllowMultiInstances: TCheckBox
@@ -229,7 +212,7 @@ object frmPreferences: TfrmPreferences
         Width = 251
         BorderSpacing.Around = 6
         Caption = 'Display bars in various list columns'
-        TabOrder = 8
+        TabOrder = 7
         OnClick = Modified
       end
       object editMySQLBinaries: TEditButton
@@ -249,7 +232,7 @@ object frmPreferences: TfrmPreferences
         MaxLength = 0
         NumGlyphs = 1
         PasswordChar = #0
-        TabOrder = 9
+        TabOrder = 8
         Text = 'editMySQLBinaries'
         TextHint = 'Find mysql.exe directory'
         OnButtonClick = editMySQLBinariesRightButtonClick
@@ -270,7 +253,7 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 6
         ItemHeight = 20
         Style = csDropDownList
-        TabOrder = 11
+        TabOrder = 10
         OnClick = Modified
       end
       object editCustomSnippetsDirectory: TEditButton
@@ -290,7 +273,7 @@ object frmPreferences: TfrmPreferences
         MaxLength = 0
         NumGlyphs = 1
         PasswordChar = #0
-        TabOrder = 10
+        TabOrder = 9
         Text = 'editCustomSnippetsDirectory'
         TextHint = 'Set custom directory for SQL snippet files'
         OnButtonClick = editCustomSnippetsDirectoryRightButtonClick
@@ -310,7 +293,7 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 6
         ItemHeight = 20
         Style = csDropDownList
-        TabOrder = 12
+        TabOrder = 11
         OnChange = comboGUIFontChange
       end
       object editGUIFontSize: TEdit
@@ -327,7 +310,7 @@ object frmPreferences: TfrmPreferences
         Anchors = [akTop, akRight]
         BorderSpacing.Around = 6
         NumbersOnly = True
-        TabOrder = 13
+        TabOrder = 12
         Text = '8'
         OnChange = Modified
       end
@@ -341,7 +324,7 @@ object frmPreferences: TfrmPreferences
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         Caption = 'Use Ctrl+Mousewheel for zooming'
-        TabOrder = 7
+        TabOrder = 6
         OnClick = Modified
       end
       object comboTheme: TComboBox
@@ -358,7 +341,7 @@ object frmPreferences: TfrmPreferences
         ItemHeight = 20
         Sorted = True
         Style = csDropDownList
-        TabOrder = 14
+        TabOrder = 13
       end
       object comboIconPack: TComboBox
         AnchorSideTop.Control = comboTheme
@@ -373,7 +356,7 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 6
         ItemHeight = 20
         Style = csDropDownList
-        TabOrder = 16
+        TabOrder = 15
         OnChange = Modified
       end
       object comboWebSearchBaseUrl: TComboBox
@@ -398,7 +381,7 @@ object frmPreferences: TfrmPreferences
           'https://www.bing.com/search?q=%query'
           'https://www.google.com/search?q=%query'
         )
-        TabOrder = 17
+        TabOrder = 16
         Text = 'comboWebSearchBaseUrl'
         OnChange = Modified
       end
@@ -414,7 +397,7 @@ object frmPreferences: TfrmPreferences
         Anchors = [akTop, akRight]
         BorderSpacing.Around = 6
         Caption = 'Preview'
-        TabOrder = 15
+        TabOrder = 14
       end
     end
     object tabLogging: TTabSheet

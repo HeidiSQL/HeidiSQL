@@ -1,33 +1,30 @@
 object frmUpdateCheck: TfrmUpdateCheck
   Left = 0
-  Height = 505
+  Height = 300
   Top = 0
   Width = 450
   Caption = 'Check for updates ...'
-  ClientHeight = 505
+  ClientHeight = 300
   ClientWidth = 450
   Color = clBtnFace
-  Constraints.MinHeight = 500
+  Constraints.MinHeight = 300
   Constraints.MinWidth = 375
   DesignTimePPI = 120
   Position = poOwnerFormCenter
-  OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   object lblStatus: TLabel
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = groupBuild
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = btnCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 6
-    Height = 31
-    Top = 468
-    Width = 300
-    Anchors = [akTop, akLeft, akRight, akBottom]
-    AutoSize = False
+    Height = 20
+    Top = 274
+    Width = 57
+    Anchors = [akLeft, akBottom]
     BorderSpacing.Around = 6
     Caption = 'lblStatus'
     Layout = tlCenter
@@ -40,7 +37,7 @@ object frmUpdateCheck: TfrmUpdateCheck
     AnchorSideBottom.Side = asrBottom
     Left = 312
     Height = 31
-    Top = 468
+    Top = 263
     Width = 132
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 6
@@ -48,87 +45,7 @@ object frmUpdateCheck: TfrmUpdateCheck
     Caption = 'Cancel'
     Default = True
     ModalResult = 2
-    TabOrder = 3
-  end
-  object groupBuild: TGroupBox
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = groupRelease
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    AnchorSideBottom.Control = btnCancel
-    Left = 6
-    Height = 230
-    Top = 232
-    Width = 438
-    Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Around = 6
-    Caption = 'Nightly build'
-    ClientHeight = 205
-    ClientWidth = 434
-    ParentBackground = False
     TabOrder = 2
-    object btnBuild: TButton
-      AnchorSideLeft.Control = groupBuild
-      AnchorSideRight.Control = groupBuild
-      AnchorSideRight.Side = asrBottom
-      AnchorSideBottom.Control = groupBuild
-      AnchorSideBottom.Side = asrBottom
-      Left = 6
-      Height = 31
-      Top = 168
-      Width = 422
-      Anchors = [akLeft, akRight, akBottom]
-      BorderSpacing.Around = 6
-      Caption = 'Download nightly build'
-      Enabled = False
-      ModalResult = 1
-      TabOrder = 2
-      Visible = False
-      OnClick = btnBuildClick
-    end
-    object memoBuild: TMemo
-      AnchorSideLeft.Control = groupBuild
-      AnchorSideTop.Control = groupBuild
-      AnchorSideRight.Control = groupBuild
-      AnchorSideRight.Side = asrBottom
-      AnchorSideBottom.Control = btnChangelog
-      Left = 6
-      Height = 119
-      Top = 6
-      Width = 422
-      Anchors = [akTop, akLeft, akRight, akBottom]
-      BorderSpacing.Around = 6
-      BorderStyle = bsNone
-      Color = clBtnFace
-      Font.Color = clWindowText
-      Font.Height = -15
-      Font.Name = 'Courier New'
-      Lines.Strings = (
-        'memoBuild'
-      )
-      ParentFont = False
-      ReadOnly = True
-      ScrollBars = ssVertical
-      TabOrder = 0
-      Visible = False
-      WordWrap = False
-    end
-    object btnChangelog: TButton
-      AnchorSideLeft.Control = groupBuild
-      AnchorSideRight.Control = groupBuild
-      AnchorSideRight.Side = asrBottom
-      AnchorSideBottom.Control = btnBuild
-      Left = 6
-      Height = 31
-      Top = 131
-      Width = 422
-      Anchors = [akLeft, akRight, akBottom]
-      BorderSpacing.Around = 6
-      Caption = 'View changelog'
-      TabOrder = 1
-      OnClick = btnChangelogClick
-    end
   end
   object groupRelease: TGroupBox
     AnchorSideLeft.Control = Owner
@@ -136,23 +53,29 @@ object frmUpdateCheck: TfrmUpdateCheck
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = btnCancel
     Left = 6
-    Height = 122
+    Height = 153
     Top = 104
     Width = 438
-    Anchors = [akTop, akLeft, akRight]
+    Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Around = 6
     Caption = 'Official release'
-    ClientHeight = 97
+    ClientHeight = 128
     ClientWidth = 434
     Enabled = False
     ParentBackground = False
     TabOrder = 1
     object memoRelease: TMemo
-      Left = 8
-      Height = 59
-      Top = 5
-      Width = 417
+      AnchorSideLeft.Control = groupRelease
+      AnchorSideTop.Control = groupRelease
+      AnchorSideRight.Control = groupRelease
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = LinkLabelRelease
+      Left = 6
+      Height = 90
+      Top = 6
+      Width = 422
       Anchors = [akTop, akLeft, akRight, akBottom]
       BorderSpacing.Around = 6
       BorderStyle = bsNone
@@ -165,10 +88,13 @@ object frmUpdateCheck: TfrmUpdateCheck
       TabOrder = 0
     end
     object LinkLabelRelease: TLabel
+      AnchorSideLeft.Control = groupRelease
+      AnchorSideBottom.Control = groupRelease
+      AnchorSideBottom.Side = asrBottom
       Cursor = crHandPoint
-      Left = 8
+      Left = 6
       Height = 20
-      Top = 72
+      Top = 102
       Width = 151
       Anchors = [akLeft, akBottom]
       BorderSpacing.Around = 6

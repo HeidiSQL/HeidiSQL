@@ -3752,7 +3752,7 @@ begin
   InitSetting(asCSVImportParseMethod,             'CSVImportParseMethod',                  0);
   InitSetting(asCSVKeepDialogOpen,                'CSVKeepDialogOpen',                     0, False);
   InitSetting(asUpdatecheck,                      'Updatecheck',                           0, False);
-  InitSetting(asUpdatecheckBuilds,                'UpdatecheckBuilds',                     0, False);
+  // Removed: InitSetting(asUpdatecheckBuilds,                'UpdatecheckBuilds',                     0, False);
   InitSetting(asUpdatecheckInterval,              'UpdatecheckInterval',                   3);
   InitSetting(asUpdatecheckLastrun,               'UpdatecheckLastrun',                    0, False, DateToStr(DateTimeNever));
   InitSetting(asUpdateCheckWindowWidth,           'UpdateCheckWindowWidth',                400);

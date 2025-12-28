@@ -15,24 +15,17 @@ type
 
   TfrmUpdateCheck = class(TExtForm)
     btnCancel: TButton;
-    groupBuild: TGroupBox;
-    btnBuild: TButton;
     groupRelease: TGroupBox;
     LinkLabelRelease: TLabel;
     lblStatus: TLabel;
     memoRelease: TMemo;
-    memoBuild: TMemo;
-    btnChangelog: TButton;
     popupDownloadRelease: TPopupMenu;
     CopydownloadURL1: TMenuItem;
     btnDonate: TButton;
     procedure FormCreate(Sender: TObject);
-    procedure btnBuildClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure LinkLabelReleaseLinkClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure btnChangelogClick(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CopydownloadURL1Click(Sender: TObject);
   const
     SLinkDownloadRelease= 'download-release';
@@ -40,18 +33,12 @@ type
     SLinkChangelog = 'changelog';
   private
     { Private declarations }
-    BuildURL: String;
-    FRestartTaskName: String;
     procedure Status(txt: String);
     function GetLinkUrl(Sender: TObject; LinkType: String): String;
-    function GetTaskXmlFileContents: String;
   public
     { Public declarations }
-    BuildRevision: Integer;
     procedure ReadCheckFile;
   end;
-
-procedure DeleteRestartTask;
 
 
 implementation
@@ -76,14 +63,6 @@ begin
   HasSizeGrip := True;
   Width := AppSettings.ReadInt(asUpdateCheckWindowWidth);
   Height := AppSettings.ReadInt(asUpdateCheckWindowHeight);
-  FRestartTaskName := 'yet_invalid';
-end;
-
-procedure TfrmUpdateCheck.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  if ModalResult <> btnBuild.ModalResult then begin
-    DeleteRestartTask;
-  end;
 end;
 
 {**
@@ -110,10 +89,10 @@ begin
     // which makes it impossible to compare the revisions.
     if Mainform.AppVerRevision = 0 then
       Status(_('Error: Cannot determine current revision. Using a developer version?'))
-    else if Mainform.AppVerRevision = BuildRevision then
-      Status(f_('Your %s is up-to-date (no update available).', [APPNAME]))
-    else if groupRelease.Enabled or btnBuild.Enabled then
-      Status(_('Updates available.'));
+    else if groupRelease.Enabled then
+      Status(_('Updates available.'))
+    else
+      Status(f_('Your %s is up-to-date (no update available).', [APPNAME]));
   except
     // Do not popup errors, just display them in the status label
     on E:Exception do
@@ -138,13 +117,10 @@ var
   Compiled: TDateTime;
 const
   INISECT_RELEASE = 'Release';
-  INISECT_BUILD = 'Build';
 begin
   // Init GUI controls
   LinkLabelRelease.Enabled := False;
-  btnBuild.Enabled := False;
   memoRelease.Clear;
-  memoBuild.Clear;
 
   // Prepare download
   CheckfileDownload := THttpDownload.Create(Self);
@@ -186,36 +162,6 @@ begin
       memoRelease.Font.Color := GetThemeColor(clWindowText);
   end;
 
-  // Read [Build] section of check file
-  if Ini.SectionExists(INISECT_BUILD) then begin
-    BuildRevision := Ini.ReadInteger(INISECT_BUILD, 'Revision', 0);
-    BuildURL := Ini.ReadString(INISECT_BUILD, 'URL', '');
-    memoBuild.Lines.Add(f_('Revision %d (yours: %d)', [BuildRevision, Mainform.AppVerRevision]));
-    FileAge(ParamStr(0), Compiled);
-    memoBuild.Lines.Add(f_('Compiled: %s (yours: %s)', [Ini.ReadString(INISECT_BUILD, 'Date', ''), DateToStr(Compiled)]));
-    Note := Ini.ReadString(INISECT_BUILD, 'Note', '');
-    if Note <> '' then
-      memoBuild.Lines.Add(_('Notes') + ': * ' + StringReplace(Note, '%||%', CRLF+'* ', [rfReplaceAll] ) );
-    if GetExecutableBits = 64 then begin
-      btnBuild.Caption := f_('Download and install build %d', [BuildRevision]);
-      // A new release should have priority over a new nightly build.
-      // So the user should not be able to download a newer build here
-      // before having installed the new release.
-      //btnBuild.Enabled := (Mainform.AppVerRevision = 0) or ((BuildRevision > Mainform.AppVerRevision) and (not LinkLabelRelease.Enabled));
-    end
-    else begin
-      btnBuild.Caption := _('No build updates for 32 bit version');
-    end;
-
-    if btnBuild.Enabled then begin
-      TaskXmlFile := GetTempDir + APPNAME + '_task_restart.xml';
-      SaveUnicodeFile(TaskXmlFile, GetTaskXmlFileContents, UTF8NoBOMEncoding);
-      FRestartTaskName := ValidFilename(ParamStr(0));
-      ShellExec('schtasks', '', '/Create /TN "'+FRestartTaskName+'" /xml '+TaskXmlFile, True);
-    end;
-
-  end;
-
   if FileExists(CheckFilename) then
     DeleteFile(CheckFilename);
   FreeAndNil(CheckfileDownload);
@@ -231,20 +177,9 @@ begin
 end;
 
 
-procedure TfrmUpdateCheck.btnChangelogClick(Sender: TObject);
-begin
-  ShellExec(GetLinkUrl(Sender, SLinkChangelog));
-end;
-
-
 procedure TfrmUpdateCheck.CopydownloadURL1Click(Sender: TObject);
 begin
   Clipboard.TryAsText := GetLinkUrl(LinkLabelRelease, SLinkDownloadRelease);
-end;
-
-procedure TfrmUpdateCheck.btnBuildClick(Sender: TObject);
-begin
-  // No auto-update
 end;
 
 procedure TfrmUpdateCheck.FormDestroy(Sender: TObject);
@@ -282,63 +217,5 @@ begin
   Result := APPDOMAIN + Result;
 end;
 
-
-function TfrmUpdateCheck.GetTaskXmlFileContents: String;
-begin
-  Result := '<?xml version="1.0" encoding="UTF-16"?>' + sLineBreak +
-    '<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">' + sLineBreak +
-    '  <RegistrationInfo>' + sLineBreak +
-    '    <Date>2022-12-24T12:39:17.5068755</Date>' + sLineBreak +
-    '    <Author>' + APPNAME + ' ' + MainForm.AppVersion + '</Author>' + sLineBreak +
-    '    <URI>\' + APPNAME + '_restart</URI>' + sLineBreak +
-    '  </RegistrationInfo>' + sLineBreak +
-    '  <Triggers>' + sLineBreak +
-    '    <TimeTrigger>' + sLineBreak +
-    '      <StartBoundary>2022-12-24T12:42:36</StartBoundary>' + sLineBreak +
-    '      <Enabled>true</Enabled>' + sLineBreak +
-    '    </TimeTrigger>' + sLineBreak +
-    '  </Triggers>' + sLineBreak +
-    '  <Principals>' + sLineBreak +
-    '    <Principal id="Author">' + sLineBreak +
-    // Note: no <UserId> with the current users SID
-    '      <LogonType>InteractiveToken</LogonType>' + sLineBreak +
-    '      <RunLevel>LeastPrivilege</RunLevel>' + sLineBreak +
-    '    </Principal>' + sLineBreak +
-    '  </Principals>' + sLineBreak +
-    '  <Settings>' + sLineBreak +
-    '    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>' + sLineBreak +
-    '    <DisallowStartIfOnBatteries>true</DisallowStartIfOnBatteries>' + sLineBreak +
-    '    <StopIfGoingOnBatteries>true</StopIfGoingOnBatteries>' + sLineBreak +
-    '    <AllowHardTerminate>true</AllowHardTerminate>' + sLineBreak +
-    '    <StartWhenAvailable>false</StartWhenAvailable>' + sLineBreak +
-    '    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>' + sLineBreak +
-    '    <IdleSettings>' + sLineBreak +
-    '      <StopOnIdleEnd>true</StopOnIdleEnd>' + sLineBreak +
-    '      <RestartOnIdle>false</RestartOnIdle>' + sLineBreak +
-    '    </IdleSettings>' + sLineBreak +
-    '    <AllowStartOnDemand>true</AllowStartOnDemand>' + sLineBreak +
-    '    <Enabled>true</Enabled>' + sLineBreak +
-    '    <Hidden>false</Hidden>' + sLineBreak +
-    '    <RunOnlyIfIdle>false</RunOnlyIfIdle>' + sLineBreak +
-    '    <WakeToRun>false</WakeToRun>' + sLineBreak +
-    '    <ExecutionTimeLimit>PT72H</ExecutionTimeLimit>' + sLineBreak +
-    '    <Priority>7</Priority>' + sLineBreak +
-    '  </Settings>' + sLineBreak +
-    '  <Actions Context="Author">' + sLineBreak +
-    '    <Exec>' + sLineBreak +
-    '      <Command>"' + ParamStr(0) + '"</Command>' + sLineBreak +
-    '      <Arguments>--runfrom=scheduler</Arguments>' + sLineBreak +
-    '    </Exec>' + sLineBreak +
-    '  </Actions>' + sLineBreak +
-    '</Task>';
-end;
-
-
-procedure DeleteRestartTask;
-begin
-  // TN = Task Name
-  // F = Force, suppress prompt
-  ShellExec('schtasks', '', '/Delete /TN "'+ValidFilename(ParamStr(0))+'" /F', True);
-end;
 
 end.

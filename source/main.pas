@@ -2179,11 +2179,9 @@ begin
       frm.btnCancel.Caption := _('Skip');
       try
         frm.ReadCheckFile;
-        // Show the dialog if release is available, or - when wanted - build checks are activated
-        if (AppSettings.ReadBool(asUpdatecheckBuilds) and frm.btnBuild.Enabled)
-          or frm.LinkLabelRelease.Enabled then begin
+        // Show the dialog if release is available
+        if frm.LinkLabelRelease.Enabled then
           frm.ShowModal;
-        end;
       except
         on E:Exception do
           LogSQL(f_('Error when checking for updates: %s', [E.Message]));

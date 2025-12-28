@@ -61,7 +61,6 @@ type
     chkRestoreLastDB: TCheckBox;
     chkUpdatecheck: TCheckBox;
     editUpdatecheckInterval: TEdit;
-    chkUpdateCheckBuilds: TCheckBox;
     SynSQLSynSQLSample: TSynSQLSyn;
     btnRestoreDefaults: TButton;
     lblMaxTotalRows: TLabel;
@@ -341,7 +340,6 @@ begin
   AppSettings.WriteInt(asDataFontSize, MakeInt(editDataFontSize.Text));
   AppSettings.WriteBool(asLogToFile, chkLogToFile.Checked);
   AppSettings.WriteBool(asUpdatecheck, chkUpdatecheck.Checked);
-  AppSettings.WriteBool(asUpdatecheckBuilds, chkUpdatecheckBuilds.Checked);
   AppSettings.WriteInt(asUpdatecheckInterval, MakeInt(editUpdatecheckInterval.Text));
   AppSettings.WriteBool(asDoUsageStatistics, chkDoStatistics.Checked);
   AppSettings.WriteBool(asWheelZoom, chkWheelZoom.Checked);
@@ -682,7 +680,6 @@ begin
   chkAllowMultiInstances.Checked := AppSettings.ReadBool(asAllowMultipleInstances);
   chkRestoreLastDB.Checked := AppSettings.ReadBool(asRestoreLastUsedDB);
   chkUpdatecheck.Checked := AppSettings.ReadBool(asUpdatecheck);
-  chkUpdatecheckBuilds.Checked := AppSettings.ReadBool(asUpdatecheckBuilds);
   editUpdatecheckInterval.Text := AppSettings.ReadInt(asUpdatecheckInterval).ToString;
   chkUpdatecheckClick(Sender);
   chkDoStatistics.Checked := AppSettings.ReadBool(asDoUsageStatistics);
@@ -919,7 +916,6 @@ end;
 procedure TfrmPreferences.chkUpdatecheckClick(Sender: TObject);
 begin
   editUpdatecheckInterval.Enabled := chkUpdatecheck.Checked;
-  chkUpdatecheckBuilds.Enabled := chkUpdatecheck.Checked;
   Modified(Sender);
 end;
 
