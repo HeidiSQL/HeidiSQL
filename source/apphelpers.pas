@@ -3704,7 +3704,7 @@ begin
   InitSetting(asUsermanagerListWidth,             'Usermanager_ListWidth',                 180);
   InitSetting(asSelectDBOWindowWidth,             'SelectDBO_WindowWidth',                 250);
   InitSetting(asSelectDBOWindowHeight,            'SelectDBO_WindowHeight',                350);
-  InitSetting(asSessionManagerListWidth,          'SessionManager_ListWidth',              220);
+  InitSetting(asSessionManagerListWidth,          'SessionManager_ListWidth',              300);
   InitSetting(asSessionManagerListFoldersAtTop,   'SessionManager_ListFoldersAtTop',       0, True);
   InitSetting(asSessionManagerWindowWidth,        'SessionManager_WindowWidth',            700);
   InitSetting(asSessionManagerWindowHeight,       'SessionManager_WindowHeight',           490);

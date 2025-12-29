@@ -45,25 +45,49 @@ object connform: Tconnform
       ClientWidth = 648
       ImageIndex = 112
       object lblHelp: TLabel
-        Left = 0
-        Height = 201
-        Top = 0
-        Width = 648
-        Align = alTop
-        AutoSize = False
+        AnchorSideLeft.Control = tabStart
+        AnchorSideTop.Control = tabStart
+        AnchorSideRight.Control = tabStart
+        AnchorSideRight.Side = asrBottom
+        Left = 6
+        Height = 20
+        Top = 6
+        Width = 636
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
         Caption = 'lblHelp'
         WordWrap = True
       end
       object btnImportSettings: TSpeedButton
-        Left = 12
-        Height = 31
-        Top = 230
-        Width = 597
-        Anchors = [akTop, akLeft, akRight]
+        AnchorSideLeft.Control = tabStart
+        AnchorSideTop.Control = lblHelp
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 30
+        Top = 32
+        Width = 143
+        AutoSize = True
+        BorderSpacing.Around = 6
         Caption = 'Import settings ...'
         Images = MainForm.ImageListMain
         ImageIndex = 101
         OnClick = btnImportSettingsClick
+      end
+      object lblHelpPortable: TLabel
+        AnchorSideLeft.Control = tabStart
+        AnchorSideTop.Control = btnImportSettings
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabStart
+        AnchorSideRight.Side = asrBottom
+        Left = 6
+        Height = 40
+        Top = 68
+        Width = 636
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        Caption = 'Previous portable settings must be imported once in this version. To do this, click on the button above and open your old .txt file.'
+        Visible = False
+        WordWrap = True
       end
     end
     object tabSettings: TTabSheet

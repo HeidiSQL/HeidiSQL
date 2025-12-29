@@ -26,6 +26,7 @@ type
     btnSave: TBitBtn;
     btnNew: TBitBtn;
     btnDelete: TBitBtn;
+    lblHelpPortable: TLabel;
     lblSshPassHint: TLabel;
     pnlBottom: TPanel;
     popupSessions: TPopupMenu;
@@ -1029,12 +1030,16 @@ begin
 
   if not SessionFocused then begin
     PageControlDetails.ActivePage := tabStart;
-    if ListSessions.RootNodeCount = 0 then
+    if ListSessions.RootNodeCount = 0 then begin
       lblHelp.Caption := f_('New here? In order to connect to a server, you have to create a so called '+
         '"session" at first. Just click the "New" button on the bottom left to create your first session. '+
-        'Give it a friendly name (e.g. "Local DB server") so you''ll recall it the next time you start %s.', [APPNAME])
-    else
+        'Give it a friendly name (e.g. "Local DB server") so you''ll recall it the next time you start %s.', [APPNAME]);
+      lblHelpPortable.Visible := AppSettings.PortableMode;
+    end
+    else begin
       lblHelp.Caption := _('Please click a session on the left list to edit parameters, doubleclick to open it.');
+      lblHelpPortable.Visible := False;
+    end;
   end else begin
     PageControlDetails.ActivePage := tabSettings;
 
