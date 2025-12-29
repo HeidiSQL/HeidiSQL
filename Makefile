@@ -12,24 +12,18 @@ BINQT := ./out/qt5/heidisql
 
 # Check for environment variable GITHUB
 ifeq ($(origin GITHUB), undefined)
-    # GITHUB is not set — require secrets.mk
-    ifeq (,$(wildcard ./secrets.mk))
-        $(error "secrets.mk not found! Please create it first.")
-    endif
-    include ./secrets.mk
+    # GITHUB is not set
 	tag := $(shell git describe --tags $(shell git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
 else
-    # GITHUB is set — skip including secrets.mk
-    $(info GITHUB is set, not loading secrets.mk)
+    # GITHUB is set
+    $(info GITHUB is set)
 endif
 
 VERSION := $(shell echo $(tag) | sed "s/v//")
 
-TRANSIFEX_TOKEN ?= help
-
 .PHONY: all clean tx-pull copy-locale build-mo build-gtk2 run-gtk2 build-qt5 run-qt5 deb-package tar-gtk2 tar-qt5
 
-all: clean tx-pull build-mo build-gtk2 build-qt5 deb-package tar-gtk2 tar-qt5
+all: clean build-gtk2 build-qt5 deb-package tar-gtk2 tar-qt5
 
 clean:
 	@echo "=== Cleaning"
@@ -37,22 +31,10 @@ clean:
 	@rm -f ./out/gtk2/* ./out/qt5/*
 	@rm -rf ./deb ./rpm ./tar ./dist
 
-tx-pull:
-	@echo "=== Pulling from Transifex"
-	@TX_TOKEN=$(TRANSIFEX_TOKEN) ./extra/internationalization/tx pull -a
-
 copy-locale:
 	@echo "=== Copying .mo from extra/locale to out/locale"
 	@mkdir -p ./out/locale
 	@cp -fv ./extra/locale/*.mo ./out/locale
-
-build-mo:
-	@echo "=== Building MO files"
-	@for file in $(shell find ./extra/locale -iname '*.po'); do \
-	  lang=`echo $${file} | cut -d'/' -f4`; \
-	  echo "Building MO file for $${lang}"; \
-	  msgfmt -o "./extra/locale/heidisql.$${lang}.mo" $${file}; \
-	done
 
 build-gtk2:
 	@echo "=== Building GTK2"
@@ -60,7 +42,7 @@ build-gtk2:
 	@mkdir -p ./out/gtk2
 	@mv -v $(BIN) $(BINGTK)
 
-run-gtk2: build-gtk2 tx-pull build-mo
+run-gtk2: build-gtk2
 	@echo "=== Running GTK2"
 	@mkdir -p ./run/locale
 	@cp -vf ./extra/locale/*.mo ./run/locale
@@ -74,7 +56,7 @@ build-qt5:
 	@mkdir -p ./out/qt5
 	@mv -v $(BIN) $(BINQT)
 
-run-qt5: build-qt5 tx-pull build-mo
+run-qt5: build-qt5
 	@echo "=== Running GTK2"
 	@mkdir -p ./run/locale
 	@cp -vf ./extra/locale/*.mo ./run/locale
@@ -82,7 +64,7 @@ run-qt5: build-qt5 tx-pull build-mo
 	@cp -v $(BINQT) ./run/heidisql
 	@./run/heidisql
 
-deb-package: build-mo
+deb-package:
 	@echo "=== Creating debian package"
 	rm -vrf deb
 	cp -R package-skeleton deb
@@ -104,7 +86,7 @@ deb-package: build-mo
 	  ./deb/=/
 	rm control.txt
 
-tar-gtk2: build-mo
+tar-gtk2:
 	@echo "=== Creating GTK2 archive"
 	rm -vrf tar
 	mkdir -p tar/locale dist
@@ -116,7 +98,7 @@ tar-gtk2: build-mo
 	chmod +x tar/heidisql
 	cd tar && tar -zcvf ../dist/build-gtk2-$(tag).tgz *
 
-tar-qt5: build-mo
+tar-qt5:
 	@echo "=== Creating QT5 archive"
 	rm -vrf tar
 	mkdir -p tar/locale dist

@@ -112,12 +112,6 @@ jobs:
             - name: Install FPM
               run: sudo gem install --no-document fpm
 
-            - name: Pull from transifex
-              uses: transifex/cli-action@v2
-              with:
-                token: ${{ secrets.TX_TOKEN }}
-                args: pull -a
-
             - name: Create release archives (Linux GTK)
               run: make tar-gtk2
 

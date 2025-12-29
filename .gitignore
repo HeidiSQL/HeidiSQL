@@ -12,8 +12,6 @@
 /out/qt5
 /out/locale
 /extra/locale/*/LC_MESSAGES
-# Compiled translations
-/extra/locale/heidisql.*.mo
 # Secrets, DO NOT COMMIT
 /secrets.mk
 
