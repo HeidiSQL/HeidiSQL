@@ -2078,6 +2078,7 @@ begin
   FFormatSettings.DecimalSeparator := '.';
   FFormatSettings.ThousandSeparator := ' ';;
   FDefaultHintFontName := Screen.HintFont.Name;
+  SetHintFontByControl(SynMemoQuery);
 
   // Now we are free to use certain methods, which are otherwise fired too early
   MainFormCreated := True;
@@ -14586,13 +14587,11 @@ begin
         HintStr := StringReplace(HintStr, DELIM, SLineBreak, [rfReplaceAll]);
     end;
     HintInfo.ReshowTimeout := 1000;
-    SetHintFontByControl;
   end
 
   else if HintInfo.HintControl is TSynMemo then begin
     // Token hint displaying through SynEdit's OnShowHint event
     Editor := TSynMemo(HintInfo.HintControl);
-    SetHintFontByControl(Editor);
     NewHideTimeout := Min(Length(HintStr) * 100, 60*1000);
     if NewHideTimeout > HintInfo.HideTimeout then
       HintInfo.HideTimeout := NewHideTimeout;
@@ -14636,11 +14635,6 @@ begin
         HintSQL.Free;
       end;
     end;
-  end
-
-  else begin
-    // Probably reset hint font
-    SetHintFontByControl;
   end;
 end;
 
