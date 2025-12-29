@@ -1246,8 +1246,6 @@ type
     FFocusedTables: TDBObjectList;
     FLastCaptionChange: Cardinal;
     FListTablesSorted: Boolean;
-    FLastPortableSettingsSave: Cardinal;
-    FLastAppSettingsWrites: Integer;
     FFormatSettings: TFormatSettings;
     FDefaultHintFontName: String;
     FActionList1DefaultCaptions: TStringList;
@@ -2072,8 +2070,6 @@ begin
 
   FLastMouseButtonUpOnGrid := mbLeft;
   FLastCaptionChange := 0;
-  FLastPortableSettingsSave := 0;
-  FLastAppSettingsWrites := 0;
   FFormatSettings := DefaultFormatSettings;
   FFormatSettings.DecimalSeparator := '.';
   FFormatSettings.ThousandSeparator := ' ';;
@@ -2241,10 +2237,7 @@ var
   TabsIniFilename: String;
 begin
   // Try to open tabs.ini for writing or reading
-  if AppSettings.PortableMode then
-    TabsIniFilename := GetAppDir + 'tabs.ini'
-  else
-    TabsIniFilename := AppSettings.DirnameUserAppData + 'tabs.ini';
+  TabsIniFilename := AppSettings.DirnameUserAppData + 'tabs.ini';
   // Catch errors when file cannot be created
   if not FileExists(TabsIniFilename) then begin
     SaveUnicodeFile(TabsIniFilename, '', UTF8NoBOMEncoding);
@@ -14433,23 +14426,6 @@ begin
     end;
   end;
   SessionManagerStartupDone := True;
-
-  if AppSettings.PortableMode
-    and (not AppSettings.PortableModeReadOnly)
-    and (FLastPortableSettingsSave < GetTickCount-60000) then begin
-    try
-      if AppSettings.Writes > FLastAppSettingsWrites then begin
-        if AppSettings.ExportSettings then
-          LogSQL(f_('Portable settings file written, with %d changes.', [AppSettings.Writes-FLastAppSettingsWrites]), lcDebug);
-      end;
-      FLastAppSettingsWrites := AppSettings.Writes;
-      FLastPortableSettingsSave := GetTickCount;
-    except
-      on E:Exception do
-        ErrorDialog(E.Message);
-    end;
-    Done := True;
-  end;
 
   // Sort list tables in idle time, so ListTables.TreeOptions.AutoSort does not crash the list
   // when dropping a right-clicked database

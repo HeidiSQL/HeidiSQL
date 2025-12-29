@@ -146,10 +146,6 @@ begin
       memoRelease.Lines.Add(_('Notes') + ': ' + Note);
 
     LinkLabelRelease.Caption := f_('Download version %s (%s)', [ReleaseVersion, ReleasePackage]);
-    //LinkLabelRelease.Caption := '<a id="'+SLinkDownloadRelease+'">' + LinkLabelRelease.Caption + '</a>';
-    //if AppSettings.PortableMode then begin
-    //  LinkLabelRelease.Caption := LinkLabelRelease.Caption + '   <a id="'+SLinkInstructionsPortable+'">'+_('Update instructions')+'</a>';
-    //end;
 
     // Enable the download button if the current version is outdated
     groupRelease.Enabled := ReleaseRevision > Mainform.AppVerRevision;

@@ -242,14 +242,11 @@ type
   TAppSettings = class(TObject)
     private
       FReads, FWrites: Integer;
-      FBasePath: String;
       FSessionPath: String;
       FStoredPath: String;
       FRegistry: TJsonRegistry;
       FPortableMode: Boolean;
-      FPortableModeReadOnly: Boolean;
       FRestoreTabsInitValue: Boolean;
-      FSettingsFile: String;
       FSettings: Array[TAppSettingIndex] of TAppSetting;
       FDirnameUserAppData: String;
       const FPortableLockFileBase: String='portable.lock';
@@ -297,12 +294,10 @@ type
       procedure RestorePath;
       property SessionPath: String read FSessionPath write SetSessionPath;
       property PortableMode: Boolean read FPortableMode;
-      property PortableModeReadOnly: Boolean read FPortableModeReadOnly write FPortableModeReadOnly;
       property Writes: Integer read FWrites;
       function ConvertWindowsToLinuxPath(Path: String): String;
       procedure ImportSettings(Filename: String);
-      function ExportSettings(Filename: String): Boolean; overload;
-      function ExportSettings: Boolean; overload;
+      function ExportSettings(Filename: String): Boolean;
       // Common directories
       function DirnameUserAppData: String;
       function DirnameUserDocuments: String;
@@ -1271,6 +1266,7 @@ begin
 end;}
 
 
+// Return directory of running executable, including a trailing path delimiter
 function GetAppDir: String;
 begin
   Result := ExtractFilePath(Application.ExeName);
@@ -3500,52 +3496,21 @@ var
   NewFileHandle: THandle;
 begin
   inherited;
+
+  // Switch to portable mode if lock file exists. File content is ignored.
+  PortableLockFile := GetAppDir + FPortableLockFileBase;
+  FPortableMode := FileExists(PortableLockFile);
+
+  // Create and load JSON registry file in user config dir.
+  // In the new v13-portable-mode:
+  //   - DirnameUserAppData points to app dir
+  //   - --psettings cli argument is ignored / not supported any longer
+  //   - instead, the settings filename is the same as in non-portable mode (the user may have placed his old portable_settings.txt file here, and we should not overwrite it)
+  //   - the user once needs to import his old portable_settings.txt after upgrading from pre-v13
   FDirnameUserAppData := '';
   FRegistry := TJsonRegistry.Create(DirnameUserAppData + 'settings.json');
   FReads := 0;
   FWrites := 0;
-
-  PortableLockFile := GetAppDir + FPortableLockFileBase;
-
-  // Use filename from command line. If not given, use file in directory of executable.
-  rx := TRegExpr.Create;
-  rx.Expression := '^\-\-?psettings\=(.+)$';
-  for i:=1 to ParamCount do begin
-    if rx.Exec(ParamStr(i)) then begin
-      FSettingsFile := rx.Match[1];
-      break;
-    end;
-  end;
-  // Default settings file, if not given per command line
-  if FSettingsFile = '' then
-    FSettingsFile := GetAppDir + 'portable_settings.txt';
-  // Backwards compatibility: only settings file exists, create lock file in that case
-  if FileExists(FSettingsFile) and (not FileExists(PortableLockFile)) then begin
-    NewFileHandle := FileCreate(PortableLockFile);
-    FileClose(NewFileHandle);
-  end;
-
-  // Switch to portable mode if lock file exists. File content is ignored.
-  FPortableMode := False; //FileExists(PortableLockFile);
-  FPortableModeReadOnly := False;
-
-  if FPortableMode then begin
-    // Create file if only the lock file exists
-    if not FileExists(FSettingsFile) then begin
-      NewFileHandle := FileCreate(FSettingsFile);
-      FileClose(NewFileHandle);
-    end;
-    FBasePath := '\Software\' + APPNAME + ' Portable '+IntToStr(GetProcessId)+'\';
-    try
-      ImportSettings(FSettingsFile);
-    except
-      on E:Exception do
-        MessageDlg(E.Message, mtError, [mbOK], 0, mbOK);
-    end;
-  end else begin
-    FBasePath := PathDelimiter;
-    FSettingsFile := '';
-  end;
 
   PrepareRegistry;
 
@@ -3774,11 +3739,7 @@ begin
   InitSetting(asGenerateDataNullAmount,           'GenerateDataNullAmount',                10);
 
   // Default folder for snippets
-  if FPortableMode then
-    DefaultSnippetsDirectory := GetAppDir
-  else
-    DefaultSnippetsDirectory := DirnameUserDocuments;
-  DefaultSnippetsDirectory := DefaultSnippetsDirectory + 'Snippets' + DirectorySeparator;
+  DefaultSnippetsDirectory := DirnameUserDocuments + 'Snippets' + DirectorySeparator;
   InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DefaultSnippetsDirectory);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   // Restore tabs feature crashes often on old XP systems, see https://www.heidisql.com/forum.php?t=34044
@@ -3877,52 +3838,7 @@ end;
 
 
 destructor TAppSettings.Destroy;
-var
-  AllKeys: TStringList;
-  i: Integer;
-  //Proc: TProcessEntry32;
-  ProcRuns: Boolean;
-  SnapShot: THandle;
-  rx: TRegExpr;
 begin
-  // Export settings into textfile in portable mode.
-  if FPortableMode then try
-    try
-      ExportSettings;
-    except
-      // do nothing, even ShowMessage or ErrorDialog would trigger timer events followed by crashes;
-    end;
-    //FRegistry.CloseKey;
-    //FRegistry.DeleteKey(FBasePath);
-
-    // Remove dead keys from instances which didn't close clean, e.g. because of an AV
-    {SnapShot := CreateToolhelp32Snapshot(TH32CS_SnapProcess, 0);
-    Proc.dwSize := Sizeof(Proc);
-    FRegistry.OpenKeyReadOnly('\Software\');
-    AllKeys := TStringList.Create;
-    FRegistry.GetKeyNames(AllKeys);
-    rx := TRegExpr.Create;
-    rx.Expression := '^' + QuoteRegExprMetaChars(APPNAME) + ' Portable (\d+)$';
-    for i:=0 to AllKeys.Count-1 do begin
-      if not rx.Exec(AllKeys[i]) then
-        Continue;
-      ProcRuns := False;
-      if Process32First(SnapShot, Proc) then while True do begin
-        ProcRuns := rx.Match[1] = IntToStr(Proc.th32ProcessID);
-        if ProcRuns or (not Process32Next(SnapShot, Proc)) then
-          break;
-      end;
-      if not ProcRuns then
-        FRegistry.DeleteKey(AllKeys[i]);
-    end;
-    FRegistry.CloseKey;
-    CloseHandle(SnapShot);
-    AllKeys.Free;
-    rx.Free; }
-  except
-    on E:Exception do // Prefer ShowMessage, see http://www.heidisql.com/forum.php?t=14001
-      ShowMessage('Error: '+E.Message);
-  end;
   FRegistry.Free;
   inherited;
 end;
@@ -3973,7 +3889,7 @@ var
   Folder: String;
 begin
   // Open the wanted registry path
-  Folder := FBasePath;
+  Folder := PathDelimiter;
   if FSessionPath <> '' then
     Folder := Folder + AppendDelimiter(REGKEY_SESSIONS) + FSessionPath;
   if PathDelimiter+FRegistry.CurrentPath <> Folder then try
@@ -4073,7 +3989,7 @@ end;
 
 function TAppSettings.SessionPathExists(SessionPath: String): Boolean;
 begin
-  Result := FRegistry.KeyExists(FBasePath + AppendDelimiter(REGKEY_SESSIONS) + SessionPath);
+  Result := FRegistry.KeyExists(PathDelimiter + AppendDelimiter(REGKEY_SESSIONS) + SessionPath);
 end;
 
 
@@ -4284,7 +4200,7 @@ var
   CurPath: String;
 begin
   ResetPath;
-  CurPath := FBasePath + AppendDelimiter(REGKEY_SESSIONS) + ParentPath;
+  CurPath := PathDelimiter + AppendDelimiter(REGKEY_SESSIONS) + ParentPath;
   FRegistry.OpenKey(CurPath, True);
   Result := TStringList.Create;
   FRegistry.GetKeyNames(Result);
@@ -4359,7 +4275,7 @@ begin
       continue;
     // Windows registry to JSON path delimiter conversion: \ => /
     Segments[0] := StringReplace(Segments[0], '\', PathDelimiter, [rfReplaceAll]);
-    KeyPath := FBasePath + ExtractFilePath(Segments[0]);
+    KeyPath := PathDelimiter + ExtractFilePath(Segments[0]);
     Name := ExtractFileName(Segments[0]);
     DataType := StrToIntDef(Segments[1], 0);
     FRegistry.OpenKey(KeyPath, True);
@@ -4403,7 +4319,7 @@ var
   begin
     // Recursively read values in keys and their subkeys into "content" variable
     FRegistry.OpenKey(Path, True);
-    SubPath := Copy(Path, Length(FBasePath)+1, MaxInt);
+    SubPath := Copy(Path, Length(PathDelimiter)+1, MaxInt);
     // JSON to Windows registry path delimiter conversion: / => \
     SubPath := StringReplace(SubPath, PathDelimiter, '\', [rfReplaceAll]);
     Names := TStringList.Create;
@@ -4438,38 +4354,24 @@ var
 begin
   // Save registry settings to file
   Content := '';
-  ReadKeyToContent(FBasePath);
+  ReadKeyToContent(PathDelimiter);
   SaveUnicodeFile(FileName, Content, UTF8NoBOMEncoding);
   Result := True;
 end;
 
 
-function TAppSettings.ExportSettings: Boolean;
-begin
-  Result := False;
-  if not FPortableModeReadOnly then begin
-    try
-      ExportSettings(FSettingsFile);
-      Result := True;
-    except
-      on E:Exception do begin
-        FPortableModeReadOnly := True;
-        Raise Exception.Create(E.ClassName + ': ' + E.Message + CRLF + CRLF
-          + f_('Switching to read-only mode. Settings won''t be saved. Use the command line parameter %s to use a custom file path.', ['--psettings'])
-          );
-      end;
-    end;
-  end;
-end;
-
-
+// Base folder for configuration files, logfiles, tab backups etc.
 function TAppSettings.DirnameUserAppData: String;
 begin
-  // User folder for HeidiSQL's data (<user name>\Application Data)
   if FDirnameUserAppData.IsEmpty then begin
-    // GetAppConfigDir returns "/home/rick/.config/heidisql" only in a very early state. Later it takes the main form's caption into its folder name!
-    FDirnameUserAppData := GetAppConfigDir(False);
-    FDirnameUserAppData := IncludeTrailingPathDelimiter(FDirnameUserAppData);
+    if FPortableMode then
+      FDirnameUserAppData := GetAppDir
+    else begin
+      // GetAppConfigDir returns "/home/rick/.config/heidisql" only in a very early state.
+      // Later it takes the main form's caption into its folder name! Probably only before I created GetApplicationName.
+      FDirnameUserAppData := GetAppConfigDir(False);
+      FDirnameUserAppData := IncludeTrailingPathDelimiter(FDirnameUserAppData);
+    end;
   end;
   Result := FDirnameUserAppData;
   if not DirectoryExists(Result) then begin
@@ -4502,11 +4404,7 @@ end;
 function TAppSettings.DirnameBackups: String;
 begin
   // Create backup folder if it does not exist and return it
-  if PortableMode then begin
-    Result := GetAppDir + 'Backups' + DirectorySeparator
-  end else begin
-    Result := DirnameUserAppData + 'Backups' + DirectorySeparator;
-  end;
+  Result := DirnameUserAppData + 'Backups' + DirectorySeparator;
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
@@ -4515,11 +4413,7 @@ end;
 
 function TAppSettings.DirnameHighlighters: string;
 begin
-  if PortableMode then begin
-    Result := GetAppDir + 'Highlighters' + DirectorySeparator
-  end else begin
-    Result := DirnameUserAppData + 'Highlighters' + DirectorySeparator;
-  end;
+  Result := DirnameUserAppData + 'Highlighters' + DirectorySeparator;
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
