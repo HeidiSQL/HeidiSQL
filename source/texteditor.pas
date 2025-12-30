@@ -10,7 +10,7 @@ uses
   apphelpers, ActnList, extra_controls,
   ExtCtrls, dbconnection, SynEdit, SynEditHighlighter, customize_highlighter,
   Laz2_DOM, Laz2_XMLRead, Laz2_XMLWrite,
-  reformatter, jsonparser, extfiledialog,
+  reformatter, jsonparser, extfiledialog, generic_types,
 
   SynHighlighterBat,
   SynHighlighterCpp, SynHighlighterCss,
