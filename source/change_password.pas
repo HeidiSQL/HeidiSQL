@@ -39,7 +39,6 @@ type
     procedure menuPasswordClick(Sender: TObject);
     procedure menuPasswordInsert(Sender: TObject);
     procedure btnCopyToClipboardClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
   private
     { Private-Deklarationen }
     procedure CheckPasswordStrength;
@@ -55,12 +54,6 @@ implementation
 uses main, apphelpers;
 
 {$R *.lfm}
-
-
-procedure TfrmPasswordChange.FormCreate(Sender: TObject);
-begin
-  HasSizeGrip := True;
-end;
 
 
 procedure TfrmPasswordChange.FormShow(Sender: TObject);

@@ -60,7 +60,6 @@ begin
   btnDonate.OnClick := MainForm.DonateClick;
   btnDonate.Visible := MainForm.HasDonated(False) = nbFalse;
   btnDonate.Caption := f_('Donate to the %s project', [APPNAME]);
-  HasSizeGrip := True;
   Width := AppSettings.ReadInt(asUpdateCheckWindowWidth);
   Height := AppSettings.ReadInt(asUpdateCheckWindowHeight);
 end;

@@ -297,8 +297,6 @@ begin
   pnlLeft.Width := AppSettings.ReadInt(asSessionManagerListWidth);
   splitterMain.OnMoved(Sender);
 
-  // Fix GUI stuff
-  HasSizeGrip := True;
   Caption := GetWindowCaption;
 
   FixVT(ListSessions);

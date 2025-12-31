@@ -1865,7 +1865,6 @@ begin
   Align := alClient;
   FMainSynMemo := nil;
   DBObject := nil;
-  //TranslateComponent(Self);
 end;
 
 destructor TDBObjectEditor.Destroy;
@@ -1894,7 +1893,6 @@ var
 begin
   Mainform.ShowStatusMsg(_('Initializing editor ...'));
   Mainform.LogSQL(Self.ClassName+'.Init, using object "'+Obj.Name+'"', lcDebug);
-  TExtForm.FixControls(Self);
   IsRefresh := Assigned(DBObject) and DBObject.IsSameAs(Obj);
   if IsRefresh and Assigned(FMainSynMemo) then
     FMainSynMemoPreviousTopLine := FMainSynMemo.TopLine
@@ -3511,7 +3509,6 @@ begin
 end;
 
 
-
 { TAppSettings }
 
 constructor TAppSettings.Create;
@@ -4472,9 +4469,6 @@ LibHandleUser32 := LoadLibrary('User32.dll');
 UTF8NoBOMEncoding := TUTF8NoBOMEncoding.Create;
 
 DateTimeNever := MinDateTime;
-
-//ConfirmIcon := TIcon.Create;
-//ConfirmIcon.LoadFromResourceName(hInstance, 'Z_ICONQUESTION');
 
 // Callback used by osutil.inc:ApplicationName(), forcing a stable configuration directory. See issue #2310
 OnGetApplicationName := @GetApplicationName;

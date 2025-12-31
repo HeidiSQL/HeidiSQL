@@ -75,7 +75,6 @@ procedure TfrmSearchReplace.FormCreate(Sender: TObject);
     Menu.Items.Add(Result);
   end;
 begin
-  HasSizeGrip := True;
   comboSearch.Text := '';
   comboReplace.Text := '';
 

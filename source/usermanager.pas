@@ -217,7 +217,6 @@ end;
 procedure TUserManagerForm.FormCreate(Sender: TObject);
 begin
   // Restore GUI setup
-  HasSizeGrip := True;
   Width := AppSettings.ReadInt(asUsermanagerWindowWidth);
   Height := AppSettings.ReadInt(asUsermanagerWindowHeight);
   pnlLeft.Width := AppSettings.ReadInt(asUsermanagerListWidth);

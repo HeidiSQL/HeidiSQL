@@ -51,7 +51,6 @@ uses main;
 
 procedure TfrmColumnSelection.FormCreate(Sender: TObject);
 begin
-  HasSizeGrip := True;
   FCheckedColumns := TStringList.Create;
   Width := AppSettings.ReadInt(asColumnSelectorWidth);
   Height := AppSettings.ReadInt(asColumnSelectorHeight);

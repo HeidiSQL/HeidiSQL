@@ -117,7 +117,6 @@ const
 
 procedure TfrmInsertFiles.FormCreate(Sender: TObject);
 begin
-  HasSizeGrip := True;
   //DragAcceptFiles(Handle, True);
   FixVT(ListFiles);
   FixVT(ListColumns);

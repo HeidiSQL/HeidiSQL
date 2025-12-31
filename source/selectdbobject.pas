@@ -67,7 +67,6 @@ end;
 
 procedure TfrmSelectDBObject.FormCreate(Sender: TObject);
 begin
-  HasSizeGrip := True;
   Width := AppSettings.ReadInt(asSelectDBOWindowWidth);
   Height := AppSettings.ReadInt(asSelectDBOWindowHeight);
   TreeDBO.TreeOptions := MainForm.DBtree.TreeOptions;

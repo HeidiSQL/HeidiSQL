@@ -17,20 +17,14 @@ type
 
   TExtForm = class(TForm)
     private
-      //FSizeGrip: TSizeGripXP;
       FPixelsPerInchDesigned: Integer;
-      function GetHasSizeGrip: Boolean;
-      procedure SetHasSizeGrip(Value: Boolean);
     protected
-      procedure DoShow; override;
       //procedure DoBeforeMonitorDpiChanged(OldDPI, NewDPI: Integer); override;
       //procedure DoAfterMonitorDpiChanged(OldDPI, NewDPI: Integer); override;
       procedure FilterNodesByEdit(Edit: TEditButton; Tree: TLazVirtualStringTree);
     public
       constructor Create(AOwner: TComponent); override;
       class procedure InheritFont(AFont: TFont);
-      property HasSizeGrip: Boolean read GetHasSizeGrip write SetHasSizeGrip default False;
-      class procedure FixControls(ParentComp: TComponent);
       class procedure SaveListSetup(List: TLazVirtualStringTree);
       class procedure RestoreListSetup(List: TLazVirtualStringTree);
       function ScaleSize(x: Extended): Integer; overload;
@@ -91,34 +85,6 @@ begin
 
   FPixelsPerInchDesigned := DesignTimePPI;
   //InheritFont(Font);
-  HasSizeGrip := False;
-
-  // Reduce flicker on Windows 10
-  // See https://www.heidisql.com/forum.php?t=19141
-  //if CheckWin32Version(6, 2) then begin
-  DoubleBuffered := True;
-  //end;
-
-  // Translation and related fixes
-  // Issue #557: Apply images *after* translating main menu, so top items don't get unused
-  // space left besides them.
-  if (Menu <> nil) and (Menu.Images <> nil) then begin
-    OldImageList := Menu.Images;
-    Menu.Images := nil;
-    //TranslateComponent(Self);
-    Menu.Images := OldImageList;
-  end else begin
-    //TranslateComponent(Self);
-  end;
-
-end;
-
-
-procedure TExtForm.DoShow;
-begin
-  // No need to fix anything
-  FixControls(Self);
-  inherited;
 end;
 
 
@@ -135,53 +101,6 @@ begin
   LockWindowUpdate(0);
   inherited;
 end;}
-
-
-class procedure TExtForm.FixControls(ParentComp: TComponent);
-//var
-  //i: Integer;
-
-  {procedure ProcessSingleComponent(Cmp: TComponent);
-  begin
-    if (Cmp is TButton) and (TButton(Cmp).Style = bsSplitButton) then begin
-      // Work around broken dropdown (tool)button on Wine after translation:
-      // https://sourceforge.net/p/dxgettext/bugs/80/
-      TButton(Cmp).Style := bsPushButton;
-      TButton(Cmp).Style := bsSplitButton;
-    end;
-    if (Cmp is TToolButton) and (TToolButton(Cmp).Style = tbsDropDown) then begin
-      // similar fix as above
-      TToolButton(Cmp).Style := tbsButton;
-      TToolButton(Cmp).Style := tbsDropDown;
-    end;
-  end;}
-begin
-  // Passed component itself may also be some control to be fixed
-  // e.g. TInplaceEditorLink.MainControl
-  {ProcessSingleComponent(ParentComp);
-  for i:=0 to ParentComp.ComponentCount-1 do begin
-    ProcessSingleComponent(ParentComp.Components[i]);
-  end;}
-end;
-
-
-function TExtForm.GetHasSizeGrip: Boolean;
-begin
-  //Result := FSizeGrip <> nil;
-  Result := False;
-end;
-
-
-procedure TExtForm.SetHasSizeGrip(Value: Boolean);
-begin
-  {if Value then begin
-    FSizeGrip := TSizeGripXP.Create(Self);
-    FSizeGrip.Enabled := True;
-  end else begin
-    if FSizeGrip <> nil then
-      FreeAndNil(FSizeGrip);
-  end;}
-end;
 
 
 class procedure TExtForm.InheritFont(AFont: TFont);
