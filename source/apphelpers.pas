@@ -2321,11 +2321,14 @@ var
   end;
 begin
 
+  {$IFNDEF WINDOWS}
   if (KeepAskingSetting = asUnused) and (FooterText.IsEmpty) then begin
-    // Show the more native MessageDlg when we don't need additional dialog features
+    // Show the more native MessageDlg when we don't need additional dialog features.
+    // Especially useful on macOS and Linux where the TTaskDialog looks really different than MessageDlg.
     Result := MessageDlg(Title, Msg, DlgType, Buttons, 0);
     Exit;
   end;
+  {$ENDIF}
 
   // Remember current path and restore it later, so the caller does not try to read from the wrong path after this dialog
   AppSettings.StorePath;
@@ -2333,6 +2336,8 @@ begin
   Dialog := TTaskDialog.Create(nil);
   Dialog.Flags := [tfEnableHyperlinks, tfAllowDialogCancellation];
   Dialog.CommonButtons := [];
+  if Assigned(MainForm) then
+    Dialog.OnHyperlinkClicked := MainForm.TaskDialogHyperLinkClicked;
 
   // Caption, title and text
   case DlgType of
@@ -2343,7 +2348,15 @@ begin
   end;
   if Title <> Dialog.Caption then
     Dialog.Title := Title;
-  Dialog.Text := Msg;
+  if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
+    Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
+  rx := TRegExpr.Create;
+  rx.Expression := 'https?://[^\s"]+';
+  if ThemeIsDark then
+    Dialog.Text := Msg
+  else // See issue #2036
+    Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
+  rx.Free;
 
   // Main icon, and footer link
   case DlgType of
@@ -2351,7 +2364,17 @@ begin
       Dialog.MainIcon := tdiWarning;
     mtError: begin
       Dialog.MainIcon := tdiError;
-      Dialog.FooterText := FooterText;
+      WebSearchUrl := AppSettings.ReadString(asWebSearchBaseUrl);
+      WebSearchUrl := StringReplace(WebSearchUrl, '%q', EncodeURLParam(Copy(Msg, 1, 1000)), []);
+      rx := TRegExpr.Create;
+      rx.Expression := 'https?://(www\.)?([^/]+)/';
+      if rx.Exec(WebSearchUrl) then
+        WebSearchHost := rx.Match[2]
+      else
+        WebSearchHost := '[unknown host]';
+      rx.Free;
+      Dialog.FooterText := IfThen(FooterText.IsEmpty, '', FooterText + sLineBreak + sLineBreak) +
+        '<a href="'+WebSearchUrl+'">'+_('Find some help on this error')+' (=> '+WebSearchHost+')</a>';
       Dialog.FooterIcon := tdiInformation;
     end;
     mtInformation:
