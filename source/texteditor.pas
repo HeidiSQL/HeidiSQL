@@ -242,7 +242,6 @@ var
   i: Integer;
   CodeFoldingPart: TSynGutterCodeFolding;
 begin
-  HasSizeGrip := True;
   FClosingByApplyButton := False;
   // Assign linebreak values to their menu item tags, to write less code later
   menuWindowsLB.Tag := Integer(lbsWindows);

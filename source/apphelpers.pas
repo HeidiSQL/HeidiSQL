@@ -8,6 +8,7 @@ uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient,
+  {$IFDEF WINDOWS} Windows, {$ENDIF}
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
   IniFiles, GraphType;
 
@@ -336,6 +337,7 @@ type
   procedure StripNewLines(var txt: String; Replacement: String=' ');
   function GetLineBreak(LineBreakIndex: TLineBreaks): String;
   procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
+  // Replace special characters in a filename with underscore
   function ValidFilename(Str: String): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
   function UnformatNumber(Val: String): String;
@@ -349,9 +351,13 @@ type
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
-  //function GetTempDir: String;
+  // Return directory of running executable, including a trailing path delimiter
   function GetAppDir: String;
+  // Return directory with dlls or dylibs, or empty string for auto-detection
   function GetLibDir: String;
+  // Return directory with MySQL plugin files. Empty on Linux inidicating auto-detection.
+  function GetPluginDir: String;
+  // Point to Resources dir in macOS app bundle, application dir in most other OSes
   function GetResourcesDir: String;
   procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
@@ -398,7 +404,7 @@ type
   function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer; overload;
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
-  //function GetLocaleString(const ResourceId: Integer): WideString;
+  function GetLocaleString(const ResourceId: Integer): UnicodeString;
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
   procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
   procedure InitMoFile(LangCode: String);
@@ -722,7 +728,7 @@ end;
 function DeleteFileWithUndo(sFileName: string): Boolean;
 begin
   // Todo: move to trash, cross-platform
-  Result := DeleteFile(sFileName);
+  Result := SysUtils.DeleteFile(sFileName);
 end;
 
 
@@ -939,20 +945,20 @@ begin
 end;
 
 
-{***
-  Remove special characters from a filename
-
-  @param string Filename
-  @return string
-}
 function ValidFilename(Str: String): String;
+const
+  InvalidFileNameChars: set of Char = {$IFDEF WINDOWS}
+    [#0..#31, '"', '*', '/', ':', '<', '>', '?', '\', '|'];
+  {$ELSE}
+    [#0, '/', ':'];
+  {$ENDIF}
 var
   c: Char;
 begin
   Result := Str;
-  {for c in TPath.GetInvalidFileNameChars do begin
+  for c in InvalidFileNameChars do begin
     Result := StringReplace(Result, c, '_', [rfReplaceAll]);
-  end;}
+  end;
 end;
 
 
@@ -1257,16 +1263,6 @@ begin
 end;
 
 
-{function GetTempDir: String;
-var
-  TempPath: array[0..MAX_PATH] of Char;
-begin
-  GetTempPath(MAX_PATH, PChar(@TempPath));
-  Result := StrPas(TempPath);
-end;}
-
-
-// Return directory of running executable, including a trailing path delimiter
 function GetAppDir: String;
 begin
   Result := ExtractFilePath(Application.ExeName);
@@ -1288,10 +1284,20 @@ begin
   {$ENDIF}
 end;
 
+function GetPluginDir: String;
+begin
+  // Windows: reuse plugin directory from pre-v13 installations
+  // Linux: return empty string, indicating libmysql knows where to look at
+  // macOS: use the Frameworks directory, where all other libs reside
+  Result := GetLibDir;
+  {$IFDEF WINDOWS}
+  Result := Result + 'plugins' + DirectorySeparator;
+  {$ENDIF}
+end;
+
 function GetResourcesDir: String;
 begin
   Result := GetAppDir;
-  // point to resources dir in macOS app bundle
   {$IFDEF DARWIN}
   Result := GetAppDir + '..' + DirectorySeparator + 'Resources' + DirectorySeparator;
   {$ENDIF}
@@ -1859,7 +1865,6 @@ begin
   Align := alClient;
   FMainSynMemo := nil;
   DBObject := nil;
-  //TranslateComponent(Self);
 end;
 
 destructor TDBObjectEditor.Destroy;
@@ -1888,7 +1893,6 @@ var
 begin
   Mainform.ShowStatusMsg(_('Initializing editor ...'));
   Mainform.LogSQL(Self.ClassName+'.Init, using object "'+Obj.Name+'"', lcDebug);
-  TExtForm.FixControls(Self);
   IsRefresh := Assigned(DBObject) and DBObject.IsSameAs(Obj);
   if IsRefresh and Assigned(FMainSynMemo) then
     FMainSynMemoPreviousTopLine := FMainSynMemo.TopLine
@@ -2296,8 +2300,7 @@ var
     cap := '';
     if ResourceId > 0 then begin
       // Prefer string from user32.dll
-      // May be empty on Wine!
-      //cap := GetLocaleString(ResourceId)
+      cap := GetLocaleString(ResourceId);
     end;
     if cap.IsEmpty then begin
       cap := _(BtnCaption);
@@ -2317,11 +2320,14 @@ var
   end;
 begin
 
+  {$IFNDEF WINDOWS}
   if (KeepAskingSetting = asUnused) and (FooterText.IsEmpty) then begin
-    // Show the more native MessageDlg when we don't need additional dialog features
+    // Show the more native MessageDlg when we don't need additional dialog features.
+    // Especially useful on macOS and Linux where the TTaskDialog looks really different than MessageDlg.
     Result := MessageDlg(Title, Msg, DlgType, Buttons, 0);
     Exit;
   end;
+  {$ENDIF}
 
   // Remember current path and restore it later, so the caller does not try to read from the wrong path after this dialog
   AppSettings.StorePath;
@@ -2329,6 +2335,8 @@ begin
   Dialog := TTaskDialog.Create(nil);
   Dialog.Flags := [tfEnableHyperlinks, tfAllowDialogCancellation];
   Dialog.CommonButtons := [];
+  if Assigned(MainForm) then
+    Dialog.OnHyperlinkClicked := MainForm.TaskDialogHyperLinkClicked;
 
   // Caption, title and text
   case DlgType of
@@ -2339,7 +2347,15 @@ begin
   end;
   if Title <> Dialog.Caption then
     Dialog.Title := Title;
-  Dialog.Text := Msg;
+  if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
+    Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
+  rx := TRegExpr.Create;
+  rx.Expression := 'https?://[^\s"]+';
+  if ThemeIsDark then
+    Dialog.Text := Msg
+  else // See issue #2036
+    Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
+  rx.Free;
 
   // Main icon, and footer link
   case DlgType of
@@ -2347,7 +2363,17 @@ begin
       Dialog.MainIcon := tdiWarning;
     mtError: begin
       Dialog.MainIcon := tdiError;
-      Dialog.FooterText := FooterText;
+      WebSearchUrl := AppSettings.ReadString(asWebSearchBaseUrl);
+      WebSearchUrl := StringReplace(WebSearchUrl, '%q', EncodeURLParam(Copy(Msg, 1, 1000)), []);
+      rx := TRegExpr.Create;
+      rx.Expression := 'https?://(www\.)?([^/]+)/';
+      if rx.Exec(WebSearchUrl) then
+        WebSearchHost := rx.Match[2]
+      else
+        WebSearchHost := '[unknown host]';
+      rx.Free;
+      Dialog.FooterText := IfThen(FooterText.IsEmpty, '', FooterText + sLineBreak + sLineBreak) +
+        '<a href="'+WebSearchUrl+'">'+_('Find some help on this error')+' (=> '+WebSearchHost+')</a>';
       Dialog.FooterIcon := tdiInformation;
     end;
     mtInformation:
@@ -2417,19 +2443,20 @@ begin
 end;
 
 
-{function GetLocaleString(const ResourceId: Integer): WideString;
+function GetLocaleString(const ResourceId: Integer): UnicodeString;
 var
-  Buffer: WideString;
+  Buffer: array[0..255] of WideChar;
   BufferLen: Integer;
 begin
   Result := '';
+  {$IFDEF WINDOWS}
   if LibHandleUser32 <> 0 then begin
-    SetLength(Buffer, 255);
-    BufferLen := LoadStringW(LibHandleUser32, ResourceId, PWideChar(Buffer), Length(Buffer));
-    if BufferLen <> 0 then
-      Result := Copy(Buffer, 1, BufferLen);
+    BufferLen := LoadStringW(LibHandleUser32, ResourceId, @Buffer[0], Length(Buffer));
+    if BufferLen > 0 then
+      Result := UnicodeString(Buffer);
   end;
-end;}
+  {$ENDIF}
+end;
 
 
 function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
@@ -2974,7 +3001,7 @@ end;
 procedure CopyImageList(SourceList, TargetList: TImageList; AppendDisabled: Boolean);
 var
   i, ResIdx, ResWidth: Integer;
-  TempBitmap: TBitmap;
+  TempBitmap: Graphics.TBitmap;
   TempBitmapList: Array of TRasterImage;
 const
   Resolutions: Array of Integer = [16, 24, 32, 48];
@@ -2988,7 +3015,7 @@ begin
     SetLength(TempBitmapList, Length(Resolutions));
     for ResIdx:=Low(Resolutions) to High(Resolutions) do begin
       ResWidth := Resolutions[ResIdx];
-      TempBitmap := TBitmap.Create;
+      TempBitmap := Graphics.TBitmap.Create;
       SourceList.Resolution[ResWidth].GetBitmap(i, TempBitmap);
       TempBitmapList[ResIdx] := TempBitmap;
     end;
@@ -3001,7 +3028,7 @@ begin
       SetLength(TempBitmapList, Length(Resolutions));
       for ResIdx:=Low(Resolutions) to High(Resolutions) do begin
         ResWidth := Resolutions[ResIdx];
-        TempBitmap := TBitmap.Create;
+        TempBitmap := Graphics.TBitmap.Create;
         SourceList.Resolution[ResWidth].GetBitmap(i, TempBitmap, gdeDisabled);
         TempBitmapList[ResIdx] := TempBitmap;
       end;
@@ -3479,10 +3506,9 @@ begin
       SetFocus;
   except
     on E:EInvalidOperation do
-      Beep;
+      SysUtils.Beep;
   end;
 end;
-
 
 
 { TAppSettings }
@@ -4445,9 +4471,6 @@ LibHandleUser32 := LoadLibrary('User32.dll');
 UTF8NoBOMEncoding := TUTF8NoBOMEncoding.Create;
 
 DateTimeNever := MinDateTime;
-
-//ConfirmIcon := TIcon.Create;
-//ConfirmIcon.LoadFromResourceName(hInstance, 'Z_ICONQUESTION');
 
 // Callback used by osutil.inc:ApplicationName(), forcing a stable configuration directory. See issue #2310
 OnGetApplicationName := @GetApplicationName;

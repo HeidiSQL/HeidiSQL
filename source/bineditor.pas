@@ -92,7 +92,6 @@ end;
 
 procedure TfrmBinEditor.FormCreate(Sender: TObject);
 begin
-  HasSizeGrip := True;
   Width := AppSettings.ReadInt(asMemoEditorWidth);
   Height := AppSettings.ReadInt(asMemoEditorHeight);
 end;

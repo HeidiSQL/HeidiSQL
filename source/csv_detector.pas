@@ -43,7 +43,6 @@ uses main;
 
 procedure TfrmCsvDetector.FormCreate(Sender: TObject);
 begin
-  HasSizeGrip := True;
   FLoadDataFrm := Tloaddataform(Owner);
   FConnection := MainForm.ActiveConnection;
 end;

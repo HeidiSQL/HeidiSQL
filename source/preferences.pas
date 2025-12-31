@@ -537,7 +537,6 @@ var
   IconPack: String;
   Reformatter: TfrmReformatter;
 begin
-  HasSizeGrip := True;
   Width := AppSettings.ReadInt(asPreferencesWindowWidth);
   Height := AppSettings.ReadInt(asPreferencesWindowHeight);
 

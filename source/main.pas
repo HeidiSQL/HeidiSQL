@@ -1379,7 +1379,7 @@ type
     procedure SetProgressPosition(Value: Integer);
     procedure ProgressStep;
     procedure SetProgressState(State: TProgressbarState);
-    //procedure TaskDialogHyperLinkClicked(Sender: TObject);
+    procedure TaskDialogHyperLinkClicked(Sender: TObject);
     function HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
     procedure ApplyVTFilter(FromTimer: Boolean);
     procedure ApplyFontToGrids;
@@ -14540,7 +14540,6 @@ var
   MainTabIndex, QueryTabIndex, NewHideTimeout: Integer;
   pt: TPoint;
   Conn: TDBConnection;
-  Editor: TSynMemo;
   Infos, HintSQL: TStringList;
   i, PanelIndex, TabIndex: Integer;
   QueryTab: TQueryTab;
@@ -14567,7 +14566,6 @@ begin
 
   else if HintInfo.HintControl is TSynMemo then begin
     // Token hint displaying through SynEdit's OnShowHint event
-    Editor := TSynMemo(HintInfo.HintControl);
     NewHideTimeout := Min(Length(HintStr) * 100, 60*1000);
     if NewHideTimeout > HintInfo.HideTimeout then
       HintInfo.HideTimeout := NewHideTimeout;
@@ -14741,12 +14739,12 @@ begin
 end;
 
 
-{procedure TMainForm.TaskDialogHyperLinkClicked(Sender: TObject);
+procedure TMainForm.TaskDialogHyperLinkClicked(Sender: TObject);
 begin
   // Used by hyperlinks in helpers.MessageDialog()
   if Sender is TTaskDialog then
     ShellExec(TTaskDialog(Sender).URL);
-end;}
+end;
 
 
 function TMainForm.HasDonated(ForceCheck: Boolean): TThreeStateBoolean;

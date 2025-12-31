@@ -2464,9 +2464,9 @@ begin
     if Parameters.WantSSL and (not FLib.IsLibMariadb) then
       ClientFlags := ClientFlags or CLIENT_SSL;
 
-    if not GetLibDir.IsEmpty then begin
+    if not GetPluginDir.IsEmpty then begin
       // Point libmysql to the folder with client plugins
-      PluginDir := AnsiString(GetLibDir);
+      PluginDir := AnsiString(GetPluginDir);
       SetOption(FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
     end;
 

@@ -167,7 +167,6 @@ var
   SenderName: String;
   comboItem: TComboExItem;
 begin
-  HasSizeGrip := True;
   Width := AppSettings.ReadInt(asGridExportWindowWidth);
   Height := AppSettings.ReadInt(asGridExportWindowHeight);
   editFilename.Text := AppSettings.ReadString(asGridExportFilename);

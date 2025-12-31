@@ -94,7 +94,6 @@ begin
   lblKeyword.Font.Style := [fsBold];
   Caption := DEFAULT_WINDOW_CAPTION;
   FixVT(treeTopics);
-  HasSizeGrip := True;
   Top := AppSettings.ReadInt(asSQLHelpWindowTop);
   Left := AppSettings.ReadInt(asSQLHelpWindowLeft);
   Width := AppSettings.ReadInt(asSQLHelpWindowWidth);

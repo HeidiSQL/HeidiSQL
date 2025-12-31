@@ -99,7 +99,6 @@ uses Main, apphelpers, csv_detector;
 
 procedure Tloaddataform.FormCreate(Sender: TObject);
 begin
-  HasSizeGrip := True;
   // Restore settings
   editFilename.Text := AppSettings.ReadString(asCSVImportFilename);
   editFieldTerminator.Text := AppSettings.ReadString(asCSVImportSeparator);
