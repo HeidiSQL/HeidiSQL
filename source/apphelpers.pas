@@ -337,6 +337,7 @@ type
   procedure StripNewLines(var txt: String; Replacement: String=' ');
   function GetLineBreak(LineBreakIndex: TLineBreaks): String;
   procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
+  // Replace special characters in a filename with underscore
   function ValidFilename(Str: String): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
   function UnformatNumber(Val: String): String;
@@ -944,20 +945,20 @@ begin
 end;
 
 
-{***
-  Remove special characters from a filename
-
-  @param string Filename
-  @return string
-}
 function ValidFilename(Str: String): String;
+const
+  InvalidFileNameChars: set of Char = {$IFDEF WINDOWS}
+    [#0..#31, '"', '*', '/', ':', '<', '>', '?', '\', '|'];
+  {$ELSE}
+    [#0, '/', ':'];
+  {$ENDIF}
 var
   c: Char;
 begin
   Result := Str;
-  {for c in TPath.GetInvalidFileNameChars do begin
+  for c in InvalidFileNameChars do begin
     Result := StringReplace(Result, c, '_', [rfReplaceAll]);
-  end;}
+  end;
 end;
 
 
