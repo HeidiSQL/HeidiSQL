@@ -349,9 +349,13 @@ type
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
-  //function GetTempDir: String;
+  // Return directory of running executable, including a trailing path delimiter
   function GetAppDir: String;
+  // Return directory with dlls or dylibs, or empty string for auto-detection
   function GetLibDir: String;
+  // Return directory with MySQL plugin files. Empty on Linux inidicating auto-detection.
+  function GetPluginDir: String;
+  // Point to Resources dir in macOS app bundle, application dir in most other OSes
   function GetResourcesDir: String;
   procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
@@ -1257,16 +1261,6 @@ begin
 end;
 
 
-{function GetTempDir: String;
-var
-  TempPath: array[0..MAX_PATH] of Char;
-begin
-  GetTempPath(MAX_PATH, PChar(@TempPath));
-  Result := StrPas(TempPath);
-end;}
-
-
-// Return directory of running executable, including a trailing path delimiter
 function GetAppDir: String;
 begin
   Result := ExtractFilePath(Application.ExeName);
@@ -1288,10 +1282,20 @@ begin
   {$ENDIF}
 end;
 
+function GetPluginDir: String;
+begin
+  // Windows: reuse plugin directory from pre-v13 installations
+  // Linux: return empty string, indicating libmysql knows where to look at
+  // macOS: use the Frameworks directory, where all other libs reside
+  Result := GetLibDir;
+  {$IFDEF WINDOWS}
+  Result := Result + 'plugins' + DirectorySeparator;
+  {$ENDIF}
+end;
+
 function GetResourcesDir: String;
 begin
   Result := GetAppDir;
-  // point to resources dir in macOS app bundle
   {$IFDEF DARWIN}
   Result := GetAppDir + '..' + DirectorySeparator + 'Resources' + DirectorySeparator;
   {$ENDIF}
