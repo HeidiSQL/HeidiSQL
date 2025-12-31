@@ -8,6 +8,7 @@ uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient,
+  {$IFDEF WINDOWS} Windows, {$ENDIF}
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
   IniFiles, GraphType;
 
@@ -402,7 +403,7 @@ type
   function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer; overload;
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
-  //function GetLocaleString(const ResourceId: Integer): WideString;
+  function GetLocaleString(const ResourceId: Integer): UnicodeString;
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
   procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
   procedure InitMoFile(LangCode: String);
@@ -726,7 +727,7 @@ end;
 function DeleteFileWithUndo(sFileName: string): Boolean;
 begin
   // Todo: move to trash, cross-platform
-  Result := DeleteFile(sFileName);
+  Result := SysUtils.DeleteFile(sFileName);
 end;
 
 
@@ -2300,8 +2301,7 @@ var
     cap := '';
     if ResourceId > 0 then begin
       // Prefer string from user32.dll
-      // May be empty on Wine!
-      //cap := GetLocaleString(ResourceId)
+      cap := GetLocaleString(ResourceId);
     end;
     if cap.IsEmpty then begin
       cap := _(BtnCaption);
@@ -2421,19 +2421,18 @@ begin
 end;
 
 
-{function GetLocaleString(const ResourceId: Integer): WideString;
+function GetLocaleString(const ResourceId: Integer): UnicodeString;
 var
-  Buffer: WideString;
+  Buffer: array[0..255] of WideChar;
   BufferLen: Integer;
 begin
   Result := '';
   if LibHandleUser32 <> 0 then begin
-    SetLength(Buffer, 255);
-    BufferLen := LoadStringW(LibHandleUser32, ResourceId, PWideChar(Buffer), Length(Buffer));
-    if BufferLen <> 0 then
-      Result := Copy(Buffer, 1, BufferLen);
+    BufferLen := LoadStringW(LibHandleUser32, ResourceId, @Buffer[0], Length(Buffer));
+    if BufferLen > 0 then
+      Result := UnicodeString(Buffer);
   end;
-end;}
+end;
 
 
 function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
@@ -2978,7 +2977,7 @@ end;
 procedure CopyImageList(SourceList, TargetList: TImageList; AppendDisabled: Boolean);
 var
   i, ResIdx, ResWidth: Integer;
-  TempBitmap: TBitmap;
+  TempBitmap: Graphics.TBitmap;
   TempBitmapList: Array of TRasterImage;
 const
   Resolutions: Array of Integer = [16, 24, 32, 48];
@@ -2992,7 +2991,7 @@ begin
     SetLength(TempBitmapList, Length(Resolutions));
     for ResIdx:=Low(Resolutions) to High(Resolutions) do begin
       ResWidth := Resolutions[ResIdx];
-      TempBitmap := TBitmap.Create;
+      TempBitmap := Graphics.TBitmap.Create;
       SourceList.Resolution[ResWidth].GetBitmap(i, TempBitmap);
       TempBitmapList[ResIdx] := TempBitmap;
     end;
@@ -3005,7 +3004,7 @@ begin
       SetLength(TempBitmapList, Length(Resolutions));
       for ResIdx:=Low(Resolutions) to High(Resolutions) do begin
         ResWidth := Resolutions[ResIdx];
-        TempBitmap := TBitmap.Create;
+        TempBitmap := Graphics.TBitmap.Create;
         SourceList.Resolution[ResWidth].GetBitmap(i, TempBitmap, gdeDisabled);
         TempBitmapList[ResIdx] := TempBitmap;
       end;
@@ -3483,7 +3482,7 @@ begin
       SetFocus;
   except
     on E:EInvalidOperation do
-      Beep;
+      SysUtils.Beep;
   end;
 end;
 
