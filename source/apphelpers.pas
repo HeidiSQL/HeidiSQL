@@ -2449,11 +2449,13 @@ var
   BufferLen: Integer;
 begin
   Result := '';
+  {$IFDEF WINDOWS}
   if LibHandleUser32 <> 0 then begin
     BufferLen := LoadStringW(LibHandleUser32, ResourceId, @Buffer[0], Length(Buffer));
     if BufferLen > 0 then
       Result := UnicodeString(Buffer);
   end;
+  {$ENDIF}
 end;
 
 
