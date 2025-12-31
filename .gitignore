@@ -10,10 +10,9 @@
 /out/heidisql.exe
 /out/gtk2
 /out/qt5
+/out/qt6
 /out/locale
 /extra/locale/*/LC_MESSAGES
-# Secrets, DO NOT COMMIT
-/secrets.mk
 
 ## Uncomment these types if you want even more clean repository. But be careful.
 ## It can make harm to an existing project source. Read explanations below.

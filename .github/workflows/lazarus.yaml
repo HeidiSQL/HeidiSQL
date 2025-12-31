@@ -53,23 +53,36 @@ jobs:
             name: ${{ matrix.operating-system }}-GTK
             path: out/gtk2/heidisql
 
-        - name: Getting libqt5pas-dev
+        - name: Getting libqt5pas-dev, libqt6pas-dev
           run: |
             sudo apt update
-            sudo apt install -y libqt5pas-dev
+            sudo apt install -y libqt5pas-dev libqt6pas-dev
 
-        - name: Build HeidiSQL (Ubuntu QT)
+        - name: Build HeidiSQL (Ubuntu QT5)
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
           run: |
             echo Building with QT5
             make build-qt5
 
-        - name: Upload binaries QT
+        - name: Upload binaries QT5
           if: ${{ matrix.lazarus-versions == 'stable' }}
           uses: actions/upload-artifact@v4
           with:
-            name: ${{ matrix.operating-system }}-QT
+            name: ${{ matrix.operating-system }}-QT5
             path: out/qt5/heidisql
+
+        - name: Build HeidiSQL (Ubuntu QT6)
+          if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+          run: |
+            echo Building with QT6
+            make build-qt6
+
+        - name: Upload binaries QT6
+          if: ${{ matrix.lazarus-versions == 'stable' }}
+          uses: actions/upload-artifact@v4
+          with:
+            name: ${{ matrix.operating-system }}-QT6
+            path: out/qt6/heidisql
 
     release:
         if: contains(github.ref_type, 'tag')
@@ -95,16 +108,23 @@ jobs:
                 name: ubuntu-latest-GTK
                 path: out/gtk2
 
-            - name: Download Ubuntu QT
+            - name: Download Ubuntu QT5
               uses: actions/download-artifact@v4
               with:
-                name: ubuntu-latest-QT
+                name: ubuntu-latest-QT5
                 path: out/qt5
+
+            - name: Download Ubuntu QT6
+              uses: actions/download-artifact@v4
+              with:
+                name: ubuntu-latest-QT6
+                path: out/qt6
 
             - name: List files
               run: |
                 ls -alF out/gtk2
                 ls -alF out/qt5
+                ls -alF out/qt6
 
             - name: Install gettext
               run: sudo apt install -y gettext
@@ -118,8 +138,11 @@ jobs:
             - name: Create debian package
               run: make deb-package
 
-            - name: Create release archives (Linux QT)
+            - name: Create release archives (Linux QT5)
               run: make tar-qt5
+
+            - name: Create release archives (Linux QT6)
+              run: make tar-qt6
 
             - name: Generate Release Notes
               id: git-cliff

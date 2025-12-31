@@ -1,11 +1,13 @@
 LAZBUILD := $(shell command -v lazbuild)
 OPTS := -B --bm=Release
-OPTSQT := --ws=qt5
+OPTSQT5 := --ws=qt5
+OPTSQT6 := --ws=qt6
 LPI := heidisql.lpi
 
 BIN := ./out/heidisql
 BINGTK := ./out/gtk2/heidisql
-BINQT := ./out/qt5/heidisql
+BINQT5 := ./out/qt5/heidisql
+BINQT6 := ./out/qt6/heidisql
 
 # Make shell magic to get version from somewhere
 #VERSION := shell magic
@@ -21,14 +23,14 @@ endif
 
 VERSION := $(shell echo $(tag) | sed "s/v//")
 
-.PHONY: all clean tx-pull copy-locale build-mo build-gtk2 run-gtk2 build-qt5 run-qt5 deb-package tar-gtk2 tar-qt5
+.PHONY: all clean tx-pull copy-locale build-mo build-gtk2 run-gtk2 build-qt5 run-qt5 build-qt6 run-qt6 deb-package tar-gtk2 tar-qt5 tar-qt6
 
-all: clean build-gtk2 build-qt5 deb-package tar-gtk2 tar-qt5
+all: clean build-gtk2 build-qt5 build-qt6 deb-package tar-gtk2 tar-qt5 tar-qt6
 
 clean:
 	@echo "=== Cleaning"
 	@rm -rf ./bin/lib/x86_64-linux/*
-	@rm -f ./out/gtk2/* ./out/qt5/*
+	@rm -f ./out/gtk2/* ./out/qt5/* ./out/qt6/*
 	@rm -rf ./deb ./rpm ./tar ./dist
 
 copy-locale:
@@ -52,16 +54,30 @@ run-gtk2: build-gtk2
 
 build-qt5:
 	@echo "=== Building QT5"
-	$(LAZBUILD) $(OPTS) $(OPTSQT) $(LPI)
+	$(LAZBUILD) $(OPTS) $(OPTSQT5) $(LPI)
 	@mkdir -p ./out/qt5
-	@mv -v $(BIN) $(BINQT)
+	@mv -v $(BIN) $(BINQT5)
 
 run-qt5: build-qt5
-	@echo "=== Running GTK2"
+	@echo "=== Running QT5"
 	@mkdir -p ./run/locale
 	@cp -vf ./extra/locale/*.mo ./run/locale
 	@cp -vf ./extra/ini/*.ini ./run
-	@cp -v $(BINQT) ./run/heidisql
+	@cp -v $(BINQT5) ./run/heidisql
+	@./run/heidisql
+
+build-qt6:
+	@echo "=== Building QT6"
+	$(LAZBUILD) $(OPTS) $(OPTSQT6) $(LPI)
+	@mkdir -p ./out/qt6
+	@mv -v $(BIN) $(BINQT6)
+
+run-qt6: build-qt6
+	@echo "=== Running QT6"
+	@mkdir -p ./run/locale
+	@cp -vf ./extra/locale/*.mo ./run/locale
+	@cp -vf ./extra/ini/*.ini ./run
+	@cp -v $(BINQT6) ./run/heidisql
 	@./run/heidisql
 
 deb-package:
@@ -109,3 +125,15 @@ tar-qt5:
 	cp -v out/qt5/heidisql tar
 	chmod +x tar/heidisql
 	cd tar && tar -zcvf ../dist/build-qt5-$(tag).tgz *
+
+tar-qt6:
+	@echo "=== Creating QT6 archive"
+	rm -vrf tar
+	mkdir -p tar/locale dist
+	cp -v README.md LICENSE tar
+	cp -v res/deb-package-icon.png tar/heidisql.png
+	cp -v extra/locale/*.mo tar/locale
+	cp -v extra/ini/*.ini tar
+	cp -v out/qt6/heidisql tar
+	chmod +x tar/heidisql
+	cd tar && tar -zcvf ../dist/build-qt6-$(tag).tgz *
