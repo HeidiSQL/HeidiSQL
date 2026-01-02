@@ -6147,7 +6147,6 @@ begin
     Exclude(Node.States, vsMultiLine)
   else
     Include(Node.States, vsMultiLine);
-  Sender.NodeHeight[Node] := TVirtualStringTree(Sender).DefaultNodeHeight;
   // Node may have data already, if added via InsertRow
   if not (vsOnFreeNodeCallRequired in Node.States) then begin
     Idx := Sender.GetNodeData(Node);
