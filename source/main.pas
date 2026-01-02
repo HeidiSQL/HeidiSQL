@@ -10623,9 +10623,9 @@ begin
         Key := 0;
       end;
     end;
-    VK_RETURN: if Assigned(g.FocusedNode) then g.EditNode(g.FocusedNode, g.FocusedColumn);
-    VK_DOWN: if g.FocusedNode = g.GetLast then actDataInsertExecute(actDataInsert);
-    VK_NEXT: if (g = DataGrid) and (g.FocusedNode = g.GetLast) then actDataShowNext.Execute;
+    VK_RETURN: if Assigned(g.FocusedNode) and (Shift=[]) then g.EditNode(g.FocusedNode, g.FocusedColumn);
+    VK_DOWN: if (g.FocusedNode = g.GetLast) and (Shift=[]) then actDataInsertExecute(actDataInsert);
+    VK_NEXT: if (g = DataGrid) and (g.FocusedNode = g.GetLast) and (Shift=[]) then actDataShowNext.Execute;
   end;
 end;
 
@@ -10656,8 +10656,8 @@ procedure TMainForm.AnyGridEdited(Sender: TBaseVirtualTree; Node:
 begin
   // Reassign Esc to "Cancel row editing" action
   if ([tsEditing, tsEditPending] * Sender.TreeStates) = [] then begin
-    actDataCancelChanges.ShortCut := TextToShortcut('Esc');
-    actDataPostChanges.ShortCut := TextToShortcut('Ctrl+Enter');
+    actDataCancelChanges.ShortCut := KeyToShortCut(VK_ESCAPE, []);
+    actDataPostChanges.ShortCut := KeyToShortCut(VK_RETURN, [ssCtrl]);
     FGridEditFunctionMode := False;
   end;
 end;
@@ -10666,8 +10666,8 @@ procedure TMainForm.AnyGridEditCancelled(Sender: TBaseVirtualTree; Column:
     TColumnIndex);
 begin
   // Reassign Esc to "Cancel row editing" action
-  actDataCancelChanges.ShortCut := TextToShortcut('Esc');
-  actDataPostChanges.ShortCut := TextToShortcut('Ctrl+Enter');
+  actDataCancelChanges.ShortCut := KeyToShortCut(VK_ESCAPE, []);
+  actDataPostChanges.ShortCut := KeyToShortCut(VK_RETURN, [ssCtrl]);
 end;
 
 procedure TMainForm.AnyGridCreateEditor(Sender: TBaseVirtualTree; Node:
