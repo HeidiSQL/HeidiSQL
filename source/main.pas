@@ -13739,8 +13739,7 @@ begin
   Result := '';
   if Encoding = TEncoding.Default then begin
     // Listing taken from http://forge.mysql.com/worklog/task.php?id=1349
-    // This would require to use the Windows unit, which would cause conflicts with Beep
-    {case GetACP of
+    case GetACP of
       437: Result := 'cp850';
       850: Result := 'cp850';
       852: Result := 'cp852';
@@ -13789,7 +13788,7 @@ begin
       51950: Result := 'big5';
       54936: Result := 'gb18030';
       65001: Result := 'utf8';
-    end;}
+    end;
   end else if (Encoding <> nil) and (Encoding.CodePage = 437) then
     Result := 'ascii'
   else if Encoding = TEncoding.Unicode then

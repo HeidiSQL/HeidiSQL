@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient,
-  {$IFDEF WINDOWS} Windows, {$ENDIF}
+  {$IFDEF WINDOWS} Windows, {$ENDIF} DelphiCompat,
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
   IniFiles, GraphType;
 
@@ -2463,7 +2463,7 @@ function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
 begin
   Result := '';
   if Encoding = TEncoding.Default then
-    Result := 'utf-8' // 'Windows-'+IntToStr(GetACP)
+    Result := 'Windows-'+IntToStr(GetACP)
   else if Encoding.CodePage = 437 then
     Result := 'ascii'
   else if Encoding = TEncoding.Unicode then
