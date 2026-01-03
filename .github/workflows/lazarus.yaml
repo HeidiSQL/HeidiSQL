@@ -35,7 +35,7 @@ jobs:
           uses: actions/checkout@v4
 
         - name: Install Lazarus
-          uses: gcarreno/setup-lazarus@v3
+          uses: D3SOX/setup-lazarus@support-new-versions
           with:
             lazarus-version: ${{ matrix.lazarus-versions }}
             with-cache: false
