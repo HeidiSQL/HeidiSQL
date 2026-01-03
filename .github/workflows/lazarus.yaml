@@ -57,7 +57,13 @@ jobs:
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
           run: |
             sudo apt update
-            sudo apt install -y libqt5pas-dev libqt6pas-dev
+            sudo apt install -y libqt5pas-dev wget qt6-base-dev
+            LIBQT6PAS_VERSION="6.2.10"
+            wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6_${LIBQT6PAS_VERSION}-1_amd64.deb" -O /tmp/libqt6pas6.deb
+            sudo dpkg -i /tmp/libqt6pas6.deb || sudo apt-get install -f -y
+            wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_amd64.deb" -O /tmp/libqt6pas6-dev.deb
+            sudo dpkg -i /tmp/libqt6pas6-dev.deb || sudo apt-get install -f -y
+            rm -f /tmp/libqt6pas6.deb /tmp/libqt6pas6-dev.deb
 
         - name: Build HeidiSQL (Ubuntu QT5)
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
