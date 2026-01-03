@@ -5869,7 +5869,11 @@ begin
         Col.LengthSet := MaxLen;
     end;
     Col.Charset := ColQuery.Col('CHARACTER_SET_NAME');
-    Col.Collation := ColQuery.Col('COLLATION_NAME', True);
+    if not ColQuery.ColExists('COLLATION_NAME') then begin
+      // Debugging issue #2338 with missing columns on PG v16:
+      Log(lcError, 'Missing column COLLATION_NAME: '+ColQuery.ColumnNames.CommaText);
+    end;
+    Col.Collation := ColQuery.Col('COLLATION_NAME');
     // MSSQL has no expression
     Col.GenerationExpression := ColQuery.Col('GENERATION_EXPRESSION', True);
     Col.GenerationExpression := UnescapeString(Col.GenerationExpression);
