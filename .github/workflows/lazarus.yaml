@@ -27,7 +27,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                operating-system: [ubuntu-latest]
+                operating-system: [ubuntu-latest, macos-latest]
                 lazarus-versions: ["stable"]
 
         steps:
@@ -47,13 +47,14 @@ jobs:
             make build-gtk2
 
         - name: Upload binaries GTK
-          if: ${{ matrix.lazarus-versions == 'stable' }}
+          if: ${{ matrix.operating-system == 'ubuntu-latest' && matrix.lazarus-versions == 'stable' }}
           uses: actions/upload-artifact@v4
           with:
             name: ${{ matrix.operating-system }}-GTK
             path: out/gtk2/heidisql
 
         - name: Getting libqt5pas-dev, libqt6pas-dev
+          if: ${{ matrix.operating-system == 'ubuntu-latest' }}
           run: |
             sudo apt update
             sudo apt install -y libqt5pas-dev libqt6pas-dev
@@ -65,7 +66,7 @@ jobs:
             make build-qt5
 
         - name: Upload binaries QT5
-          if: ${{ matrix.lazarus-versions == 'stable' }}
+          if: ${{ matrix.operating-system == 'ubuntu-latest' && matrix.lazarus-versions == 'stable' }}
           uses: actions/upload-artifact@v4
           with:
             name: ${{ matrix.operating-system }}-QT5
@@ -78,11 +79,26 @@ jobs:
             make build-qt6
 
         - name: Upload binaries QT6
-          if: ${{ matrix.lazarus-versions == 'stable' }}
+          if: ${{ matrix.operating-system == 'ubuntu-latest' && matrix.lazarus-versions == 'stable' }}
           uses: actions/upload-artifact@v4
           with:
             name: ${{ matrix.operating-system }}-QT6
             path: out/qt6/heidisql
+
+        - name: Build HeidiSQL (macOS)
+          if: ${{ matrix.operating-system == 'macos-latest' }}
+          run: |
+            echo Building for macOS
+            lazbuild -B --bm=Release heidisql.lpi
+            mkdir -p ./out/macos
+            mv -v ./out/heidisql ./out/macos/heidisql
+
+        - name: Upload binaries macOS
+          if: ${{ matrix.operating-system == 'macos-latest' && matrix.lazarus-versions == 'stable' }}
+          uses: actions/upload-artifact@v4
+          with:
+            name: ${{ matrix.operating-system }}
+            path: out/macos/heidisql
 
     release:
         if: contains(github.ref_type, 'tag')
