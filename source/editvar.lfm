@@ -10,21 +10,23 @@ object frmEditVariable: TfrmEditVariable
   Constraints.MinHeight = 270
   Constraints.MinWidth = 360
   DesignTimePPI = 120
+  Position = poMainFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  Position = poMainFormCenter
   object btnOK: TButton
     AnchorSideRight.Control = btnCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 164
-    Height = 31
-    Top = 241
-    Width = 94
+    Left = 152
+    Height = 30
+    Top = 242
+    Width = 100
     Anchors = [akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'OK'
+    Constraints.MinWidth = 100
     Default = True
     ModalResult = 1
     TabOrder = 0
@@ -35,14 +37,16 @@ object frmEditVariable: TfrmEditVariable
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 264
-    Height = 31
-    Top = 241
-    Width = 94
+    Left = 258
+    Height = 30
+    Top = 242
+    Width = 100
     Anchors = [akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
+    Constraints.MinWidth = 100
     ModalResult = 2
     TabOrder = 1
   end
@@ -54,15 +58,14 @@ object frmEditVariable: TfrmEditVariable
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnOK
     Left = 6
-    Height = 59
-    Top = 176
+    Height = 61
+    Top = 175
     Width = 352
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'Scope'
-    ClientHeight = 34
+    ClientHeight = 36
     ClientWidth = 348
     ParentBackground = False
     TabOrder = 2
@@ -96,15 +99,14 @@ object frmEditVariable: TfrmEditVariable
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 6
-    Height = 164
+    Height = 163
     Top = 6
     Width = 352
     Align = alTop
-    Anchors = [akTop, akLeft, akRight, akBottom]
     AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'name of variable'
-    ClientHeight = 139
+    ClientHeight = 138
     ClientWidth = 348
     ParentBackground = False
     TabOrder = 3
@@ -141,6 +143,7 @@ object frmEditVariable: TfrmEditVariable
       Caption = 'Enumeration:'
     end
     object lblBoolean: TLabel
+      AnchorSideLeft.Control = gbValue
       AnchorSideTop.Control = comboEnum
       AnchorSideTop.Side = asrBottom
       Left = 6
@@ -163,13 +166,14 @@ object frmEditVariable: TfrmEditVariable
       TabOrder = 0
     end
     object radioBooleanOff: TRadioButton
+      AnchorSideLeft.Control = radioBooleanOn
+      AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = comboEnum
       AnchorSideTop.Side = asrBottom
-      Left = 216
+      Left = 158
       Height = 24
       Top = 108
-      Width = 122
-      Anchors = [akTop, akLeft, akRight]
+      Width = 42
       BorderSpacing.Around = 6
       Caption = 'Off'
       TabOrder = 1
@@ -221,13 +225,15 @@ object frmEditVariable: TfrmEditVariable
     AnchorSideRight.Control = btnOK
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 64
-    Height = 31
-    Top = 241
-    Width = 94
+    Left = 46
+    Height = 30
+    Top = 242
+    Width = 100
     Anchors = [akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'Help'
+    Constraints.MinWidth = 100
     TabOrder = 4
     OnClick = btnHelpClick
   end
