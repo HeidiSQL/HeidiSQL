@@ -93,11 +93,7 @@ jobs:
 
         - name: Build HeidiSQL (macOS)
           if: ${{ matrix.operating-system == 'macos-latest' }}
-          run: |
-            echo Building for macOS
-            lazbuild -B --bm=Release heidisql.lpi
-            mkdir -p ./out/macos
-            mv -v ./out/heidisql ./out/macos/heidisql
+          run: make build-macos
 
         - name: Upload binaries macOS
           if: ${{ matrix.operating-system == 'macos-latest' && matrix.lazarus-versions == 'stable' }}
