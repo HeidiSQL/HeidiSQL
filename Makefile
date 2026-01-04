@@ -8,6 +8,7 @@ BIN := ./out/heidisql
 BINGTK := ./out/gtk2/heidisql
 BINQT5 := ./out/qt5/heidisql
 BINQT6 := ./out/qt6/heidisql
+BINMACOS := ./out/macos/heidisql
 
 # Make shell magic to get version from somewhere
 #VERSION := shell magic
@@ -23,14 +24,14 @@ endif
 
 VERSION := $(shell echo $(tag) | sed "s/v//")
 
-.PHONY: all clean tx-pull copy-locale build-mo build-gtk2 run-gtk2 build-qt5 run-qt5 build-qt6 run-qt6 deb-package tar-gtk2 tar-qt5 tar-qt6
+.PHONY: all clean tx-pull copy-locale build-mo build-gtk2 run-gtk2 build-qt5 run-qt5 build-qt6 run-qt6 build-macos deb-package tar-gtk2 tar-qt5 tar-qt6
 
 all: clean build-gtk2 build-qt5 build-qt6 deb-package tar-gtk2 tar-qt5 tar-qt6
 
 clean:
 	@echo "=== Cleaning"
 	@rm -rf ./bin/lib/x86_64-linux/*
-	@rm -f ./out/gtk2/* ./out/qt5/* ./out/qt6/*
+	@rm -f ./out/gtk2/* ./out/qt5/* ./out/qt6/* ./out/macos/*
 	@rm -rf ./deb ./rpm ./tar ./dist
 
 copy-locale:
@@ -79,6 +80,12 @@ run-qt6: build-qt6
 	@cp -vf ./extra/ini/*.ini ./run
 	@cp -v $(BINQT6) ./run/heidisql
 	@./run/heidisql
+
+build-macos:
+	@echo "=== Building macOS"
+	$(LAZBUILD) $(OPTS) $(LPI)
+	@mkdir -p ./out/macos
+	@mv -v $(BIN) $(BINMACOS)
 
 deb-package:
 	@echo "=== Creating debian package"
