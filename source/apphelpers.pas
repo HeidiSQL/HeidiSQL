@@ -446,7 +446,7 @@ var
 
 implementation
 
-uses main, extra_controls;
+uses main;
 
 
 
@@ -1455,26 +1455,27 @@ end;
 
 procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
 var
-  SingleLineHeight: Integer;
+  //SingleLineHeight: Integer;
   Node: PVirtualNode;
 begin
   // This is called either in some early stage, or from preferences dialog
-  VT.BeginUpdate;
-  SingleLineHeight := GetTextHeight(VT.Font) + 7;
+  //SingleLineHeight := GetTextHeight(VT.Font) + 7;
   // Multiline nodes?
-  VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
-  VT.Header.MinHeight := SingleLineHeight;
-  VT.Header.Height := SingleLineHeight;
-  // Apply new height to multi line grid nodes
-  Node := VT.GetFirstInitialized;
-  while Assigned(Node) do begin
-    // Nodes have vsMultiLine through InitNode event
-    VT.MultiLine[Node] := MultiLineCount > 1;
-    Node := VT.GetNextInitialized(Node);
+  // Node height calculation has some hard to find bug, see issue #2344
+  // So we'll leave DefaultNodeHeight, Header.MinHeight and Header.Height at their default values.
+  //VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
+  //VT.Header.MinHeight := SingleLineHeight;
+  //VT.Header.Height := SingleLineHeight;
+  if MultiLineCount > 1 then begin
+    VT.BeginUpdate;
+    Node := VT.GetFirstInitialized;
+    while Assigned(Node) do begin
+      // Nodes have vsMultiLine through InitNode event
+      VT.MultiLine[Node] := MultiLineCount > 1;
+      Node := VT.GetNextInitialized(Node);
+    end;
+    VT.EndUpdate;
   end;
-  VT.EndUpdate;
-  VT.TextMargin := 6;
-  VT.Margin := 2;
   {$IFNDEF WINDOWS}
   // Disable grid lines, looks ok on Windows with dotted light lines, but not on macOS and Linux
   if (toHotTrack in VT.TreeOptions.PaintOptions) then
