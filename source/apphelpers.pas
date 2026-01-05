@@ -404,7 +404,7 @@ type
   function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer; overload;
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
-  function GetLocaleString(const ResourceId: Integer): UnicodeString;
+  function GetLocaleString(const ResourceId: Integer): String;
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
   procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
   procedure InitMoFile(LangCode: String);
@@ -1403,7 +1403,7 @@ begin
 
   SetLength(Bytes, ChunkSize);
   Stream.ReadBuffer(Bytes[0], Length(Bytes));
-  Result := Encoding.GetString(Bytes);
+  Result := Encoding.GetAnsiString(Bytes);
 end;
 
 
@@ -2444,17 +2444,20 @@ begin
 end;
 
 
-function GetLocaleString(const ResourceId: Integer): UnicodeString;
+function GetLocaleString(const ResourceId: Integer): String;
 var
   Buffer: array[0..255] of WideChar;
+  WS: UnicodeString;
   BufferLen: Integer;
 begin
   Result := '';
   {$IFDEF WINDOWS}
   if LibHandleUser32 <> 0 then begin
-    BufferLen := LoadStringW(LibHandleUser32, ResourceId, @Buffer[0], Length(Buffer));
-    if BufferLen > 0 then
-      Result := UnicodeString(Buffer);
+    BufferLen := LoadStringW(LibHandleUser32, ResourceId, {%H-}Buffer, Length(Buffer));
+    if BufferLen > 0 then begin
+      SetString(WS, PWideChar(@Buffer[0]), BufferLen);
+      Result := UTF16ToUTF8(WS);
+    end;
   end;
   {$ENDIF}
 end;

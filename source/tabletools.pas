@@ -1723,9 +1723,6 @@ end;
 
 // Pass output to file or query, and append semicolon if needed
 procedure TfrmTableTools.Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
-var
-  SA: AnsiString;
-  ChunkSize: Integer;
 begin
   if (ToFile and ForFile) or (ToDir and ForDir) or (ToClipboard and ForFile) then begin
     if IsEndOfQuery then
@@ -1738,12 +1735,11 @@ begin
     StreamWrite(ExportStream, SQL);
     if IsEndOfQuery then begin
       ExportStream.Position := 0;
-      ChunkSize := ExportStream.Size;
-      SetLength(SA, ChunkSize div SizeOf(AnsiChar));
-      ExportStream.Read(PAnsiChar(SA)^, ChunkSize);
+      SetLength(SQL, ExportStream.Size);
+      if ExportStream.Size > 0 then
+        ExportStream.ReadBuffer(SQL[1], ExportStream.Size);
       ExportStream.Size := 0;
       ExportStreamStartOfQueryPos := 0;
-      SQL := UTF8ToString(SA);
       if ToDB then MainForm.ActiveConnection.Query(SQL, False, lcScript)
       else if ToServer then FTargetConnection.Query(SQL, False, lcScript);
       SQL := '';

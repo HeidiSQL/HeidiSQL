@@ -546,8 +546,7 @@ var
 
   procedure AddRow;
   var
-    SA: AnsiString;
-    ChunkSize: Int64;
+    S: String;
     i: Integer;
   begin
     if SQL = '' then
@@ -566,13 +565,15 @@ var
       if (OutStream.Size < PacketSize) and (P < ContentLen) and (RowCountInChunk < FConnection.MaxRowsPerInsert) then begin
         SQL := SQL + ', (';
       end else begin
+
         OutStream.Position := 0;
-        ChunkSize := OutStream.Size;
-        SA := '';
-        SetLength(SA, ChunkSize div SizeOf(AnsiChar));
-        OutStream.Read(PAnsiChar(SA)^, ChunkSize);
+        S := '';
+        SetLength(S, OutStream.Size);
+        if OutStream.Size > 0 then
+          OutStream.ReadBuffer(S[1], OutStream.Size);
         OutStream.Size := 0;
-        FConnection.Query(UTF8ToString(SA), False, lcScript);
+
+        FConnection.Query(S, False, lcScript);
         Inc(FRowCount, Max(FConnection.RowsAffected, 0));
         FConnection.ShowWarnings;
         SQL := '';

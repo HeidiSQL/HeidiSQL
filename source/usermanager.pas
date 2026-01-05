@@ -415,7 +415,7 @@ begin
       U.Problem := upNone;
       if Length(U.Password) = 0 then
         U.Problem := upEmptyPassword;
-      if PasswordLengthMatters and (not (Length(U.Password) in [0, 16, 41])) then
+      if PasswordLengthMatters and (not (Length(U.Password) {%H-}in [0, 16, 41])) then
         U.Problem := upInvalidPasswordLen
       else if SkipNameResolve and U.HostRequiresNameResolve then
         U.Problem := upSkipNameResolve;

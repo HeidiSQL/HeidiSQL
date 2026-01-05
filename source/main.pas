@@ -14,7 +14,7 @@ uses
   Types, LCLType, EditBtn, FileUtil, LMessages, jsonconf, DelphiCompat,
   LazStringUtils, dbconnection, dbstructures, dbstructures.mysql, generic_types,
   apphelpers, extra_controls, createdatabase, SynEditMarkupBracket,
-  searchreplace, ImgList, IniFiles, LazFileUtils, tabletools,
+  searchreplace, ImgList, IniFiles, LazFileUtils, LazUTF8, tabletools,
   lazaruscompat, extfiledialog;
 
 
@@ -2781,10 +2781,7 @@ begin
     m := SynMemoFilter;
     editFilterSearch.Clear;
   end;
-  m.SelectAll;
-  m.SelText := '';
-  m.SelStart := 0;
-  m.SelEnd := 0;
+  m.ClearAll;
   if Sender = actClearQueryEditor then begin
     QueryTabs.ActiveTab.MemoFilename := '';
     QueryTabs.ActiveTab.Memo.Modified := False;
@@ -5272,7 +5269,7 @@ begin
     if (Sender = actDataDuplicateRowWithoutKeys) or (Sender = actDataDuplicateRowWithKeys) then
       DupeNode := Grid.FocusedNode;
     RowNum := Results.InsertRow;
-    NewNode := Grid.InsertNode(Grid.FocusedNode, amInsertAfter, PInt64(RowNum));
+    NewNode := Grid.InsertNode(Grid.FocusedNode, amInsertAfter, @RowNum);
     SelectNode(Grid, NewNode);
     if Assigned(DupeNode) then begin
       // Copy values from source row, ensure we have whole cell data
@@ -5629,7 +5626,8 @@ procedure TMainForm.AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
   var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
 var
   PaintArea, TextArea, IconArea, SortArea: TRect;
-  SortText, ColCaption, ColIndex: WideString;
+  SortText, ColCaptionW, ColIndex: WideString;
+  ColCaption: String;
   TextSpace, ColSortIndex, NumCharTop: Integer;
   ColSortDirection: laz.VirtualTrees.TSortDirection;
   TextSize: TSize;
@@ -5670,13 +5668,13 @@ begin
   PaintArea := PaintInfo.PaintRectangle;
   PaintArea.Inflate(-PaintInfo.Column.Margin, 0);
   DeviceContext := PaintInfo.TargetCanvas.Handle;
+  DrawFormat := DT_TOP or DT_NOPREFIX or DT_LEFT;
 
   // Draw column name. Code taken from TVirtualTreeColumns.DrawButtonText and modified for our needs
   if hpeText in Elements then begin
 
     TextArea := PaintArea;
     SetBkMode(DeviceContext, TRANSPARENT);
-    DrawFormat := DT_TOP or DT_NOPREFIX or DT_LEFT;
 
     if AppSettings.ReadBool(asShowRowId) and (PaintInfo.Column.Index > 0) then begin
       // Paint gray column number left to its caption
@@ -5711,7 +5709,8 @@ begin
     end;
 
     SetTextColor(DeviceContext, ColorToRGB(clWindowText));
-    DrawTextW(DeviceContext, PWideChar(ColCaption), Length(ColCaption), TextArea, DrawFormat);
+    ColCaptionW := UTF8ToUTF16(ColCaption);
+    DrawTextW(DeviceContext, PWideChar(ColCaptionW), Length(ColCaption), TextArea, DrawFormat);
   end;
 
   // Draw image, if any

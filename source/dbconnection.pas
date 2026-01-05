@@ -2217,6 +2217,7 @@ var
   Types, tmp: String;
   TypesSorted: TStringList;
 begin
+  Result := Default(TDBDatatype);
   rx := TRegExpr.Create;
   rx.ModifierI := True;
   MatchLen := 0;
@@ -2274,6 +2275,7 @@ var
   TypeFound: Boolean;
   TypeOid: String;
 begin
+  Result := Default(TDBDatatype);
   rx := TRegExpr.Create;
   TypeFound := False;
   for i:=0 to High(Datatypes) do begin
@@ -5830,7 +5832,9 @@ begin
         dt := 'UDT_NAME'
       else
         dt := 'DATA_TYPE';
-    end;
+    end
+    else
+      dt := '?';
     Col.ParseDatatype(ColQuery.Col(dt));
     // PG/MSSQL don't include length in data type
     if Col.LengthSet.IsEmpty and Col.DataType.HasLength then begin
@@ -7893,6 +7897,7 @@ begin
   ParenthesesCount := 0;
   Params := '';
   InLiteral := False;
+  i := 0;
   for i:=1 to Length(CreateCode) do begin
     if (CreateCode[i] = ')') and (not InLiteral) then begin
       Dec(ParenthesesCount);
@@ -9049,9 +9054,9 @@ begin
       if Datatype(Column).Index = dbdtBit then begin
         Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, column);
         // FConnection.Log(lcInfo, Field.name+':  def: '+field.def+'  length: '+inttostr(field.length)+'  max_length: '+inttostr(field.max_length)+'  decimals: '+inttostr(field.decimals));
+        BitString := '';
         for c in Result do begin
           ByteVal := Byte(c);
-          BitString := '';
           for NumBit:=0 to 7 do begin
             if (ByteVal shr NumBit and $1) = $1 then
               BitString := BitString + '1'
@@ -9174,10 +9179,11 @@ end;
 
 function TDBQuery.HexValue(Column: Integer; IgnoreErrors: Boolean=False): String;
 var
-    baData: TBytes;
+  baData: TBytes;
 begin
   // Return a binary column value as hex AnsiString
   if FConnection.Parameters.IsAnyMysql then begin
+    baData := [];
     GetColBinData(Column, baData);
     Result := FConnection.EscapeBin(baData);
   end else

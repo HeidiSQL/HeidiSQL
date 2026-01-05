@@ -35,7 +35,7 @@ implementation
 procedure TfrmCrashDialog.btnCopyClick(Sender: TObject);
 begin
   memoDetails.CopyToClipboard;
-  btnCopy.Caption := btnCopy.Caption + ' ' + #10003;
+  btnCopy.Caption := btnCopy.Caption + ' ' + '✓';
   // enable timer which resets the button caption?
 end;
 
