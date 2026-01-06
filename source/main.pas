@@ -5626,14 +5626,12 @@ procedure TMainForm.AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
   var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
 var
   PaintArea, TextArea, IconArea, SortArea: TRect;
-  SortText, ColCaptionW, ColIndex: WideString;
-  ColCaption: String;
-  TextSpace, ColSortIndex, NumCharTop: Integer;
+  SortText, ColCaption: String;
+  ColIndex, TextSpace, ColSortIndex, NumCharTop: Integer;
   ColSortDirection: laz.VirtualTrees.TSortDirection;
-  TextSize: TSize;
-  DeviceContext: HDC;
-  DrawFormat: Cardinal;
+  TextWidth: Integer;
   ColInfo: TTableColumn;
+  TS: TTextStyle;
 const
   NumSortChars: Array of String = ['¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹','⁺'];
 
@@ -5667,29 +5665,31 @@ begin
 
   PaintArea := PaintInfo.PaintRectangle;
   PaintArea.Inflate(-PaintInfo.Column.Margin, 0);
-  DeviceContext := PaintInfo.TargetCanvas.Handle;
-  DrawFormat := DT_TOP or DT_NOPREFIX or DT_LEFT;
+  // Paint text without background color:
+  //PaintInfo.TargetCanvas.Brush.Style := bsClear;
+  TS := PaintInfo.TargetCanvas.TextStyle;
+  TS.Opaque := False;
 
   // Draw column name. Code taken from TVirtualTreeColumns.DrawButtonText and modified for our needs
   if hpeText in Elements then begin
 
     TextArea := PaintArea;
-    SetBkMode(DeviceContext, TRANSPARENT);
 
     if AppSettings.ReadBool(asShowRowId) and (PaintInfo.Column.Index > 0) then begin
       // Paint gray column number left to its caption
-      ColIndex := PaintInfo.Column.Index.ToString;
+      ColIndex := PaintInfo.Column.Index;
       if Sender.Treeview = DataGrid then begin
         ColInfo := SelectedTableColumns.FindByName(PaintInfo.Column.Text);
         if Assigned(ColInfo) then
-          ColIndex := (SelectedTableColumns.IndexOf(ColInfo) + 1).ToString;
+          ColIndex := SelectedTableColumns.IndexOf(ColInfo) + 1;
       end;
 
-      SetTextColor(DeviceContext, ColorToRGB(clGrayText));
-      DrawTextW(DeviceContext, PWideChar(ColIndex), Length(ColIndex), PaintArea, DrawFormat);
+      PaintInfo.TargetCanvas.Font.Color := clGrayText;
+      // Note: Canvas.TextOut does not paint transparent text
+      PaintInfo.TargetCanvas.TextRect(PaintArea, PaintArea.Left, PaintArea.Top, ColIndex.ToString, TS);
       // Move caption text to right
-      GetTextExtentPoint32W(DeviceContext, PWideChar(ColIndex), Length(ColIndex), TextSize);
-      Inc(TextArea.Left, TextSize.cx + 5);
+      TextWidth := PaintInfo.TargetCanvas.TextWidth(ColIndex.ToString);
+      Inc(TextArea.Left, TextWidth + 5);
     end;
 
     ColCaption := PaintInfo.Column.Text;
@@ -5702,15 +5702,14 @@ begin
 
     if not (coWrapCaption in PaintInfo.Column.Options) then begin
       // Do we need to shorten the caption due to limited space?
-      GetTextExtentPoint32W(DeviceContext, PWideChar(ColCaption), Length(ColCaption), TextSize);
+      TextWidth := PaintInfo.TargetCanvas.TextWidth(ColCaption);
       TextSpace := TextArea.Right - TextArea.Left;
-      if TextSpace < TextSize.cx then
-        ColCaption := laz.VirtualTrees.ShortenString(DeviceContext, ColCaption, TextSpace);
+      if TextSpace < TextWidth then
+        ColCaption := laz.VirtualTrees.ShortenString(PaintInfo.TargetCanvas.Handle, ColCaption, TextSpace);
     end;
 
-    SetTextColor(DeviceContext, ColorToRGB(clWindowText));
-    ColCaptionW := UTF8ToUTF16(ColCaption);
-    DrawTextW(DeviceContext, PWideChar(ColCaptionW), Length(ColCaption), TextArea, DrawFormat);
+    PaintInfo.TargetCanvas.Font.Color := clWindowText;
+    PaintInfo.TargetCanvas.TextRect(TextArea, TextArea.Left, TextArea.Top, ColCaption, TS);
   end;
 
   // Draw image, if any
@@ -5729,26 +5728,21 @@ begin
     Inc(SortArea.Left, SortArea.Width - Sender.Images.Width);
     GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
     if ColSortIndex > -1 then begin
-      // Prepare default font size, also if user selected a bigger one for the grid - we reserved a 16x16 space.
-      // Font.Height + Font.Size must be set with these values to get this working, larger or smaller Size/Height
-      // result in wrong size for multiple sort columns.
-      PaintInfo.TargetCanvas.Font.Height := -11;
-      PaintInfo.TargetCanvas.Font.Size := 10;
+      // Take care to keep the default font size, the user may have selected a bigger one for the grid - we reserved a 16x16 space.
+      // Would result in wrong size for multiple sort columns.
       if ColSortDirection = sdAscending then begin
         // Care for arrow characters available in most fonts. See #1090
-        SortText := WideChar($25B2); // BLACK UP-POINTING TRIANGLE
+        SortText := '▲'; // BLACK UP-POINTING TRIANGLE
         NumCharTop := 0;
       end else begin
-        SortText := WideChar($25BC); // BLACK DOWN-POINTING TRIANGLE
+        SortText := '▼'; // BLACK DOWN-POINTING TRIANGLE
         NumCharTop := 5;
       end;
       // Paint arrow:
-      DrawTextW(DeviceContext, PWideChar(SortText), Length(SortText), SortArea, DrawFormat);
+      PaintInfo.TargetCanvas.TextRect(SortArea, SortArea.Left, SortArea.Top, SortText, TS);
       // ... and superscript number right besides:
       SortText := IfThen(ColSortIndex<9, NumSortChars[ColSortIndex], NumSortChars[9]);
-      Inc(SortArea.Left, 9);
-      Inc(SortArea.Top, NumCharTop);
-      DrawTextW(DeviceContext, PWideChar(SortText), Length(SortText), SortArea, DrawFormat);
+      PaintInfo.TargetCanvas.TextRect(SortArea, SortArea.Left+9, SortArea.Top+NumCharTop, SortText, TS);
     end;
   end;
 end;
