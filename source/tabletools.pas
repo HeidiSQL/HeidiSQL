@@ -78,7 +78,7 @@ type
     lblInsertSize: TLabel;
     editInsertSize: TEdit;
     lblInsertSizeUnit: TLabel;
-    btnExportOptions: TButton;
+    btnExportOptions: TBitBtn;
     popupExportOptions: TPopupMenu;
     menuExportAddComments: TMenuItem;
     menuExportRemoveAutoIncrement: TMenuItem;
@@ -1668,7 +1668,7 @@ end;
 
 procedure TfrmTableTools.btnExportOptionsClick(Sender: TObject);
 begin
-  ShowPopup(Sender as TButton, popupExportOptions);
+  ShowPopup(Sender as TControl, popupExportOptions);
 end;
 
 
