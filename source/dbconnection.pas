@@ -1094,7 +1094,7 @@ var
 begin
   // Check if local port is open
   PortChecks := 0;
-  while not PortOpen(FConnection.Parameters.SSHLocalPort) do begin
+  while not IsPortFree(FConnection.Parameters.SSHLocalPort) do begin
     Inc(PortChecks);
     if PortChecks >= 20 then
       raise EDbError.CreateFmt(_('Could not execute SSH command: Port %d already in use.'), [FConnection.Parameters.SSHLocalPort]);

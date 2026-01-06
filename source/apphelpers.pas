@@ -10,7 +10,7 @@ uses
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient,
   {$IFDEF WINDOWS} Windows, {$ENDIF} DelphiCompat,
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
-  IniFiles, GraphType;
+  IniFiles, GraphType, Sockets;
 
 type
 
@@ -414,7 +414,7 @@ type
   function GetOutputFilenamePlaceholders: TStringList;
   function GetExecutableBits: Byte;
   procedure Help(Sender: TObject; Anchor: String);
-  function PortOpen(Port: Word): Boolean;
+  function IsPortFree(APort: Word; const AIP: string = '127.0.0.1'): Boolean;
   function GetThemeColor(Color: TColor): TColor;
   function ThemeIsDark(ThemeName: String=''): Boolean;
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
@@ -2786,23 +2786,31 @@ begin
   ShellExec(APPDOMAIN+'help.php?place='+EncodeURLParam(Place)+Anchor);
 end;
 
-function PortOpen(Port: Word): Boolean;
+function IsPortFree(APort: Word; const AIP: string = '127.0.0.1'): Boolean;
 var
-  Output: String;
-  CmdResult: Boolean;
+  s: LongInt;
+  addr: TInetSockAddr;
 begin
-  {$IfDef UNIX}
-  // Netcat on Linux, macOS and FreeBSD
-  CmdResult := Process.RunCommandInDir('', 'nc', ['-w 1 -zv 127.0.0.1 '+Port.ToString], Output);
-  Result := not CmdResult;
-  {$EndIf}
-  {$IfDef WINDOWS}
-  // netstat on Windows
-  CmdResult := Process.RunCommandInDir('', 'netstat', ['-na -p TCP'], Output);
-  Result := (not CmdResult) or (not Output.Contains(':' + Port.ToString + ' '));
-  {$EndIf}
-end;
+  Result := False;
 
+  s := fpSocket(AF_INET, SOCK_STREAM, 0);
+  if s < 0 then
+    Exit;
+
+  try
+    FillChar(addr, SizeOf(addr), 0);
+    addr.sin_family := AF_INET;
+    addr.sin_port   := htons(APort);
+    addr.sin_addr   := StrToNetAddr(AIP);
+
+    if fpBind(s, @addr, SizeOf(addr)) = 0 then
+      Result := True
+    else
+      Result := False;
+  finally
+    CloseSocket(s);
+  end;
+end;
 
 function GetThemeColor(Color: TColor): TColor;
 begin
