@@ -5735,12 +5735,11 @@ begin
       PaintInfo.TargetCanvas.Font.Height := -11;
       PaintInfo.TargetCanvas.Font.Size := 10;
       if ColSortDirection = sdAscending then begin
-        // This is a bit wrong - but the "Ubuntu" font doesn't have the triangle character,
-        // which seems available on many Windows fonts only. See #1090
-        SortText := {$IFDEF LINUX} '↑' {$ELSE} '▲' {$ENDIF};
+        // Care for arrow characters available in most fonts. See #1090
+        SortText := WideChar($25B2); // BLACK UP-POINTING TRIANGLE
         NumCharTop := 0;
       end else begin
-        SortText := {$IFDEF LINUX} '↓' {$ELSE} '▼' {$ENDIF};
+        SortText := WideChar($25BC); // BLACK DOWN-POINTING TRIANGLE
         NumCharTop := 5;
       end;
       // Paint arrow:
