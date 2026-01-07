@@ -5269,7 +5269,7 @@ begin
     if (Sender = actDataDuplicateRowWithoutKeys) or (Sender = actDataDuplicateRowWithKeys) then
       DupeNode := Grid.FocusedNode;
     RowNum := Results.InsertRow;
-    NewNode := Grid.InsertNode(Grid.FocusedNode, amInsertAfter, @RowNum);
+    NewNode := Grid.InsertNode(Grid.FocusedNode, amInsertAfter, PInt64(RowNum));
     SelectNode(Grid, NewNode);
     if Assigned(DupeNode) then begin
       // Copy values from source row, ensure we have whole cell data
