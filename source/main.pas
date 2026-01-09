@@ -794,6 +794,8 @@ type
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure actNextTabExecute(Sender: TObject);
     procedure actPreviousTabExecute(Sender: TObject);
+    procedure DataGridContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
     procedure FormActivate(Sender: TObject);
     procedure ImageListGetWidthForPPI(Sender: TCustomImageList;
       AImageWidth, APPI: Integer; var AResultWidth: Integer);
@@ -3513,7 +3515,7 @@ begin
   // Enable or disable ImageView action
   Grid := ActiveGrid;
   (Sender as TAction).Enabled := (Grid <> nil)
-    and (Grid.FocusedColumn <> NoColumn)
+    and (Grid.FocusedColumn-1 <> NoColumn)
     and (GridResult(Grid).DataType(Grid.FocusedColumn-1).Category = dtcBinary)
 end;
 
@@ -4325,6 +4327,16 @@ end;
 procedure TMainForm.actPreviousTabExecute(Sender: TObject);
 begin
   PageControlMain.SelectNextPage(False);
+end;
+
+procedure TMainForm.DataGridContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+var
+  HitInfo: THitInfo;
+begin
+  // Prevent context popup if clicked on header, or click was not on a node
+  (Sender as TLazVirtualStringTree).GetHitTestInfoAt(MousePos.X, MousePos.Y, True, HitInfo);
+  Handled := (HitInfo.HitNode = nil);
 end;
 
 procedure TMainForm.FormActivate(Sender: TObject);
@@ -10398,6 +10410,8 @@ begin
     // Header click disabled
     if not AppSettings.ReadBool(asColumnHeaderClick) then
       Exit;
+    if HitInfo.Column = NoColumn then
+      Exit;
     ColName := Sender.Columns[HitInfo.Column].Text;
     // Add a new order column after a columns title has been clicked
     // Check if order column is already existant
@@ -13130,7 +13144,7 @@ begin
   Editors.Add(SynMemoProcessView);
   Editors.Add(SynMemoSQLLog);
   if Assigned(ActiveObjectEditor) then
-    FindComponentInstances(ActiveObjectEditor, TSynMemo, Editors);
+    FindComponentInstances(ActiveObjectEditor, TSynEdit, Editors);
   if Assigned(frmPreferences) then
     Editors.Add(frmPreferences.SynMemoSQLSample);
   if Assigned(FCreateDatabaseDialog) then
@@ -13206,9 +13220,9 @@ var
 begin
   // Restore font, highlighter and shortcuts for all TSynMemo's in given base form
   Editors := TObjectList<TComponent>.Create(False);
-  FindComponentInstances(BaseForm, TSynMemo, Editors);
+  FindComponentInstances(BaseForm, TSynEdit, Editors);
   for i:=0 to Editors.Count-1 do begin
-    SetupSynEditor(Editors[i] as TSynMemo);
+    SetupSynEditor(Editors[i] as TSynEdit);
   end;
   Editors.Free;
 end;
