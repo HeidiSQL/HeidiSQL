@@ -1134,6 +1134,7 @@ begin
     EnvList := TStringList.Create;
     for i := 0 to GetEnvironmentVariableCount - 1 do
       EnvList.Add(GetEnvironmentString(i));
+    EnvList.Add(EnvSshpass);
     FProcess.Environment := EnvList;
   end;
 
