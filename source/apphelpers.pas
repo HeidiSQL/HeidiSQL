@@ -1339,6 +1339,7 @@ begin
   // If the file contains a BOM, advance the stream's position
   BomLen := 0;
   if Length(Encoding.GetPreamble) > 0 then begin
+    Header := [];
     SetLength(Header, Length(Encoding.GetPreamble));
     Stream.ReadBuffer(Pointer(Header)^, Length(Header));
     if CompareMem(Header, Encoding.GetPreamble, SizeOf(Header)) then
@@ -1369,7 +1370,7 @@ begin
   OldPos := Stream.Position;
   Stream.Position := 0;
   try
-    ReadCount := Stream.Read(Buffer, SizeOf(Buffer));
+    ReadCount := Stream.Read({%H-}Buffer, SizeOf(Buffer));
   finally
     Stream.Position := OldPos;
   end;
@@ -1401,6 +1402,7 @@ begin
   if (ChunkSize = 0) or (ChunkSize > DataLeft) then
     ChunkSize := DataLeft;
 
+  Bytes := [];
   SetLength(Bytes, ChunkSize);
   Stream.ReadBuffer(Bytes[0], Length(Bytes));
   Result := Encoding.GetAnsiString(Bytes);
@@ -2798,6 +2800,7 @@ begin
     Exit;
 
   try
+    addr := Default(TInetSockAddr);
     FillChar(addr, SizeOf(addr), 0);
     addr.sin_family := AF_INET;
     addr.sin_port   := htons(APort);
@@ -3023,7 +3026,7 @@ begin
   TargetList.RegisterResolutions(Resolutions);
   for i:=0 to SourceList.Count-1 do
   begin
-    SetLength(TempBitmapList, 0);
+    TempBitmapList := [];
     SetLength(TempBitmapList, Length(Resolutions));
     for ResIdx:=Low(Resolutions) to High(Resolutions) do begin
       ResWidth := Resolutions[ResIdx];

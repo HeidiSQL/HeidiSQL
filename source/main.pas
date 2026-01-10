@@ -4335,7 +4335,7 @@ var
   HitInfo: THitInfo;
 begin
   // Prevent context popup if clicked on header, or click was not on a node
-  (Sender as TLazVirtualStringTree).GetHitTestInfoAt(MousePos.X, MousePos.Y, True, HitInfo);
+  (Sender as TLazVirtualStringTree).GetHitTestInfoAt(MousePos.X, MousePos.Y, True, {%H-}HitInfo);
   Handled := (HitInfo.HitNode = nil);
 end;
 
@@ -5281,7 +5281,7 @@ begin
     if (Sender = actDataDuplicateRowWithoutKeys) or (Sender = actDataDuplicateRowWithKeys) then
       DupeNode := Grid.FocusedNode;
     RowNum := Results.InsertRow;
-    NewNode := Grid.InsertNode(Grid.FocusedNode, amInsertAfter, PInt64(RowNum));
+    NewNode := Grid.InsertNode(Grid.FocusedNode, amInsertAfter, {%H-}PInt64(RowNum));
     SelectNode(Grid, NewNode);
     if Assigned(DupeNode) then begin
       // Copy values from source row, ensure we have whole cell data
@@ -6686,7 +6686,7 @@ var
   Param: TRoutineParam;
   DisplayText: String;
   SQLFunc: TSQLFunction;
-  DummyPos: Integer;
+  DummyPos: Integer=0;
 
   procedure AddTable(Obj: TDBObject);
   var

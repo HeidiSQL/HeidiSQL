@@ -939,6 +939,7 @@ begin
   else
     ParentNode := TargetNode;
 
+  ParentKey := '';
   SiblingSessions := NodeSessionNames(ParentNode, ParentKey);
   // Test if target folder has an equal named node
   if SiblingSessions.IndexOf(FocusedSess.SessionName) > -1 then

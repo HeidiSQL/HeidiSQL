@@ -1259,6 +1259,7 @@ begin
     BytesAvailable := Pipe.NumBytesAvailable;
     if BytesAvailable = 0 then
       Break;
+    Buffer := '';
     SetLength(Buffer, BytesAvailable);
     BytesRead := Pipe.Read(Buffer[1], BytesAvailable);
     Result := Result + Copy(Buffer, 1, BytesRead);
@@ -8992,6 +8993,7 @@ end;
 
 function TDBQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 begin
+  Result := False;
   Raise EDbError.Create(SNotImplemented);
 end;
 
