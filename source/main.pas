@@ -15,7 +15,7 @@ uses
   LazStringUtils, dbconnection, dbstructures, dbstructures.mysql, generic_types,
   apphelpers, extra_controls, createdatabase, SynEditMarkupBracket,
   searchreplace, ImgList, IniFiles, LazFileUtils, LazUTF8, tabletools,
-  lazaruscompat, extfiledialog;
+  lazaruscompat, extfiledialog, process;
 
 
 type
@@ -3782,8 +3782,9 @@ end;
 
 procedure TMainForm.actLaunchCommandlineExecute(Sender: TObject);
 var
-  path, p, log, cmd: String;
+  path, log, cmd: String;
   Conn: TDBConnection;
+  P: TProcess;
 begin
   // Launch mysql.exe
   Conn := ActiveConnection;
@@ -3796,20 +3797,36 @@ begin
       path := IncludeTrailingPathDelimiter(path);
     if not FileExists(path+cmd, true) then begin
       ErrorDialog(f_('You need to tell %s where your MySQL binaries reside, in %s > %s > %s.', [APPNAME, _('Tools'), _('Preferences'), _('General')])+
-        CRLF+CRLF+f_('Current setting is: "%s"', [path]));
+        LineEnding+LineEnding+f_('Current setting is: "%s"', [path]));
     end else begin
-      p := '';
-      {$IFNDEF WINDOWS}
-      p := ' -e '+path+cmd;
-      path := '';
-      cmd := '$TERM';
-      {$ENDIF}
-
-      log := path + cmd + p + Conn.Parameters.GetExternalCliArguments(Conn, nbTrue);
+      log := cmd + Conn.Parameters.GetExternalCliArguments(Conn, nbTrue);
       LogSQL(f_('Launching command line: %s', [log]), lcInfo);
 
-      p := p + Conn.Parameters.GetExternalCliArguments(Conn, nbFalse);
-      ShellExec(cmd, path, p);
+      P := TProcess.Create(nil);
+      try
+        {$IF defined(WINDOWS)}
+        P.Executable := path + cmd;
+        P.Parameters.Add(Conn.Parameters.GetExternalCliArguments(Conn, nbFalse));
+        P.Options := P.Options + [poNewConsole]; // Windows only, opens console
+
+        {$ElseIf defined(LINUX)}
+        P.Executable := 'x-terminal-emulator';
+        P.Parameters.Add('-e');
+        P.Parameters.Add(path + cmd + ' ' + Conn.Parameters.GetExternalCliArguments(Conn, nbFalse));
+        P.Options := P.Options + [poWaitOnExit];
+
+        {$ElseIf defined(DARWIN)}
+        P.Executable := '/usr/bin/open';
+        P.Parameters.Add('-a');
+        P.Parameters.Add('Terminal');
+        P.Parameters.Add(path + cmd + ' ' + Conn.Parameters.GetExternalCliArguments(Conn, nbFalse));
+        {$ENDIF}
+
+        P.Execute;
+      finally
+        P.Free;
+      end;
+
     end;
   end;
 end;
