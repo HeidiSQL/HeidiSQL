@@ -48,6 +48,7 @@ object frmPreferences: TfrmPreferences
       end
       object lblLanguage: TLabel
         AnchorSideLeft.Control = tabMisc
+        AnchorSideTop.Control = editTerminal
         AnchorSideTop.Side = asrBottom
         Left = 6
         Height = 20
@@ -232,6 +233,7 @@ object frmPreferences: TfrmPreferences
       end
       object comboAppLanguage: TComboBox
         Tag = 1
+        AnchorSideTop.Control = editTerminal
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabMisc
         AnchorSideRight.Side = asrBottom
