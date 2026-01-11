@@ -18,7 +18,7 @@ object frmPreferences: TfrmPreferences
   object pagecontrolMain: TPageControl
     AnchorSideBottom.Control = btnOK
     Left = 6
-    Height = 553
+    Height = 554
     Top = 6
     Width = 878
     ActivePage = tabMisc
@@ -32,13 +32,14 @@ object frmPreferences: TfrmPreferences
     OnChanging = pagecontrolMainChanging
     object tabMisc: TTabSheet
       Caption = 'General'
-      ClientHeight = 520
+      ClientHeight = 521
       ClientWidth = 870
       ImageIndex = 137
       object lblMySQLBinaries: TLabel
+        AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = chkColorBars
         AnchorSideTop.Side = asrBottom
-        Left = 10
+        Left = 6
         Height = 20
         Top = 224
         Width = 216
@@ -46,29 +47,20 @@ object frmPreferences: TfrmPreferences
         Caption = 'MySQL command line programs:'
       end
       object lblLanguage: TLabel
-        AnchorSideTop.Control = editCustomSnippetsDirectory
+        AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Side = asrBottom
-        Left = 10
+        Left = 6
         Height = 20
         Top = 292
         Width = 156
         BorderSpacing.Around = 6
         Caption = 'Application language: *'
       end
-      object lblCustomSnippetsDirectory: TLabel
-        AnchorSideTop.Control = editMySQLBinaries
-        AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 258
-        Width = 175
-        BorderSpacing.Around = 6
-        Caption = 'Custom snippets directory:'
-      end
       object lblGUIFont: TLabel
+        AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = comboAppLanguage
         AnchorSideTop.Side = asrBottom
-        Left = 10
+        Left = 6
         Height = 20
         Top = 326
         Width = 68
@@ -89,9 +81,10 @@ object frmPreferences: TfrmPreferences
         Caption = 'pt'
       end
       object lblTheme: TLabel
+        AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = comboGUIFont
         AnchorSideTop.Side = asrBottom
-        Left = 10
+        Left = 6
         Height = 20
         Top = 360
         Width = 94
@@ -99,9 +92,10 @@ object frmPreferences: TfrmPreferences
         Caption = 'Style Theme: *'
       end
       object lblIconPack: TLabel
+        AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = comboTheme
         AnchorSideTop.Side = asrBottom
-        Left = 10
+        Left = 6
         Height = 20
         Top = 394
         Width = 66
@@ -109,9 +103,10 @@ object frmPreferences: TfrmPreferences
         Caption = 'Icon pack:'
       end
       object lblWebSearchBaseUrl: TLabel
+        AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = comboIconPack
         AnchorSideTop.Side = asrBottom
-        Left = 10
+        Left = 6
         Height = 20
         Hint = 'Used in footer of various message dialogs'
         Top = 428
@@ -125,8 +120,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 40
-        Width = 572
-        Anchors = [akTop, akLeft, akRight]
+        Width = 454
         BorderSpacing.Around = 6
         Caption = 'Automatically reconnect to previously opened sessions on startup'
         TabOrder = 1
@@ -138,8 +132,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 70
-        Width = 572
-        Anchors = [akTop, akLeft, akRight]
+        Width = 269
         BorderSpacing.Around = 6
         Caption = 'Restore last used database on startup'
         Checked = True
@@ -183,8 +176,7 @@ object frmPreferences: TfrmPreferences
         Height = 24
         Hint = 'This option, if enabled, will cause HeidiSQL to ping heidisql.com at most once every month.  This is used to count the used HeidiSQL and server versions.'
         Top = 134
-        Width = 572
-        Anchors = [akTop, akLeft, akRight]
+        Width = 157
         BorderSpacing.Around = 6
         Caption = 'Send usage statistics'
         TabOrder = 5
@@ -194,8 +186,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 10
-        Width = 572
-        Anchors = [akTop, akLeft, akRight]
+        Width = 261
         BorderSpacing.Around = 6
         Caption = 'Allow multiple application instances'
         Checked = True
@@ -241,7 +232,6 @@ object frmPreferences: TfrmPreferences
       end
       object comboAppLanguage: TComboBox
         Tag = 1
-        AnchorSideTop.Control = editCustomSnippetsDirectory
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabMisc
         AnchorSideRight.Side = asrBottom
@@ -253,32 +243,8 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 6
         ItemHeight = 20
         Style = csDropDownList
-        TabOrder = 10
-        OnClick = Modified
-      end
-      object editCustomSnippetsDirectory: TEditButton
-        AnchorSideTop.Control = editMySQLBinaries
-        AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = tabMisc
-        AnchorSideRight.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 258
-        Width = 589
-        Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ButtonWidth = 29
-        Images = MainForm.ImageListMain
-        ImageIndex = 51
-        MaxLength = 0
-        NumGlyphs = 1
-        PasswordChar = #0
         TabOrder = 9
-        Text = 'editCustomSnippetsDirectory'
-        TextHint = 'Set custom directory for SQL snippet files'
-        OnButtonClick = editCustomSnippetsDirectoryRightButtonClick
-        OnChange = Modified
-        OnDblClick = editCustomSnippetsDirectoryRightButtonClick
+        OnClick = Modified
       end
       object comboGUIFont: TComboBox
         Tag = 1
@@ -293,7 +259,7 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 6
         ItemHeight = 20
         Style = csDropDownList
-        TabOrder = 11
+        TabOrder = 10
         OnChange = comboGUIFontChange
       end
       object editGUIFontSize: TEdit
@@ -310,7 +276,7 @@ object frmPreferences: TfrmPreferences
         Anchors = [akTop, akRight]
         BorderSpacing.Around = 6
         NumbersOnly = True
-        TabOrder = 12
+        TabOrder = 11
         Text = '8'
         OnChange = Modified
       end
@@ -320,8 +286,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 164
-        Width = 572
-        Anchors = [akTop, akLeft, akRight]
+        Width = 251
         BorderSpacing.Around = 6
         Caption = 'Use Ctrl+Mousewheel for zooming'
         TabOrder = 6
@@ -341,7 +306,7 @@ object frmPreferences: TfrmPreferences
         ItemHeight = 20
         Sorted = True
         Style = csDropDownList
-        TabOrder = 13
+        TabOrder = 12
       end
       object comboIconPack: TComboBox
         AnchorSideTop.Control = comboTheme
@@ -356,7 +321,7 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 6
         ItemHeight = 20
         Style = csDropDownList
-        TabOrder = 15
+        TabOrder = 14
         OnChange = Modified
       end
       object comboWebSearchBaseUrl: TComboBox
@@ -381,7 +346,7 @@ object frmPreferences: TfrmPreferences
           'https://www.bing.com/search?q=%query'
           'https://www.google.com/search?q=%query'
         )
-        TabOrder = 16
+        TabOrder = 15
         Text = 'comboWebSearchBaseUrl'
         OnChange = Modified
       end
@@ -397,12 +362,47 @@ object frmPreferences: TfrmPreferences
         Anchors = [akTop, akRight]
         BorderSpacing.Around = 6
         Caption = 'Preview'
-        TabOrder = 14
+        TabOrder = 13
+      end
+      object lblTerminal: TLabel
+        AnchorSideLeft.Control = tabMisc
+        AnchorSideTop.Control = editMySQLBinaries
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 20
+        Top = 258
+        Width = 60
+        BorderSpacing.Around = 6
+        Caption = 'Terminal:'
+      end
+      object editTerminal: TEditButton
+        AnchorSideTop.Control = editMySQLBinaries
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabMisc
+        AnchorSideRight.Side = asrBottom
+        Left = 275
+        Height = 28
+        Top = 258
+        Width = 589
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        ButtonWidth = 29
+        Images = MainForm.ImageListMain
+        ImageIndex = 51
+        MaxLength = 0
+        NumGlyphs = 1
+        PasswordChar = #0
+        TabOrder = 16
+        Text = 'editTerminal'
+        TextHint = 'Terminal application. May have arguments, and supports %s for the actual command.'
+        OnButtonClick = editTerminalButtonClick
+        OnChange = Modified
+        OnDblClick = editTerminalButtonClick
       end
     end
     object tabLogging: TTabSheet
       Caption = 'Logging'
-      ClientHeight = 520
+      ClientHeight = 521
       ClientWidth = 870
       ImageIndex = 56
       object Label4: TLabel
@@ -660,7 +660,7 @@ object frmPreferences: TfrmPreferences
     end
     object tabSQL: TTabSheet
       Caption = 'SQL'
-      ClientHeight = 520
+      ClientHeight = 521
       ClientWidth = 870
       ImageIndex = 57
       object lblFont: TLabel
@@ -921,7 +921,7 @@ object frmPreferences: TfrmPreferences
         AnchorSideBottom.Side = asrBottom
         Cursor = crHandPoint
         Left = 462
-        Height = 338
+        Height = 339
         Top = 176
         Width = 402
         BorderSpacing.Around = 6
@@ -1078,7 +1078,7 @@ object frmPreferences: TfrmPreferences
     end
     object tabGridFormatting: TTabSheet
       Caption = 'Grid formatting'
-      ClientHeight = 520
+      ClientHeight = 521
       ClientWidth = 870
       ImageIndex = 41
       object lblMaxColWidth: TLabel
@@ -1459,7 +1459,7 @@ object frmPreferences: TfrmPreferences
     end
     object tabDataEditors: TTabSheet
       Caption = 'Data editors'
-      ClientHeight = 520
+      ClientHeight = 521
       ClientWidth = 870
       ImageIndex = 33
       object lblLineBreakStyle: TLabel
@@ -1602,7 +1602,7 @@ object frmPreferences: TfrmPreferences
     end
     object tabShortcuts: TTabSheet
       Caption = 'Shortcuts'
-      ClientHeight = 520
+      ClientHeight = 521
       ClientWidth = 870
       ImageIndex = 13
       object lblShortcut1: TLabel
@@ -1647,7 +1647,7 @@ object frmPreferences: TfrmPreferences
       end
       object TreeShortcutItems: TLazVirtualStringTree
         Left = 6
-        Height = 508
+        Height = 509
         Top = 6
         Width = 375
         Align = alLeft
@@ -1838,13 +1838,14 @@ object frmPreferences: TfrmPreferences
     end
     object tabFiles: TTabSheet
       Caption = 'Files and tabs'
-      ClientHeight = 520
+      ClientHeight = 521
       ClientWidth = 870
       ImageIndex = 10
       object Label5: TLabel
+        AnchorSideLeft.Control = tabFiles
         AnchorSideTop.Control = chkTabCloseOnMiddleClick
         AnchorSideTop.Side = asrBottom
-        Left = 10
+        Left = 6
         Height = 20
         Top = 130
         Width = 182
@@ -1852,9 +1853,10 @@ object frmPreferences: TfrmPreferences
         Caption = 'Grayscale inactive tab icons'
       end
       object lblReformatter: TLabel
+        AnchorSideLeft.Control = tabFiles
         AnchorSideTop.Control = comboTabIconsGrayscaleMode
         AnchorSideTop.Side = asrBottom
-        Left = 10
+        Left = 6
         Height = 20
         Top = 164
         Width = 83
@@ -1865,8 +1867,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 10
-        Width = 572
-        Anchors = [akTop, akLeft, akRight]
+        Width = 302
         BorderSpacing.Around = 6
         Caption = 'Prompt to save modified files on tab close'
         Checked = True
@@ -1880,8 +1881,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 40
-        Width = 572
-        Anchors = [akTop, akLeft, akRight]
+        Width = 438
         BorderSpacing.Around = 6
         Caption = 'Reopen previously used SQL files and unsaved content in tabs *'
         TabOrder = 1
@@ -1905,8 +1905,7 @@ object frmPreferences: TfrmPreferences
         Left = 275
         Height = 24
         Top = 100
-        Width = 574
-        Anchors = [akTop, akLeft, akRight]
+        Width = 184
         BorderSpacing.Around = 6
         Caption = 'Close tab on middleclick'
         TabOrder = 3
@@ -1948,20 +1947,57 @@ object frmPreferences: TfrmPreferences
         Style = csDropDownList
         TabOrder = 5
       end
+      object lblCustomSnippetsDirectory: TLabel
+        AnchorSideLeft.Control = tabFiles
+        AnchorSideTop.Control = comboReformatter
+        AnchorSideTop.Side = asrBottom
+        Left = 6
+        Height = 20
+        Top = 198
+        Width = 175
+        BorderSpacing.Around = 6
+        Caption = 'Custom snippets directory:'
+      end
+      object editCustomSnippetsDirectory: TEditButton
+        AnchorSideTop.Control = comboReformatter
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabFiles
+        AnchorSideRight.Side = asrBottom
+        Left = 275
+        Height = 28
+        Top = 198
+        Width = 589
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
+        ButtonWidth = 29
+        Images = MainForm.ImageListMain
+        ImageIndex = 51
+        MaxLength = 0
+        NumGlyphs = 1
+        PasswordChar = #0
+        TabOrder = 6
+        Text = 'editCustomSnippetsDirectory'
+        TextHint = 'Set custom directory for SQL snippet files'
+        OnButtonClick = editCustomSnippetsDirectoryRightButtonClick
+        OnChange = Modified
+        OnDblClick = editCustomSnippetsDirectoryRightButtonClick
+      end
     end
   end
   object btnCancel: TButton
     AnchorSideRight.Control = btnApply
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 690
-    Height = 31
-    Top = 565
-    Width = 94
+    Left = 678
+    Height = 30
+    Top = 566
+    Width = 100
     Anchors = [akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Around = 6
     Cancel = True
     Caption = 'Cancel'
+    Constraints.MinWidth = 100
     ModalResult = 2
     TabOrder = 2
   end
@@ -1969,13 +2005,15 @@ object frmPreferences: TfrmPreferences
     AnchorSideRight.Control = btnCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 590
-    Height = 31
-    Top = 565
-    Width = 94
+    Left = 572
+    Height = 30
+    Top = 566
+    Width = 100
     Anchors = [akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'OK'
+    Constraints.MinWidth = 100
     Default = True
     ModalResult = 1
     TabOrder = 1
@@ -1986,13 +2024,15 @@ object frmPreferences: TfrmPreferences
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 790
-    Height = 31
-    Top = 565
-    Width = 94
+    Left = 784
+    Height = 30
+    Top = 566
+    Width = 100
     Anchors = [akRight, akBottom]
+    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'Apply'
+    Constraints.MinWidth = 100
     Enabled = False
     TabOrder = 3
     OnClick = Apply
@@ -2002,12 +2042,14 @@ object frmPreferences: TfrmPreferences
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 6
-    Height = 31
-    Top = 565
-    Width = 221
+    Height = 30
+    Top = 566
+    Width = 133
     Anchors = [akLeft, akBottom]
+    AutoSize = True
     BorderSpacing.Around = 6
     Caption = 'Restore defaults'
+    Constraints.MinWidth = 100
     TabOrder = 0
     OnClick = btnRestoreDefaultsClick
   end

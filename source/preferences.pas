@@ -44,6 +44,8 @@ type
     chkShortcut1Control: TCheckBox;
     comboShortcut1Key: TComboBox;
     comboShortcut2Key: TComboBox;
+    editTerminal: TEditButton;
+    lblTerminal: TLabel;
     pagecontrolMain: TPageControl;
     tabMisc: TTabSheet;
     btnCancel: TButton;
@@ -188,6 +190,7 @@ type
     Label5: TLabel;
     lblReformatter: TLabel;
     comboReformatter: TComboBox;
+    procedure editTerminalButtonClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -253,11 +256,11 @@ type
 var
   frmPreferences: TfrmPreferences;
 
-//function EnumFixedProc(lpelf: PEnumLogFont; lpntm: PNewTextMetric; FontType: Integer; Data: LPARAM): Integer; stdcall;
-
 
 implementation
-uses main, apphelpers;
+
+uses main, apphelpers, extfiledialog;
+
 {$R *.lfm}
 
 
@@ -345,7 +348,7 @@ begin
   AppSettings.WriteBool(asWheelZoom, chkWheelZoom.Checked);
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
   AppSettings.WriteString(asMySQLBinaries, editMySQLBinaries.Text);
-  AppSettings.WriteString(asCustomSnippetsDirectory, editCustomSnippetsDirectory.Text);
+  AppSettings.WriteString(asTerminal, editTerminal.Text);
 
   if comboAppLanguage.ItemIndex > 0 then begin
     // Get language code from the left text in the dropdown item text, up to the colon
@@ -438,6 +441,7 @@ begin
   AppSettings.WriteBool(asTabCloseOnMiddleClick, chkTabCloseOnMiddleClick.Checked);
   AppSettings.WriteInt(asTabIconsGrayscaleMode, comboTabIconsGrayscaleMode.ItemIndex);
   AppSettings.WriteInt(asReformatterNoDialog, comboReformatter.ItemIndex);
+  AppSettings.WriteString(asCustomSnippetsDirectory, editCustomSnippetsDirectory.Text);
 
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
@@ -540,7 +544,9 @@ begin
   Width := AppSettings.ReadInt(asPreferencesWindowWidth);
   Height := AppSettings.ReadInt(asPreferencesWindowHeight);
 
-  // Miscellaneous
+  // General tab
+  editTerminal.Enabled := {$IFDEF WINDOWS} False {$ELSE} True {$ENDIF};
+  lblTerminal.Enabled := editTerminal.Enabled;
 
   InitLanguages;
   comboAppLanguage.Items.AddStrings(FLanguages);
@@ -680,7 +686,7 @@ begin
   chkWheelZoom.Checked := AppSettings.ReadBool(asWheelZoom);
   chkColorBars.Checked := AppSettings.ReadBool(asDisplayBars);
   editMySQLBinaries.Text := AppSettings.ReadString(asMySQLBinaries);
-  editCustomSnippetsDirectory.Text := AppSettings.ReadString(asCustomSnippetsDirectory);
+  editTerminal.Text := AppSettings.ReadString(asTerminal);
   LangCode := AppSettings.ReadString(asAppLanguage);
   for i:=0 to comboAppLanguage.Items.Count-1 do begin
     if RegExprGetMatch('^(\w+)\b', comboAppLanguage.Items[i], 1) = LangCode then begin
@@ -788,6 +794,7 @@ begin
   chkTabCloseOnMiddleClick.Checked := AppSettings.ReadBool(asTabCloseOnMiddleClick);
   comboTabIconsGrayscaleMode.ItemIndex := AppSettings.ReadInt(asTabIconsGrayscaleMode);
   comboReformatter.ItemIndex := AppSettings.ReadInt(asReformatterNoDialog);
+  editCustomSnippetsDirectory.Text := AppSettings.ReadString(asCustomSnippetsDirectory);
 
   // Disable global shortcuts
   MainForm.ActionList1.State := asSuspended;
@@ -803,6 +810,17 @@ procedure TfrmPreferences.FormDestroy(Sender: TObject);
 begin
   AppSettings.WriteInt(asPreferencesWindowWidth, ScaleFormToDesign(Width));
   AppSettings.WriteInt(asPreferencesWindowHeight, ScaleFormToDesign(Height));
+end;
+
+procedure TfrmPreferences.editTerminalButtonClick(Sender: TObject);
+var
+  Dialog: TExtFileOpenDialog;
+begin
+  Dialog := TExtFileOpenDialog.Create(Self);
+  Dialog.AddFileType('*.*', _('All files'));
+  if Dialog.Execute then
+    editTerminal.Text := Dialog.FileName;
+  Dialog.Free;
 end;
 
 

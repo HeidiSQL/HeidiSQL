@@ -208,7 +208,7 @@ type
     asCopyTableWindowHeight, asCopyTableWindowWidth, asCopyTableColumns, asCopyTableKeys, asCopyTableForeignKeys,
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
-    asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asCustomSnippetsDirectory,
+    asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asTerminal, asCustomSnippetsDirectory,
     asPromptSaveFileOnTabClose, asRestoreTabs, asTabCloseOnDoubleClick, asTabCloseOnMiddleClick, asTabsInMultipleLines, asTabIconsGrayscaleMode,
     asWarnUnsafeUpdates, asQueryGridLongSortRowNum,
     asCompletionProposal, asCompletionProposalInterval, asCompletionProposalSearchOnMid, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
@@ -3769,6 +3769,7 @@ begin
   InitSetting(asWheelZoom,                        'WheelZoom',                             0, True);
   InitSetting(asDisplayBars,                      'DisplayBars',                           0, true);
   InitSetting(asMySQLBinaries,                    'MySQL_Binaries',                        0, False, '');
+  InitSetting(asTerminal,                         'Terminal',                              0, False, '');
   InitSetting(asSequalSuggestWindowWidth,         'SequalSuggestWindowWidth',              500);
   InitSetting(asSequalSuggestWindowHeight,        'SequalSuggestWindowHeight',             400);
   InitSetting(asSequalSuggestPrompt,              'SequalSuggestPrompt',                   0, False, '');

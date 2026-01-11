@@ -3782,9 +3782,38 @@ end;
 
 procedure TMainForm.actLaunchCommandlineExecute(Sender: TObject);
 var
-  path, log, cmd: String;
+  path, log, cmd, MySQLArgs, TerminalArgs: String;
   Conn: TDBConnection;
   P: TProcess;
+  SpacePos: Integer;
+
+  function DetectTerminal: string;
+  const
+    // Order matters: best/most common first
+    // Only those supporting the -e argument. User may customize a different one.
+    CANDIDATES: array[0..5] of string = (
+      'x-terminal-emulator', // Debian/Ubuntu alternatives. May expand to one which does not have -e.
+      'konsole',
+      'xfce4-terminal',
+      'lxterminal',
+      'tilix',
+      'xterm'
+    );
+  var
+    Term: string;
+  begin
+    Result := '';
+    for Term in CANDIDATES do
+    begin
+      // Searches in PATH and returns full path or empty string
+      Result := FindDefaultExecutablePath(Term);
+      if not Result.IsEmpty then
+        Exit; // Found a usable terminal
+    end;
+    if Result.IsEmpty then
+      raise Exception.Create('Could not detect terminal - please configure it in preferences');
+  end;
+
 begin
   // Launch mysql.exe
   Conn := ActiveConnection;
@@ -3801,31 +3830,50 @@ begin
     end else begin
       log := cmd + Conn.Parameters.GetExternalCliArguments(Conn, nbTrue);
       LogSQL(f_('Launching command line: %s', [log]), lcInfo);
+      MySQLArgs := Conn.Parameters.GetExternalCliArguments(Conn, nbFalse);
 
       P := TProcess.Create(nil);
       try
-        {$IF defined(WINDOWS)}
+        {$IFDEF WINDOWS}
         P.Executable := path + cmd;
-        P.Parameters.Add(Conn.Parameters.GetExternalCliArguments(Conn, nbFalse));
+        P.Parameters.Add(MySQLArgs);
         P.Options := P.Options + [poNewConsole]; // Windows only, opens console
 
-        {$ElseIf defined(LINUX)}
-        P.Executable := 'x-terminal-emulator';
-        P.Parameters.Add('-e');
-        P.Parameters.Add(path + cmd + ' ' + Conn.Parameters.GetExternalCliArguments(Conn, nbFalse));
+        {$Else}
+        P.Executable := AppSettings.ReadString(asTerminal);
+        if P.Executable.IsEmpty then begin
+          P.Executable := DetectTerminal;
+          P.Parameters.Add('-e');
+          P.Parameters.Add(path + cmd + ' ' + MySQLArgs);
+        end
+        else begin
+          SpacePos := Pos(' ', P.Executable);
+          if SpacePos > 0 then begin
+            TerminalArgs := Copy(P.Executable, SpacePos+1);
+            P.Executable := Copy(P.Executable, 1, SpacePos-1);
+            if TerminalArgs.Contains('%s') then begin
+              TerminalArgs := StringReplace(TerminalArgs, '%s', path + cmd + ' ' + MySQLArgs, []);
+              P.Parameters.Add(TerminalArgs);
+            end
+            else begin
+              P.Parameters.Add(TerminalArgs);
+              P.Parameters.Add(path + cmd + ' ' + MySQLArgs);
+            end;
+          end
+          else begin
+            P.Parameters.Add('-e');
+            P.Parameters.Add(path + cmd + ' ' + MySQLArgs);
+          end;
+        end;
         P.Options := P.Options + [poWaitOnExit];
-
-        {$ElseIf defined(DARWIN)}
-        P.Executable := '/usr/bin/open';
-        P.Parameters.Add('-a');
-        P.Parameters.Add('Terminal');
-        P.Parameters.Add(path + cmd + ' ' + Conn.Parameters.GetExternalCliArguments(Conn, nbFalse));
         {$ENDIF}
 
         P.Execute;
-      finally
-        P.Free;
+      except
+        on E:Exception do
+          ErrorDialog(E.Message);
       end;
+      P.Free;
 
     end;
   end;
