@@ -419,7 +419,7 @@ begin
       ShellTreeView.Path := CurPath;
       Break;
     except
-      on E:EInvalidPath do begin
+      on E:EShellCtrl do begin
         // Go up to parent folder
         // Testable on connections > advanced > file logging, due to virtual template strings.
         CurPath := ExtractFilePath(ExcludeTrailingPathDelimiter(CurPath));
