@@ -3,12 +3,8 @@ program heidisql;
 {$mode delphi}{$H+}
 
 uses
-  {$IFDEF UNIX}
-  cthreads,
-  {$ENDIF}
-  {$IFDEF HASAMIGA}
-  athreads,
-  {$ENDIF}
+  {$IFDEF UNIX} cthreads, {$ENDIF}
+  {$IFDEF DARWIN} iosxlocale, {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   SysUtils, Dialogs,
   Forms, printer4lazarus, datetimectrls, LCLTranslator, Translations,
@@ -29,10 +25,19 @@ begin
   DefaultFormatSettings.TimeSeparator := ':';
   DefaultFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
   DefaultFormatSettings.LongTimeFormat := 'hh:nn:ss';
+
   // Issue #2189 and #2325:
   // Auto-replace French and Russian non-breaking white space, broken through the Char type
   // DefaultFormatSettings.ThousandSeparator:= #160;
   if DefaultFormatSettings.ThousandSeparator in [#226, #160] then
+    DefaultFormatSettings.ThousandSeparator := ' ';
+
+  // Issue #2366:
+  // https://wiki.freepascal.org/Locale_settings_for_macOS
+  // On macOS, initializing locale settings through iosxlocale mostly does not work, so we do it hardcoded here:
+  if DefaultFormatSettings.DecimalSeparator = #0 then
+    DefaultFormatSettings.DecimalSeparator  := '.';
+  if DefaultFormatSettings.ThousandSeparator = #0 then
     DefaultFormatSettings.ThousandSeparator := ' ';
 
   AppSettings := TAppSettings.Create;
