@@ -267,15 +267,8 @@ begin
   FHighlighterFormatters.Add(TSynSQLSyn.ClassName);
   FHighlighterFormatters.Add(TSynXMLSyn.ClassName);
 
-  MemoText.OnMouseWheel := MainForm.AnySynMemoMouseWheel;
-  //MemoText.OnPaintTransient := MainForm.SynMemoQuery.OnPaintTransient;
-  MemoText.Options := MainForm.SynMemoQuery.Options;
-  MemoText.Options2 := MainForm.SynMemoQuery.Options2;
-  MemoText.Keystrokes := MainForm.SynMemoQuery.Keystrokes;
-  CodeFoldingPart := MemoText.Gutter.CodeFoldPart(0);
-  if Assigned(CodeFoldingPart) then begin
-    CodeFoldingPart.Visible := MainForm.actCodeFolding.Checked;
-  end;
+  MainForm.SetupSynEditor(MemoText);
+
   if AppSettings.ReadBool(asMemoEditorMaximized) then
     WindowState := wsMaximized;
   // Restore form dimensions

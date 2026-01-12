@@ -13,9 +13,9 @@ uses
   Generics.Collections, Generics.Defaults, opensslsockets, StdActns, Clipbrd,
   Types, LCLType, EditBtn, FileUtil, LMessages, jsonconf, DelphiCompat,
   LazStringUtils, dbconnection, dbstructures, dbstructures.mysql, generic_types,
-  apphelpers, extra_controls, createdatabase, SynEditMarkupBracket,
+  apphelpers, extra_controls, createdatabase, SynEditMarkup, SynEditMarkupBracket,
   searchreplace, ImgList, IniFiles, LazFileUtils, LazUTF8, tabletools,
-  lazaruscompat, extfiledialog, process;
+  lazaruscompat, extfiledialog, process, SynEditMiscClasses;
 
 
 type
@@ -38,6 +38,29 @@ type
   end;
   TBindParamComparer = class(TComparer<TBindParam>)
     function Compare({$IF FPC_FULLVERSION<30203}constref{$ELSE}const{$ENDIF} Left, Right: TBindParam): Integer; override;
+  end;
+
+  { TMarkupWordSelection }
+  TWordRange = record
+    StartCol, EndCol: Integer; // 1-based columns, EndCol is first col AFTER the word
+  end;
+  TWordRanges = array of TWordRange;
+  TMarkupWordSelection = class(TSynEditMarkup)
+  private
+    FWord: String;
+    FLineRanges: array of TWordRanges; // index = Row-1
+    FAttr: TSynSelectedColor;
+  public
+    constructor Create(ASynEdit: TSynEdit); reintroduce;
+    procedure SetWordToHighlight(const AWord: String);
+    procedure BeginMarkup; override;
+    procedure GetNextMarkupColAfterRowCol(
+      const aRow: Integer; const aStartCol: TLazSynDisplayTokenBound;
+      const AnRtlInfo: TLazSynDisplayRtlInfo;
+      out ANextPhys, ANextLog: Integer); override;
+    function GetMarkupAttributeAtRowCol(
+      const aRow: Integer; const aStartCol: TLazSynDisplayTokenBound;
+      const AnRtlInfo: TLazSynDisplayRtlInfo): TSynSelectedColor; override;
   end;
 
   // Query tabs and contained components
@@ -1017,8 +1040,6 @@ type
     procedure actBlobAsTextExecute(Sender: TObject);
     procedure SynMemoQueryReplaceText(Sender: TObject; const ASearch,
       AReplace: string; Line, Column: Integer; var Action: TSynReplaceAction);
-    //procedure SynMemoQueryPaintTransient(Sender: TObject; Canvas: TCanvas;
-    //  TransientType: TTransientType);
     procedure actQueryFindAgainExecute(Sender: TObject);
     procedure AnyGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
     procedure lblExplainProcessClick(Sender: TObject);
@@ -1253,10 +1274,8 @@ type
     FActionList1DefaultCaptions: TStringList;
     FActionList1DefaultHints: TStringList;
     FEditorCommandStrings: TStringList;
-    //FLastSelWordInEditor: String;
     FMatchingBraceForegroundColor: TColor;
     FMatchingBraceBackgroundColor: TColor;
-    FSynEditInOnPaintTransient: Boolean;
     //FHelpData: TSimpleKeyValuePairs;
     FMainWinMaximized: Boolean;
 
@@ -1303,6 +1322,7 @@ type
     procedure StoreTabs;
     function RestoreTabs: Boolean;
     procedure SetHintFontByControl(Control: TWinControl=nil);
+    procedure GlobalSynEditStatusChange(Sender: TObject; Changes: TSynStatusChanges);
   public
     QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
@@ -7162,6 +7182,8 @@ begin
       Tab.Memo.Modified := False;
     end;
 
+    GlobalSynEditStatusChange(Edit, Changes);
+
     // Update various controls
     ValidateQueryControls(Sender);
 
@@ -7169,6 +7191,22 @@ begin
   end;
 end;
 
+
+procedure TMainForm.GlobalSynEditStatusChange(Sender: TObject; Changes: TSynStatusChanges);
+var
+  MarkupWordSelection: TMarkupWordSelection;
+  Edit: TSynEdit;
+begin
+  // Update same-text highlighter with selected text
+  Edit := Sender as TSynEdit;
+  MarkupWordSelection := Edit.MarkupByClass[TMarkupWordSelection] as TMarkupWordSelection;
+  if Assigned(MarkupWordSelection) then begin
+    if ExecRegExprI('^\w+$', Edit.SelText) then
+      MarkupWordSelection.SetWordToHighlight(Edit.SelText)
+    else
+      MarkupWordSelection.SetWordToHighlight('');
+  end;
+end;
 
 procedure TMainForm.SynMemoQueryShowHint(Sender: TObject; HintInfo: PHintInfo);
 var
@@ -7686,160 +7724,6 @@ begin
     Handled := False;
   end;
 end;
-
-
-{procedure TMainForm.SynMemoQueryPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
-var
-  Editor : TSynEdit;
-  BufCrd: TBufferCoord;
-  Pix: TPoint;
-  DisCrd: TDisplayCoord;
-  Pnt: TPoint;
-  S: String;
-  I, SearchPos, CharIndex: Integer;
-  Attri: TSynHighlighterAttributes;
-  SelStart: Integer;
-  TmpCharA, TmpCharB: Char;
-  rx: TRegExpr;
-  SelWord, Line: String;
-const}
-  //BracketChars: TSysCharSet = ['{','[','(','<','}',']',')','>'];
-  //OpenChars: Array of Char = ['{','[','(','<'];
-  //CloseChars: Array of Char = ['}',']',')','>'];
-  {
-  function CharToPixels(P: TBufferCoord): TPoint;
-  begin
-    Result := Editor.RowColumnToPixels(Editor.BufferToDisplayPos(P));
-  end;
-begin
-  if not MainFormCreated then
-    Exit;
-  if (FMatchingBraceBackgroundColor = clNone) and (FMatchingBraceForegroundColor = clNone) then
-    Exit;
-  if FSynEditInOnPaintTransient then
-    Exit;
-  FSynEditInOnPaintTransient := True;
-
-  Editor := TSynEdit(Sender);
-  // Check for Editor.GetTextLen causes some endless loop in SynEdit.
-  // But not due to activated WordWrap. Must be some interlocked WM_GETTEXTLENGTH message, or an undefined text length.
-  //if Editor.GetTextLen > 5*SIZE_MB then
-  //  Exit;
-
-  // Highlight matching words, if selected text is a (small) word
-  if Editor.SelLength < Editor.CharsInWindow then begin
-    SelWord := Editor.SelText;
-    BufCrd := Editor.CaretXY;
-    CharIndex := Editor.RowColToCharIndex(BufCrd);
-    // Ensure GetWordAtRowCol finds the word by moving Char to the left of the selection
-    BufCrd.Char := Max(0, BufCrd.Char - (CharIndex - Editor.SelStart));
-    if SelWord <> FLastSelWordInEditor then
-      Editor.Invalidate; // causes lots of additional implicit calls to OnPaintTransient
-    FLastSelWordInEditor := SelWord;
-    if (not SelWord.IsEmpty) and (SelWord = Editor.GetWordAtRowCol(BufCrd)) then begin
-      rx := TRegExpr.Create;
-      rx.Expression := '\b(' + QuoteRegExprMetaChars(SelWord) + ')\b';
-      rx.ModifierI := True;
-      // Note: TopLine is wrong when lines are soft-wrapped, so we use RowToLine
-      for i:=Editor.RowToLine(Editor.TopLine) to Editor.RowToLine(Editor.TopLine + Editor.LinesInWindow) do begin
-        Line := Editor.Lines[i-1];
-        if rx.Exec(Line) then while True do begin
-          SearchPos := rx.MatchPos[1];
-          BufCrd := BufferCoord(SearchPos, i);
-          DisCrd := Editor.BufferToDisplayPos(BufCrd);
-          Pnt := Editor.RowColumnToPixels(DisCrd);
-          if (not Editor.IsPointInSelection(BufCrd)) // Found match is not the selection itself
-            and Editor.GetHighlighterAttriAtRowCol(BufCrd, SelWord, Attri)
-            then begin
-            //logsql(SelWord+': '+Attri.FriendlyName);
-            Canvas.Font.Size := Editor.Font.Size;
-            Canvas.Font.Style := Attri.Style;
-            // Todo: check if we need to handle TransientType ttAfter and ttBefore
-            Canvas.Font.Color:= FMatchingBraceForegroundColor;
-            Canvas.Brush.Color:= FMatchingBraceBackgroundColor;
-            if Canvas.Font.Color = clNone then
-              Canvas.Font.Color := Editor.Font.Color;
-            if Canvas.Brush.Color = clNone then
-              Canvas.Brush.Color := Editor.Color;
-            Canvas.TextOut(Pnt.X, Pnt.Y, rx.Match[1]);
-          end;
-          if not rx.ExecNext then
-            Break;
-        end;
-      end;
-      rx.Free;
-    end;
-  end;
-
-  // Highlight matching brackets, only without selection
-  if not Editor.SelAvail then begin
-
-    BufCrd := Editor.CaretXY;
-    SelStart := Editor.SelStart;
-
-    if (SelStart > 0) and (SelStart <= Editor.GetTextLen) then
-      TmpCharA := Editor.Text[SelStart]
-    else
-      TmpCharA := #0;
-
-    if (SelStart >= 0) and (SelStart < Editor.GetTextLen) then
-      TmpCharB := Editor.Text[SelStart + 1]
-    else
-      TmpCharB := #0;
-
-    if CharInSet(TmpCharA, BracketChars) or CharInSet(TmpCharB, BracketChars) then begin
-      S := TmpCharB;
-      if not CharInSet(TmpCharB, BracketChars) then begin
-        BufCrd.Char := BufCrd.Char - 1;
-        S := TmpCharA;
-      end;
-
-      if Editor.GetHighlighterAttriAtRowCol(BufCrd, S, Attri) and (Attri.FriendlyName = SYNS_FriendlyAttrSymbol) then
-      begin
-
-        for i:=Low(OpenChars) to High(OpenChars) do begin
-          if (S = OpenChars[i]) or (S = CloseChars[i]) then begin
-            Pix := CharToPixels(BufCrd);
-
-            Canvas.Brush.Style := bsSolid;
-            Canvas.Font.Assign(Editor.Font);
-            Canvas.Font.Style := Attri.Style;
-
-            if (TransientType = ttAfter) then begin
-              Canvas.Font.Color := MatchingBraceForegroundColor;
-              Canvas.Brush.Color := MatchingBraceBackgroundColor;
-            end else begin
-              Canvas.Font.Color := Attri.Foreground;
-              Canvas.Brush.Color := Attri.Background;
-            end;
-            if Canvas.Font.Color = clNone then
-              Canvas.Font.Color := Editor.Font.Color;
-            if Canvas.Brush.Color = clNone then
-              Canvas.Brush.Color := Editor.Color;
-
-            Canvas.TextOut(Pix.X, Pix.Y, S);
-            BufCrd := Editor.GetMatchingBracketEx(BufCrd);
-
-            if (BufCrd.Char > 0) and (BufCrd.Line > 0) then begin
-              Pix := CharToPixels(BufCrd);
-              if Pix.X > Editor.Gutter.Width then begin
-                if S = OpenChars[i] then
-                  Canvas.TextOut(Pix.X, Pix.Y, CloseChars[i])
-                else
-                  Canvas.TextOut(Pix.X, Pix.Y, OpenChars[i]);
-              end;
-            end;
-
-          end;
-        end;
-        Canvas.Brush.Style := bsSolid;
-      end;
-    end;
-  end;
-
-  // Release event handler
-  FSynEditInOnPaintTransient := False;
-end;}
 
 
 procedure TMainForm.popupHostPopup(Sender: TObject);
@@ -12252,7 +12136,6 @@ begin
   QueryTab.Memo.OnMouseWheel := SynMemoQuery.OnMouseWheel;
   QueryTab.Memo.OnProcessCommand := SynMemoQuery.OnProcessCommand;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
-  //QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
   QueryTab.Memo.OnShowHint := SynMemoQuery.OnShowHint;
   QueryTab.MemoLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
   SynCompletionProposal.AddEditor(QueryTab.Memo);
@@ -13229,7 +13112,6 @@ begin
     BaseEditor.Options := BaseEditor.Options - [eoTabsToSpaces];
   FMatchingBraceForegroundColor := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceForeground));
   FMatchingBraceBackgroundColor := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceBackground));
-  FSynEditInOnPaintTransient := False;
 
   // Shortcuts
   for j:=0 to BaseEditor.Keystrokes.Count-1 do begin
@@ -13299,6 +13181,7 @@ var
   LineNumberPart: TSynGutterLineNumber;
   CodeFoldingPart: TSynGutterCodeFolding;
   FontName: String;
+  MarkupWordSelection: TMarkupWordSelection;
 begin
   LogSQL('Setting up TSynMemo "'+Editor.Name+'"', lcDebug);
   BaseEditor := SynMemoQuery;
@@ -13347,8 +13230,12 @@ begin
   Editor.OnKeyPress := BaseEditor.OnKeyPress;
   Editor.OnMouseWheel := BaseEditor.OnMouseWheel;
   Editor.OnShowHint := BaseEditor.OnShowHint;
-  if Editor <> SynMemoSQLLog then begin
-    //Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
+  if not Assigned(Editor.OnStatusChange) then begin
+    Editor.OnStatusChange := GlobalSynEditStatusChange;
+  end;
+  if Editor.MarkupManager.MarkupByClass[TMarkupWordSelection] = nil then begin
+    MarkupWordSelection := TMarkupWordSelection.Create(Editor);
+    Editor.MarkupManager.AddMarkUp(MarkupWordSelection);
   end;
   // Don't reapply shortcuts to base editor again, see issue 1600
   if Editor <> BaseEditor then begin
@@ -15546,6 +15433,145 @@ begin
   else
     Result := 1;
 end;
+
+
+{ TMarkupWordSelection, replacing no longer supported OnPaintTransient event }
+
+constructor TMarkupWordSelection.Create(ASynEdit: TSynEdit);
+begin
+  inherited Create(ASynEdit);
+  FAttr := TSynSelectedColor.Create;
+end;
+
+procedure TMarkupWordSelection.SetWordToHighlight(const AWord: String);
+begin
+  if FWord = AWord then
+    Exit;
+  FWord := AWord;
+  FAttr.Background := MainForm.MatchingBraceBackgroundColor;
+  FAttr.Foreground := MainForm.MatchingBraceForegroundColor;
+  SynEdit.Invalidate; // triggers repaint and BeginMarkup
+end;
+
+procedure TMarkupWordSelection.BeginMarkup;
+var
+  L, Row: Integer;
+  LineText: String;
+  Ranges: TWordRanges;
+  Count: Integer;
+  rx: TRegExpr;
+
+  procedure AddRange(AStartCol, AEndCol: Integer);
+  begin
+    SetLength(Ranges, Count + 1);
+    Ranges[Count].StartCol := AStartCol;
+    Ranges[Count].EndCol   := AEndCol;
+    Inc(Count);
+  end;
+begin
+  inherited BeginMarkup;
+  // Clear previous data
+  SetLength(FLineRanges, 0);
+  if FWord.IsEmpty or (SynEdit = nil) then
+    Exit;
+
+  L := SynEdit.Lines.Count;
+  SetLength(FLineRanges, L);
+
+  rx := TRegExpr.Create;
+  rx.Expression := '\b(' + QuoteRegExprMetaChars(FWord) + ')\b';
+  rx.ModifierI := True;
+
+  for Row := 1 to L do
+  begin
+    LineText := SynEdit.Lines[Row - 1];
+    Ranges := nil;
+    Count := 0;
+    if rx.Exec(LineText) then while True do begin
+      SetLength(Ranges, Count + 1);
+      Ranges[Count].StartCol := rx.MatchPos[1];
+      Ranges[Count].EndCol   := rx.MatchPos[1] + rx.MatchLen[1];
+      Inc(Count);
+      if not rx.ExecNext then
+        Break;
+    end;
+
+    FLineRanges[Row - 1] := Ranges;
+  end;
+
+  rx.Free;
+end;
+
+procedure TMarkupWordSelection.GetNextMarkupColAfterRowCol(const aRow: Integer;
+  const aStartCol: TLazSynDisplayTokenBound;
+  const AnRtlInfo: TLazSynDisplayRtlInfo; out ANextPhys, ANextLog: Integer);
+var
+  Ranges: TWordRanges;
+  I: Integer;
+  NextCol: Integer;
+begin
+  // This tells SynEdit at which column the highlight state changes (entering or leaving a word).
+  // SynEdit will repeatedly call this until no further changes are reported on the row.
+  ANextPhys := -1;
+  ANextLog  := -1;
+
+  if (aRow <= 0) or (aRow > Length(FLineRanges)) then
+    Exit;
+
+  Ranges := FLineRanges[aRow - 1];
+  if Length(Ranges) = 0 then
+    Exit;
+
+  NextCol := -1;
+
+  for I := 0 to High(Ranges) do
+  begin
+    // 1) entering highlight
+    if (Ranges[I].StartCol > aStartCol.Logical) and
+       ((NextCol = -1) or (Ranges[I].StartCol < NextCol)) then
+      NextCol := Ranges[I].StartCol;
+
+    // 2) leaving highlight
+    if (Ranges[I].EndCol > aStartCol.Logical) and
+       ((NextCol = -1) or (Ranges[I].EndCol < NextCol)) then
+      NextCol := Ranges[I].EndCol;
+  end;
+
+  if NextCol <> -1 then
+  begin
+    // we only care about logical column here
+    ANextLog := NextCol;
+    // ANextPhys = -1 means: derive physical from logical
+  end;
+end;
+
+function TMarkupWordSelection.GetMarkupAttributeAtRowCol(const aRow: Integer;
+  const aStartCol: TLazSynDisplayTokenBound;
+  const AnRtlInfo: TLazSynDisplayRtlInfo): TSynSelectedColor;
+var
+  Ranges: TWordRanges;
+  I: Integer;
+  Col: Integer;
+begin
+  // This returns the attribute if the given column is within any word range on that row.
+  Result := nil;
+  if (aRow <= 0) or (aRow > Length(FLineRanges)) then
+    Exit;
+
+  Ranges := FLineRanges[aRow - 1];
+  if Length(Ranges) = 0 then
+    Exit;
+
+  Col := aStartCol.Logical;
+
+  for I := 0 to High(Ranges) do
+    if (Col >= Ranges[I].StartCol) and (Col < Ranges[I].EndCol) then
+    begin
+      Result := FAttr;
+      Exit;
+    end;
+end;
+
 
 
 { TListBindParam }
