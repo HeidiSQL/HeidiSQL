@@ -458,7 +458,7 @@ begin
   // Reformat code if possible
   try
     if FHighlighter is TSynJScriptSyn then begin
-      JsonParser := TJSONParser.Create(MemoText.Text);
+      JsonParser := TJSONParser.Create(MemoText.Text, []);
       MemoText.Text := JsonParser.Parse.FormatJSON();
       JsonParser.Free;
       MemoText.SelStart := 0;

@@ -282,7 +282,7 @@ begin
   JsonResponseStr := Response.Text;
   if JsonResponseStr.IsEmpty then
     raise Exception.Create(_('Empty result from online reformatter'));
-  JsonParser := TJSONParser.Create(JsonResponseStr);
+  JsonParser := TJSONParser.Create(JsonResponseStr, []);
   JsonTmp := JsonParser.Parse;
   Result := JsonTmp.GetPath('result').AsString;
   JsonTmp.Free;

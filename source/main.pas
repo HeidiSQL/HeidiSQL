@@ -3802,10 +3802,13 @@ end;
 
 procedure TMainForm.actLaunchCommandlineExecute(Sender: TObject);
 var
-  path, log, cmd, MySQLArgs, TerminalArgs: String;
+  path, log, cmd, MySQLArgs: String;
   Conn: TDBConnection;
   P: TProcess;
+  {$IFNDEF WINDOWS}
+  TerminalArgs: String;
   SpacePos: Integer;
+  {$ENDIF}
 
   function DetectTerminal: string;
   const
