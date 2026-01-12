@@ -3655,7 +3655,7 @@ begin
   // Enable or disable ImageView action
   Grid := ActiveGrid;
   (Sender as TAction).Enabled := (Grid <> nil)
-    and (Grid.FocusedColumn <> NoColumn)
+    and (Grid.FocusedColumn-1 <> NoColumn)
     and (GridResult(Grid).DataType(Grid.FocusedColumn-1).Category = dtcBinary)
 end;
 
@@ -10682,6 +10682,8 @@ begin
   if HitInfo.Button = mbLeft then begin
     // Header click disabled
     if not AppSettings.ReadBool(asColumnHeaderClick) then
+      Exit;
+    if HitInfo.Column = NoColumn then
       Exit;
     ColName := Sender.Columns[HitInfo.Column].Text;
     // Add a new order column after a columns title has been clicked
