@@ -44,7 +44,7 @@ build-win64:
 	@echo "=== Building Win64"
 	$(LAZBUILD) $(OPTS) $(LPI)
 	@mkdir -p ./out/win64
-	@mv -v $(BIN) $(BINWIN64)
+	@mv -v "$(BIN).exe" "$(BINWIN64)"
 
 run-win64:
 	@echo "Not implemented yet."
