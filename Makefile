@@ -1,3 +1,4 @@
+# This need and IFDEF WINDOWS !!
 LAZBUILD := $(shell command -v lazbuild)
 OPTS := -B --bm=Release
 OPTSQT5 := --ws=qt5
@@ -42,7 +43,7 @@ copy-locale:
 
 build-win64:
 	@echo "=== Building Win64"
-	$(LAZBUILD) $(OPTS) $(LPI)
+	lazbuild $(OPTS) $(LPI)
 	@mkdir -p ./out/win64
 	@mv -v "$(BIN).exe" "$(BINWIN64)"
 
