@@ -5,6 +5,7 @@ OPTSQT6 := --ws=qt6
 LPI := heidisql.lpi
 
 BIN := ./out/heidisql
+BINWIN64 := ./out/win64/heidisql
 BINGTK := ./out/gtk2/heidisql
 BINQT5 := ./out/qt5/heidisql
 BINQT6 := ./out/qt6/heidisql
@@ -24,20 +25,29 @@ endif
 
 VERSION := $(shell echo $(tag) | sed "s/v//")
 
-.PHONY: all clean tx-pull copy-locale build-mo build-gtk2 run-gtk2 build-qt5 run-qt5 build-qt6 run-qt6 build-macos deb-package tar-gtk2 tar-qt5 tar-qt6
+.PHONY: all clean copy-locale build-mo build-win64 run-win64 build-gtk2 run-gtk2 build-qt5 run-qt5 build-qt6 run-qt6 build-macos deb-package tar-gtk2 tar-qt5 tar-qt6
 
-all: clean build-gtk2 build-qt5 build-qt6 deb-package tar-gtk2 tar-qt5 tar-qt6
+all: clean build-win64 build-gtk2 build-qt5 build-qt6 build-macos deb-package tar-gtk2 tar-qt5 tar-qt6
 
 clean:
 	@echo "=== Cleaning"
 	@rm -rf ./bin/lib/x86_64-linux/*
-	@rm -f ./out/gtk2/* ./out/qt5/* ./out/qt6/* ./out/macos/*
+	@rm -f ./out/win64/* ./out/gtk2/* ./out/qt5/* ./out/qt6/* ./out/macos/*
 	@rm -rf ./deb ./rpm ./tar ./dist
 
 copy-locale:
 	@echo "=== Copying .mo from extra/locale to out/locale"
 	@mkdir -p ./out/locale
 	@cp -fv ./extra/locale/*.mo ./out/locale
+
+build-win64:
+	@echo "=== Building Win64"
+	$(LAZBUILD) $(OPTS) $(LPI)
+	@mkdir -p ./out/win64
+	@mv -v $(BIN) $(BINWIN64)
+
+run-win64:
+	@echo "Not implemented yet."
 
 build-gtk2:
 	@echo "=== Building GTK2"

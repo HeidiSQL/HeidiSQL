@@ -27,7 +27,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                operating-system: [ubuntu-latest, macos-latest]
+                operating-system: [windows-latest, ubuntu-latest, macos-latest]
                 lazarus-versions: ["stable"]
 
         steps:
@@ -39,6 +39,19 @@ jobs:
           with:
             lazarus-version: ${{ matrix.lazarus-versions }}
             with-cache: false
+
+        - name: Build HeidiSQL (Windows)
+          if: ${{ matrix.operating-system == 'windows-latest' }}
+          run: |
+            echo Building with Windows
+            make build-win64
+
+        - name: Upload binaries Windows
+          if: ${{ matrix.operating-system == 'windows-latest' && matrix.lazarus-versions == 'stable' }}
+          uses: actions/upload-artifact@v4
+          with:
+            name: ${{ matrix.operating-system }}-WIN64
+            path: out/win64/heidisql.exe
 
         - name: Build HeidiSQL (Ubuntu GTK)
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
