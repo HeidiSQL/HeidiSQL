@@ -5,7 +5,7 @@ OPTSQT6 := --ws=qt6
 LPI := heidisql.lpi
 
 BIN := ./out/heidisql
-BINWIN64 := ./out/win64/heidisql
+BINWIN64 := ./out/win64/heidisql.exe
 BINGTK := ./out/gtk2/heidisql
 BINQT5 := ./out/qt5/heidisql
 BINQT6 := ./out/qt6/heidisql
