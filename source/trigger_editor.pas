@@ -124,7 +124,7 @@ begin
     rx := TRegExpr.Create;
     rx.ModifierI := True;
     QuoteCharsRx := QuoteRegExprMetaChars(DBObject.Connection.QuoteChars);
-    QuotedWordRx := '['+QuoteCharsRx+'][^'+QuoteCharsRx+']+['+QuoteCharsRx+']';
+    QuotedWordRx := '['+QuoteCharsRx+']?[^'+QuoteCharsRx+']+['+QuoteCharsRx+']?';
     rx.Expression := '(\sDEFINER=('+QuotedWordRx+'@'+QuotedWordRx+'))?' +
       '\s+TRIGGER\s+'+QuotedWordRx +
       '\s+('+Implode('|', comboTiming.Items)+')' +
