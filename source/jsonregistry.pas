@@ -13,10 +13,10 @@ type
 
   TJSONConfigExtended = class(TJSONConfig)
     public
-      function AddEndSlash(Path: UnicodeString): UnicodeString;
-      function StripEndSlash(Path: UnicodeString): UnicodeString;
-      procedure MoveKey(SourcePath: UnicodeString; TargetPath: UnicodeString; Delete: Boolean);
-      function DataType(Path: UnicodeString): TJSONtype;
+      function AddEndSlash(Path: String): String;
+      function StripEndSlash(Path: String): String;
+      procedure MoveKey(SourcePath: String; TargetPath: String; Delete: Boolean);
+      function DataType(Path: String): TJSONtype;
   end;
 
   { TJSONRegistry }
@@ -24,7 +24,7 @@ type
   TJsonRegistry = class(TPersistent)
     private
       FJsConf: TJSONConfigExtended;
-      FCurrentKeyPath: UnicodeString;
+      FCurrentKeyPath: String;
       FAutoFlushTimer: TTimer;
       function GetAutoFlushMilliSeconds: Cardinal;
       procedure SetAutoFlushMilliSeconds(aValue: Cardinal);
@@ -34,25 +34,25 @@ type
       destructor Destroy; override;
       function FilePath: String;
       // Keys:
-      function OpenKey(Path: UnicodeString; CanCreate: Boolean): Boolean;
+      function OpenKey(Path: String; CanCreate: Boolean): Boolean;
       procedure CloseKey;
-      function DeleteKey(Path: UnicodeString): Boolean;
-      procedure MoveKey(sourcepath: UnicodeString; targetpath: UnicodeString; Delete: Boolean);
+      function DeleteKey(Path: String): Boolean;
+      procedure MoveKey(sourcepath: String; targetpath: String; Delete: Boolean);
       procedure GetKeyNames(list: TStringList);
-      function CurrentPath: UnicodeString;
-      function KeyExists(path: UnicodeString): Boolean;
+      function CurrentPath: String;
+      function KeyExists(path: String): Boolean;
       function HasSubKeys: Boolean;
       // Values:
-      function DeleteValue(name: UnicodeString): Boolean;
+      function DeleteValue(name: String): Boolean;
       procedure GetValueNames(list: TStringList);
-      function ValueExists(name: UnicodeString): Boolean;
-      function ReadInteger(name: UnicodeString): Integer;
-      function ReadBool(name: UnicodeString): Boolean;
-      function ReadString(name: UnicodeString): UnicodeString;
-      procedure WriteInteger(name: UnicodeString; value: Integer);
-      procedure WriteBool(name: UnicodeString; value: Boolean);
-      procedure WriteString(name: UnicodeString; value: UnicodeString);
-      function GetDataType(Path: UnicodeString): TJSONtype;
+      function ValueExists(name: String): Boolean;
+      function ReadInteger(name: String): Integer;
+      function ReadBool(name: String): Boolean;
+      function ReadString(name: String): String;
+      procedure WriteInteger(name: String; value: Integer);
+      procedure WriteBool(name: String; value: Boolean);
+      procedure WriteString(name: String; value: String);
+      function GetDataType(Path: String): TJSONtype;
 
       property AutoFlushMilliSeconds: Cardinal read GetAutoFlushMilliSeconds write SetAutoFlushMilliSeconds;
       procedure FlushToDisk;
@@ -62,26 +62,26 @@ implementation
 
 { TJSONConfigExtended }
 
-function TJSONConfigExtended.AddEndSlash(Path: UnicodeString): UnicodeString;
+function TJSONConfigExtended.AddEndSlash(Path: String): String;
 begin
   Result := Path;
   if Result[Length(Result)] <> '/' then
     Result := Result + '/';
 end;
 
-function TJSONConfigExtended.StripEndSlash(Path: UnicodeString): UnicodeString;
+function TJSONConfigExtended.StripEndSlash(Path: String): String;
 begin
   Result := Path;
   if Result[Length(Result)] = '/' then
     Delete(Result, Length(Result), 1);
 end;
 
-procedure TJSONConfigExtended.MoveKey(SourcePath: UnicodeString;
-  TargetPath: UnicodeString; Delete: Boolean);
+procedure TJSONConfigExtended.MoveKey(SourcePath: String;
+  TargetPath: String; Delete: Boolean);
 var
   OldNode, NewNode, NewNodeParent: TJSONObject;
   NewNodeName: UnicodeString;
-  TargetPathSlash, TargetPathNoSlash: UnicodeString;
+  TargetPathSlash, TargetPathNoSlash: String;
 begin
 
   if Length(SourcePath) = 0 then
@@ -90,7 +90,7 @@ begin
     Raise EJSONConfigError.Create('Cannot move to empty path');
 
   SourcePath := AddEndSlash(SourcePath);
-  OldNode := FindObject(SourcePath, False);
+  OldNode := FindObject(UTF8Decode(SourcePath), False);
   if not Assigned(OldNode) then
     raise EJSONConfigError.CreateFmt('Source path does not exist: %s', [SourcePath]);
 
@@ -99,27 +99,27 @@ begin
   //showmessage('TargetPathSlash:"'+TargetPathSlash+'"'+sLineBreak+'TargetPathNoSlash:"'+TargetPathNoSlash+'"');
 
   // Error if target exists
-  NewNode := FindObject(TargetPathSlash, False);
+  NewNode := FindObject(UTF8Decode(TargetPathSlash), False);
   if Assigned(NewNode) then
     Raise EJSONConfigError.CreateFmt('Target path already exists: %s', [TargetPathSlash]);
 
   // Create copied key
-  NewNodeParent := FindObject(TargetPathNoSlash, True, NewNodeName);
-  NewNodeParent.Add(NewNodeName, OldNode.Clone);
+  NewNodeParent := FindObject(UTF8Decode(TargetPathNoSlash), True, NewNodeName);
+  NewNodeParent.Add(UTF8Encode(NewNodeName), OldNode.Clone);
 
   if Delete then begin
     // Deleting source key. Note we have cloned this before.
-    DeletePath(SourcePath);
+    DeletePath(UTF8Decode(SourcePath));
   end;
 
   FModified:=True;
 end;
 
-function TJSONConfigExtended.DataType(Path: UnicodeString): TJSONtype;
+function TJSONConfigExtended.DataType(Path: String): TJSONtype;
 var
   e: TJSONData;
 begin
-  e := FindElement(Path, False, True);
+  e := FindElement(UTF8Decode(Path), False, True);
   if Assigned(e) then
     Result := e.JSONType
   else
@@ -173,10 +173,10 @@ begin
   Result := FJsConf.Filename;
 end;
 
-function TJsonRegistry.OpenKey(Path: UnicodeString; CanCreate: Boolean): Boolean;
+function TJsonRegistry.OpenKey(Path: String; CanCreate: Boolean): Boolean;
 begin
   try
-    FJsConf.OpenKey(Path, CanCreate);
+    FJsConf.OpenKey(UTF8Decode(Path), CanCreate);
     FCurrentKeyPath := Path;
     Result := True;
   except
@@ -192,40 +192,40 @@ begin
   FJsConf.CloseKey;
 end;
 
-function TJsonRegistry.DeleteKey(Path: UnicodeString): Boolean;
+function TJsonRegistry.DeleteKey(Path: String): Boolean;
 begin
-  FJsConf.DeletePath(Path);
+  FJsConf.DeletePath(UTF8Decode(Path));
   Result := True;
 end;
 
-procedure TJsonRegistry.MoveKey(sourcepath: UnicodeString; targetpath: UnicodeString; Delete: Boolean);
+procedure TJsonRegistry.MoveKey(sourcepath: String; targetpath: String; Delete: Boolean);
 begin
   FJsConf.MoveKey(sourcepath, targetpath, Delete);
 end;
 
 procedure TJsonRegistry.GetKeyNames(list: TStringList);
 begin
-  FJsConf.EnumSubKeys(FCurrentKeyPath, list);
+  FJsConf.EnumSubKeys(UTF8Decode(FCurrentKeyPath), list);
 end;
 
-function TJsonRegistry.CurrentPath: UnicodeString;
+function TJsonRegistry.CurrentPath: String;
 begin
   Result := FCurrentKeyPath;
 end;
 
-function TJsonRegistry.KeyExists(path: UnicodeString): Boolean;
+function TJsonRegistry.KeyExists(path: String): Boolean;
 var
   SubKeys: TStringList;
   LastDelim: Integer;
-  folder, name: UnicodeString;
+  folder, name: String;
 begin
   SubKeys := TStringList.Create;
   path := FJsConf.StripEndSlash(path);
-  LastDelim := String(path).LastIndexOf('/');
+  LastDelim := path.LastIndexOf('/');
   name := Copy(path, LastDelim+2);
   folder := Copy(path, 1, LastDelim);
   //showmessage('folder:'+folder+sLineBreak+'name:'+name);
-  FJsConf.EnumSubKeys(folder, SubKeys);
+  FJsConf.EnumSubKeys(UTF8Decode(folder), SubKeys);
   Result := SubKeys.IndexOf(name) > -1;
   SubKeys.Free;
 end;
@@ -240,18 +240,18 @@ begin
   SubKeys.Free;
 end;
 
-function TJsonRegistry.DeleteValue(name: UnicodeString): Boolean;
+function TJsonRegistry.DeleteValue(name: String): Boolean;
 begin
-  FJsConf.DeleteValue(name);
+  FJsConf.DeleteValue(UTF8Decode(name));
   Result := True;
 end;
 
 procedure TJsonRegistry.GetValueNames(list: TStringList);
 begin
-  FJsConf.EnumValues(FCurrentKeyPath, list);
+  FJsConf.EnumValues(UTF8Decode(FCurrentKeyPath), list);
 end;
 
-function TJsonRegistry.ValueExists(name: UnicodeString): Boolean;
+function TJsonRegistry.ValueExists(name: String): Boolean;
 var
   Values: TStringList;
 begin
@@ -261,37 +261,37 @@ begin
   Values.Free;
 end;
 
-function TJsonRegistry.ReadInteger(name: UnicodeString): Integer;
+function TJsonRegistry.ReadInteger(name: String): Integer;
 begin
   Result := FJsConf.GetValue(name, 0);
 end;
 
-function TJsonRegistry.ReadBool(name: UnicodeString): Boolean;
+function TJsonRegistry.ReadBool(name: String): Boolean;
 begin
   Result := FJsConf.GetValue(name, False);
 end;
 
-function TJsonRegistry.ReadString(name: UnicodeString): UnicodeString;
+function TJsonRegistry.ReadString(name: String): String;
 begin
-  Result := FJsConf.GetValue(name, '');
+  Result := UTF8Encode(FJsConf.GetValue(name, ''));
 end;
 
-procedure TJsonRegistry.WriteInteger(name: UnicodeString; value: Integer);
+procedure TJsonRegistry.WriteInteger(name: String; value: Integer);
+begin
+  FJsConf.SetValue(UTF8Decode(name), value);
+end;
+
+procedure TJsonRegistry.WriteBool(name: String; value: Boolean);
+begin
+  FJsConf.SetValue(UTF8Decode(name), value);
+end;
+
+procedure TJsonRegistry.WriteString(name: String; value: String);
 begin
   FJsConf.SetValue(name, value);
 end;
 
-procedure TJsonRegistry.WriteBool(name: UnicodeString; value: Boolean);
-begin
-  FJsConf.SetValue(name, value);
-end;
-
-procedure TJsonRegistry.WriteString(name: UnicodeString; value: UnicodeString);
-begin
-  FJsConf.SetValue(name, value);
-end;
-
-function TJsonRegistry.GetDataType(Path: UnicodeString): TJSONtype;
+function TJsonRegistry.GetDataType(Path: String): TJSONtype;
 begin
   Result := FJsConf.DataType(Path);
 end;
