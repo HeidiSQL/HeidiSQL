@@ -7055,19 +7055,29 @@ end;
 
 procedure TMainForm.SynMemoQueryProcessCommand(Sender: TObject;
   var Command: TSynEditorCommand; var AChar: TUTF8Char; Data: pointer);
+const
+  WordChars: TSysCharSet = ['A'..'Z','a'..'z','0'..'9','_','$'];
+  TriggerChars: TSysCharSet = [' ', #9, #10, #13, ',', ';', '(', ')'];
 var
   Editor: TSynMemo;
-  CaretToken: String;
+  Token: String;
   CaretStart, CaretTokenTypeInt: Integer;
-  CaretAttri: TSynHighlighterAttributes;
+  Attri: TSynHighlighterAttributes;
   Proposal: TSynCompletion;
   p: TPoint;
+  LineIdx, ColIdx, StartCol, EndCol: Integer;
+  TableIndex: Integer;
+  LineText, Word, Replacement: string;
+  StartPt, EndPt: TPoint;
 begin
+  if Command <> ecChar then
+    Exit;
+  Editor := Sender as TSynEdit;
+
   if AChar = '.' then begin
     if not AppSettings.ReadBool(asCompletionProposal) then
       Exit;
-    Editor := Sender as TSynMemo;
-    Editor.GetHighlighterAttriAtRowColEx(Editor.CaretXY, CaretToken, CaretTokenTypeInt, CaretStart, CaretAttri);
+    Editor.GetHighlighterAttriAtRowColEx(Editor.CaretXY, Token, CaretTokenTypeInt, CaretStart, Attri);
     if not (SynHighlighterSQL.TtkTokenKind(CaretTokenTypeInt) in [SynHighlighterSQL.tkString, SynHighlighterSQL.tkComment])
       then begin
         Proposal := SynCompletionProposal;
@@ -7076,6 +7086,61 @@ begin
         FProposalTriggeredByDot := True;
         Proposal.Execute('', p.x, p.y);
       end;
+  end
+
+  else begin
+    if not AppSettings.ReadBool(asAutoUppercase) then
+      Exit;
+    if Length(AChar) <= 0 then
+      Exit;
+    // Only act on word delimiters
+    if not (AChar[1] in TriggerChars) then
+      Exit;
+
+    LineIdx := Editor.CaretY;
+    ColIdx := Editor.CaretX;
+    EndCol := Editor.CaretX;
+
+    if (LineIdx < 1) or (LineIdx > Editor.Lines.Count) then
+      Exit;
+
+    LineText := Editor.Lines[LineIdx - 1];
+
+    // Find start of the word before caret
+    StartCol := ColIdx - 1;
+    while (StartCol > 0) and (LineText[StartCol] in WordChars) do
+      Dec(StartCol);
+    Inc(StartCol);
+
+    if (StartCol >= ColIdx) then
+      Exit;
+
+    // Query highlighter at the start of this word
+    StartPt := Point(StartCol, LineIdx);
+
+    Editor.GetHighlighterAttriAtRowCol(StartPt, Token, Attri);
+
+    if (Attri = SynSQLSynUsed.KeyAttri) or
+       (Attri = SynSQLSynUsed.DataTypeAttri) or
+       (Attri = SynSQLSynUsed.FunctionAttri) then
+    begin
+      StartPt := Point(StartCol, LineIdx);
+      EndPt := Point(ColIdx, LineIdx);
+
+      Word := Copy(LineText, StartCol, EndCol - StartCol);
+      Replacement := UpperCase(Word);
+      TableIndex := SynSQLSynUsed.TableNames.IndexOf(Token);
+      if TableIndex > -1 then
+        Replacement := SynSQLSynUsed.TableNames[TableIndex];
+      Editor.BlockBegin := StartPt;
+      Editor.BlockEnd := EndPt;
+      Editor.SelText := Replacement;
+
+      Editor.CaretXY := Point(ColIdx, LineIdx);
+
+      Editor.SelText := AChar;
+      AChar := '';  // consume char so it is not inserted again
+    end;
   end;
 end;
 
