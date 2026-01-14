@@ -7132,14 +7132,14 @@ begin
       TableIndex := SynSQLSynUsed.TableNames.IndexOf(Token);
       if TableIndex > -1 then
         Replacement := SynSQLSynUsed.TableNames[TableIndex];
-      Editor.BlockBegin := StartPt;
-      Editor.BlockEnd := EndPt;
-      Editor.SelText := Replacement;
-
-      Editor.CaretXY := Point(ColIdx, LineIdx);
-
-      Editor.SelText := AChar;
-      AChar := '';  // consume char so it is not inserted again
+      if Token <> Replacement then begin
+        Editor.BlockBegin := StartPt;
+        Editor.BlockEnd := EndPt;
+        Editor.SelText := Replacement;
+        Editor.CaretXY := Point(ColIdx, LineIdx);
+        Editor.SelText := AChar;
+        AChar := '';  // consume char so it is not inserted again
+      end;
     end;
   end;
 end;
@@ -10183,6 +10183,9 @@ begin
   PanelHeight := Max(PanelHeight, btnFilterApply.Top + btnFilterApply.Height + 5);
   if PanelHeight <> pnlFilter.Height then
     pnlFilter.Height := PanelHeight;
+
+  // Required for selection highlighting
+  GlobalSynEditStatusChange(Sender, Changes);
 end;
 
 
