@@ -74,6 +74,7 @@ type
 
 implementation
 
+uses generic_types;
 
 { TExtForm }
 
@@ -261,7 +262,7 @@ end;
 
 procedure TExtForm.FilterNodesByEdit(Edit: TEditButton; Tree: TLazVirtualStringTree);
 var
-  rx: TRegExpr;
+  rx: TRegExprUmlauts;
   Node: PVirtualNode;
   i: Integer;
   match: Boolean;
@@ -269,7 +270,7 @@ var
 begin
   // Loop through all tree nodes and hide non matching
   Node := Tree.GetFirst;
-  rx := TRegExpr.Create;
+  rx := TRegExprUmlauts.Create;
   rx.ModifierI := True;
   rx.Expression := Edit.Text;
   try

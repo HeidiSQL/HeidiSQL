@@ -7269,10 +7269,7 @@ begin
   Edit := Sender as TSynEdit;
   MarkupWordSelection := Edit.MarkupByClass[TMarkupWordSelection] as TMarkupWordSelection;
   if Assigned(MarkupWordSelection) then begin
-    if ExecRegExprI('^\w+$', Edit.SelText) then
-      MarkupWordSelection.SetWordToHighlight(Edit.SelText)
-    else
-      MarkupWordSelection.SetWordToHighlight('');
+    MarkupWordSelection.SetWordToHighlight(Edit.SelText)
   end;
 end;
 
@@ -8982,7 +8979,7 @@ var
   tab: TTabSheet;
   VisibleCount: Cardinal;
   CellText: String;
-  rx: TRegExpr;
+  rx: TRegExprUmlauts;
   OldDataLocalNumberFormat: Boolean;
   OldImageIndex: Integer;
 begin
@@ -9025,7 +9022,7 @@ begin
   TreeIsInsideUpdate := tsUpdating in VT.TreeStates;
   // Loop through all nodes and hide non matching
   Node := VT.GetFirst;
-  rx := TRegExpr.Create;
+  rx := TRegExprUmlauts.Create;
   rx.ModifierI := True;
   rx.Expression := editFilterVT.Text;
   if rx.Expression <> '' then try
@@ -9052,10 +9049,12 @@ begin
     match := rx.Expression = '';
     // Search for given text in node's captions
     if not match then for i := 0 to VT.Header.Columns.Count - 1 do begin
-      CellText := VT.Text[Node, i];
-      match := rx.Exec(CellText);
-      if match then
-        break;
+      if coVisible in VT.Header.Columns[i].Options then begin
+        CellText := VT.Text[Node, i];
+        match := rx.Exec(CellText);
+        if match then
+          break;
+      end;
     end;
     VT.IsVisible[Node] := match;
     if match then
@@ -12534,17 +12533,17 @@ procedure TMainForm.editDatabaseTableFilterChange(Sender: TObject);
 var
   Node: PVirtualNode;
   Obj: PDBObject;
-  rxdb, rxtable: TRegExpr;
+  rxdb, rxtable: TRegExprUmlauts;
   NodeMatches: Boolean;
   Errors: TStringList;
 begin
   // Immediately apply database filter
   LogSQL('editDatabaseTableFilterChange', lcDebug);
 
-  rxdb := TRegExpr.Create;
+  rxdb := TRegExprUmlauts.Create;
   rxdb.ModifierI := True;
   rxdb.Expression := '('+StringReplace(editDatabaseFilter.Text, ';', '|', [rfReplaceAll])+')';
-  rxtable := TRegExpr.Create;
+  rxtable := TRegExprUmlauts.Create;
   rxtable.ModifierI := True;
   rxtable.Expression := '('+StringReplace(editTableFilter.Text, ';', '|', [rfReplaceAll])+')';
 
@@ -15530,7 +15529,7 @@ var
   LineText: String;
   Ranges: TWordRanges;
   Count: Integer;
-  rx: TRegExpr;
+  rx: TRegExprUmlauts;
 
   procedure AddRange(AStartCol, AEndCol: Integer);
   begin
@@ -15549,7 +15548,7 @@ begin
   L := SynEdit.Lines.Count;
   SetLength(FLineRanges, L);
 
-  rx := TRegExpr.Create;
+  rx := TRegExprUmlauts.Create;
   rx.Expression := '\b(' + QuoteRegExprMetaChars(FWord) + ')\b';
   rx.ModifierI := True;
 

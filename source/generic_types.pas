@@ -4,7 +4,7 @@ unit generic_types;
 
 interface
 
-uses fpjson, jsonparser, SysUtils;
+uses fpjson, jsonparser, SysUtils, RegExpr;
 
 type
   TThreeStateBoolean = (nbUnset, nbFalse, nbTrue);
@@ -12,6 +12,12 @@ type
   TJSONFloatNumberUntouched = class(TJSONFloatNumber)
   public
     function GetAsString: TJSONStringType; override;
+  end;
+
+  // Regular expression with support for European umlauts/accents as \w (word character)
+  TRegExprUmlauts = class(TRegExpr)
+    public
+      constructor Create;
   end;
 
   TFileExtImageIndex = record
@@ -75,6 +81,14 @@ begin
   // Remove trailing decimal separator if no fractional digits left
   if (Length(Result) > 0) and (Result[High(Result)] = fs.DecimalSeparator) then
     Delete(Result, High(Result), 1);
+end;
+
+{ TRegExprUmlauts }
+
+constructor TRegExprUmlauts.Create;
+begin
+  inherited Create;
+  WordChars := WordChars + 'äÄöÖüÜÿŸáÁéÉíÍóÓúÚýÝćĆńŃŕŔśŚźŹĺĹàÀèÈìÌòÒùÙâÂêÊîÎôÔûÛãÃõÕñÑçÇşŞţŢåÅæÆœŒøØß';
 end;
 
 initialization
