@@ -7057,7 +7057,7 @@ procedure TMainForm.SynMemoQueryProcessCommand(Sender: TObject;
   var Command: TSynEditorCommand; var AChar: TUTF8Char; Data: pointer);
 const
   WordChars: TSysCharSet = ['A'..'Z','a'..'z','0'..'9','_','$'];
-  TriggerChars: TSysCharSet = [' ', #9, #10, #13, ',', ';', '(', ')'];
+  TriggerChars: TSysCharSet = [#0, ' ', #9, #10, #13, ',', ';', '(', ')'];
 var
   Editor: TSynMemo;
   Token: String;
@@ -7070,7 +7070,8 @@ var
   LineText, Word, Replacement: string;
   StartPt, EndPt: TPoint;
 begin
-  if Command <> ecChar then
+  // Note: for the ecLineBreak command, we include #0 in TriggerChars. Not #10 or #13 as one might assume.
+  if (Command <> ecChar) and (Command <> ecLineBreak) then
     Exit;
   Editor := Sender as TSynEdit;
 
