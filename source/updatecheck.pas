@@ -7,7 +7,7 @@ interface
 uses
   SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
   apphelpers, ExtCtrls, extra_controls, StrUtils, Dialogs,
-  Menus, Clipbrd, generic_types, DateUtils;
+  Menus, Clipbrd, generic_types, DateUtils, Buttons;
 
 type
 
@@ -21,7 +21,7 @@ type
     memoRelease: TMemo;
     popupDownloadRelease: TPopupMenu;
     CopydownloadURL1: TMenuItem;
-    btnDonate: TButton;
+    btnDonate: TBitBtn;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure LinkLabelReleaseLinkClick(Sender: TObject);

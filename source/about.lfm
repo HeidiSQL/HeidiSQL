@@ -408,7 +408,7 @@ object AboutBox: TAboutBox
     TabOrder = 3
     OnClick = btnDonatedOKClick
   end
-  object btnDonate: TButton
+  object btnDonate: TBitBtn
     AnchorSideLeft.Control = ImageHeidisql
     AnchorSideLeft.Side = asrBottom
     AnchorSideTop.Control = editDonated
@@ -426,6 +426,8 @@ object AboutBox: TAboutBox
     BorderSpacing.Around = 6
     Caption = 'Donate'
     Constraints.MinHeight = 50
+    Images = MainForm.ImageListMain
+    ImageIndex = 185
     ParentShowHint = False
     ShowHint = True
     TabOrder = 4

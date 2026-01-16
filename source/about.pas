@@ -28,7 +28,7 @@ type
     popupLabels: TPopupMenu;
     menuCopyLabel: TMenuItem;
     lblEnvironment: TLabel;
-    btnDonate: TButton;
+    btnDonate: TBitBtn;
     lnklblCompiler: TLabel;
     procedure OpenURL(Sender: TObject);
     procedure FormShow(Sender: TObject);

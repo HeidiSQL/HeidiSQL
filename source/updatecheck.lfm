@@ -103,7 +103,7 @@ object frmUpdateCheck: TfrmUpdateCheck
       OnClick = LinkLabelReleaseLinkClick
     end
   end
-  object btnDonate: TButton
+  object btnDonate: TBitBtn
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
@@ -115,6 +115,8 @@ object frmUpdateCheck: TfrmUpdateCheck
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Around = 6
     Caption = 'Donate'
+    Images = MainForm.ImageListMain
+    ImageIndex = 185
     TabOrder = 0
   end
   object popupDownloadRelease: TPopupMenu
