@@ -5546,7 +5546,7 @@ begin
       SynMemoSQLLog.CaretY := SynMemoSQLLog.Lines.Count;
       // Causes access violations on a reconnected session firing a user-query:
       // SynMemoSQLLog.Repaint;
-      // SynMemoSQLLog.Update;
+      SynMemoSQLLog.Update; // Experimental: immediately shows new lines on heavy operations, enhancing user experience. Disable when crashes happen again!
       // See TDBConnection.Log and TQueryThread.LogFromThread
       // See https://github.com/HeidiSQL/HeidiSQL/issues/57
 
