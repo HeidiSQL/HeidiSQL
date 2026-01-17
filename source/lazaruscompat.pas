@@ -18,6 +18,7 @@ type
   TSynEditHelper = class helper for TSynEdit
     public
       function GetTextLen: Integer;
+      function TextIsEmpty: Boolean;
       function ConvertCodeStringToCommand(AString: string): TSynEditorCommand;
       function IndexToEditorCommand(const AIndex: Integer): Integer;
   end;
@@ -162,7 +163,13 @@ implementation
 
 function TSynEditHelper.GetTextLen: Integer;
 begin
-  Result := Self.Text.Length;
+  Result := Length(Text);
+end;
+
+function TSynEditHelper.TextIsEmpty: Boolean;
+begin
+  // Introduced because GetTextLen seems to be unreliable, probably due to the lack of Trim()
+  Result := Trim(Text).IsEmpty;
 end;
 
 function TSynEditHelper.ConvertCodeStringToCommand(AString: string): TSynEditorCommand;

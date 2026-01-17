@@ -72,6 +72,8 @@ const
 
 procedure TCopyTableForm.FormCreate(Sender: TObject);
 begin
+  Width := AppSettings.ReadInt(asCopyTableWindowWidth);
+  Height := AppSettings.ReadInt(asCopyTableWindowHeight);
   MainForm.SetupSynEditors(Self);
   FixVT(TreeElements);
 end;
@@ -86,8 +88,6 @@ begin
   // Give both dropdown and edit box the same width. See http://www.heidisql.com/forum.php?t=11039
   HalfWidth := (ClientWidth - (3*Space)) div 2;
   comboDatabase.Width := HalfWidth;
-  editNewTablename.Width := HalfWidth;
-  editNewTablename.Left := comboDatabase.Left + comboDatabase.Width + Space;
 end;
 
 
@@ -99,9 +99,6 @@ var
   Item: TMenuItem;
   Tree: TVirtualStringTree;
 begin
-  // Todo: check if resizing a form here drags its controls with it
-  //Width := AppSettings.ReadIntDpiAware(asCopyTableWindowWidth, Self);
-  //Height := AppSettings.ReadIntDpiAware(asCopyTableWindowHeight, Self);
   if Mainform.DBtree.Focused then
     Tree := Mainform.DBtree
   else
@@ -175,7 +172,7 @@ begin
     Node := TreeElements.GetNextSibling(Node);
   end;
   // Store recent filters
-  if MemoFilter.Enabled and (MemoFilter.GetTextLen > 0) then begin
+  if MemoFilter.Enabled and (not MemoFilter.TextIsEmpty) then begin
     NewValues := TStringList.Create;
     NewValues.Add(MemoFilter.Text);
     for i:=1 to 20 do begin
@@ -482,7 +479,7 @@ begin
     DataCols := Trim(DataCols);
     Delete(DataCols, Length(DataCols), 1);
     InsertCode := 'INSERT INTO '+TargetTable+' ('+DataCols+') SELECT ' + DataCols + ' FROM ' + FDBObj.QuotedName;
-    if MemoFilter.GetTextLen > 0 then
+    if not MemoFilter.TextIsEmpty then
       InsertCode := InsertCode + ' WHERE ' + MemoFilter.Text;
   end;
 

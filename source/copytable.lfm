@@ -3,7 +3,6 @@ object CopyTableForm: TCopyTableForm
   Height = 380
   Top = 115
   Width = 455
-  AutoSize = True
   Caption = 'Copy Table...'
   ClientHeight = 380
   ClientWidth = 455

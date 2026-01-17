@@ -3,7 +3,6 @@ object frmColumnSelection: TfrmColumnSelection
   Height = 304
   Top = 0
   Width = 250
-  AutoSize = True
   BorderStyle = bsSizeToolWin
   Caption = 'Select columns'
   ClientHeight = 304

@@ -3,7 +3,6 @@ object frmSearchReplace: TfrmSearchReplace
   Height = 389
   Top = 0
   Width = 542
-  AutoSize = True
   BorderIcons = []
   Caption = 'Search and replace text'
   ClientHeight = 389
