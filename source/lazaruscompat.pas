@@ -5,7 +5,8 @@ unit lazaruscompat;
 interface
 
 uses
-  Classes, SysUtils, SynEdit, SynEditKeyCmds, SynEditHighlighter, laz.VirtualTrees;
+  Classes, SysUtils, SynEdit, SynEditKeyCmds, SynEditHighlighter, laz.VirtualTrees,
+  Graphics;
 
 type
 
@@ -25,6 +26,12 @@ type
   TSynHighlighterAttributesHelper = class helper for TSynHighlighterAttributes
     public
       procedure AssignColorAndStyle(Source: TSynHighlighterAttributes);
+  end;
+
+  TVTHeaderHelper = class helper for TVTHeader
+    public
+      // AutoFitColumns version which takes the header caption into account
+      procedure AutoFitColumnsWithHeaderMin;
   end;
 
   TStringsHelper = class helper for TStrings
@@ -216,6 +223,27 @@ begin
   end;
   if bChanged then
     Changed;
+end;
+
+procedure TVTHeaderHelper.AutoFitColumnsWithHeaderMin;
+var
+  cnv: TCanvas;
+  c: Integer;
+  CapWidth: Integer;
+  ws: String;
+  ExtraPad: Integer;
+begin
+  cnv := Treeview.Canvas;
+  ExtraPad := 5;
+  for c:=0 to Columns.Count - 1 do begin
+    ws := Columns[c].Text;
+    if ws <> '' then begin
+      CapWidth := cnv.TextWidth(ws);
+      Columns[c].MinWidth := CapWidth + (Columns[c].Margin * 2) + ExtraPad;
+    end;
+  end;
+  // now let VST auto-fit using node content, but not below header-based MinWidth
+  AutoFitColumns(False);
 end;
 
 function TStringsHelper.Contains(const S: String): Boolean;

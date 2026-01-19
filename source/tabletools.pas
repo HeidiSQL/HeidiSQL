@@ -1454,7 +1454,7 @@ begin
     f_('%s%% done', [FormatNumber(Percent, 1)]) + '.';
   MainForm.SetProgressPosition(Round(Percent));
   MainForm.ShowStatusMsg(Format(StatusMsg, [tabsTools.ActivePage.Caption, FormatTimeNumber((GetTickCount64-FStartTimeAll)/1000, True)]));
-  ResultGrid.Header.AutoFitColumns(False);
+  ResultGrid.Header.AutoFitColumnsWithHeaderMin;
   Application.ProcessMessages;
 end;
 
