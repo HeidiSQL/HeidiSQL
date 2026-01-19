@@ -1457,17 +1457,17 @@ end;
 
 procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
 var
-  //SingleLineHeight: Integer;
+  SingleLineHeight: Integer;
   Node: PVirtualNode;
 begin
   // This is called either in some early stage, or from preferences dialog
-  //SingleLineHeight := GetTextHeight(VT.Font) + 7;
+  SingleLineHeight := GetTextHeight(VT.Font) + 7;
   // Multiline nodes?
   // Node height calculation has some hard to find bug, see issue #2344
-  // So we'll leave DefaultNodeHeight, Header.MinHeight and Header.Height at their default values.
-  //VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
+  // So we'll leave Header.MinHeight at its default value.
+  VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
   //VT.Header.MinHeight := SingleLineHeight;
-  //VT.Header.Height := SingleLineHeight;
+  VT.Header.Height := SingleLineHeight;
   if MultiLineCount > 1 then begin
     VT.BeginUpdate;
     Node := VT.GetFirstInitialized;
