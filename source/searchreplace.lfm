@@ -77,7 +77,7 @@ object frmSearchReplace: TfrmSearchReplace
     Anchors = [akRight, akBottom]
     BorderSpacing.Right = 6
     Caption = 'Replace &all'
-    ModalResult = 12
+    ModalResult = 8
     TabOrder = 11
     OnClick = DoSearchReplace
   end
