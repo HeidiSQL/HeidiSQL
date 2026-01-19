@@ -172,7 +172,7 @@ begin
     Node := TreeElements.GetNextSibling(Node);
   end;
   // Store recent filters
-  if MemoFilter.Enabled and (not MemoFilter.TextIsEmpty) then begin
+  if MemoFilter.Enabled and MemoFilter.HasText then begin
     NewValues := TStringList.Create;
     NewValues.Add(MemoFilter.Text);
     for i:=1 to 20 do begin
@@ -479,7 +479,7 @@ begin
     DataCols := Trim(DataCols);
     Delete(DataCols, Length(DataCols), 1);
     InsertCode := 'INSERT INTO '+TargetTable+' ('+DataCols+') SELECT ' + DataCols + ' FROM ' + FDBObj.QuotedName;
-    if not MemoFilter.TextIsEmpty then
+    if MemoFilter.HasText then
       InsertCode := InsertCode + ' WHERE ' + MemoFilter.Text;
   end;
 
