@@ -419,7 +419,7 @@ object frmTableTools: TfrmTableTools
                 ParentColor = False
                 ParentFont = False
                 TabOrder = 0
-                Gutter.Width = 72
+                Gutter.Width = 0
                 Gutter.MouseActions = <>
                 RightGutter.Width = 0
                 RightGutter.MouseActions = <>
@@ -434,6 +434,7 @@ object frmTableTools: TfrmTableTools
                 Options = [eoAutoIndent, eoGroupUndo, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces, eoDragDropEditing]
                 MouseOptions = [emDragDropEditing]
                 VisibleSpecialChars = [vscSpace, vscTabAtLast]
+                ScrollBars = ssAutoBoth
                 SelectedColor.BackPriority = 50
                 SelectedColor.ForePriority = 50
                 SelectedColor.FramePriority = 50
@@ -453,40 +454,6 @@ object frmTableTools: TfrmTableTools
                 LineHighlightColor.Background = clNone
                 LineHighlightColor.Foreground = clNone
                 inline SynLeftGutterPartList1: TSynGutterPartList
-                  object SynGutterMarks1: TSynGutterMarks
-                    Width = 30
-                    MouseActions = <>
-                  end
-                  object SynGutterLineNumber1: TSynGutterLineNumber
-                    Width = 21
-                    MouseActions = <>
-                    MarkupInfo.Background = clBtnFace
-                    MarkupInfo.Foreground = clNone
-                    DigitCount = 2
-                    ShowOnlyLineNumbersMultiplesOf = 1
-                    ZeroStart = False
-                    LeadingZeros = False
-                  end
-                  object SynGutterChanges1: TSynGutterChanges
-                    Width = 5
-                    MouseActions = <>
-                    ModifiedColor = 59900
-                    SavedColor = clGreen
-                  end
-                  object SynGutterSeparator1: TSynGutterSeparator
-                    Width = 3
-                    MouseActions = <>
-                    MarkupInfo.Background = clWhite
-                    MarkupInfo.Foreground = clGray
-                  end
-                  object SynGutterCodeFolding1: TSynGutterCodeFolding
-                    Width = 13
-                    MouseActions = <>
-                    MarkupInfo.Background = clNone
-                    MarkupInfo.Foreground = clGray
-                    MouseActionsExpanded = <>
-                    MouseActionsCollapsed = <>
-                  end
                 end
               end
             end
