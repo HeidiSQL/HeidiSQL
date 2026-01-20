@@ -2085,6 +2085,7 @@ begin
   FixVT(ListProcesses);
   FixVT(ListCommandStats);
   FixVT(ListTables);
+  FixVT(DataGrid, True);
   FixVT(treeQueryHelpers);
 
   // Set noderoot for query helpers box
@@ -9084,13 +9085,12 @@ var
   QueryTab: TQueryTab;
   ResultTab: TResultTab;
   Grid: TVirtualStringTree;
-  IncrementalSearchActive: Boolean;
   AllGrids: TObjectList<TVirtualStringTree>;
 begin
-  // Apply changed settings to all existing data and query grids
+  // Apply (changed?) font setting to all data and query grids
+  // Do not change other things on the grid, or call FixVT here
   LogSQL('Apply grid settings...', lcDebug);
   AllGrids := TObjectList<TVirtualStringTree>.Create(False);
-  IncrementalSearchActive := AppSettings.ReadBool(asIncrementalSearch);
   AllGrids.Add(DataGrid); // Data tab grid
   AllGrids.Add(QueryGrid); // Mother query grid
   for QueryTab in QueryTabs do begin // Query tab child grids
@@ -9101,11 +9101,6 @@ begin
   for Grid in AllGrids do begin
     Grid.Font.Name := AppSettings.ReadString(asDataFontName);
     Grid.Font.Size := AppSettings.ReadInt(asDataFontSize);
-    FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
-    if IncrementalSearchActive then
-      Grid.IncrementalSearch := isInitializedOnly
-    else
-      Grid.IncrementalSearch := isNone;
   end;
   AllGrids.Free;
 end;
@@ -15432,7 +15427,7 @@ begin
   Grid.OnNewText := OrgGrid.OnNewText;
   Grid.OnPaintText := OrgGrid.OnPaintText;
   Grid.OnStartOperation := OrgGrid.OnStartOperation;
-  FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
+  FixVT(Grid, True);
   FTabIndex := QueryTab.ResultTabs.Count; // Will be 0 for the first one, even if we're already creating the first one here!
 end;
 

@@ -368,7 +368,7 @@ type
   procedure StreamToClipboard(Text, HTML: TStream);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
-  procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
+  procedure FixVT(VT: TVirtualStringTree; IsResultGrid: Boolean=False);
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
@@ -1455,19 +1455,22 @@ begin
 end;
 
 
-procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
+procedure FixVT(VT: TVirtualStringTree; IsResultGrid: Boolean=False);
 var
-  SingleLineHeight: Integer;
+  SingleLineHeight, MultiLineCount: Integer;
   Node: PVirtualNode;
 begin
-  // This is called either in some early stage, or from preferences dialog
+  // This is called either in some early stage (and probably from preferences/apply button?)
   SingleLineHeight := GetTextHeight(VT.Font) + 7;
   // Multiline nodes?
-  // Node height calculation has some hard to find bug, see issue #2344
-  // So we'll leave Header.MinHeight at its default value.
+  if IsResultGrid then
+    MultiLineCount := AppSettings.ReadInt(asGridRowLineCount)
+  else
+    MultiLineCount := 1;
+  // Issue #2344: TBaseVirtualTree.UpdateVerticalRange crashes with ERangeError, due to FRangeY/Cardinal
+  // getting a negative value
+  // Happening when DefaultNodeHeight is set after clearing nodes and then with 0 nodes
   VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
-  //VT.Header.MinHeight := SingleLineHeight;
-  VT.Header.Height := SingleLineHeight;
   if MultiLineCount > 1 then begin
     VT.BeginUpdate;
     Node := VT.GetFirstInitialized;
@@ -1488,21 +1491,33 @@ begin
   VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
   VT.ShowHint := True;
 
-  if toGridExtensions in VT.TreeOptions.MiscOptions then
-    VT.HintMode := hmHint // Show cell contents with linebreakds in datagrid and querygrid's
+  if IsResultGrid then begin
+    VT.HintMode := hmHint; // Show cell contents with linebreakds in datagrid and querygrid's
+    if AppSettings.ReadBool(asIncrementalSearch) then begin
+      // Apply case insensitive incremental search event
+      VT.IncrementalSearch := isInitializedOnly;
+      VT.OnIncrementalSearch := Mainform.AnyGridIncrementalSearch;
+    end
+    else begin
+      VT.IncrementalSearch := isNone;
+    end;
+  end
   else
     VT.HintMode := hmTooltip; // Just a quick tooltip for clipped nodes
-  // Apply case insensitive incremental search event
-  if VT.IncrementalSearch <> laz.VirtualTrees.isNone then
-    VT.OnIncrementalSearch := Mainform.AnyGridIncrementalSearch;
   VT.OnStartOperation := Mainform.AnyGridStartOperation;
   VT.OnEndOperation := Mainform.AnyGridEndOperation;
 end;
 
 
 function GetTextHeight(Font: TFont): Integer;
+var
+  Bmp: Graphics.TBitmap;
 begin
-  Result := MainForm.Canvas.TextHeight('Äy');
+  Bmp := Graphics.TBitmap.Create;
+  Bmp.Canvas.Font.Name := Font.Name;
+  Bmp.Canvas.Font.Size := Font.Size;
+  Result := Bmp.Canvas.TextHeight('Äy');
+  Bmp.Free;
 end;
 
 
