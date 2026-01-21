@@ -1467,10 +1467,13 @@ begin
     MultiLineCount := AppSettings.ReadInt(asGridRowLineCount)
   else
     MultiLineCount := 1;
-  // Issue #2344: TBaseVirtualTree.UpdateVerticalRange crashes with ERangeError, due to FRangeY/Cardinal
-  // getting a negative value
-  // Happening when DefaultNodeHeight is set after clearing nodes and then with 0 nodes
+  // Issue #2344: TBaseVirtualTree.UpdateVerticalRange crashes with ERangeError on ArchLinux
+  // due to FRangeY/Cardinal getting a negative value.
+  // Happening when DefaultNodeHeight is set and then with 0 nodes in data grid
+  // Once the form files are back at 96 PPI this should no longer crash.
+  {$IFNDEF LINUX}
   VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
+  {$ENDIF}
   if MultiLineCount > 1 then begin
     VT.BeginUpdate;
     Node := VT.GetFirstInitialized;
