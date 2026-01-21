@@ -1509,6 +1509,7 @@ begin
     VT.HintMode := hmTooltip; // Just a quick tooltip for clipped nodes
   VT.OnStartOperation := Mainform.AnyGridStartOperation;
   VT.OnEndOperation := Mainform.AnyGridEndOperation;
+  VT.BorderStyle := bsNone; // Cosmetic
 end;
 
 

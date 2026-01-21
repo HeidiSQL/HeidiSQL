@@ -13263,6 +13263,7 @@ begin
     LineNumberPart.LeftOffset := 2;
     LineNumberPart.MarkupInfo.Foreground := clGrayText;
   end;
+  Editor.BorderStyle := BaseEditor.BorderStyle;
   Editor.BookMarkOptions.BookmarkImages := ImageListSynBookMarks;
   //Editor.Gutter.BorderColor := GetThemeColor(clWindow);
   //Editor.Gutter.Font.Name := Editor.Font.Name;
@@ -13282,6 +13283,7 @@ begin
     if Assigned(CodeFoldingPart) then begin
       CodeFoldingPart.Visible := actCodeFolding.Checked;
     end;
+    Editor.ScrollBars := BaseEditor.ScrollBars;
   end;
   Editor.LineHighlightColor.Background := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
   Editor.Options := BaseEditor.Options;
