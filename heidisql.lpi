@@ -11,7 +11,7 @@
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
       <XPManifest>
-        <DpiAware Value="True"/>
+        <DpiAware Value="True/PM_V2"/>
         <AnsiUTF8 Value="True"/>
         <TextName Value="HeidiSQL"/>
         <TextDesc Value="A lightweight, fast and flexible interface to MySQL"/>

@@ -1192,11 +1192,8 @@ type
     procedure actSynMoveUpExecute(Sender: TObject);
     procedure actCopyTabsToSpacesExecute(Sender: TObject);
     procedure actCopyUpdate(Sender: TObject);
-    //procedure FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
-    //  NewDPI: Integer);
+    procedure FormChangeBounds(Sender: TObject);
     procedure menuToggleAllClick(Sender: TObject);
-    //procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
-    //  NewDPI: Integer);
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
     procedure TimerRefreshTimer(Sender: TObject);
     procedure SynCompletionProposalChange(Sender: TObject);
@@ -1278,6 +1275,7 @@ type
     FMatchingBraceBackgroundColor: TColor;
     //FHelpData: TSimpleKeyValuePairs;
     FMainWinMaximized: Boolean;
+    FCurrentPixelsPerInch: Integer;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1697,23 +1695,21 @@ begin
 end;
 
 
-{procedure TMainForm.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
-  NewDPI: Integer);
-begin
-  // DPI settings change finished
-  FormResize(Sender);
-end;}
-
-{procedure TMainForm.FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
-  NewDPI: Integer);
+procedure TMainForm.FormChangeBounds(Sender: TObject);
 var
   Factor: Extended;
+  NewDPI, OldDPI: Integer;
 begin
-  // Moving window to different screen or user changed DPI setting for current screen
-  Factor := 100 / PixelsPerInchDesigned * NewDPI;
-  LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(Factor)]));
-  //LogSQL('PixelsPerInchDesigned:'+PixelsPerInchDesigned.ToString+' OldDPI:'+OldDPI.ToString+' NewDPI:'+NewDPI.ToString);
-end;}
+  NewDPI := Monitor.PixelsPerInch;
+  OldDPI := FCurrentPixelsPerInch;
+  if NewDPI <> OldDPI then begin
+    // Moving window to different screen or user changed DPI setting for current screen
+    FCurrentPixelsPerInch := NewDPI;
+    Factor := 100 / 96 * NewDPI;
+    LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(Factor)]));
+    //LogSQL('PixelsPerInchDesigned:'+PixelsPerInchDesigned.ToString+' OldDPI:'+OldDPI.ToString+' NewDPI:'+NewDPI.ToString);
+  end;
+end;
 
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -2093,6 +2089,7 @@ begin
 
   FLastMouseButtonUpOnGrid := mbLeft;
   FLastCaptionChange := 0;
+  FCurrentPixelsPerInch := 0;
   FFormatSettings := DefaultFormatSettings;
   FFormatSettings.DecimalSeparator := '.';
   FFormatSettings.ThousandSeparator := ' ';;
