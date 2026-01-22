@@ -4122,6 +4122,9 @@ begin
   SetLength(FLastRawResults, 0);
   FdQuery := TFDQuery.Create(Self);
   FdQuery.Connection := FFDHandle;
+  // Disable paging with 50 rows
+  FdQuery.FetchOptions.Mode := fmAll;
+  FdQuery.FetchOptions.RecsMax := -1;
   // Todo: suppress mouse cursor updates
   try
     FdQuery.ResourceOptions.CmdExecTimeout := Parameters.QueryTimeout;
