@@ -3,7 +3,7 @@ object frmTableTools: TfrmTableTools
   Height = 479
   Top = 126
   Width = 955
-  BorderIcons = [biSystemMenu, biHelp]
+  BorderIcons = [biSystemMenu]
   Caption = 'Table tools'
   ClientHeight = 479
   ClientWidth = 955

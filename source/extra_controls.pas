@@ -34,22 +34,6 @@ type
       class procedure ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
   end;
 
-  {TExtSynHotKey = class(TSynHotKey)
-    private
-      FOnChange: TNotifyEvent;
-      FOnEnter: TNotifyEvent;
-      FOnExit: TNotifyEvent;
-      procedure WMKillFocus(var Msg: TWMKillFocus); message WM_KILLFOCUS;
-      procedure WMSetFocus(var Msg: TWMSetFocus); message WM_SETFOCUS;
-    protected
-      procedure KeyDown(var Key: Word; Shift: TShiftState); override;
-      procedure Paint; override;
-    published
-      property OnChange: TNotifyEvent read FOnChange write FOnChange;
-      property OnEnter: TNotifyEvent read FOnEnter write FOnEnter;
-      property OnExit: TNotifyEvent read FOnExit write FOnExit;
-  end;}
-
   TExtComboBox = class(TComboBox)
     private
       FcbHintIndex: Integer;
@@ -62,14 +46,6 @@ type
       procedure InitiateAction; override;
   end;
 
-  {TExtHintWindow = class(THintWindow)
-    private
-      const Padding: Integer = 8;
-    protected
-      procedure Paint; override;
-    public
-      function CalcHintRect(MaxWidth: Integer; const AHint: string; AData: TCustomData): TRect; override;
-  end;}
 
 
 implementation
@@ -364,46 +340,6 @@ begin
 end;
 
 
-{ TExtSynHotKey }
-
-{procedure TExtSynHotKey.WMKillFocus(var Msg: TWMKillFocus);
-begin
-  inherited;
-  if Assigned(FOnExit) then
-    FOnExit(Self);
-end;
-
-procedure TExtSynHotKey.WMSetFocus(var Msg: TWMSetFocus);
-begin
-  inherited;
-  if Assigned(FOnEnter) then
-    FOnEnter(Self);
-end;
-
-procedure TExtSynHotKey.KeyDown(var Key: Word; Shift: TShiftState);
-begin
-  inherited;
-  if Assigned(FOnChange) then
-    FOnChange(Self);
-end;
-
-procedure TExtSynHotKey.Paint;
-var
-  r: TRect;
-begin
-  r := ClientRect;
-  Canvas.Brush.Style := bsSolid;
-  Canvas.Brush.Color := Color;
-  InflateRect(r, -BorderWidth, -BorderWidth);
-  Canvas.FillRect(r);
-  if Enabled then
-    Canvas.Font.Color := clWindowText
-  else
-    Canvas.Font.Color := clGrayText;
-  SynUnicode.TextRect(Canvas, r, BorderWidth + 1, BorderWidth + 1, Text);
-end;}
-
-
 
 { TExtComboBox }
 
@@ -461,72 +397,6 @@ begin
   end;
 end;
 
-
-
-{ TExtHintWindow }
-
-
-{function TExtHintWindow.CalcHintRect(MaxWidth: Integer; const AHint: string; AData: TCustomData): TRect;
-begin
-  Result := inherited;
-  // Customized: enlarge surrounding rect to make space for padding
-  if AHint.Contains(SLineBreak) then begin
-    Result.Right := Result.Right + 2 * ScaleValue(Padding);
-    Result.Bottom := Result.Bottom + 2 * ScaleValue(Padding);
-  end;
-end;
-
-
-procedure TExtHintWindow.Paint;
-var
-  R, ClipRect: TRect;
-  LColor: TColor;
-  LStyle: TCustomStyleServices;
-  LDetails: TThemedElementDetails;
-  LGradientStart, LGradientEnd, LTextColor: TColor;
-begin
-  R := ClientRect;
-  LStyle := StyleServices(Screen.ActiveForm);
-  LTextColor := Screen.HintFont.Color;
-  if LStyle.Enabled then
-  begin
-    ClipRect := R;
-    InflateRect(R, 4, 4);
-    if TOSVersion.Check(6) and LStyle.IsSystemStyle then
-    begin
-      // Paint Windows gradient background
-      LStyle.DrawElement(Canvas.Handle, LStyle.GetElementDetails(tttStandardNormal), R, ClipRect);
-    end
-    else
-    begin
-      LDetails := LStyle.GetElementDetails(thHintNormal);
-      if LStyle.GetElementColor(LDetails, ecGradientColor1, LColor) and (LColor <> clNone) then
-        LGradientStart := LColor
-      else
-        LGradientStart := clInfoBk;
-      if LStyle.GetElementColor(LDetails, ecGradientColor2, LColor) and (LColor <> clNone) then
-        LGradientEnd := LColor
-      else
-        LGradientEnd := clInfoBk;
-      if LStyle.GetElementColor(LDetails, ecTextColor, LColor) and (LColor <> clNone) then
-        LTextColor := LColor
-      else
-        LTextColor := Screen.HintFont.Color;
-      GradientFillCanvas(Canvas, LGradientStart, LGradientEnd, R, gdVertical);
-    end;
-    R := ClipRect;
-  end;
-  Inc(R.Left, 2);
-  Inc(R.Top, 2);
-  // Customized: move inner rect right+down to add padding to outer edge
-  if String(Caption).Contains(SLineBreak) then begin
-    Inc(R.Left, ScaleValue(Padding));
-    Inc(R.Top, ScaleValue(Padding));
-  end;
-  Canvas.Font.Color := LTextColor;
-  DrawText(Canvas.Handle, Caption, -1, R, DT_LEFT or DT_NOPREFIX or
-    DT_WORDBREAK or DrawTextBiDiModeFlagsReadingOnly);
-end;}
 
 
 end.

@@ -179,8 +179,6 @@ type
     ToFile, ToDir, ToClipboard, ToDb, ToServer: Boolean;
     FObjectSizes, FObjectSizesDone, FObjectSizesDoneExact: Int64;
     FStartTimeAll: Cardinal;
-    //procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
-    //procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
     procedure SetToolMode(Value: TToolMode);
     procedure Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
     procedure AddResults(SQL: String; Connection: TDBConnection);
@@ -229,28 +227,6 @@ var
   DATA_UPDATE : String;
 
 {$R *.lfm}
-
-
-{procedure TfrmTableTools.WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ;
-begin
-  if Msg.HitTest = HTHELP then
-    Msg.Result := 0 // "eat" the message
-  else
-    inherited;
-end;}
-
-
-{procedure TfrmTableTools.WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ;
-begin
-  if Msg.HitTest = HTHELP then begin
-    Msg.Result := 0;
-    if tabsTools.ActivePage = tabSQLexport then
-      Help(Self, 'sqlexport')
-    else
-      ErrorDialog(_('No help available for this tab.'));
-  end else
-    inherited;
-end;}
 
 
 procedure TfrmTableTools.FormCreate(Sender: TObject);

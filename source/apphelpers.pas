@@ -266,12 +266,10 @@ type
       constructor Create;
       destructor Destroy; override;
       function ReadInt(Index: TAppSettingIndex; FormatName: String=''; Default: Integer=0): Integer;
-      //function ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
       function ReadBool(Index: TAppSettingIndex; FormatName: String=''; Default: Boolean=False): Boolean;
       function ReadString(Index: TAppSettingIndex; FormatName: String=''; Default: String=''): String; overload;
       function ReadString(ValueName: String): String; overload;
       procedure WriteInt(Index: TAppSettingIndex; Value: Integer; FormatName: String='');
-      //procedure WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
       procedure WriteBool(Index: TAppSettingIndex; Value: Boolean; FormatName: String='');
       procedure WriteString(Index: TAppSettingIndex; Value: String; FormatName: String=''); overload;
       procedure WriteString(ValueName, Value: String); overload;
@@ -387,7 +385,6 @@ type
   //function ParamStrToBlob(out cbData: DWORD): Pointer;
   //function CheckForSecondInstance: Boolean;
   function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
-  //function KeyPressed(Code: Integer): Boolean;
   function GeneratePassword(Len: Integer): String;
   procedure InvalidateVT(VT: TLazVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
   function CharAtPos(Str: String; Pos: Integer): Char;
@@ -2141,17 +2138,6 @@ begin
 end;
 
 
-{function KeyPressed(Code: Integer): Boolean;
-var
-  State: TKeyboardState;
-begin
-  // Checks whether a key is pressed, defined by virtual key code
-  // Windows-only. Prefer "ssShift in GetKeyShiftState"
-  GetKeyboardState(State);
-  Result := (State[Code] and 128) <> 0;
-end;}
-
-
 function GeneratePassword(Len: Integer): String;
 var
   i: Integer;
@@ -2976,56 +2962,6 @@ begin
   end;
   Result := Trim(Result);
 end;
-
-
-{ Get SID of current Windows user, probably useful in the future
-{function GetCurrentUserSID: string;
-type
-  PTOKEN_USER = ^TOKEN_USER;
-  _TOKEN_USER = record
-     User: TSidAndAttributes;
-  end;
-  TOKEN_USER = _TOKEN_USER;
-var
-  hToken: THandle;
-  cbBuf: Cardinal;
-  ptiUser: PTOKEN_USER;
-  bSuccess: Boolean;
-  StrSid: PWideChar;
-begin
-  // Taken from https://stackoverflow.com/a/71730865/4110077
-  // SidToString does not exist, prefer WinApi.Windows.ConvertSidToStringSid()
-  Result := '';
-
-  // Get the calling thread's access token.
-  if not OpenThreadToken(GetCurrentThread(), TOKEN_QUERY, True, hToken) then
-  begin
-    if (GetLastError <> ERROR_NO_TOKEN) then
-      Exit;
-
-    // Retry against process token if no thread token exists.
-    if not OpenProcessToken(GetCurrentProcess, TOKEN_QUERY, hToken) then
-      Exit;
-  end;
-  try
-    // Obtain the size of the user information in the token.
-    bSuccess := GetTokenInformation(hToken, TokenUser, nil, 0, cbBuf);
-    ptiUser  := nil;
-    try
-      while (not bSuccess) and (GetLastError = ERROR_INSUFFICIENT_BUFFER) do
-      begin
-        ReallocMem(ptiUser, cbBuf);
-        bSuccess := GetTokenInformation(hToken, TokenUser, ptiUser, cbBuf, cbBuf);
-      end;
-      ConvertSidToStringSid(ptiUser.User.Sid, StrSid);
-      Result := StrSid;
-    finally
-      FreeMem(ptiUser);
-    end;
-  finally
-    CloseHandle(hToken);
-  end;
-end;}
 
 function GetApplicationName: String;
 begin
@@ -4141,14 +4077,6 @@ begin
 end;
 
 
-{function TAppSettings.ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
-begin
-  // take a forms DesignTimePPI into account
-  Result := ReadInt(Index, FormatName, Default);
-  Result := AControl.ScaleDesignToForm(Result);
-end;}
-
-
 function TAppSettings.ReadBool(Index: TAppSettingIndex; FormatName: String=''; Default: Boolean=False): Boolean;
 var
   I: Integer;
@@ -4227,13 +4155,6 @@ procedure TAppSettings.WriteInt(Index: TAppSettingIndex; Value: Integer; FormatN
 begin
   Write(Index, FormatName, adInt, Value, False, '');
 end;
-
-
-{procedure TAppSettings.WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
-begin
-  Value := AControl.ScaleFormToDesign(Value);
-  WriteInt(Index, Value, FormatName);
-end;}
 
 
 procedure TAppSettings.WriteBool(Index: TAppSettingIndex; Value: Boolean; FormatName: String='');
