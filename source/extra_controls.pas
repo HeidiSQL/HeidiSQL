@@ -16,11 +16,7 @@ type
   { TExtForm }
 
   TExtForm = class(TForm)
-    private
-      FPixelsPerInchDesigned: Integer;
     protected
-      //procedure DoBeforeMonitorDpiChanged(OldDPI, NewDPI: Integer); override;
-      //procedure DoAfterMonitorDpiChanged(OldDPI, NewDPI: Integer); override;
       procedure FilterNodesByEdit(Edit: TEditButton; Tree: TLazVirtualStringTree);
     public
       constructor Create(AOwner: TComponent); override;
@@ -30,7 +26,6 @@ type
       function ScaleSize(x: Extended): Integer; overload;
       class function ScaleSize(x: Extended; Control: TControl): Integer; overload;
       class procedure PageControlTabHighlight(PageControl: TPageControl);
-      property PixelsPerInchDesigned: Integer read FPixelsPerInchDesigned;
       class procedure ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
   end;
 
@@ -60,24 +55,8 @@ var
 begin
   inherited;
 
-  FPixelsPerInchDesigned := DesignTimePPI;
   //InheritFont(Font);
 end;
-
-
-{procedure TExtForm.DoBeforeMonitorDpiChanged(OldDPI, NewDPI: Integer);
-begin
-  // Reduce flicker
-  inherited;
-  LockWindowUpdate(Handle);
-end;}
-
-{procedure TExtForm.DoAfterMonitorDpiChanged(OldDPI, NewDPI: Integer);
-begin
-  // Release window updates
-  LockWindowUpdate(0);
-  inherited;
-end;}
 
 
 class procedure TExtForm.InheritFont(AFont: TFont);
