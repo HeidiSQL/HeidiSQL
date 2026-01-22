@@ -3,6 +3,7 @@ object frmInsertFiles: TfrmInsertFiles
   Height = 614
   Top = 131
   Width = 639
+  AllowDropFiles = True
   BorderIcons = [biSystemMenu, biMinimize]
   Caption = 'Insert files...'
   ClientHeight = 614
@@ -14,6 +15,7 @@ object frmInsertFiles: TfrmInsertFiles
   Position = poOwnerFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnDropFiles = FormDropFiles
   OnShow = FormShow
   object btnInsert: TButton
     AnchorSideRight.Control = btnCancel

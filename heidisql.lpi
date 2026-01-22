@@ -12,6 +12,7 @@
       <UseXPManifest Value="True"/>
       <XPManifest>
         <DpiAware Value="True/PM_V2"/>
+        <LongPathAware Value="True"/>
         <AnsiUTF8 Value="True"/>
         <TextName Value="HeidiSQL"/>
         <TextDesc Value="A lightweight, fast and flexible interface to MySQL"/>

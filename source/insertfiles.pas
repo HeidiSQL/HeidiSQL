@@ -27,6 +27,8 @@ type
   end;
   PFileInfo = ^TFileInfo;
 
+  { TfrmInsertFiles }
+
   TfrmInsertFiles = class(TExtForm)
     btnInsert: TButton;
     btnCancel: TButton;
@@ -89,13 +91,13 @@ type
     procedure ListColumnsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure FormDestroy(Sender: TObject);
+    procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
   private
     FConnection: TDBConnection;
     FMaxFileSize: Int64;
     FOpenDialog: TExtFileOpenDialog;
   public
     { Public declarations }
-    //procedure AcceptFiles( var msg : TMessage ); message WM_DROPFILES;
   end;
 
 
@@ -388,6 +390,7 @@ begin
   rx.Expression := '\.(te?xt|html?|xml|cmd|bat|sql|ini|pas|php|h|conf|log|csv|reg|latex|wiki|patch)$';
   rx.ModifierI := True;
   FileInfo.IsBinary := not rx.Exec(Filename);
+  rx.Free;
   NewNode := ListFiles.InsertNode(ListFiles.FocusedNode, amInsertAfter, PFileInfo(FileInfo));
   SelectNode(ListFiles, NewNode);
 end;
@@ -679,29 +682,25 @@ begin
 end;
 
 
-{procedure TfrmInsertFiles.AcceptFiles(var msg : TMessage);
-const
-  MaxFileNameLen = 255;
+procedure TfrmInsertFiles.FormDropFiles(Sender: TObject;
+  const FileNames: array of string);
 var
   i, FileCount: integer;
-  FileName: array [0..MaxFileNameLen] of char;
 begin
   // Files dropped onto form
   Screen.Cursor := crHourglass;
-  FileCount := DragQueryFile(msg.WParam, $FFFFFFFF, FileName, MaxFileNameLen);
-  // Query Windows one at a time for the file name
+  FileCount := Length(FileNames);
   ListFiles.BeginUpdate;
   try
     for i:=0 to FileCount-1 do begin
-      DragQueryFile(msg.WParam, i, FileName, MaxFileNameLen);
-      AddFile(FileName);
+      AddFile(FileNames[i]);
     end;
   finally
     ListFiles.EndUpdate;
     Screen.Cursor := crDefault;
   end;
-  DragFinish(msg.WParam);
-end;}
+end;
+
 
 
 end.
