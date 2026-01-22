@@ -234,8 +234,6 @@ type
     function GetWindowCaption: String;
     procedure MenuDatabasesClick(Sender: TObject);
     procedure MenuCiphersClick(Sender: TObject);
-    //procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
-    //procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
     procedure RefreshBackgroundColors;
     property SelectedNetType: TNetType read GetSelectedNetType write SetSelectedNetType;
   public
@@ -250,25 +248,6 @@ uses Main, apphelpers, dbstructures.sqlite, grideditlinks;
 {$I const.inc}
 
 {$R *.lfm}
-
-
-{procedure Tconnform.WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ;
-begin
-  if Msg.HitTest = HTHELP then
-    Msg.Result := 0 // "eat" the message
-  else
-    inherited;
-end;}
-
-
-{procedure Tconnform.WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ;
-begin
-  if Msg.HitTest = HTHELP then begin
-    Msg.Result := 0;
-    Help(Self, 'connecting');
-  end else
-    inherited;
-end;}
 
 
 function Tconnform.GetWindowCaption: String;
