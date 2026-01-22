@@ -790,7 +790,6 @@ type
     Copywithtabstospaces1: TMenuItem;
     Movelinedown1: TMenuItem;
     Movelineup1: TMenuItem;
-    menuToggleAll: TMenuItem;
     menuCloseTabOnDblClick: TMenuItem;
     Undo1: TMenuItem;
     actSequalSuggest: TAction;
@@ -840,6 +839,7 @@ type
     procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
     procedure PageControlMainCloseTabClicked(Sender: TObject);
+    procedure popupListHeaderPopup(Sender: TObject);
     procedure ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
     procedure actExecuteQueryExecute(Sender: TObject);
     procedure actCreateDatabaseExecute(Sender: TObject);
@@ -1194,7 +1194,7 @@ type
     procedure actCopyUpdate(Sender: TObject);
     //procedure FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
     //  NewDPI: Integer);
-    //procedure menuToggleAllClick(Sender: TObject);
+    procedure menuToggleAllClick(Sender: TObject);
     //procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
     //  NewDPI: Integer);
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
@@ -10055,7 +10055,7 @@ end;
 {**
   Collapse all db nodes
 }
-{procedure TMainForm.menuToggleAllClick(Sender: TObject);
+procedure TMainForm.menuToggleAllClick(Sender: TObject);
 var
   Grid: TVirtualStringTree;
   Col: TColumnIndex;
@@ -10086,7 +10086,7 @@ begin
     Col := Grid.Header.Columns.GetNextColumn(Col);
   end;
 
-end;}
+end;
 
 procedure TMainForm.menuTreeCollapseAllClick(Sender: TObject);
 var
@@ -12730,6 +12730,17 @@ procedure TMainForm.PageControlMainCloseTabClicked(Sender: TObject);
 begin
   logsql('PageControlMainCloseTabClicked');
   TimerCloseTabByButton.Enabled := True;
+end;
+
+procedure TMainForm.popupListHeaderPopup(Sender: TObject);
+var
+  Item: TMenuItem;
+begin
+  // Add toggle all menu item
+  Item := TMenuItem.Create(popupListHeader);
+  Item.Caption := _('Toggle visibility of all columns');
+  Item.OnClick := menuToggleAllClick;
+  popupListHeader.Items.Insert(0, Item);
 end;
 
 
