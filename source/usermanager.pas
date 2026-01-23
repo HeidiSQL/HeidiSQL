@@ -7,7 +7,8 @@ interface
 uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls, EditBtn, Buttons,
   ExtCtrls, ClipBrd, Generics.Collections, Generics.Defaults, RegExpr, extra_controls,
-  dbconnection, dbstructures, dbstructures.mysql, apphelpers, laz.VirtualTrees, Menus;
+  dbconnection, dbstructures, dbstructures.mysql, apphelpers, laz.VirtualTrees, Menus,
+  uDarkStyleParams;
 
 {$I const.inc}
 
@@ -287,7 +288,7 @@ begin
   FColorReadPriv := clGreen;
   FColorWritePriv := clMaroon;
   FColorAdminPriv := clNavy;
-  if ThemeIsDark then begin
+  if IsDarkModeEnabled then begin
     FColorReadPriv := ColorAdjustBrightness(FColorReadPriv, 128);
     FColorWritePriv := ColorAdjustBrightness(FColorWritePriv, 128);
     FColorAdminPriv := ColorAdjustBrightness(FColorAdminPriv, 128);

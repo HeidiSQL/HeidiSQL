@@ -6,6 +6,7 @@ uses
   {$IFDEF UNIX} cthreads, {$ENDIF}
   {$IFDEF DARWIN} iosxlocale, {$ENDIF}
   Interfaces, // this includes the LCL widgetset
+  uMetaDarkStyle, uDarkStyleParams, uDarkStyleSchemes,
   SysUtils, Dialogs,
   Forms, printer4lazarus, datetimectrls, LCLTranslator, Translations,
   { you can add units after this }
@@ -15,12 +16,14 @@ uses
 
 var
   AppLanguage: String;
+  WasDarkMode: Boolean;
 begin
   PostponedLogItems := TDBLogItems.Create(True);
   Application.{%H-}MainFormOnTaskBar := True; // hide warning: Symbol "MainFormOnTaskBar" is not portable
 
   // Use MySQL standard format for date/time variables: YYYY-MM-DD HH:MM:SS
   // Be aware that Delphi internally converts the slashes in ShortDateFormat to the DateSeparator
+  Application.{%H-}UpdateFormatSettings := False;
   DefaultFormatSettings.DateSeparator := '-';
   DefaultFormatSettings.TimeSeparator := ':';
   DefaultFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
@@ -48,13 +51,32 @@ begin
   LCLTranslator.SetDefaultLang(AppLanguage, '', GetApplicationName);
   InitMoFile(AppLanguage);
 
-  // Enable padding in customized tooltips
-  //HintWindowClass := TExtHintWindow;
-
   RequireDerivedFormResource:=True;
   Application.Scaled:=True;
+
+  {$IFDEF WINDOWS}
+  PreferredAppMode := pamAllowDark;
+  case AppSettings.ReadInt(asThemeMode) of
+    // 0: dark mode based on Windows setting
+    0: if AppSettings.IsWindowsDarkApps then PreferredAppMode := pamForceDark;
+    // 1: light, no change required, leave pamAllowDark
+    2: PreferredAppMode := pamForceDark;
+  end;
+  if PreferredAppMode = pamForceDark then
+    uMetaDarkStyle.ApplyMetaDarkStyle(DefaultDark);
+
+  WasDarkMode := AppSettings.ReadBool(asCurrentThemeIsDark);
+  if (not WasDarkMode) and IsDarkModeEnabled then begin
+    // todo: switch synedit colors and grid colors after current dark mode has changed
+    //       probably store a CurrentThemeIsDark=True/False in settings, then check here if that now changes and flip colors if so?
+  end
+  else if WasDarkMode and (not IsDarkModeEnabled) then begin
+    // dito
+  end;
+  AppSettings.WriteBool(asCurrentThemeIsDark, IsDarkModeEnabled);
+  {$ENDIF}
+
   Application.Initialize;
-  //Application.UpdateFormatSettings := False;
 
   Application.CreateForm(TMainForm, MainForm);
   Application.OnException := MainForm.ApplicationException;

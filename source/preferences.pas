@@ -15,7 +15,7 @@ uses
   SynEdit, laz.VirtualTrees, SynEditKeyCmds, ActnList, Menus,
   dbstructures, RegExpr, Generics.Collections, EditBtn, LCLType, StrUtils,
   extra_controls, reformatter, Buttons, ColorBox, LCLProc, LCLIntf, lazaruscompat, FileUtil,
-  vktable;
+  vktable, uDarkStyleParams;
 
 type
   TShortcutItemData = record
@@ -363,6 +363,7 @@ begin
   else
     AppSettings.WriteString(asGUIFontName, comboGUIFont.Text);
   AppSettings.WriteInt(asGUIFontSize, MakeInt(editGUIFontSize.Text));
+  AppSettings.WriteInt(asThemeMode, comboTheme.ItemIndex);
   AppSettings.WriteString(asIconPack, comboIconPack.Text);
   AppSettings.WriteString(asWebSearchBaseUrl, comboWebSearchBaseUrl.Text);
 
@@ -554,11 +555,16 @@ begin
   comboGUIFont.Items.Assign(Screen.Fonts);
   comboGUIFont.Items.Insert(0, '<'+_('Default system font')+'>');
 
+  {$IFDEF WINDOWS}
+  comboTheme.Items.Add(_('Automatic, depending on system settings'));
+  comboTheme.Items.Add(_('Light'));
+  comboTheme.Items.Add(_('Dark'));
+  {$ELSE}
   lblTheme.Enabled := False;
   comboTheme.Items.Text := 'Themes are not supported in the Lazarus release';
-  comboTheme.ItemIndex := 0;
   comboTheme.Enabled := False;
-  chkThemePreview.Enabled := False;
+  {$ENDIF}
+  comboTheme.ItemIndex := 0;
 
   // Populate icon pack dropdown from image collections on main form
   comboIconPack.Items.Clear;
@@ -703,6 +709,7 @@ begin
     comboGUIFont.ItemIndex := comboGUIFont.Items.IndexOf(GUIFont);
   editGUIFontSize.Text := AppSettings.ReadInt(asGUIFontSize).ToString;
   comboGUIFont.OnChange(comboGUIFont);
+  comboTheme.ItemIndex := AppSettings.ReadInt(asThemeMode);
   comboIconPack.ItemIndex := comboIconPack.Items.IndexOf(AppSettings.ReadString(asIconPack));
   comboWebSearchBaseUrl.Text := AppSettings.ReadString(asWebSearchBaseUrl);
 
@@ -988,7 +995,7 @@ begin
         // Use 3 hardcoded default values for additional colors, which are not part
         // of the highlighter's attributes
         SynMemoSQLSample.LineHighlightColor.Background := StringToColor(AppSettings.GetDefaultString(asSQLColActiveLine));
-        if ThemeIsDark(comboTheme.Text) then begin
+        if IsDarkModeEnabled then begin // This is yet wrong, and should be based on the selected but not yet saved theme setting
           MainForm.MatchingBraceForegroundColor := $0028EFFF;
           MainForm.MatchingBraceBackgroundColor := $004D513B;
         end else begin

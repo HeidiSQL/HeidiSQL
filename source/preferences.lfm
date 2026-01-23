@@ -88,9 +88,9 @@ object frmPreferences: TfrmPreferences
         Left = 6
         Height = 20
         Top = 360
-        Width = 94
+        Width = 58
         BorderSpacing.Around = 6
-        Caption = 'Style Theme: *'
+        Caption = 'Theme: *'
       end
       object lblIconPack: TLabel
         AnchorSideLeft.Control = tabMisc
@@ -298,17 +298,18 @@ object frmPreferences: TfrmPreferences
         Tag = 1
         AnchorSideTop.Control = comboGUIFont
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = chkThemePreview
+        AnchorSideRight.Control = tabMisc
+        AnchorSideRight.Side = asrBottom
         Left = 275
         Height = 28
         Top = 360
-        Width = 511
+        Width = 589
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 6
         ItemHeight = 20
-        Sorted = True
         Style = csDropDownList
         TabOrder = 12
+        OnChange = Modified
       end
       object comboIconPack: TComboBox
         AnchorSideTop.Control = comboTheme
@@ -323,7 +324,7 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 6
         ItemHeight = 20
         Style = csDropDownList
-        TabOrder = 14
+        TabOrder = 13
         OnChange = Modified
       end
       object comboWebSearchBaseUrl: TComboBox
@@ -348,23 +349,9 @@ object frmPreferences: TfrmPreferences
           'https://www.bing.com/search?q=%query'
           'https://www.google.com/search?q=%query'
         )
-        TabOrder = 15
+        TabOrder = 14
         Text = 'comboWebSearchBaseUrl'
         OnChange = Modified
-      end
-      object chkThemePreview: TCheckBox
-        AnchorSideTop.Control = comboGUIFont
-        AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = tabMisc
-        AnchorSideRight.Side = asrBottom
-        Left = 792
-        Height = 24
-        Top = 360
-        Width = 72
-        Anchors = [akTop, akRight]
-        BorderSpacing.Around = 6
-        Caption = 'Preview'
-        TabOrder = 13
       end
       object lblTerminal: TLabel
         AnchorSideLeft.Control = tabMisc
@@ -394,7 +381,7 @@ object frmPreferences: TfrmPreferences
         MaxLength = 0
         NumGlyphs = 1
         PasswordChar = #0
-        TabOrder = 16
+        TabOrder = 15
         Text = 'editTerminal'
         TextHint = 'Terminal application. May have arguments, and supports %s for the actual command.'
         OnButtonClick = editTerminalButtonClick

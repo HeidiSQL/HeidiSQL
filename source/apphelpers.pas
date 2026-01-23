@@ -8,9 +8,9 @@ uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient,
-  {$IFDEF WINDOWS} Windows, {$ENDIF} DelphiCompat,
+  {$IFDEF WINDOWS} Windows, Registry, {$ENDIF} DelphiCompat,
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
-  IniFiles, GraphType, Sockets;
+  IniFiles, GraphType, Sockets, uDarkStyleParams;
 
 type
 
@@ -213,7 +213,7 @@ type
     asWarnUnsafeUpdates, asQueryGridLongSortRowNum,
     asCompletionProposal, asCompletionProposalInterval, asCompletionProposalSearchOnMid, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
-    asTheme, asIconPack, asWebSearchBaseUrl,
+    asTheme, asThemeMode, asCurrentThemeIsDark, asIconPack, asWebSearchBaseUrl,
     asFindDialogReplaceHistory, asMaxQueryResults, asLogErrors,
     asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asLogScript, asLogTimestamp, asFieldColorNumeric,
     asFieldColorReal, asFieldColorText, asFieldColorBinary, asFieldColorDatetime, asFieldColorSpatial,
@@ -306,6 +306,9 @@ type
       // "Static" options, initialized in OnCreate only. For settings which need a restart to take effect.
       property RestoreTabsInitValue: Boolean read FRestoreTabsInitValue;
       function AppendDelimiter(Path: String): String;
+      {$IFDEF WINDOWS}
+      function IsWindowsDarkApps: Boolean;
+      {$ENDIF}
   end;
 
 {$I const.inc}
@@ -413,7 +416,6 @@ type
   procedure Help(Sender: TObject; Anchor: String);
   function IsPortFree(APort: Word; const AIP: string = '127.0.0.1'): Boolean;
   function GetThemeColor(Color: TColor): TColor;
-  function ThemeIsDark(ThemeName: String=''): Boolean;
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
   function PopupComponent(Sender: TObject): TComponent;
@@ -2359,7 +2361,7 @@ begin
     Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
   rx := TRegExpr.Create;
   rx.Expression := 'https?://[^\s"]+';
-  if ThemeIsDark then
+  if IsDarkModeEnabled then
     Dialog.Text := Msg
   else // See issue #2036
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
@@ -2825,13 +2827,6 @@ begin
   // Not required with vcl-style-utils:
   // Result := TStyleManager.ActiveStyle.GetSystemColor(Color);
   Result := Color;
-end;
-
-
-function ThemeIsDark(ThemeName: String=''): Boolean;
-begin
-  // Todo: return true if system dark style is in use?
-  Result := False;
 end;
 
 
@@ -3761,6 +3756,8 @@ begin
   InitSetting(asGUIFontName,                      'GUIFontName',                           0, False, '');
   InitSetting(asGUIFontSize,                      'GUIFontSize',                           8);
   InitSetting(asTheme,                            'Theme',                                 0, False, 'Windows');
+  InitSetting(asThemeMode,                        'ThemeMode',                             0);
+  InitSetting(asCurrentThemeIsDark,               'CurrentThemeIsDark',                    0, False);
   InitSetting(asIconPack,                         'IconPack',                              0, False, 'Icons8');
   InitSetting(asWebSearchBaseUrl,                 'WebSearchBaseUrl',                      0, False, 'https://www.ecosia.org/search?q=%query');
   InitSetting(asMaxQueryResults,                  'MaxQueryResults',                       10);
@@ -4408,6 +4405,28 @@ begin
   if Result[Length(Result)] <> PathDelimiter then
     Result := Result + PathDelimiter;
 end;
+
+{$IFDEF WINDOWS}
+function TAppSettings.IsWindowsDarkApps: Boolean;
+const
+  KEYPATH = '\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize';
+var
+  Reg: TRegistry;
+begin
+  Result := False;
+  Reg := TRegistry.Create(KEY_READ);
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKeyReadOnly(KEYPATH) then begin
+      // 0 = dark, 1 = light for apps
+      if Reg.ValueExists('AppsUseLightTheme') then
+        Result := Reg.ReadInteger('AppsUseLightTheme') = 0;
+    end;
+  finally
+    Reg.Free;
+  end;
+end;
+{$ENDIF}
 
 { TUTF8NoBOMEncoding }
 

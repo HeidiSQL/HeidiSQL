@@ -39,6 +39,7 @@ jobs:
           with:
             lazarus-version: ${{ matrix.lazarus-versions }}
             with-cache: false
+            include-packages: "Metadarkstyle"
 
         - name: Build HeidiSQL (Windows)
           if: ${{ matrix.operating-system == 'windows-latest' }}

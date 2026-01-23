@@ -137,6 +137,9 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="MetaDarkStyle"/>
+      </Item>
+      <Item>
         <PackageName Value="DateTimeCtrlsDsgn"/>
       </Item>
       <Item>
