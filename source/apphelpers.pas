@@ -10,7 +10,7 @@ uses
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient,
   {$IFDEF WINDOWS} Windows, Registry, {$ENDIF} DelphiCompat,
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
-  IniFiles, GraphType, Sockets, uDarkStyleParams;
+  IniFiles, GraphType, Sockets, uDarkStyleParams, Contnrs;
 
 type
 
@@ -419,7 +419,7 @@ type
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
   function PopupComponent(Sender: TObject): TComponent;
-  procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList<TComponent>);
+  procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TComponentList);
   function GetOS: String;
   function UserAgent(OwnerComponent: TComponent): String;
   function CodeIndent(Steps: Integer=1): String;
@@ -2885,12 +2885,12 @@ begin
     Result := (Menu as TPopupMenu).PopupComponent;
 end;
 
-procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList<TComponent>);
+procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TComponentList);
 var
   i: Integer;
 begin
   for i:=0 to BaseForm.ComponentCount-1 do begin
-    if BaseForm.Components[i] is ClassType then
+    if BaseForm.Components[i].InheritsFrom(ClassType) then
       List.Add(BaseForm.Components[i])
     else
       FindComponentInstances(BaseForm.Components[i], ClassType, List);

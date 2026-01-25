@@ -15,7 +15,7 @@ uses
   LazStringUtils, dbconnection, dbstructures, dbstructures.mysql, generic_types,
   apphelpers, extra_controls, createdatabase, SynEditMarkup, SynEditMarkupBracket,
   searchreplace, ImgList, IniFiles, LazFileUtils, LazUTF8, tabletools,
-  lazaruscompat, extfiledialog, process, SynEditMiscClasses;
+  lazaruscompat, extfiledialog, process, SynEditMiscClasses, Contnrs;
 
 
 type
@@ -13146,7 +13146,7 @@ end;
 procedure TMainform.SetupSynEditors;
 var
   i, j: Integer;
-  Editors: TObjectList<TComponent>;
+  Editors: TComponentList;
   BaseEditor: TSynMemo;
   KeyStroke: TSynEditKeyStroke;
   Attri: TSynHighlighterAttributes;
@@ -13154,7 +13154,7 @@ var
 begin
   // Setup all known TSynMemo's
   // This version includes global settings for keyboard shortcut, highlighting and completion proposal
-  Editors := TObjectList<TComponent>.Create(False);
+  Editors := TComponentList.Create(False);
   BaseEditor := SynMemoQuery;
   for i:=0 to QueryTabs.Count-1 do
     Editors.Add(QueryTabs[i].Memo);
@@ -13230,11 +13230,11 @@ end;
 
 procedure TMainForm.SetupSynEditors(BaseForm: TComponent);
 var
-  Editors: TObjectList<TComponent>;
+  Editors: TComponentList;
   i: Integer;
 begin
   // Restore font, highlighter and shortcuts for all TSynMemo's in given base form
-  Editors := TObjectList<TComponent>.Create(False);
+  Editors := TComponentList.Create(False);
   FindComponentInstances(BaseForm, TSynEdit, Editors);
   for i:=0 to Editors.Count-1 do begin
     SetupSynEditor(Editors[i] as TSynEdit);
