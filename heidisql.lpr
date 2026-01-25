@@ -54,6 +54,7 @@ begin
   RequireDerivedFormResource:=True;
   Application.Scaled:=True;
 
+  AppColorSchemes := TAppColorSchemes.Create(True);
   {$IFDEF WINDOWS}
   PreferredAppMode := pamAllowDark;
   case AppSettings.ReadInt(asThemeMode) of
@@ -65,15 +66,12 @@ begin
   if PreferredAppMode = pamForceDark then
     uMetaDarkStyle.ApplyMetaDarkStyle(DefaultDark);
 
+  // Switch synedit and grid colors to dark mode and vice versa
   WasDarkMode := AppSettings.ReadBool(asCurrentThemeIsDark);
-  if (not WasDarkMode) and IsDarkModeEnabled then begin
-    // switch synedit colors and grid colors after current dark mode has changed
-    SQLSynSchemes.ApplyScheme(SQLSynSchemes.SDarkScheme);
-  end
-  else if WasDarkMode and (not IsDarkModeEnabled) then begin
-    // dito
-    SQLSynSchemes.ApplyScheme(SQLSynSchemes.SLightScheme);
-  end;
+  if (not WasDarkMode) and IsDarkModeEnabled then
+    AppColorSchemes.ApplyDark
+  else if WasDarkMode and (not IsDarkModeEnabled) then
+    AppColorSchemes.ApplyLight;
   AppSettings.WriteBool(asCurrentThemeIsDark, IsDarkModeEnabled);
   {$ENDIF}
 

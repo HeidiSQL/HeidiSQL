@@ -1,11 +1,11 @@
 unit generic_types;
 
-{$mode ObjFPC}
+{$mode delphi}{$H+}
 
 interface
 
 uses fpjson, jsonparser, SysUtils, RegExpr, SynEditHighlighter, SynHighlighterSQL,
-  Generics.Collections, Graphics;
+  Classes, Generics.Collections, Graphics, dbstructures;
 
 type
   TThreeStateBoolean = (nbUnset, nbFalse, nbTrue);
@@ -21,17 +21,33 @@ type
       constructor Create;
   end;
 
-  // Light and dark Color schemes for SynEdit SQL highlighter
-  TSynSQLSynList = specialize TObjectList<TSynSQLSyn>;
-  TSynSQLSynSchemes = class(TSynSQLSynList)
+  // Light and dark Color schemes for SynEdit SQL highlighter and grid colors
+  TGridTextColors = Array[TDBDatatypeCategoryIndex] of TColor;
+  TAppColorScheme = class(TObject)
+    public
+      Name: String;
+      SynSqlSyn: TSynSqlsyn;
+      GridTextColors: TGridTextColors;
+      ActiveLineBackground: TColor;
+      MatchingBraceForeground: TColor;
+      MatchingBraceBackground: TColor;
+      constructor Create;
+      destructor Destroy; override;
+      // Load colors from settings
+      procedure LoadFromSettings;
+      // Write colors to settings
+      procedure Apply;
+  end;
+  //TAppColorSchemeList = specialize TObjectList<TAppColorScheme>;
+  TAppColorSchemes = class(TObjectList<TAppColorScheme>)
     public
       const SDarkScheme = 'Dark';
       const SLightScheme = 'Light';
       const SBlackScheme = 'Black';
       const SWhiteScheme = 'White';
       constructor Create(AOwnsObjects: Boolean = True); reintroduce; overload;
-      procedure ApplyScheme(Scheme: TSynSQLSyn); overload;
-      procedure ApplyScheme(SchemeName: String); overload;
+      procedure ApplyLight;
+      procedure ApplyDark;
   end;
 
   TFileExtImageIndex = record
@@ -62,7 +78,7 @@ const FileExtImageIndex: array[0..16] of TFileExtImageIndex = (
   );
 
 var
-  SQLSynSchemes: TSynSQLSynSchemes;
+  AppColorSchemes: TAppColorSchemes;
 
 implementation
 
@@ -109,119 +125,210 @@ begin
   WordChars := WordChars + 'äÄöÖüÜÿŸáÁéÉíÍóÓúÚýÝćĆńŃŕŔśŚźŹĺĹàÀèÈìÌòÒùÙâÂêÊîÎôÔûÛãÃõÕñÑçÇşŞţŢåÅæÆœŒøØß';
 end;
 
-{ TSynSQLSynSchemes }
+{ TAppColorScheme }
 
-constructor TSynSQLSynSchemes.Create(AOwnsObjects: Boolean = True);
-var
-  Scheme: TSynSQLSyn;
+constructor TAppColorScheme.Create;
 begin
-  inherited Create(AOwnsObjects);
-
-  Scheme := TSynSQLSyn.Create(nil);
-  Scheme.Name := SDarkScheme;
-  Scheme.SQLDialect := sqlMySQL;
-  Scheme.CommentAttri.Foreground := 8710076;
-  Scheme.DataTypeAttri.Foreground := 11184895;
-  Scheme.FunctionAttri.Foreground := 15792639;
-  Scheme.IdentifierAttri.Foreground := 6460927;
-  Scheme.KeyAttri.Foreground := 15792639;
-  Scheme.NumberAttri.Foreground := 4610525;
-  Scheme.StringAttri.Foreground := 5293907;
-  Scheme.SymbolAttri.Foreground := 15792639;
-  Scheme.TableNameAttri.Foreground := 16755327;
-  Scheme.VariableAttri.Foreground := clPurple;
-  Add(Scheme);
-
-  Scheme := TSynSQLSyn.Create(nil);
-  Scheme.Name := SLightScheme;
-  Scheme.SQLDialect := sqlMySQL;
-  Scheme.CommentAttri.Foreground := clGray;
-  Scheme.DataTypeAttri.Foreground := clMaroon;
-  Scheme.FunctionAttri.Foreground := clNavy;
-  Scheme.IdentifierAttri.Foreground := clOlive;
-  Scheme.KeyAttri.Foreground := clBlue;
-  Scheme.NumberAttri.Foreground := clPurple;
-  Scheme.StringAttri.Foreground := clGreen;
-  Scheme.SymbolAttri.Foreground := clBlue;
-  Scheme.TableNameAttri.Foreground := clFuchsia;
-  Scheme.VariableAttri.Foreground := clPurple;
-  Add(Scheme);
-
-  Scheme := TSynSQLSyn.Create(nil);
-  Scheme.Name := SBlackScheme;
-  Scheme.SQLDialect := sqlMySQL;
-  Scheme.CommentAttri.Foreground := clBlack;
-  Scheme.DataTypeAttri.Foreground := clBlack;
-  Scheme.FunctionAttri.Foreground := clBlack;
-  Scheme.IdentifierAttri.Foreground := clBlack;
-  Scheme.KeyAttri.Foreground := clBlack;
-  Scheme.NumberAttri.Foreground := clBlack;
-  Scheme.StringAttri.Foreground := clBlack;
-  Scheme.SymbolAttri.Foreground := clBlack;
-  Scheme.TableNameAttri.Foreground := clBlack;
-  Scheme.VariableAttri.Foreground := clBlack;
-  Add(Scheme);
-
-  Scheme := TSynSQLSyn.Create(nil);
-  Scheme.Name := SWhiteScheme;
-  Scheme.SQLDialect := sqlMySQL;
-  Scheme.CommentAttri.Foreground := clWhite;
-  Scheme.DataTypeAttri.Foreground := clWhite;
-  Scheme.FunctionAttri.Foreground := clWhite;
-  Scheme.IdentifierAttri.Foreground := clWhite;
-  Scheme.KeyAttri.Foreground := clWhite;
-  Scheme.NumberAttri.Foreground := clWhite;
-  Scheme.StringAttri.Foreground := clWhite;
-  Scheme.SymbolAttri.Foreground := clWhite;
-  Scheme.TableNameAttri.Foreground := clWhite;
-  Scheme.VariableAttri.Foreground := clWhite;
-  Add(Scheme);
+  inherited Create;
+  SynSqlSyn := TSynSQLSyn.Create(nil);
+  SynSqlSyn.SQLDialect := sqlMySQL;
 end;
 
-procedure TSynSQLSynSchemes.ApplyScheme(Scheme: TSynSQLSyn);
+procedure TAppColorScheme.LoadFromSettings;
 var
   i: Integer;
   Attri: TSynHighlighterAttributes;
 begin
-  for i:=0 to Scheme.AttrCount - 1 do begin
-    Attri := Scheme.Attribute[i];
+  Name := _('Current custom settings');
+  for i:=0 to SynSqlSyn.AttrCount - 1 do begin
+    Attri := SynSqlSyn.Attribute[i];
+    Attri.Foreground := AppSettings.ReadInt(asHighlighterForeground, Attri.Name, Attri.Foreground);
+    Attri.Background := AppSettings.ReadInt(asHighlighterBackground, Attri.Name, Attri.Background);
+    // IntegerStyle gathers all font styles (bold, italic, ...) in one number
+    Attri.IntegerStyle := AppSettings.ReadInt(asHighlighterStyle, Attri.Name, Attri.IntegerStyle);
+  end;
+  ActiveLineBackground := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
+  MatchingBraceBackground := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceBackground));
+  MatchingBraceForeground := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceForeground));
+
+  GridTextColors[dtcInteger] := AppSettings.ReadInt(asFieldColorNumeric);
+  GridTextColors[dtcReal] := AppSettings.ReadInt(asFieldColorReal);
+  GridTextColors[dtcText] := AppSettings.ReadInt(asFieldColorText);
+  GridTextColors[dtcBinary] := AppSettings.ReadInt(asFieldColorBinary);
+  GridTextColors[dtcTemporal] := AppSettings.ReadInt(asFieldColorDatetime);
+  GridTextColors[dtcSpatial] := AppSettings.ReadInt(asFieldColorSpatial);
+  GridTextColors[dtcOther] := AppSettings.ReadInt(asFieldColorOther);
+end;
+
+destructor TAppColorScheme.Destroy;
+begin
+  SynSqlSyn.Free;
+  inherited;
+end;
+
+procedure TAppColorScheme.Apply;
+var
+  i: Integer;
+  Attri: TSynHighlighterAttributes;
+begin
+  // Highlighter colors
+  for i:=0 to SynSqlSyn.AttrCount - 1 do begin
+    Attri := SynSqlSyn.Attribute[i];
     AppSettings.WriteInt(asHighlighterForeground, Attri.Foreground, Attri.Name);
     AppSettings.WriteInt(asHighlighterBackground, Attri.Background, Attri.Name);
     AppSettings.WriteInt(asHighlighterStyle, Attri.IntegerStyle, Attri.Name);
   end;
-  if Scheme.Name = SDarkScheme then begin
-    AppSettings.WriteString(asSQLColActiveLine, ColorToString(clNone));
-    AppSettings.WriteString(asSQLColMatchingBraceForeground, ColorToString($0028EFFF));
-    AppSettings.WriteString(asSQLColMatchingBraceBackground, ColorToString($004D513B));
-  end
-  else if Scheme.Name = SLightScheme then begin
-    AppSettings.WriteString(asSQLColActiveLine, ColorToString(clNone));
-    AppSettings.WriteString(asSQLColMatchingBraceForeground, AppSettings.GetDefaultString(asSQLColMatchingBraceForeground));
-    AppSettings.WriteString(asSQLColMatchingBraceBackground, AppSettings.GetDefaultString(asSQLColMatchingBraceBackground));
-  end
+  // Colors sitting on a TSynEdit, not part of a highlighter
+  AppSettings.WriteString(asSQLColActiveLine, ColorToString(ActiveLineBackground));
+  AppSettings.WriteString(asSQLColMatchingBraceForeground, ColorToString(MatchingBraceForeground));
+  AppSettings.WriteString(asSQLColMatchingBraceBackground, ColorToString(MatchingBraceBackground));
+  // Grid data type colors
+  AppSettings.WriteInt(asFieldColorNumeric, GridTextColors[dtcInteger]);
+  AppSettings.WriteInt(asFieldColorReal, GridTextColors[dtcReal]);
+  AppSettings.WriteInt(asFieldColorText, GridTextColors[dtcText]);
+  AppSettings.WriteInt(asFieldColorBinary, GridTextColors[dtcBinary]);
+  AppSettings.WriteInt(asFieldColorDatetime, GridTextColors[dtcTemporal]);
+  AppSettings.WriteInt(asFieldColorSpatial, GridTextColors[dtcSpatial]);
+  AppSettings.WriteInt(asFieldColorOther, GridTextColors[dtcOther]);
 end;
 
-procedure TSynSQLSynSchemes.ApplyScheme(SchemeName: String);
+
+{ TAppColorSchemes }
+
+constructor TAppColorSchemes.Create(AOwnsObjects: Boolean = True);
 var
-  Scheme: TSynSQLSyn;
-  Found: Boolean;
+  Scheme: TAppColorScheme;
 begin
-  Found := False;
+  inherited; // Create(AOwnsObjects);
+
+  Scheme := TAppColorScheme.Create;
+  Scheme.LoadFromSettings;
+  Add(Scheme);
+
+  Scheme := TAppColorScheme.Create;
+  Scheme.Name := SDarkScheme;
+  Scheme.SynSqlSyn.CommentAttri.Foreground := 8710076;
+  Scheme.SynSqlSyn.DataTypeAttri.Foreground := 11184895;
+  Scheme.SynSqlSyn.FunctionAttri.Foreground := 15792639;
+  Scheme.SynSqlSyn.IdentifierAttri.Foreground := 6460927;
+  Scheme.SynSqlSyn.KeyAttri.Foreground := 15792639;
+  Scheme.SynSqlSyn.NumberAttri.Foreground := 4610525;
+  Scheme.SynSqlSyn.StringAttri.Foreground := 5293907;
+  Scheme.SynSqlSyn.SymbolAttri.Foreground := 15792639;
+  Scheme.SynSqlSyn.TableNameAttri.Foreground := 16755327;
+  Scheme.SynSqlSyn.VariableAttri.Foreground := clPurple;
+  Scheme.ActiveLineBackground := clNone;
+  Scheme.MatchingBraceForeground := $0028EFFF;
+  Scheme.MatchingBraceBackground := $004D513B;
+  Scheme.GridTextColors[dtcInteger] := $00FF9785;
+  Scheme.GridTextColors[dtcReal] := $00D07D7D;
+  Scheme.GridTextColors[dtcText] := $0073D573;
+  Scheme.GridTextColors[dtcBinary] := $00C9767F;
+  Scheme.GridTextColors[dtcTemporal] := $007373C9;
+  Scheme.GridTextColors[dtcSpatial] := $00CECE73;
+  Scheme.GridTextColors[dtcOther] := $0073C1C1;
+  Add(Scheme);
+
+  Scheme := TAppColorScheme.Create;
+  Scheme.Name := SLightScheme;
+  Scheme.SynSqlSyn.CommentAttri.Foreground := clGray;
+  Scheme.SynSqlSyn.DataTypeAttri.Foreground := clMaroon;
+  Scheme.SynSqlSyn.FunctionAttri.Foreground := clNavy;
+  Scheme.SynSqlSyn.IdentifierAttri.Foreground := clOlive;
+  Scheme.SynSqlSyn.KeyAttri.Foreground := clBlue;
+  Scheme.SynSqlSyn.NumberAttri.Foreground := clPurple;
+  Scheme.SynSqlSyn.StringAttri.Foreground := clGreen;
+  Scheme.SynSqlSyn.SymbolAttri.Foreground := clBlue;
+  Scheme.SynSqlSyn.TableNameAttri.Foreground := clFuchsia;
+  Scheme.SynSqlSyn.VariableAttri.Foreground := clPurple;
+  Scheme.ActiveLineBackground := clNone;
+  Scheme.MatchingBraceForeground := clBlack;
+  Scheme.MatchingBraceBackground := clAqua;
+  Scheme.GridTextColors[dtcInteger] := $00FF0000;
+  Scheme.GridTextColors[dtcReal] := $00FF0048;
+  Scheme.GridTextColors[dtcText] := $00008000;
+  Scheme.GridTextColors[dtcBinary] := $00800080;
+  Scheme.GridTextColors[dtcTemporal] := $00000080;
+  Scheme.GridTextColors[dtcSpatial] := $00808000;
+  Scheme.GridTextColors[dtcOther] := $00008080;
+  Add(Scheme);
+
+  Scheme := TAppColorScheme.Create;
+  Scheme.Name := SBlackScheme;
+  Scheme.SynSqlSyn.CommentAttri.Foreground := clBlack;
+  Scheme.SynSqlSyn.DataTypeAttri.Foreground := clBlack;
+  Scheme.SynSqlSyn.FunctionAttri.Foreground := clBlack;
+  Scheme.SynSqlSyn.IdentifierAttri.Foreground := clBlack;
+  Scheme.SynSqlSyn.KeyAttri.Foreground := clBlack;
+  Scheme.SynSqlSyn.NumberAttri.Foreground := clBlack;
+  Scheme.SynSqlSyn.StringAttri.Foreground := clBlack;
+  Scheme.SynSqlSyn.SymbolAttri.Foreground := clBlack;
+  Scheme.SynSqlSyn.TableNameAttri.Foreground := clBlack;
+  Scheme.SynSqlSyn.VariableAttri.Foreground := clBlack;
+  Scheme.ActiveLineBackground := clNone;
+  Scheme.MatchingBraceForeground := clBlack;
+  Scheme.MatchingBraceBackground := clAqua;
+  Scheme.GridTextColors[dtcInteger] := $00000000;
+  Scheme.GridTextColors[dtcReal] := $00000000;
+  Scheme.GridTextColors[dtcText] := $00000000;
+  Scheme.GridTextColors[dtcBinary] := $00000000;
+  Scheme.GridTextColors[dtcTemporal] := $00000000;
+  Scheme.GridTextColors[dtcSpatial] := $00000000;
+  Scheme.GridTextColors[dtcOther] := $00000000;
+  Add(Scheme);
+
+  Scheme := TAppColorScheme.Create;
+  Scheme.Name := SWhiteScheme;
+  Scheme.SynSqlSyn.CommentAttri.Foreground := clWhite;
+  Scheme.SynSqlSyn.DataTypeAttri.Foreground := clWhite;
+  Scheme.SynSqlSyn.FunctionAttri.Foreground := clWhite;
+  Scheme.SynSqlSyn.IdentifierAttri.Foreground := clWhite;
+  Scheme.SynSqlSyn.KeyAttri.Foreground := clWhite;
+  Scheme.SynSqlSyn.NumberAttri.Foreground := clWhite;
+  Scheme.SynSqlSyn.StringAttri.Foreground := clWhite;
+  Scheme.SynSqlSyn.SymbolAttri.Foreground := clWhite;
+  Scheme.SynSqlSyn.TableNameAttri.Foreground := clWhite;
+  Scheme.SynSqlSyn.VariableAttri.Foreground := clWhite;
+  Scheme.ActiveLineBackground := clNone;
+  Scheme.MatchingBraceForeground := $0028EFFF;
+  Scheme.MatchingBraceBackground := $004D513B;
+  Scheme.GridTextColors[dtcInteger] := $00FFFFFF;
+  Scheme.GridTextColors[dtcReal] := $00FFFFFF;
+  Scheme.GridTextColors[dtcText] := $00FFFFFF;
+  Scheme.GridTextColors[dtcBinary] := $00FFFFFF;
+  Scheme.GridTextColors[dtcTemporal] := $00FFFFFF;
+  Scheme.GridTextColors[dtcSpatial] := $00FFFFFF;
+  Scheme.GridTextColors[dtcOther] := $00FFFFFF;
+  Add(Scheme);
+end;
+
+procedure TAppColorSchemes.ApplyLight;
+var
+  Scheme: TAppColorScheme;
+begin
   for Scheme in Self do begin
-    if Scheme.Name = SchemeName then begin
-      ApplyScheme(Scheme);
-      Found := True;
+    if Scheme.Name = SLightScheme then begin
+      Scheme.Apply;
       Break;
     end;
   end;
-  if not Found then
-    raise Exception.Create('SQL scheme not found: '+SchemeName);
+end;
+
+procedure TAppColorSchemes.ApplyDark;
+var
+  Scheme: TAppColorScheme;
+begin
+  for Scheme in Self do begin
+    if Scheme.Name = SDarkScheme then begin
+      Scheme.Apply;
+      Break;
+    end;
+  end;
 end;
 
 initialization
 
 SetJSONInstanceType(jitNumberFloat, TJSONFloatNumberUntouched);
 
-SQLSynSchemes := TSynSQLSynSchemes.Create(True);
 
 end.

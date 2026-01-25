@@ -1271,8 +1271,6 @@ type
     FActionList1DefaultCaptions: TStringList;
     FActionList1DefaultHints: TStringList;
     FEditorCommandStrings: TStringList;
-    FMatchingBraceForegroundColor: TColor;
-    FMatchingBraceBackgroundColor: TColor;
     //FHelpData: TSimpleKeyValuePairs;
     FMainWinMaximized: Boolean;
     FCurrentPixelsPerInch: Integer;
@@ -1408,8 +1406,6 @@ type
     property ActionList1DefaultHints: TStringList read FActionList1DefaultHints;
     function SelectedTableFocusedColumn: TTableColumn;
     property FormatSettings: TFormatSettings read FFormatSettings;
-    property MatchingBraceForegroundColor: TColor read FMatchingBraceForegroundColor write FMatchingBraceForegroundColor;
-    property MatchingBraceBackgroundColor: TColor read FMatchingBraceBackgroundColor write FMatchingBraceBackgroundColor;
   end;
 
 var
@@ -13184,8 +13180,6 @@ begin
     BaseEditor.Options := BaseEditor.Options + [eoTabsToSpaces]
   else
     BaseEditor.Options := BaseEditor.Options - [eoTabsToSpaces];
-  FMatchingBraceForegroundColor := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceForeground));
-  FMatchingBraceBackgroundColor := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceBackground));
 
   // Shortcuts
   for j:=0 to BaseEditor.Keystrokes.Count-1 do begin
@@ -13221,10 +13215,10 @@ begin
   // Highlighting
   for i:=0 to SynSQLSynUsed.AttrCount - 1 do begin
     Attri := SynSQLSynUsed.Attribute[i];
-    Attri.Foreground := AppSettings.ReadInt(asHighlighterForeground, Attri.Name, Attri.Foreground);
-    Attri.Background := AppSettings.ReadInt(asHighlighterBackground, Attri.Name, Attri.Background);
+    Attri.Foreground := AppColorSchemes.First.SynSqlSyn.Attribute[i].Foreground;
+    Attri.Background := AppColorSchemes.First.SynSqlSyn.Attribute[i].Background;
     // IntegerStyle gathers all font styles (bold, italic, ...) in one number
-    Attri.IntegerStyle := AppSettings.ReadInt(asHighlighterStyle, Attri.Name, Attri.IntegerStyle);
+    Attri.IntegerStyle := AppColorSchemes.First.SynSqlSyn.Attribute[i].IntegerStyle;
   end;
   // Completion proposal
   {if AppSettings.ReadBool(asCompletionProposalSearchOnMid) then
@@ -13293,7 +13287,7 @@ begin
     end;
     Editor.ScrollBars := BaseEditor.ScrollBars;
   end;
-  Editor.LineHighlightColor.Background := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
+  Editor.LineHighlightColor.Background := AppColorSchemes.First.ActiveLineBackground;
   Editor.Options := BaseEditor.Options;
   Editor.Options2 := BaseEditor.Options2;
   if Editor = SynMemoSQLLog then
@@ -13318,8 +13312,8 @@ begin
     Editor.Keystrokes := BaseEditor.KeyStrokes;
   end;
   Editor.BracketHighlightStyle := sbhsBoth;
-  Editor.BracketMatchColor.Foreground := FMatchingBraceForegroundColor;
-  Editor.BracketMatchColor.Background := FMatchingBraceBackgroundColor;
+  Editor.BracketMatchColor.Foreground := AppColorSchemes.First.MatchingBraceForeground;
+  Editor.BracketMatchColor.Background := AppColorSchemes.First.MatchingBraceBackground;
 end;
 
 
@@ -15524,8 +15518,8 @@ begin
   if FWord = AWord then
     Exit;
   FWord := AWord;
-  FAttr.Background := MainForm.MatchingBraceBackgroundColor;
-  FAttr.Foreground := MainForm.MatchingBraceForegroundColor;
+  FAttr.Background := AppColorSchemes.First.MatchingBraceBackground;
+  FAttr.Foreground := AppColorSchemes.First.MatchingBraceForeground;
   SynEdit.Invalidate; // triggers repaint and BeginMarkup
 end;
 

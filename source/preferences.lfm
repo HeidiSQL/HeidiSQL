@@ -1023,13 +1023,8 @@ object frmPreferences: TfrmPreferences
         Width = 181
         BorderSpacing.Around = 6
         ItemHeight = 20
-        ItemIndex = 0
-        Items.Strings = (
-          'Current custom settings'
-        )
         Style = csDropDownList
         TabOrder = 9
-        Text = 'Current custom settings'
         OnChange = comboEditorColorsPresetChange
       end
       object chkCompletionProposalSearchOnMid: TCheckBox

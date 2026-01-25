@@ -13,9 +13,9 @@ uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, laz.VirtualTrees, SynEditKeyCmds, ActnList, Menus,
-  dbstructures, RegExpr, Generics.Collections, EditBtn, LCLType, StrUtils,
+  dbstructures, RegExpr, EditBtn, LCLType, StrUtils,
   extra_controls, reformatter, Buttons, ColorBox, LCLProc, LCLIntf, lazaruscompat, FileUtil,
-  vktable, uDarkStyleParams;
+  vktable, generic_types;
 
 type
   TShortcutItemData = record
@@ -24,14 +24,6 @@ type
     ShortCut1, ShortCut2: TShortCut;
   end;
   PShortcutItemData = ^TShortcutItemData;
-
-  // Color set for grid text, and preset class with a name
-  TGridTextColors = Array[TDBDatatypeCategoryIndex] of TColor;
-  TGridColorsPreset = class
-    TextColors: TGridTextColors;
-    Name: String;
-  end;
-  TGridColorsPresetList = TObjectList<TGridColorsPreset>;
 
   { TfrmPreferences }
 
@@ -235,8 +227,7 @@ type
     { Private declarations }
     FWasModified: Boolean;
     FShortcutCategories: TStringList;
-    FGridTextColors: TGridTextColors;
-    FGridColorsPresets: TGridColorsPresetList;
+    FAppColorScheme: TAppColorScheme;
     FLanguages: TStringList;
     FRestartOptionTouched: Boolean;
     FRestartOptionApplied: Boolean;
@@ -255,7 +246,7 @@ var
 
 implementation
 
-uses main, apphelpers, extfiledialog, generic_types;
+uses main, apphelpers, extfiledialog;
 
 {$R *.lfm}
 
@@ -319,11 +310,8 @@ begin
   AppSettings.WriteInt(asQueryHistoryKeepDays, MakeInt(editQueryHistoryKeepDays.Text));
   AppSettings.WriteBool(asLogHorizontalScrollbar, chkHorizontalScrollbar.Checked);
   AppSettings.WriteBool(asLogTimestamp, chkLogTimestamp.Checked);
-  SQLSynSchemes.ApplyScheme(SynSQLSynSQLSample);
-  AppSettings.WriteString(asSQLColActiveLine, ColorToString(SynMemoSQLSample.LineHighlightColor.Background));
-  AppSettings.WriteString(asSQLColMatchingBraceForeground, ColorToString(MainForm.MatchingBraceForegroundColor));
-  AppSettings.WriteString(asSQLColMatchingBraceBackground, ColorToString(MainForm.MatchingBraceBackgroundColor));
-
+  FAppColorScheme.Apply;
+  AppColorSchemes.First.LoadFromSettings;
   AppSettings.WriteInt(asMaxColWidth, MakeInt(editMaxColWidth.Text));
   AppSettings.WriteInt(asDatagridRowsPerStep, StrToIntDef(editGridRowCountStep.Text, -1));
   AppSettings.WriteInt(asDatagridMaximumRows, StrToIntDef(editGridRowCountMax.Text, -1));
@@ -357,14 +345,6 @@ begin
   AppSettings.WriteString(asWebSearchBaseUrl, comboWebSearchBaseUrl.Text);
 
   AppSettings.WriteInt(asMaxQueryResults, MakeInt(editMaxQueryResults.Text));
-  // Save color settings
-  AppSettings.WriteInt(asFieldColorNumeric, FGridTextColors[dtcInteger]);
-  AppSettings.WriteInt(asFieldColorReal, FGridTextColors[dtcReal]);
-  AppSettings.WriteInt(asFieldColorText, FGridTextColors[dtcText]);
-  AppSettings.WriteInt(asFieldColorBinary, FGridTextColors[dtcBinary]);
-  AppSettings.WriteInt(asFieldColorDatetime, FGridTextColors[dtcTemporal]);
-  AppSettings.WriteInt(asFieldColorSpatial, FGridTextColors[dtcSpatial]);
-  AppSettings.WriteInt(asFieldColorOther, FGridTextColors[dtcOther]);
   AppSettings.WriteInt(asFieldNullBackground, cboxNullBackground.Selected);
   AppSettings.WriteInt(asRowBackgroundEven, cboxRowBackgroundEven.Selected);
   AppSettings.WriteInt(asRowBackgroundOdd, cboxRowBackgroundOdd.Selected);
@@ -440,13 +420,13 @@ begin
   Mainform.LogToFile := chkLogToFile.Checked;
   MainForm.actLogHorizontalScrollbar.Checked := chkHorizontalScrollbar.Checked;
   MainForm.actLogHorizontalScrollbar.OnExecute(MainForm.actLogHorizontalScrollbar);
-  DatatypeCategories[dtcInteger].Color := FGridTextColors[dtcInteger];
-  DatatypeCategories[dtcReal].Color := FGridTextColors[dtcReal];
-  DatatypeCategories[dtcText].Color := FGridTextColors[dtcText];
-  DatatypeCategories[dtcBinary].Color := FGridTextColors[dtcBinary];
-  DatatypeCategories[dtcTemporal].Color := FGridTextColors[dtcTemporal];
-  DatatypeCategories[dtcSpatial].Color := FGridTextColors[dtcSpatial];
-  DatatypeCategories[dtcOther].Color := FGridTextColors[dtcOther];
+  DatatypeCategories[dtcInteger].Color := FAppColorScheme.GridTextColors[dtcInteger];
+  DatatypeCategories[dtcReal].Color := FAppColorScheme.GridTextColors[dtcReal];
+  DatatypeCategories[dtcText].Color := FAppColorScheme.GridTextColors[dtcText];
+  DatatypeCategories[dtcBinary].Color := FAppColorScheme.GridTextColors[dtcBinary];
+  DatatypeCategories[dtcTemporal].Color := FAppColorScheme.GridTextColors[dtcTemporal];
+  DatatypeCategories[dtcSpatial].Color := FAppColorScheme.GridTextColors[dtcSpatial];
+  DatatypeCategories[dtcOther].Color := FAppColorScheme.GridTextColors[dtcOther];
   Mainform.DataLocalNumberFormat := chkLocalNumberFormat.Checked;
   Mainform.CalcNullColors;
   Mainform.DataGrid.Repaint;
@@ -515,18 +495,11 @@ end;
 
 
 procedure TfrmPreferences.FormCreate(Sender: TObject);
-const
-  // Define grid colors as constants, for easy assignment
-  GridColorsLight: TGridTextColors = ($00FF0000, $00FF0048, $00008000, $00800080, $00000080, $00808000, $00008080);
-  GridColorsDark: TGridTextColors = ($00FF9785, $00D07D7D, $0073D573, $00C9767F, $007373C9, $00CECE73, $0073C1C1);
-  GridColorsBlack: TGridTextColors = ($00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000);
-  GridColorsWhite: TGridTextColors = ($00FFFFFF, $00FFFFFF, $00FFFFFF, $00FFFFFF, $00FFFFFF, $00FFFFFF, $00FFFFFF);
 var
   i: Integer;
   dtc: TDBDatatypeCategoryIndex;
   //Styles: TArray<String>;
-  Highlighter: TSynSQLSyn;
-  GridColorsPreset: TGridColorsPreset;
+  ColorScheme: TAppColorScheme;
   IconPack: String;
   Reformatter: TfrmReformatter;
 begin
@@ -564,6 +537,10 @@ begin
     end;
   end;
 
+  // This is the color scheme we modify in-memory
+  FAppColorScheme := TAppColorScheme.Create;
+  FAppColorScheme.LoadFromSettings;
+
   // Data
   // Populate datatype categories pulldown
   for dtc:=Low(TDBDatatypeCategoryIndex) to High(TDBDatatypeCategoryIndex) do
@@ -586,50 +563,22 @@ begin
     ')';
   SynSQLSynSQLSample.TableNames.CommaText := 'tableA,tableB';
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
-    SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(MainForm.SynSQLSynUsed.Attribute[i]);
+    SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(FAppColorScheme.SynSqlSyn.Attribute[i]);
     comboSQLColElement.Items.Add(SynSQLSynSQLSample.Attribute[i].Name);
   end;
   comboSQLColElement.Items.Add(_('Active line background'));
   comboSQLColElement.Items.Add(_('Brace matching color'));
   comboSQLColElement.ItemIndex := 0;
   // Enumerate highlighter presets
-  for Highlighter in SQLSynSchemes do begin
-    comboEditorColorsPreset.Items.Add(_(Highlighter.Name));
+  for ColorScheme in AppColorSchemes do begin
+    comboEditorColorsPreset.Items.Add(_(ColorScheme.Name));
   end;
 
   // Grid formatting
-  FGridColorsPresets := TGridColorsPresetList.Create;
-  // Current colors - assign from global DatatypeCategories array
-  GridColorsPreset := TGridColorsPreset.Create;
-  GridColorsPreset.Name := _('Current custom settings');
-  for dtc:=Low(TDBDatatypeCategoryIndex) to High(TDBDatatypeCategoryIndex) do begin
-    GridColorsPreset.TextColors[dtc] := DatatypeCategories[dtc].Color;
-  end;
-  FGridColorsPresets.Add(GridColorsPreset);
-  // Light - default values
-  GridColorsPreset := TGridColorsPreset.Create;
-  GridColorsPreset.Name := _('Light');
-  GridColorsPreset.TextColors := GridColorsLight;
-  FGridColorsPresets.Add(GridColorsPreset);
-  // Dark
-  GridColorsPreset := TGridColorsPreset.Create;
-  GridColorsPreset.Name := _('Dark');
-  GridColorsPreset.TextColors := GridColorsDark;
-  FGridColorsPresets.Add(GridColorsPreset);
-  // Black
-  GridColorsPreset := TGridColorsPreset.Create;
-  GridColorsPreset.Name := _('Black');
-  GridColorsPreset.TextColors := GridColorsBlack;
-  FGridColorsPresets.Add(GridColorsPreset);
-  // White
-  GridColorsPreset := TGridColorsPreset.Create;
-  GridColorsPreset.Name := _('White');
-  GridColorsPreset.TextColors := GridColorsWhite;
-  FGridColorsPresets.Add(GridColorsPreset);
-  // Add all to combo box
+  // Add presets to combo box
   comboGridTextColorsPreset.Clear;
-  for GridColorsPreset in FGridColorsPresets do begin
-    comboGridTextColorsPreset.Items.Add(GridColorsPreset.Name);
+  for ColorScheme in AppColorSchemes do begin
+    comboGridTextColorsPreset.Items.Add(_(ColorScheme.Name));
   end;
 
   // Shortcuts
@@ -724,6 +673,8 @@ begin
   chkCompletionProposalSearchOnMid.Checked := AppSettings.ReadBool(asCompletionProposalSearchOnMid);
   chkAutoUppercase.Checked := AppSettings.ReadBool(asAutoUppercase);
   chkTabsToSpaces.Checked := AppSettings.ReadBool(asTabsToSpaces);
+  comboEditorColorsPreset.ItemIndex := 0;
+  comboSQLColElement.ItemIndex := 0;
   comboSQLColElementChange(Sender);
 
   // Grid formatting:
@@ -731,17 +682,9 @@ begin
   comboDataFontName.ItemIndex := comboDataFontName.Items.IndexOf(AppSettings.ReadString(asDataFontName));
   editDataFontSize.Text := AppSettings.ReadInt(asDataFontSize).ToString;
   editMaxQueryResults.Text := AppSettings.ReadINt(asMaxQueryResults).ToString;
-  // Load color settings
-  FGridTextColors[dtcInteger] := AppSettings.ReadInt(asFieldColorNumeric);
-  FGridTextColors[dtcReal] := AppSettings.ReadInt(asFieldColorReal);
-  FGridTextColors[dtcText] := AppSettings.ReadInt(asFieldColorText);
-  FGridTextColors[dtcBinary] := AppSettings.ReadInt(asFieldColorBinary);
-  FGridTextColors[dtcTemporal] := AppSettings.ReadInt(asFieldColorDatetime);
-  FGridTextColors[dtcSpatial] := AppSettings.ReadInt(asFieldColorSpatial);
-  FGridTextColors[dtcOther] := AppSettings.ReadInt(asFieldColorOther);
   comboGridTextColorsPreset.ItemIndex := 0;
   comboGridTextColors.ItemIndex := 0;
-  comboGridTextColors.OnSelect(comboGridTextColors);
+  comboGridTextColorsSelect(comboGridTextColors);
   cboxNullBackground.Selected := AppSettings.ReadInt(asFieldNullBackground);
   cboxRowBackgroundEven.Selected := AppSettings.ReadInt(asRowBackgroundEven);
   cboxRowBackgroundOdd.Selected := AppSettings.ReadInt(asRowBackgroundOdd);
@@ -825,10 +768,11 @@ begin
   Foreground := cboxSQLColForeground.Selected;
   Background := cboxSQLColBackground.Selected;
   if AttriIdx = comboSQLColElement.Items.Count-1 then begin
-    MainForm.MatchingBraceForegroundColor := Foreground;
-    MainForm.MatchingBraceBackgroundColor := Background;
+    FAppColorScheme.MatchingBraceForeground := Foreground;
+    FAppColorScheme.MatchingBraceBackground := Background;
   end else if AttriIdx = comboSQLColElement.Items.Count-2 then begin
     SynMemoSQLSample.LineHighlightColor.Background := Background;
+    FAppColorScheme.ActiveLineBackground := Background;
   end else begin
     Attri := SynSqlSynSQLSample.Attribute[AttriIdx];
     Attri.Foreground := Foreground;
@@ -837,6 +781,9 @@ begin
     else Attri.Style := Attri.Style - [fsBold];
     if chkSQLItalic.Checked then Attri.Style := Attri.Style + [fsItalic]
     else Attri.Style := Attri.Style - [fsItalic];
+    Attri := FAppColorScheme.SynSqlSyn.Attribute[AttriIdx];
+    Attri.Foreground := Foreground;
+    Attri.Background := Background;
   end;
   Modified(Sender);
 end;
@@ -946,55 +893,37 @@ end;
 
 procedure TfrmPreferences.comboEditorColorsPresetChange(Sender: TObject);
 var
-  i, j: Integer;
-  Highlighter: TSynSQLSyn;
-  FoundHighlighter: Boolean;
-  TranslatedHighlighterName: String;
+  j: Integer;
+  ColorScheme: TAppColorScheme;
 begin
   // Color preset selected
-  FoundHighlighter := False;
-  for Highlighter in SQLSynSchemes do begin
-    TranslatedHighlighterName := _(Highlighter.Name);
-    // ... so we can compare that with the selected dropdown text
-    if TranslatedHighlighterName = comboEditorColorsPreset.Text then begin
-      FoundHighlighter := True;
-      for j:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
-        SynSQLSynSQLSample.Attribute[j].AssignColorAndStyle(Highlighter.Attribute[j]);
-      end;
-      // Use 3 hardcoded default values for additional colors, which are not part
-      // of the highlighter's attributes
-      SynMemoSQLSample.LineHighlightColor.Background := StringToColor(AppSettings.GetDefaultString(asSQLColActiveLine));
-      if IsDarkModeEnabled then begin // This is yet wrong, and should be based on the selected but not yet saved theme setting
-        MainForm.MatchingBraceForegroundColor := $0028EFFF;
-        MainForm.MatchingBraceBackgroundColor := $004D513B;
-      end else begin
-        MainForm.MatchingBraceForegroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceForeground));
-        MainForm.MatchingBraceBackgroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceBackground));
-      end;
-      Break;
-    end;
+  ColorScheme := AppColorSchemes[comboEditorColorsPreset.ItemIndex];
+  for j:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
+    SynSQLSynSQLSample.Attribute[j].AssignColorAndStyle(ColorScheme.SynSqlSyn.Attribute[j]);
+    FAppColorScheme.SynSqlSyn.Attribute[j].AssignColorAndStyle(ColorScheme.SynSqlSyn.Attribute[j]);
   end;
-  if not FoundHighlighter then begin
-    // Show current custom settings
-    for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
-      SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(MainForm.SynSQLSynUsed.Attribute[i]);
-    end;
-  end;
+  SynMemoSQLSample.LineHighlightColor.Background := ColorScheme.ActiveLineBackground;
+  SynMemoSQLSample.BracketMatchColor.Foreground := ColorScheme.MatchingBraceForeground;
+  SynMemoSQLSample.BracketMatchColor.Background := ColorScheme.MatchingBraceBackground;
+  FAppColorScheme.ActiveLineBackground := ColorScheme.ActiveLineBackground;
+  FAppColorScheme.MatchingBraceForeground := ColorScheme.MatchingBraceForeground;
+  FAppColorScheme.MatchingBraceBackground := ColorScheme.MatchingBraceBackground;
+  comboSQLColElementChange(comboSQLColElement);
   Modified(Sender);
 end;
 
 
 procedure TfrmPreferences.comboGridTextColorsPresetSelect(Sender: TObject);
 var
-  Preset: TGridColorsPreset;
+  ColorScheme: TAppColorScheme;
   dtc: TDBDatatypeCategoryIndex;
 begin
   // Grid colors preset selected
-  Preset := FGridColorsPresets[comboGridTextColorsPreset.ItemIndex];
-  for dtc:=Low(Preset.TextColors) to High(Preset.TextColors) do begin
-    FGridTextColors[dtc] := Preset.TextColors[dtc];
+  ColorScheme := AppColorSchemes[comboGridTextColorsPreset.ItemIndex];
+  for dtc:=Low(ColorScheme.GridTextColors) to High(ColorScheme.GridTextColors) do begin
+    FAppColorScheme.GridTextColors[dtc] := ColorScheme.GridTextColors[dtc];
   end;
-  comboGridTextColors.OnSelect(comboGridTextColors);
+  comboGridTextColorsSelect(comboGridTextColors);
   if comboGridTextColorsPreset.ItemIndex > 0 then
     Modified(Sender);
 end;
@@ -1003,7 +932,7 @@ end;
 procedure TfrmPreferences.comboGridTextColorsSelect(Sender: TObject);
 begin
   // Data type category selected
-  colorboxGridTextColors.Selected := FGridTextColors[TDBDatatypeCategoryIndex(comboGridTextColors.ItemIndex)];
+  colorboxGridTextColors.Selected := FAppColorScheme.GridTextColors[TDBDatatypeCategoryIndex(comboGridTextColors.ItemIndex)];
 end;
 
 
@@ -1022,7 +951,7 @@ end;
 procedure TfrmPreferences.colorBoxGridTextColorsSelect(Sender: TObject);
 begin
   // Color selected
-  FGridTextColors[TDBDatatypeCategoryIndex(comboGridTextColors.ItemIndex)] := colorboxGridTextColors.Selected;
+  FAppColorScheme.GridTextColors[TDBDatatypeCategoryIndex(comboGridTextColors.ItemIndex)] := colorboxGridTextColors.Selected;
   Modified(Sender);
 end;
 
@@ -1035,8 +964,8 @@ var
 begin
   AttriIdx := comboSQLColElement.ItemIndex;
   if AttriIdx = comboSQLColElement.Items.Count-1 then begin
-    Foreground := MainForm.MatchingBraceForegroundColor;
-    Background := MainForm.MatchingBraceBackgroundColor;
+    Foreground := SynMemoSQLSample.BracketMatchColor.Foreground;
+    Background := SynMemoSQLSample.BracketMatchColor.Background;
     chkSQLBold.Enabled := False;
     chkSQLItalic.Enabled := False;
   end else if AttriIdx = comboSQLColElement.Items.Count-2 then begin
