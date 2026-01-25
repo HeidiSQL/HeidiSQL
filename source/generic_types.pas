@@ -189,6 +189,16 @@ begin
     AppSettings.WriteInt(asHighlighterBackground, Attri.Background, Attri.Name);
     AppSettings.WriteInt(asHighlighterStyle, Attri.IntegerStyle, Attri.Name);
   end;
+  if Scheme.Name = SDarkScheme then begin
+    AppSettings.WriteString(asSQLColActiveLine, ColorToString(clNone));
+    AppSettings.WriteString(asSQLColMatchingBraceForeground, ColorToString($0028EFFF));
+    AppSettings.WriteString(asSQLColMatchingBraceBackground, ColorToString($004D513B));
+  end
+  else if Scheme.Name = SLightScheme then begin
+    AppSettings.WriteString(asSQLColActiveLine, ColorToString(clNone));
+    AppSettings.WriteString(asSQLColMatchingBraceForeground, AppSettings.GetDefaultString(asSQLColMatchingBraceForeground));
+    AppSettings.WriteString(asSQLColMatchingBraceBackground, AppSettings.GetDefaultString(asSQLColMatchingBraceBackground));
+  end
 end;
 
 procedure TSynSQLSynSchemes.ApplyScheme(SchemeName: String);
