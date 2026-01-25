@@ -10,7 +10,7 @@ uses
   SysUtils, Dialogs,
   Forms, printer4lazarus, datetimectrls, LCLTranslator, Translations,
   { you can add units after this }
-  main, apphelpers, dbconnection;
+  main, apphelpers, dbconnection, generic_types;
 
 {$R *.res}
 
@@ -67,11 +67,12 @@ begin
 
   WasDarkMode := AppSettings.ReadBool(asCurrentThemeIsDark);
   if (not WasDarkMode) and IsDarkModeEnabled then begin
-    // todo: switch synedit colors and grid colors after current dark mode has changed
-    //       probably store a CurrentThemeIsDark=True/False in settings, then check here if that now changes and flip colors if so?
+    // switch synedit colors and grid colors after current dark mode has changed
+    SQLSynSchemes.ApplyScheme(SQLSynSchemes.SDarkScheme);
   end
   else if WasDarkMode and (not IsDarkModeEnabled) then begin
     // dito
+    SQLSynSchemes.ApplyScheme(SQLSynSchemes.SLightScheme);
   end;
   AppSettings.WriteBool(asCurrentThemeIsDark, IsDarkModeEnabled);
   {$ENDIF}

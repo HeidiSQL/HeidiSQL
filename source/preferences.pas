@@ -154,10 +154,6 @@ type
     comboTheme: TComboBox;
     lblEditorColorsPreset: TLabel;
     comboEditorColorsPreset: TComboBox;
-    SynSQLSyn_Dark: TSynSQLSyn;
-    SynSQLSyn_Light: TSynSQLSyn;
-    SynSQLSyn_Black: TSynSQLSyn;
-    SynSQLSyn_White: TSynSQLSyn;
     comboGridTextColorsPreset: TComboBox;
     lblIconPack: TLabel;
     comboIconPack: TComboBox;
@@ -259,7 +255,7 @@ var
 
 implementation
 
-uses main, apphelpers, extfiledialog;
+uses main, apphelpers, extfiledialog, generic_types;
 
 {$R *.lfm}
 
@@ -297,8 +293,6 @@ end;
 }
 procedure TfrmPreferences.Apply(Sender: TObject);
 var
-  i: Integer;
-  Attri: TSynHighlighterAttributes;
   CatNode, ItemNode: PVirtualNode;
   Data: PShortcutItemData;
   LangCode: String;
@@ -325,12 +319,7 @@ begin
   AppSettings.WriteInt(asQueryHistoryKeepDays, MakeInt(editQueryHistoryKeepDays.Text));
   AppSettings.WriteBool(asLogHorizontalScrollbar, chkHorizontalScrollbar.Checked);
   AppSettings.WriteBool(asLogTimestamp, chkLogTimestamp.Checked);
-  for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
-    Attri := SynSQLSynSQLSample.Attribute[i];
-    AppSettings.WriteInt(asHighlighterForeground, Attri.Foreground, Attri.Name);
-    AppSettings.WriteInt(asHighlighterBackground, Attri.Background, Attri.Name);
-    AppSettings.WriteInt(asHighlighterStyle, Attri.IntegerStyle, Attri.Name);
-  end;
+  SQLSynSchemes.ApplyScheme(SynSQLSynSQLSample);
   AppSettings.WriteString(asSQLColActiveLine, ColorToString(SynMemoSQLSample.LineHighlightColor.Background));
   AppSettings.WriteString(asSQLColMatchingBraceForeground, ColorToString(MainForm.MatchingBraceForegroundColor));
   AppSettings.WriteString(asSQLColMatchingBraceBackground, ColorToString(MainForm.MatchingBraceBackgroundColor));
@@ -537,7 +526,6 @@ var
   dtc: TDBDatatypeCategoryIndex;
   //Styles: TArray<String>;
   Highlighter: TSynSQLSyn;
-  Name: String;
   GridColorsPreset: TGridColorsPreset;
   IconPack: String;
   Reformatter: TfrmReformatter;
@@ -605,17 +593,8 @@ begin
   comboSQLColElement.Items.Add(_('Brace matching color'));
   comboSQLColElement.ItemIndex := 0;
   // Enumerate highlighter presets
-  for i:=0 to ComponentCount-1 do begin
-    if (Components[i] is TSynSQLSyn)
-      and (Components[i] <> SynMemoSQLSample.Highlighter)
-      then begin
-      Highlighter := Components[i] as TSynSQLSyn;
-      Name := Highlighter.Name;
-      Name := RegExprGetMatch('_([^_]+)$', Name, 1);
-      if Name <> '' then begin
-        comboEditorColorsPreset.Items.Add(_(Name));
-      end;
-    end;
+  for Highlighter in SQLSynSchemes do begin
+    comboEditorColorsPreset.Items.Add(_(Highlighter.Name));
   end;
 
   // Grid formatting
@@ -970,40 +949,29 @@ var
   i, j: Integer;
   Highlighter: TSynSQLSyn;
   FoundHighlighter: Boolean;
-  rx: TRegExpr;
   TranslatedHighlighterName: String;
 begin
   // Color preset selected
   FoundHighlighter := False;
-  rx := TRegExpr.Create;
-  rx.Expression := '.+_([a-zA-Z0-9]+)$';
-  for i:=0 to ComponentCount-1 do begin
-    if (Components[i] is TSynSQLSyn) and (Components[i] <> SynMemoSQLSample.Highlighter) then begin
-      Highlighter := Components[i] as TSynSQLSyn;
-
-      // Translate highlighter postfix after last underscore: SynSQLSyn_White, SynSQLSyn_Black, ...
-      TranslatedHighlighterName := '';
-      if rx.Exec(Highlighter.Name) then begin
-        TranslatedHighlighterName := _(rx.Match[1]);
+  for Highlighter in SQLSynSchemes do begin
+    TranslatedHighlighterName := _(Highlighter.Name);
+    // ... so we can compare that with the selected dropdown text
+    if TranslatedHighlighterName = comboEditorColorsPreset.Text then begin
+      FoundHighlighter := True;
+      for j:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
+        SynSQLSynSQLSample.Attribute[j].AssignColorAndStyle(Highlighter.Attribute[j]);
       end;
-      // ... so we can compare that with the selected dropdown text
-      if TranslatedHighlighterName = comboEditorColorsPreset.Text then begin
-        FoundHighlighter := True;
-        for j:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
-          SynSQLSynSQLSample.Attribute[j].AssignColorAndStyle(Highlighter.Attribute[j]);
-        end;
-        // Use 3 hardcoded default values for additional colors, which are not part
-        // of the highlighter's attributes
-        SynMemoSQLSample.LineHighlightColor.Background := StringToColor(AppSettings.GetDefaultString(asSQLColActiveLine));
-        if IsDarkModeEnabled then begin // This is yet wrong, and should be based on the selected but not yet saved theme setting
-          MainForm.MatchingBraceForegroundColor := $0028EFFF;
-          MainForm.MatchingBraceBackgroundColor := $004D513B;
-        end else begin
-          MainForm.MatchingBraceForegroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceForeground));
-          MainForm.MatchingBraceBackgroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceBackground));
-        end;
-        Break;
+      // Use 3 hardcoded default values for additional colors, which are not part
+      // of the highlighter's attributes
+      SynMemoSQLSample.LineHighlightColor.Background := StringToColor(AppSettings.GetDefaultString(asSQLColActiveLine));
+      if IsDarkModeEnabled then begin // This is yet wrong, and should be based on the selected but not yet saved theme setting
+        MainForm.MatchingBraceForegroundColor := $0028EFFF;
+        MainForm.MatchingBraceBackgroundColor := $004D513B;
+      end else begin
+        MainForm.MatchingBraceForegroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceForeground));
+        MainForm.MatchingBraceBackgroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceBackground));
       end;
+      Break;
     end;
   end;
   if not FoundHighlighter then begin
