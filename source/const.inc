@@ -8,7 +8,7 @@ const
   CRLF = #13#10;
   LB_UNIX = #10;
   LB_MAC = #13;
-  LB_WIDE = WideChar($2027);
+  LB_WIDE = system.WideChar($2027);
 
   // Placeholder text for NULL values
   TEXT_NULL = '(NULL)';

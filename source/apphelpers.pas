@@ -8,9 +8,10 @@ uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient,
-  {$IFDEF WINDOWS} Windows, Registry, {$ENDIF} DelphiCompat,
+  {$IFDEF WINDOWS} Windows, Registry, uDarkStyleParams, {$ENDIF} DelphiCompat,
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
-  IniFiles, GraphType, Sockets, uDarkStyleParams, Contnrs;
+  IniFiles, GraphType, Sockets, Contnrs
+  {$IFDEF DARWIN} , MacOSAll {$ENDIF};
 
 type
 
@@ -416,6 +417,7 @@ type
   procedure Help(Sender: TObject; Anchor: String);
   function IsPortFree(APort: Word; const AIP: string = '127.0.0.1'): Boolean;
   function GetThemeColor(Color: TColor): TColor;
+  function ThemeIsDark: Boolean;
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
   function PopupComponent(Sender: TObject): TComponent;
@@ -2361,7 +2363,7 @@ begin
     Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
   rx := TRegExpr.Create;
   rx.Expression := 'https?://[^\s"]+';
-  if IsDarkModeEnabled then
+  if ThemeIsDark then
     Dialog.Text := Msg
   else // See issue #2036
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
@@ -2829,6 +2831,40 @@ begin
   Result := Color;
 end;
 
+
+function ThemeIsDark: Boolean;
+{$IFDEF DARWIN}
+var
+  cfValue: CFPropertyListRef;
+  s: CFStringRef;
+  buf: array[0..15] of UniChar;
+{$ENDIF}
+begin
+  {$IFDEF WINDOWS}
+  // This is not a system detection, but a more precise switch in MetaDarkStyle.
+  // On Windows, the user may have forced MetaDarkStyle's light mode when the system is in dark mode.
+  Result := uDarkStyleParams.IsDarkModeEnabled;
+  {$ENDIF}
+  {$IFDEF LINUX}
+  // Not yet possible to detect the system's dark mode. Ideas welcome.
+  Result := False;
+  {$ENDIF}
+  {$IFDEF DARWIN}
+  // Detect system's dark mode on macOS
+  cfValue := CFPreferencesCopyAppValue(
+    CFSTR('AppleInterfaceStyle'),
+    CFSTR('.GlobalPreferences')
+  );
+  if (cfValue <> nil) and (CFGetTypeID(cfValue) = CFStringGetTypeID) then begin
+    s := CFStringRef(cfValue);
+    if CFStringGetLength(s) <= Length(buf) then begin
+      CFStringGetCharacters(s, CFRangeMake(0, CFStringGetLength(s)), @buf[0]);
+      Result := CFStringCompare(s, CFSTR('Dark'), 0) = kCFCompareEqualTo;
+    end;
+    CFRelease(cfValue);
+  end;
+  {$ENDIF}
+end;
 
 function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
 {var

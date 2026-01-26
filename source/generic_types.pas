@@ -317,6 +317,7 @@ begin
   for Scheme in Self do begin
     if Scheme.Name = SLightScheme then begin
       Scheme.Apply;
+      First.LoadFromSettings;
       Break;
     end;
   end;
@@ -329,6 +330,7 @@ begin
   for Scheme in Self do begin
     if Scheme.Name = SDarkScheme then begin
       Scheme.Apply;
+      First.LoadFromSettings;
       Break;
     end;
   end;

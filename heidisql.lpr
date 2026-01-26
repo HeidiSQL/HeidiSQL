@@ -6,7 +6,7 @@ uses
   {$IFDEF UNIX} cthreads, {$ENDIF}
   {$IFDEF DARWIN} iosxlocale, {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  uMetaDarkStyle, uDarkStyleParams, uDarkStyleSchemes,
+  {$IFDEF WINDOWS} uMetaDarkStyle, uDarkStyleParams, uDarkStyleSchemes, {$ENDIF}
   SysUtils, Dialogs,
   Forms, printer4lazarus, datetimectrls, LCLTranslator, Translations,
   { you can add units after this }
@@ -65,15 +65,14 @@ begin
   end;
   if PreferredAppMode = pamForceDark then
     uMetaDarkStyle.ApplyMetaDarkStyle(DefaultDark);
-
+  {$ENDIF}
   // Switch synedit and grid colors to dark mode and vice versa
   WasDarkMode := AppSettings.ReadBool(asCurrentThemeIsDark);
-  if (not WasDarkMode) and IsDarkModeEnabled then
+  if (not WasDarkMode) and ThemeIsDark then
     AppColorSchemes.ApplyDark
-  else if WasDarkMode and (not IsDarkModeEnabled) then
+  else if WasDarkMode and (not ThemeIsDark) then
     AppColorSchemes.ApplyLight;
-  AppSettings.WriteBool(asCurrentThemeIsDark, IsDarkModeEnabled);
-  {$ENDIF}
+  AppSettings.WriteBool(asCurrentThemeIsDark, ThemeIsDark);
 
   Application.Initialize;
 
