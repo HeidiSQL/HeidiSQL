@@ -420,15 +420,7 @@ begin
   Mainform.LogToFile := chkLogToFile.Checked;
   MainForm.actLogHorizontalScrollbar.Checked := chkHorizontalScrollbar.Checked;
   MainForm.actLogHorizontalScrollbar.OnExecute(MainForm.actLogHorizontalScrollbar);
-  DatatypeCategories[dtcInteger].Color := FAppColorScheme.GridTextColors[dtcInteger];
-  DatatypeCategories[dtcReal].Color := FAppColorScheme.GridTextColors[dtcReal];
-  DatatypeCategories[dtcText].Color := FAppColorScheme.GridTextColors[dtcText];
-  DatatypeCategories[dtcBinary].Color := FAppColorScheme.GridTextColors[dtcBinary];
-  DatatypeCategories[dtcTemporal].Color := FAppColorScheme.GridTextColors[dtcTemporal];
-  DatatypeCategories[dtcSpatial].Color := FAppColorScheme.GridTextColors[dtcSpatial];
-  DatatypeCategories[dtcOther].Color := FAppColorScheme.GridTextColors[dtcOther];
   Mainform.DataLocalNumberFormat := chkLocalNumberFormat.Checked;
-  Mainform.CalcNullColors;
   Mainform.DataGrid.Repaint;
   Mainform.QueryGrid.Repaint;
   Mainform.ListTables.Invalidate;

@@ -9,7 +9,7 @@ uses
   ComCtrls, laz.VirtualTrees, RegExpr, ExtCtrls, SynEdit,
   {$IFDEF Windows} ActiveX {$ELSE} laz.FakeActiveX {$ENDIF},
   Menus, Clipbrd, Math, {$IFNDEF FREEBSD}System.UITypes,{$ENDIF} Generics.Collections, LCLProc, LCLType,
-  {grideditlinks,} dbstructures, dbstructures.mysql, dbconnection, apphelpers, StrUtils, extra_controls;
+  {grideditlinks,} dbstructures, dbstructures.mysql, dbconnection, apphelpers, generic_types, StrUtils, extra_controls;
 
 type
   TFrame = TDBObjectEditor;
@@ -1562,13 +1562,13 @@ begin
   case Column of
     ColNumCounter: TargetCanvas.Font.Color := clGrayText;
 
-    ColNumDatatype: TargetCanvas.Font.Color := DatatypeCategories[Col.DataType.Category].Color;
+    ColNumDatatype: TargetCanvas.Font.Color := AppColorSchemes.First.GridTextColors[Col.DataType.Category];
 
     ColNumDefault: case Col.DefaultType of
       cdtNothing, cdtNull:
-        TargetCanvas.Font.Color := DatatypeCategories[Col.DataType.Category].NullColor;
+        TargetCanvas.Font.Color := AppColorSchemes.First.GridNullColors[Col.DataType.Category];
       else
-        TargetCanvas.Font.Color := DatatypeCategories[Col.DataType.Category].Color;
+        TargetCanvas.Font.Color := AppColorSchemes.First.GridTextColors[Col.DataType.Category];
     end;
   end;
 

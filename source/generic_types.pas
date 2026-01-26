@@ -28,9 +28,11 @@ type
       Name: String;
       SynSqlSyn: TSynSqlsyn;
       GridTextColors: TGridTextColors;
+      GridNullColors: TGridTextColors;
       ActiveLineBackground: TColor;
       MatchingBraceForeground: TColor;
       MatchingBraceBackground: TColor;
+      const GridNullBrightness = 20;
       constructor Create;
       destructor Destroy; override;
       // Load colors from settings
@@ -138,6 +140,7 @@ procedure TAppColorScheme.LoadFromSettings;
 var
   i: Integer;
   Attri: TSynHighlighterAttributes;
+  dtc: TDBDatatypeCategoryIndex;
 begin
   Name := _('Current custom settings');
   for i:=0 to SynSqlSyn.AttrCount - 1 do begin
@@ -158,6 +161,11 @@ begin
   GridTextColors[dtcTemporal] := AppSettings.ReadInt(asFieldColorDatetime);
   GridTextColors[dtcSpatial] := AppSettings.ReadInt(asFieldColorSpatial);
   GridTextColors[dtcOther] := AppSettings.ReadInt(asFieldColorOther);
+
+  // Calculate brighter NULL colors - not part of color presets
+  for dtc:=Low(DatatypeCategories) to High(DatatypeCategories) do begin
+    GridNullColors[dtc] := ColorAdjustBrightness(GridTextColors[dtc], GridNullBrightness);
+  end;
 end;
 
 destructor TAppColorScheme.Destroy;

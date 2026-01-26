@@ -9,7 +9,7 @@ interface
 uses
   Forms, Graphics, Messages, laz.VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, MaskEdit, DateUtils, Math,
-  dbconnection, dbstructures, apphelpers, texteditor, bineditor, lazaruscompat,
+  dbconnection, dbstructures, apphelpers, generic_types, texteditor, bineditor, lazaruscompat,
   {$IFNDEF FREEBSD}System.UITypes,{$ENDIF} RegExpr, extra_controls, EditBtn, LCLType, LCLIntf;
 
 type
@@ -340,7 +340,7 @@ begin
 
   // Not all editors have a connection assigned, e.g. session manager tree
   if Assigned(FTableColumn) then begin
-    FCellFont.Color := DatatypeCategories[FTableColumn.DataType.Category].Color;
+    FCellFont.Color := AppColorSchemes.First.GridTextColors[FTableColumn.DataType.Category];
   end;
   FCellBackground := FTree.Header.Columns[FColumn].Color;
   if Assigned(FMainControl) then begin
@@ -1880,7 +1880,7 @@ begin
   case Sender.GetNodeLevel(Node) of
     0: TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
     1: if not (vsSelected in Node.States) then
-      TargetCanvas.Font.Color := DatatypeCategories[TDBDatatypeCategoryIndex(Node.Parent.Index)].Color;
+      TargetCanvas.Font.Color := AppColorSchemes.First.GridTextColors[TDBDatatypeCategoryIndex(Node.Parent.Index)];
   end;
 end;
 

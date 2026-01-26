@@ -7,7 +7,7 @@ interface
 uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
   Math, Graphics, ComCtrls, LCLType, extra_controls, lazaruscompat,
-  dbconnection, dbstructures, laz.VirtualTrees, RegExpr, apphelpers, extfiledialog;
+  dbconnection, dbstructures, laz.VirtualTrees, RegExpr, apphelpers, generic_types, extfiledialog;
 
 type
   TColInfo = class
@@ -196,7 +196,7 @@ begin
   // Datatype specific font color
   if Column = ColDatatype then begin
     ColInfo := Sender.GetNodeData(Node);
-    TargetCanvas.Font.Color := DatatypeCategories[ColInfo.DataType.Category].Color;
+    TargetCanvas.Font.Color := AppColorSchemes.First.GridTextColors[ColInfo.DataType.Category];
   end;
 end;
 

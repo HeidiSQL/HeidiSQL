@@ -1373,7 +1373,6 @@ type
     function GetRootNode(Tree: TVirtualStringTree; Connection: TDBConnection): PVirtualNode;
     function FindDBObjectNode(Tree: TVirtualStringTree; Obj: TDBObject): PVirtualNode;
     function FindDBNode(Tree: TVirtualStringTree; Connection: TDBConnection; db: String): PVirtualNode;
-    procedure CalcNullColors;
     procedure HandleDataGridAttributes(RefreshingData: Boolean);
     function GetRegKeyTable: String;
     procedure UpdateEditorTab;
@@ -1974,15 +1973,6 @@ begin
 
   // Data-Font:
   ApplyFontToGrids;
-  // Load color settings
-  DatatypeCategories[dtcInteger].Color := AppSettings.ReadInt(asFieldColorNumeric);
-  DatatypeCategories[dtcReal].Color := AppSettings.ReadInt(asFieldColorReal);
-  DatatypeCategories[dtcText].Color := AppSettings.ReadInt(asFieldColorText);
-  DatatypeCategories[dtcBinary].Color := AppSettings.ReadInt(asFieldColorBinary);
-  DatatypeCategories[dtcTemporal].Color := AppSettings.ReadInt(asFieldColorDatetime);
-  DatatypeCategories[dtcSpatial].Color := AppSettings.ReadInt(asFieldColorSpatial);
-  DatatypeCategories[dtcOther].Color := AppSettings.ReadInt(asFieldColorOther);
-  CalcNullColors;
 
   FDataGridSortItems := TSortItems.Create(True);
 
@@ -6831,7 +6821,7 @@ var
             end;
           end;
           // Put formatted text and icon into proposal
-          DisplayText := SynCompletionProposalPrettyText(ColumnIcon, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, DatatypeCategories[Col.DataType.Category].NullColor);
+          DisplayText := SynCompletionProposalPrettyText(ColumnIcon, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, AppColorSchemes.First.GridNullColors[Col.DataType.Category]);
           //if CurrentInput.StartsWith(Conn.QuoteChar) then
           //  Proposal.ItemList.Add(Conn.QuoteChar + Col.Name)
           //else
@@ -9157,7 +9147,7 @@ begin
       dcat := dtcOther
     else
       dcat := dtcText;
-    TargetCanvas.Font.Color := DatatypeCategories[dcat].Color;
+    TargetCanvas.Font.Color := AppColorSchemes.First.GridTextColors[dcat];
   end;
 end;
 
@@ -10326,16 +10316,6 @@ begin
 end;
 
 
-procedure TMainForm.CalcNullColors;
-var
-  dtc: TDBDatatypeCategoryIndex;
-begin
-  for dtc:=Low(DatatypeCategories) to High(DatatypeCategories) do begin
-    DatatypeCategories[dtc].NullColor := ColorAdjustBrightness(DatatypeCategories[dtc].Color, 20);
-  end;
-end;
-
-
 {**
   Cell in data- or query grid gets painted. Colorize font. This procedure is
   called extremely often for repainting the grid cells. Keep it highly optimized.
@@ -10371,9 +10351,9 @@ begin
   if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
     cl := GetThemeColor(clHighlightText)
   else if r.IsNull(ResultCol) then
-    cl := DatatypeCategories[r.DataType(ResultCol).Category].NullColor
+    cl := AppColorSchemes.First.GridNullColors[r.DataType(ResultCol).Category]
   else
-    cl := DatatypeCategories[r.DataType(ResultCol).Category].Color;
+    cl := AppColorSchemes.First.GridTextColors[r.DataType(ResultCol).Category];
   TargetCanvas.Font.Color := cl;
 end;
 
@@ -13875,7 +13855,7 @@ begin
     and (Sender.GetNodeLevel(Node)=1)
     and (ActiveDbObj.NodeType in [lntView, lntTable])
     then begin
-    TargetCanvas.Font.Color := DatatypeCategories[SelectedTableColumns[Node.Index].DataType.Category].Color;
+    TargetCanvas.Font.Color := AppColorSchemes.First.GridTextColors[SelectedTableColumns[Node.Index].DataType.Category];
   end;
   if (Sender.GetNodeLevel(Node)=2)
     and (Node.Parent.Parent.Index=TQueryTab.HelperNodeHistory)

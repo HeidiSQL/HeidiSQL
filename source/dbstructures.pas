@@ -51,8 +51,6 @@ type
   TDBDatatypeCategory = record
     Index:           TDBDatatypeCategoryIndex;
     Name:            String;
-    Color:           TColor;
-    NullColor:       TColor;
   end;
 
   // Server variables
