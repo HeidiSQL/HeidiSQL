@@ -2851,6 +2851,7 @@ begin
   {$ENDIF}
   {$IFDEF DARWIN}
   // Detect system's dark mode on macOS
+  Result := False;
   cfValue := CFPreferencesCopyAppValue(
     CFSTR('AppleInterfaceStyle'),
     CFSTR('.GlobalPreferences')
