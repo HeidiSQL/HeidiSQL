@@ -311,7 +311,6 @@ begin
   AppSettings.WriteBool(asLogHorizontalScrollbar, chkHorizontalScrollbar.Checked);
   AppSettings.WriteBool(asLogTimestamp, chkLogTimestamp.Checked);
   FAppColorScheme.Apply;
-  AppColorSchemes.First.LoadFromSettings;
   AppSettings.WriteInt(asMaxColWidth, MakeInt(editMaxColWidth.Text));
   AppSettings.WriteInt(asDatagridRowsPerStep, StrToIntDef(editGridRowCountStep.Text, -1));
   AppSettings.WriteInt(asDatagridMaximumRows, StrToIntDef(editGridRowCountMax.Text, -1));

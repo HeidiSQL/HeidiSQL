@@ -215,11 +215,14 @@ type
   { TMainForm }
 
   TMainForm = class(TExtForm)
+    actPreferencesSQL: TAction;
     MainMenu1: TMainMenu;
     MainMenuFile: TMenuItem;
     FileNewItem: TMenuItem;
     MainMenuHelp: TMenuItem;
     FollowForeignKey: TMenuItem;
+    menuColorScheme: TMenuItem;
+    menuSQLpreferences: TMenuItem;
     menuQFdummy: TMenuItem;
     N1: TMenuItem;
     FileExitItem: TMenuItem;
@@ -1319,6 +1322,7 @@ type
     function RestoreTabs: Boolean;
     procedure SetHintFontByControl(Control: TWinControl=nil);
     procedure GlobalSynEditStatusChange(Sender: TObject; Changes: TSynStatusChanges);
+    procedure ColorSchemeMenuClick(Sender: TObject);
   public
     QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
@@ -1793,7 +1797,7 @@ var
   Action, CopyAsAction: TAction;
   ExportFormat: TGridExportFormat;
   VI: TVersionInfo;
-  CopyAsMenu, CommandMenu: TMenuItem;
+  CopyAsMenu, CommandMenu, ColorSchemeItem: TMenuItem;
   dti: TDBDatatypeCategoryIndex;
   EditorCommand: TSynEditorCommand;
   CmdCap: String;
@@ -1953,7 +1957,15 @@ begin
   actPreferencesLogging.OnExecute := actPreferences.OnExecute;
   actPreferencesData.ImageIndex := actPreferences.ImageIndex;
   actPreferencesData.OnExecute := actPreferences.OnExecute;
+  actPreferencesSQL.ImageIndex := actPreferences.ImageIndex;
+  actPreferencesSQL.OnExecute := actPreferences.OnExecute;
   menuAlwaysGenerateFilter.Checked := AppSettings.ReadBool(asAlwaysGenerateFilter);
+  for i:=1 to AppColorSchemes.Count-1 do begin
+    ColorSchemeItem := TMenuItem.Create(menuColorScheme);
+    menuColorScheme.Add(ColorSchemeItem);
+    ColorSchemeItem.Caption := _(AppColorSchemes[i].Name);
+    ColorSchemeItem.OnClick := ColorSchemeMenuClick;
+  end;
 
   pnlQueryMemo.Height := AppSettings.ReadInt(asQuerymemoheight);
   pnlQueryHelpers.Width := AppSettings.ReadInt(asQueryhelperswidth);
@@ -2623,7 +2635,9 @@ begin
   if Sender = actPreferencesLogging then
     frmPreferences.pagecontrolMain.ActivePage := frmPreferences.tabLogging
   else if Sender = actPreferencesData then
-    frmPreferences.pagecontrolMain.ActivePage := frmPreferences.tabGridFormatting;
+    frmPreferences.pagecontrolMain.ActivePage := frmPreferences.tabGridFormatting
+  else if Sender = actPreferencesSQL then
+    frmPreferences.pagecontrolMain.ActivePage := frmPreferences.tabSQL;
   frmPreferences.ShowModal;
   frmPreferences.Free;
   frmPreferences := nil; // Important in SetupSynEditors
@@ -14849,6 +14863,27 @@ begin
 end;
 
 
+procedure TMainForm.ColorSchemeMenuClick(Sender: TObject);
+var
+  MenuCaption: String;
+  ColorScheme: TAppColorScheme;
+  SchemeFound: Boolean;
+begin
+  // Activate color scheme by click in main menu
+  MenuCaption := (Sender as TMenuItem).Caption;
+  SchemeFound := False;
+  for ColorScheme in AppColorSchemes do begin
+    if ColorScheme = AppColorSchemes.First then
+      Continue;
+    if _(ColorScheme.Name) = MenuCaption then begin
+      SchemeFound := True;
+      ColorScheme.Apply;
+      SetupSynEditors;
+    end;
+  end;
+  if not SchemeFound then
+    Beep;
+end;
 
 
 { TQueryTab }

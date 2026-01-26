@@ -198,6 +198,8 @@ begin
   AppSettings.WriteInt(asFieldColorDatetime, GridTextColors[dtcTemporal]);
   AppSettings.WriteInt(asFieldColorSpatial, GridTextColors[dtcSpatial]);
   AppSettings.WriteInt(asFieldColorOther, GridTextColors[dtcOther]);
+
+  AppColorSchemes.First.LoadFromSettings;
 end;
 
 
@@ -209,6 +211,7 @@ var
 begin
   inherited; // Create(AOwnsObjects);
 
+  // First one always contains the values currently used in the GUI
   Scheme := TAppColorScheme.Create;
   Scheme.LoadFromSettings;
   Add(Scheme);
@@ -317,7 +320,6 @@ begin
   for Scheme in Self do begin
     if Scheme.Name = SLightScheme then begin
       Scheme.Apply;
-      First.LoadFromSettings;
       Break;
     end;
   end;
@@ -330,7 +332,6 @@ begin
   for Scheme in Self do begin
     if Scheme.Name = SDarkScheme then begin
       Scheme.Apply;
-      First.LoadFromSettings;
       Break;
     end;
   end;
