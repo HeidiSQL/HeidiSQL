@@ -92,6 +92,17 @@
             <OtherUnitFiles Value="source"/>
             <UnitOutputDirectory Value="bin\lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
+          <Conditionals Value="// example for adding linker options on Mac OS X
+//if TargetOS=&apos;darwin&apos; then
+//  LinkerOptions := &apos; -framework OpenGL&apos;;
+if TargetOS=&apos;darwin&apos; then
+  CustomOptions := &apos;-WM10.15&apos;;
+
+// example for adding a unit and include path on Windows
+//if SrcOS=&apos;win&apos; then begin
+//  UnitPath += &apos;;win&apos;;
+//  IncPath += &apos;;win&apos;;
+//end;"/>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
             <Optimizations>
