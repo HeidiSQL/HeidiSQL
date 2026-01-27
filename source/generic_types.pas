@@ -32,6 +32,7 @@ type
       ActiveLineBackground: TColor;
       MatchingBraceForeground: TColor;
       MatchingBraceBackground: TColor;
+      HightlightSameTextBackground: TColor; // This is for grids only, and there's no foreground setting.
       const GridNullBrightness = 20;
       constructor Create;
       destructor Destroy; override;
@@ -153,6 +154,7 @@ begin
   ActiveLineBackground := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
   MatchingBraceBackground := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceBackground));
   MatchingBraceForeground := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceForeground));
+  HightlightSameTextBackground := AppSettings.ReadInt(asHightlightSameTextBackground);
 
   GridTextColors[dtcInteger] := AppSettings.ReadInt(asFieldColorNumeric);
   GridTextColors[dtcReal] := AppSettings.ReadInt(asFieldColorReal);
@@ -191,6 +193,7 @@ begin
   AppSettings.WriteString(asSQLColMatchingBraceForeground, ColorToString(MatchingBraceForeground));
   AppSettings.WriteString(asSQLColMatchingBraceBackground, ColorToString(MatchingBraceBackground));
   // Grid data type colors
+  AppSettings.WriteInt(asHightlightSameTextBackground, HightlightSameTextBackground);
   AppSettings.WriteInt(asFieldColorNumeric, GridTextColors[dtcInteger]);
   AppSettings.WriteInt(asFieldColorReal, GridTextColors[dtcReal]);
   AppSettings.WriteInt(asFieldColorText, GridTextColors[dtcText]);
@@ -231,6 +234,7 @@ begin
   Scheme.ActiveLineBackground := clNone;
   Scheme.MatchingBraceForeground := $0028EFFF;
   Scheme.MatchingBraceBackground := $004D513B;
+  Scheme.HightlightSameTextBackground := clBlack;
   Scheme.GridTextColors[dtcInteger] := $00FF9785;
   Scheme.GridTextColors[dtcReal] := $00D07D7D;
   Scheme.GridTextColors[dtcText] := $0073D573;
@@ -255,6 +259,7 @@ begin
   Scheme.ActiveLineBackground := clNone;
   Scheme.MatchingBraceForeground := clBlack;
   Scheme.MatchingBraceBackground := clAqua;
+  Scheme.HightlightSameTextBackground := $00D8F8FF;
   Scheme.GridTextColors[dtcInteger] := $00FF0000;
   Scheme.GridTextColors[dtcReal] := $00FF0048;
   Scheme.GridTextColors[dtcText] := $00008000;
@@ -279,6 +284,7 @@ begin
   Scheme.ActiveLineBackground := clNone;
   Scheme.MatchingBraceForeground := clBlack;
   Scheme.MatchingBraceBackground := clAqua;
+  Scheme.HightlightSameTextBackground := $00F4F4F4;
   Scheme.GridTextColors[dtcInteger] := $00000000;
   Scheme.GridTextColors[dtcReal] := $00000000;
   Scheme.GridTextColors[dtcText] := $00000000;
@@ -303,6 +309,7 @@ begin
   Scheme.ActiveLineBackground := clNone;
   Scheme.MatchingBraceForeground := $0028EFFF;
   Scheme.MatchingBraceBackground := $004D513B;
+  Scheme.HightlightSameTextBackground := clBlack;
   Scheme.GridTextColors[dtcInteger] := $00FFFFFF;
   Scheme.GridTextColors[dtcReal] := $00FFFFFF;
   Scheme.GridTextColors[dtcText] := $00FFFFFF;

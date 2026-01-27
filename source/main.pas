@@ -11010,7 +11010,7 @@ begin
   if (Sender.FocusedNode <> nil) and (Sender.FocusedColumn > 0) and (Sender.SelectedCount <= 100) then begin
     if ((not Sender.Selected[Node]) and (Column = Sender.FocusedColumn))
       or (Sender.Selected[Node] and (Column <> Sender.FocusedColumn)) then begin
-      clSameData := AppSettings.ReadInt(asHightlightSameTextBackground);
+      clSameData := AppColorSchemes.First.HightlightSameTextBackground;
       if clSameData <> clNone then begin
         FieldText := r.Col(ResultCol);
         CurrentIsNull := r.IsNull(ResultCol);

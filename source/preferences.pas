@@ -915,6 +915,8 @@ begin
     FAppColorScheme.GridTextColors[dtc] := ColorScheme.GridTextColors[dtc];
   end;
   comboGridTextColorsSelect(comboGridTextColors);
+  FAppColorScheme.HightlightSameTextBackground := ColorScheme.HightlightSameTextBackground;
+  cboxRowHighlightSameText.Selected := ColorScheme.HightlightSameTextBackground;
   if comboGridTextColorsPreset.ItemIndex > 0 then
     Modified(Sender);
 end;
