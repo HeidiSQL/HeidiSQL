@@ -74,7 +74,7 @@ type
   private
     FForm: TfrmBinEditor;
   public
-    MaxLength: Integer;
+    MaxLength: Int64;
     TitleText: String;
     constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
@@ -152,7 +152,7 @@ type
     FPanel: TPanel;
     FEdit: TEdit;
     FButton: TButton;
-    FMaxLength: Integer;
+    FMaxLength: Int64;
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ButtonClick(Sender: TObject);
   public
@@ -164,7 +164,7 @@ type
     function EndEdit: Boolean; override;
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
     procedure SetBounds(R: TRect); override;
-    property MaxLength: Integer read FMaxLength write FMaxLength;
+    property MaxLength: Int64 read FMaxLength write FMaxLength;
   end;
 
   TColumnDefaultEditorLink = class(TBaseGridEditorLink)

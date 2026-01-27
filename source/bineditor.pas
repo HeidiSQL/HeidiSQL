@@ -38,7 +38,7 @@ type
     function GetText: String;
     procedure SetText(text: String);
     procedure SetTitleText(Title: String);
-    procedure SetMaxLength(len: integer);
+    procedure SetMaxLength(len: Int64);
     procedure SetFont(font: TFont);
     property Modified: Boolean read FModified write SetModified;
   end;
@@ -78,10 +78,10 @@ begin
 end;
 
 
-procedure TfrmBinEditor.SetMaxLength(len: integer);
+procedure TfrmBinEditor.SetMaxLength(len: Int64);
 begin
   // Input: Length in bytes.
-  memoText.MaxLength := len * 2;
+  memoText.MaxLength := Integer(len * 2);
 end;
 
 procedure TfrmBinEditor.SetFont(font: TFont);

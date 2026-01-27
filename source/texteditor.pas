@@ -89,7 +89,7 @@ type
     FClosingByCancelButton: Boolean;
     FDetectedLineBreaks,
     FSelectedLineBreaks: TLineBreaks;
-    FMaxLength: Integer;
+    FMaxLength: Int64;
     FTableColumn: TTableColumn;
     FHighlighter: TSynCustomHighlighter;
     FHighlighterFormatters: TStringList;
@@ -99,7 +99,7 @@ type
     function GetText: String;
     procedure SetText(text: String);
     procedure SetTitleText(Title: String);
-    procedure SetMaxLength(len: integer);
+    procedure SetMaxLength(len: Int64);
     procedure SetFont(font: TFont);
     property Modified: Boolean read FModified write SetModified;
     property TableColumn: TTableColumn read FTableColumn write FTableColumn;
@@ -224,7 +224,7 @@ begin
 end;
 
 
-procedure TfrmTextEditor.SetMaxLength(len: integer);
+procedure TfrmTextEditor.SetMaxLength(len: Int64);
 begin
   // Input: Length in number of bytes.
   FMaxLength := len;
