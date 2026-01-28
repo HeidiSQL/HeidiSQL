@@ -39,7 +39,16 @@ jobs:
           with:
             lazarus-version: ${{ matrix.lazarus-versions }}
             with-cache: false
-            include-packages: "MetaDarkStyle"
+
+        - name: Checkout MetaDarkStyle
+          uses: actions/checkout@v4
+          with:
+            repository: zamtmn/metadarkstyle
+            path: metadarkstyle
+
+        - name: Register MetaDarkStyle runtime package
+          run: |
+            lazbuild --add-package metadarkstyle/metadarkstyle.lpk
 
         - name: Build HeidiSQL (Windows)
           if: ${{ matrix.operating-system == 'windows-latest' }}
