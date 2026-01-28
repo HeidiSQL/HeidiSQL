@@ -1197,6 +1197,8 @@ type
     procedure actCopyUpdate(Sender: TObject);
     procedure FormChangeBounds(Sender: TObject);
     procedure menuToggleAllClick(Sender: TObject);
+    procedure menuAutoFitAllClick(Sender: TObject);
+    procedure menuCopyColumnNamesClick(Sender: TObject);
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
     procedure TimerRefreshTimer(Sender: TObject);
     procedure SynCompletionProposalChange(Sender: TObject);
@@ -10049,9 +10051,6 @@ begin
   DBtree.ScrollIntoView(DBtree.FocusedNode, False);
 end;
 
-{**
-  Collapse all db nodes
-}
 procedure TMainForm.menuToggleAllClick(Sender: TObject);
 var
   Grid: TVirtualStringTree;
@@ -10083,6 +10082,31 @@ begin
     Col := Grid.Header.Columns.GetNextColumn(Col);
   end;
 
+end;
+
+procedure TMainForm.menuAutoFitAllClick(Sender: TObject);
+var
+  Grid: TVirtualStringTree;
+begin
+  Grid := PopupComponent(Sender) as TVirtualStringTree;
+  Grid.Header.AutoFitColumnsWithHeaderMin;
+end;
+
+procedure TMainForm.menuCopyColumnNamesClick(Sender: TObject);
+var
+  Grid: TVirtualStringTree;
+  Col: TColumnIndex;
+  List: TStringList;
+begin
+  Grid := PopupComponent(Sender) as TVirtualStringTree;
+  List := TStringList.Create;
+  Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
+  while Col > NoColumn do begin
+    List.Add(Grid.Header.Columns[Col].Text);
+    Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+  end;
+  Clipboard.TryAsText := List.CommaText;
+  List.Free;
 end;
 
 procedure TMainForm.menuTreeCollapseAllClick(Sender: TObject);
@@ -12723,11 +12747,26 @@ procedure TMainForm.popupListHeaderPopup(Sender: TObject);
 var
   Item: TMenuItem;
 begin
-  // Add toggle all menu item
+  // Add a few items to the top of the grid's header context menu
   Item := TMenuItem.Create(popupListHeader);
   Item.Caption := _('Toggle visibility of all columns');
   Item.OnClick := menuToggleAllClick;
   popupListHeader.Items.Insert(0, Item);
+
+  Item := TMenuItem.Create(popupListHeader);
+  Item.Caption := _('Size &All Columns to Fit');
+  Item.OnClick := menuAutoFitAllClick;
+  popupListHeader.Items.Insert(1, Item);
+
+  Item := TMenuItem.Create(popupListHeader);
+  Item.Caption := _('Copy column names');
+  Item.OnClick := menuCopyColumnNamesClick;
+  Item.ImageIndex := actCopy.ImageIndex;
+  popupListHeader.Items.Insert(2, Item);
+
+  Item := TMenuItem.Create(popupListHeader);
+  Item.Caption := '-';
+  popupListHeader.Items.Insert(3, Item);
 end;
 
 
