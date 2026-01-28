@@ -186,7 +186,7 @@ jobs:
             - name: Create GitHub release
               uses: softprops/action-gh-release@v2
               with:
-                name: HeidiSQL Linux ${{ env.tag }}
+                name: HeidiSQL ${{ env.tag }}
                 body: ${{ steps.git-cliff.outputs.content }}
                 files: dist/*
               env:
