@@ -1940,7 +1940,7 @@ begin
         {$IfDef LINUX}
         rx.Expression := '^\s*(libsybdb)[^=]+=>\s*(\S+)$';
         {$Else}
-        rx.Expression := '^(dblib|libsybdb).*\.' + SharedSuffix;
+        rx.Expression := '^(dblib|(lib)?sybdb).*\.' + SharedSuffix;
         {$EndIf}
       ngPgSQL:
         {$If defined(LINUX)}
