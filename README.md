@@ -8,21 +8,26 @@
 [![Downloads](https://img.shields.io/github/downloads/HeidiSQL/HeidiSQL/total?logo=github)](https://github.com/HeidiSQL/HeidiSQL/releases)
 
 
-This is the code base for compiling HeidiSQL on non-Windows platforms, such as Linux. MacOS is probably an option in the future but not yet tried out.
+This is the code base for compiling HeidiSQL on Linux and macOS. From v13 onwards, the Windows version
+will be compiled from here.
 
-I converted the sources from the master branch, using Lazarus 3.8 and FreePascal 3.2.2. I left away some Windows-only stuff which won't ever work on other platforms, such as some Windows message handlings, and ADO driver usage.
-
-I started the conversion in February 2025, after a short conversation with Alessandro who explained me the advantages of a native Linux version over a Wine app.
+Since February 2025 I am migrating the sources from the master branch, using Lazarus and FreePascal. I
+left away some Windows-only stuff which won't ever work on other platforms, such as some Windows message
+handlings, and ADO driver usage. Therefore, support for MS SQL is being redeveloped via FreeTDS
+(formerly ADO), but is not yet fully mature.  
 
 Ansgar
 
-![HeidiSQL 12.10.1.92 running on Ubuntu Linux 22.04](https://www.heidisql.com/images/screenshots/linux_version_datagrid.png)
+![HeidiSQL GTK2 running on Ubuntu Linux 22.04](https://www.heidisql.com/images/screenshots/linux_version_datagrid.png)
 
 ### Building
-Install Lazarus and FreePascal. Then load the `.lpi` file in the root directory in the Lazarus IDE. Alternatively, use `/usr/bin/lazbuild heidisql.lpi` on the command line.
+Install Lazarus 4.4 and FreePascal. Then load the `.lpi` file in the root directory in the Lazarus IDE.
+Alternatively, use `/usr/bin/lazbuild heidisql.lpi` on the command line.
 
 ### Icons8 copyright
-Icons added in January 2019 into a `TImageCollection` component are copyright by [Icons8](https://icons8.com). Used with a special permission from Icons8 given to Ansgar for this project only. Do not copy them for anything else other than building HeidiSQL.
+Icons added in January 2019 are copyright by [Icons8](https://icons8.com). Used with a special permission
+from Icons8 given to Ansgar for this project only. Do not copy them for anything else other than building
+HeidiSQL.
 
 [![Lazarus logo.](https://www.heidisql.com/images/powered-by-lazarus.png)](https://www.lazarus-ide.org/)
 
