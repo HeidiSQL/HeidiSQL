@@ -41,7 +41,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);source"/>
-            <OtherUnitFiles Value="source"/>
+            <OtherUnitFiles Value="source;source\metadarkstyle\src"/>
             <UnitOutputDirectory Value="bin\lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -89,7 +89,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir);source"/>
-            <OtherUnitFiles Value="source"/>
+            <OtherUnitFiles Value="source;source\metadarkstyle\src"/>
             <UnitOutputDirectory Value="bin\lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Conditionals Value="// example for adding linker options on Mac OS X
@@ -147,9 +147,6 @@ if TargetOS=&apos;darwin&apos; then
       </Modes>
     </RunParams>
     <RequiredPackages>
-      <Item>
-        <PackageName Value="MetaDarkStyle"/>
-      </Item>
       <Item>
         <PackageName Value="DateTimeCtrlsDsgn"/>
       </Item>
@@ -479,7 +476,7 @@ if TargetOS=&apos;darwin&apos; then
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);source"/>
-      <OtherUnitFiles Value="source"/>
+      <OtherUnitFiles Value="source;source\metadarkstyle\src"/>
       <UnitOutputDirectory Value="bin\lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Conditionals Value="// example for adding linker options on Mac OS X
