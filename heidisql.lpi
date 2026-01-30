@@ -25,10 +25,9 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <MajorVersionNr Value="12"/>
-      <MinorVersionNr Value="14"/>
+      <MinorVersionNr Value="15"/>
       <RevisionNr Value="1"/>
       <BuildNr Value="1"/>
-      <Attributes pvaPreRelease="True"/>
     </VersionInfo>
     <BuildModes>
       <Item Name="Default" Default="True"/>
