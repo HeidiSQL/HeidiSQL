@@ -73,10 +73,13 @@ type
   TSQLBatch = class(TObjectList<TSQLSentence>)
     private
       FSQL: String;
+      FQuotes: THashedStringList;
       procedure SetSQL(Value: String);
       function GetSize: Integer;
       function GetSQLWithoutComments: String; overload;
     public
+      constructor Create(NetTypeGroup: TNetTypeGroup);
+      destructor Destroy; overload;
       class function GetSQLWithoutComments(FullSQL: String): String; overload;
       property Size: Integer read GetSize;
       property SQL: String read FSQL write SetSQL;
@@ -3211,6 +3214,26 @@ end;
 
 { TSQLBatch }
 
+constructor TSQLBatch.Create(NetTypeGroup: TNetTypeGroup);
+begin
+  inherited;
+  FQuotes := THashedStringList.Create;
+  FQuotes.CaseSensitive := True;
+  FQuotes.Sorted := True;
+  FQuotes.Add('"');
+  FQuotes.Add('''');
+  case NetTypeGroup of
+    ngMySQL: FQuotes.Add('`'); // MySQL/MariaDB only
+    ngPgSQL: FQuotes.Add('$$'); // PostgreSQL only ($abc$ unsupported)
+  end;
+end;
+
+destructor TSQLBatch.Destroy; overload;
+begin
+  FQuotes.Free;
+  inherited;
+end;
+
 function TSQLBatch.GetSize: Integer;
 var
   Query: TSQLSentence;
@@ -3230,7 +3253,6 @@ var
   InString, InComment, InBigComment, InEscape: Boolean;
   Marker: TSQLSentence;
   rx: TRegExpr;
-  Quotes: THashedStringList;
 const
   NewLines = [#13, #10];
   WhiteSpaces = NewLines + [#9, ' '];
@@ -3242,13 +3264,6 @@ begin
   i := 0;
   LastLeftOffset := 1;
   Delim := Mainform.Delimiter;
-  Quotes := THashedStringList.Create;
-  Quotes.CaseSensitive := True;
-  Quotes.Sorted := True;
-  Quotes.Add('"');
-  Quotes.Add('''');
-  Quotes.Add('`'); // MySQL/MariaDB only
-  Quotes.Add('$$'); // PostgreSQL only ($abc$ unsupported)
 
   InString := False;          // c is in "enclosed string" or `identifier`
   InComment := False;         // c is in one-line comment (# or --)
@@ -3279,10 +3294,10 @@ begin
     if InBigComment and (not InComment) and (not InString) and (c + n = '*/') then
       InBigComment := False;
     // Check for enclosed literals, so a query delimiter can be ignored
-    if (not InEscape) and (not InComment) and (not InBigComment) and (Quotes.Contains(c) or Quotes.Contains(cn)) then begin
+    if (not InEscape) and (not InComment) and (not InBigComment) and (FQuotes.Contains(c) or FQuotes.Contains(cn)) then begin
       if not InString then begin
         InString := True;
-        LastQuote := IfThen(Quotes.Contains(c), c, cn);
+        LastQuote := IfThen(FQuotes.Contains(c), c, cn);
       end
       else if (c = LastQuote) or (cn = LastQuote) then begin
         InString := False;
@@ -3329,7 +3344,6 @@ begin
     end;
   end;
 
-  Quotes.Free;
 end;
 
 function TSQLBatch.GetSQLWithoutComments: String;

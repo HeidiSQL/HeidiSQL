@@ -3095,7 +3095,7 @@ var
 begin
   // Return SQL query on cursor position
   Result := '';
-  BatchAll := TSQLBatch.Create;
+  BatchAll := TSQLBatch.Create(ActiveConnection.Parameters.NetTypeGroup);
   BatchAll.SQL := Tab.Memo.Text;
   PrevQuery := nil;
   for Query in BatchAll do begin
@@ -3131,7 +3131,7 @@ begin
   DoExecute := True;
 
   ShowStatusMsg(_('Splitting SQL queries ...'));
-  Batch := TSQLBatch.Create;
+  Batch := TSQLBatch.Create(ActiveConnection.Parameters.NetTypeGroup);
   if Sender = actExecuteSelection then begin
     Batch.SQL := Tab.Memo.SelText;
     Tab.LeftOffsetInMemo := Tab.Memo.SelStart;
@@ -4081,7 +4081,7 @@ begin
   ErrorCount := 0;
   RowsAffected := 0;
   LinesRemain := '';
-  Queries := TSQLBatch.Create;
+  Queries := TSQLBatch.Create(Conn.Parameters.NetTypeGroup);
 
   try
     // Start file operations
@@ -4269,7 +4269,7 @@ begin
       if not FileExists(StartupScript) then
         ErrorDialog(f_('Startup script file not found: %s', [StartupScript]))
       else begin
-        StartupBatch := TSQLBatch.Create;
+        StartupBatch := TSQLBatch.Create(Connection.Parameters.NetTypeGroup);
         StartupBatch.SQL := ReadTextfile(StartupScript, nil);
         for Query in StartupBatch do try
           Connection.Query(Query.SQL);
@@ -5274,7 +5274,7 @@ begin
     Msg := _('Empty value.')
   else begin
     rx := TRegExpr.Create;
-    rx.Expression := '(/\*|--|#|\''|\"|`|\$\$)';
+    rx.Expression := '(/\*|--|#|\''|\")';
     if rx.Exec(Value) then
       Msg := _('Start-of-comment tokens or string literal markers are not allowed.')
   end;
@@ -6901,7 +6901,7 @@ begin
       CurrentQuery := 'SELECT * FROM '+ActiveDbObj.QuotedName+' WHERE ' + Editor.Text;
     end else begin
       // In a query tab
-      Queries := TSQLBatch.Create;
+      Queries := TSQLBatch.Create(Conn.Parameters.NetTypeGroup);
       Queries.SQL := Editor.Text;
       for Query in Queries do begin
         if (Query.LeftOffset <= Editor.SelStart) and (Editor.SelStart < Query.RightOffset) then begin

@@ -928,7 +928,7 @@ begin
       AddQuery(FKeys[i].SQLCode(DBObject.Name));
   end;
 
-  Result := TSQLBatch.Create;
+  Result := TSQLBatch.Create(DBObject.Connection.Parameters.NetTypeGroup);
   Result.SQL := SQL;
 
   FreeAndNil(Specs);
@@ -1022,7 +1022,7 @@ begin
     end;
   end;
 
-  Result := TSQLBatch.Create;
+  Result := TSQLBatch.Create(DBObject.Connection.Parameters.NetTypeGroup);
   Result.SQL := Trim(SQL);
 end;
 
