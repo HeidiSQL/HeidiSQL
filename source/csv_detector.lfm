@@ -1,44 +1,44 @@
 object frmCsvDetector: TfrmCsvDetector
   Left = 0
-  Height = 396
+  Height = 317
   Top = 0
-  Width = 676
+  Width = 541
   Caption = 'Detect CSV layout'
-  ClientHeight = 396
-  ClientWidth = 676
+  ClientHeight = 317
+  ClientWidth = 541
   Color = clBtnFace
-  DesignTimePPI = 120
+  Position = poOwnerFormCenter
+  LCLVersion = '4.4.0.0'
   OnCreate = FormCreate
   OnShow = FormShow
-  Position = poOwnerFormCenter
   object btnScan: TSpeedButton
     AnchorSideTop.Control = Owner
-    Left = 10
-    Height = 31
-    Top = 6
-    Width = 141
-    BorderSpacing.Around = 6
+    Left = 8
+    Height = 25
+    Top = 5
+    Width = 113
+    BorderSpacing.Around = 5
     Caption = 'Scan file...'
     OnClick = btnScanClick
   end
   inline SynMemoCreateTable: TSynEdit
     AnchorSideTop.Control = btnScan
     AnchorSideTop.Side = asrBottom
-    Left = 10
-    Height = 307
-    Top = 43
-    Width = 657
-    BorderSpacing.Around = 6
+    Left = 8
+    Height = 245
+    Top = 35
+    Width = 526
+    BorderSpacing.Around = 5
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.Color = clWindowText
-    Font.Height = -16
+    Font.Height = -13
     Font.Name = 'Courier New'
     Font.Pitch = fpFixed
     Font.Quality = fqNonAntialiased
     ParentColor = False
     ParentFont = False
     TabOrder = 0
-    Gutter.Width = 72
+    Gutter.Width = 57
     Gutter.MouseActions = <>
     RightGutter.Width = 0
     RightGutter.MouseActions = <>
@@ -67,11 +67,15 @@ object frmCsvDetector: TfrmCsvDetector
     LineHighlightColor.Foreground = clNone
     inline SynLeftGutterPartList1: TSynGutterPartList
       object SynGutterMarks1: TSynGutterMarks
-        Width = 30
+        Width = 24
         MouseActions = <>
+        MaxExtraMarksColums = 0
+        Options = [sgmoDeDuplicateMarksOnOverflow]
+        MarkupInfo.Background = clBtnFace
+        MarkupInfo.Foreground = clNone
       end
       object SynGutterLineNumber1: TSynGutterLineNumber
-        Width = 21
+        Width = 17
         MouseActions = <>
         MarkupInfo.Background = clBtnFace
         MarkupInfo.Foreground = clNone
@@ -81,19 +85,21 @@ object frmCsvDetector: TfrmCsvDetector
         LeadingZeros = False
       end
       object SynGutterChanges1: TSynGutterChanges
-        Width = 5
+        Width = 4
         MouseActions = <>
         ModifiedColor = 59900
         SavedColor = clGreen
+        MarkupInfo.Background = clNone
+        MarkupInfo.Foreground = clGreen
+        MarkupInfo.FrameColor = 59900
       end
       object SynGutterSeparator1: TSynGutterSeparator
-        Width = 3
+        Width = 2
         MouseActions = <>
         MarkupInfo.Background = clWhite
         MarkupInfo.Foreground = clGray
       end
       object SynGutterCodeFolding1: TSynGutterCodeFolding
-        Width = 13
         MouseActions = <>
         MarkupInfo.Background = clNone
         MarkupInfo.Foreground = clGray
@@ -103,24 +109,24 @@ object frmCsvDetector: TfrmCsvDetector
     end
   end
   object btnCancel: TButton
-    Left = 514
-    Height = 31
-    Top = 358
-    Width = 152
+    Left = 411
+    Height = 25
+    Top = 286
+    Width = 122
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 2
   end
   object btnSave: TButton
-    Left = 354
-    Height = 31
-    Top = 358
-    Width = 152
+    Left = 283
+    Height = 25
+    Top = 286
+    Width = 122
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Ok, create table'
     ModalResult = 1
     TabOrder = 1
@@ -130,7 +136,7 @@ object frmCsvDetector: TfrmCsvDetector
     Enabled = False
     Interval = 100
     OnTimer = btnScanClick
-    Left = 70
-    Top = 80
+    Left = 56
+    Top = 64
   end
 end

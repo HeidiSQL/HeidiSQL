@@ -1,65 +1,65 @@
 object printlistForm: TprintlistForm
   Left = 521
-  Height = 115
+  Height = 92
   Top = 91
-  Width = 471
+  Width = 377
   BorderStyle = bsDialog
   Caption = 'Print List...'
-  ClientHeight = 115
-  ClientWidth = 471
+  ClientHeight = 92
+  ClientWidth = 377
   Color = clBtnFace
-  DesignTimePPI = 120
-  OnShow = FormShow
   Position = poMainFormCenter
+  LCLVersion = '4.4.0.0'
+  OnShow = FormShow
   object lblSelect: TLabel
-    Left = 10
-    Height = 20
-    Top = 14
-    Width = 91
-    BorderSpacing.Around = 6
+    Left = 8
+    Height = 15
+    Top = 11
+    Width = 72
+    BorderSpacing.Around = 5
     Caption = '&Select printer:'
     FocusControl = comboPrinters
   end
   object comboPrinters: TComboBox
-    Left = 102
-    Height = 28
-    Top = 10
-    Width = 258
-    BorderSpacing.Around = 6
-    ItemHeight = 20
+    Left = 82
+    Height = 23
+    Top = 8
+    Width = 206
+    BorderSpacing.Around = 5
+    ItemHeight = 15
     Style = csDropDownList
     TabOrder = 0
     OnChange = comboPrintersChange
   end
   object btnConfigure: TButton
-    Left = 368
-    Height = 31
-    Top = 10
-    Width = 94
-    BorderSpacing.Around = 6
+    Left = 294
+    Height = 25
+    Top = 8
+    Width = 75
+    BorderSpacing.Around = 5
     Caption = 'Configure'
     TabOrder = 1
     OnClick = btnConfigureClick
   end
   object btnCancel: TButton
-    Left = 367
-    Height = 31
-    Top = 74
-    Width = 94
+    Left = 294
+    Height = 25
+    Top = 59
+    Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 3
   end
   object btnPrint: TButton
-    Left = 266
-    Height = 31
-    Top = 74
-    Width = 94
+    Left = 213
+    Height = 25
+    Top = 59
+    Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Print'
     Default = True
     ModalResult = 1
@@ -69,19 +69,19 @@ object printlistForm: TprintlistForm
   object chkPrintHeader: TCheckBox
     AnchorSideTop.Control = comboPrinters
     AnchorSideTop.Side = asrBottom
-    Left = 102
-    Height = 24
-    Top = 44
-    Width = 258
+    Left = 82
+    Height = 19
+    Top = 36
+    Width = 206
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Print column headers'
     Checked = True
     State = cbChecked
     TabOrder = 4
   end
   object PrinterSetup: TPrinterSetupDialog
-    Left = 10
-    Top = 40
+    Left = 8
+    Top = 32
   end
 end

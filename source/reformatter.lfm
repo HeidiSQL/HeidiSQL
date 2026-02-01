@@ -1,22 +1,22 @@
 object frmReformatter: TfrmReformatter
   Left = 0
-  Height = 271
+  Height = 217
   Top = 0
-  Width = 629
+  Width = 503
   BorderStyle = bsDialog
   Caption = 'Reformat SQL'
-  ClientHeight = 271
-  ClientWidth = 629
+  ClientHeight = 217
+  ClientWidth = 503
   Color = clBtnFace
-  DesignTimePPI = 120
+  Position = poOwnerFormCenter
+  LCLVersion = '4.4.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  Position = poOwnerFormCenter
   object grpReformatter: TRadioGroup
-    Left = 10
-    Height = 160
-    Top = 10
-    Width = 609
+    Left = 8
+    Height = 128
+    Top = 8
+    Width = 487
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoFill = True
     Caption = 'Select reformatter'
@@ -27,35 +27,35 @@ object frmReformatter: TfrmReformatter
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 135
-    ClientWidth = 605
+    ClientHeight = 108
+    ClientWidth = 483
     ItemIndex = 0
     Items.Strings = (
       'Internal'
       'Online (heidisql.com)'
       'Online (sqlformat.org)'
     )
-    OnClick = grpReformatterClick
     ParentBackground = False
     TabOrder = 0
+    OnClick = grpReformatterClick
   end
   object btnCancel: TButton
-    Left = 525
-    Height = 31
-    Top = 230
-    Width = 94
+    Left = 420
+    Height = 25
+    Top = 184
+    Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 1
   end
   object btnOk: TButton
-    Left = 424
-    Height = 31
-    Top = 230
-    Width = 94
+    Left = 339
+    Height = 25
+    Top = 184
+    Width = 75
     Anchors = [akRight, akBottom]
     Caption = 'OK'
     Default = True
@@ -67,20 +67,20 @@ object frmReformatter: TfrmReformatter
     AnchorSideTop.Control = grpReformatter
     AnchorSideTop.Side = asrBottom
     Cursor = crHandPoint
-    Left = 10
-    Height = 20
-    Top = 187
-    Width = 145
+    Left = 8
+    Height = 15
+    Top = 151
+    Width = 117
     Anchors = [akLeft, akBottom]
     Caption = 'lblFormatProviderLink'
     Visible = False
     OnClick = lblFormatProviderLinkClick
   end
   object chkKeepAsking: TCheckBox
-    Left = 10
-    Height = 24
-    Top = 232
-    Width = 321
+    Left = 8
+    Height = 19
+    Top = 186
+    Width = 257
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Keep asking this question.'
     Checked = True

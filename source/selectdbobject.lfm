@@ -1,62 +1,62 @@
 object frmSelectDBObject: TfrmSelectDBObject
   Left = 0
-  Height = 395
+  Height = 316
   Top = 0
-  Width = 290
+  Width = 232
   Caption = 'Select database object ...'
-  ClientHeight = 395
-  ClientWidth = 290
+  ClientHeight = 316
+  ClientWidth = 232
   Color = clBtnFace
-  Constraints.MinHeight = 150
-  Constraints.MinWidth = 125
-  DesignTimePPI = 120
+  Constraints.MinHeight = 120
+  Constraints.MinWidth = 100
+  Position = poOwnerFormCenter
+  LCLVersion = '4.4.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  Position = poOwnerFormCenter
   object lblSelect: TLabel
-    Left = 10
-    Height = 20
-    Top = 10
-    Width = 220
-    BorderSpacing.Around = 6
+    Left = 8
+    Height = 15
+    Top = 8
+    Width = 174
+    BorderSpacing.Around = 5
     Caption = 'Select database, table or column:'
   end
   object lblCustom: TLabel
     AnchorSideBottom.Control = editDb
-    Left = 10
-    Height = 20
-    Top = 294
-    Width = 278
+    Left = 8
+    Height = 15
+    Top = 235
+    Width = 220
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = '... or wildcard database (% and _ allowed):'
   end
   object TreeDBO: TLazVirtualStringTree
     AnchorSideTop.Control = lblSelect
     AnchorSideTop.Side = asrBottom
-    Left = 10
-    Height = 255
-    Top = 36
-    Width = 270
+    Left = 8
+    Height = 205
+    Top = 28
+    Width = 216
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Header.AutoSizeIndex = 0
     Header.Columns = <    
       item
         Position = 0
         Text = 'Name'
-        Width = 266
+        Width = 212
       end    
       item
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 1
         Text = 'Size'
       end>
-    Header.Height = 32
+    Header.Height = 26
     Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
     Images = MainForm.ImageListMain
-    Indent = 20
+    Indent = 16
     Margin = 2
     TabOrder = 0
     TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
@@ -70,12 +70,12 @@ object frmSelectDBObject: TfrmSelectDBObject
     OnInitNode = TreeDBOInitNode
   end
   object btnOK: TButton
-    Left = 85
-    Height = 31
-    Top = 354
-    Width = 94
+    Left = 68
+    Height = 25
+    Top = 283
+    Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'OK'
     Default = True
     Enabled = False
@@ -83,12 +83,12 @@ object frmSelectDBObject: TfrmSelectDBObject
     TabOrder = 2
   end
   object btnCancel: TButton
-    Left = 186
-    Height = 31
-    Top = 354
-    Width = 94
+    Left = 149
+    Height = 25
+    Top = 283
+    Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
@@ -96,12 +96,12 @@ object frmSelectDBObject: TfrmSelectDBObject
   end
   object editDb: TEdit
     AnchorSideBottom.Control = btnOK
-    Left = 10
-    Height = 28
-    Top = 320
-    Width = 270
+    Left = 8
+    Height = 23
+    Top = 255
+    Width = 216
     Anchors = [akLeft, akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     TabOrder = 1
     Text = 'editDb'
     TextHint = 'database'

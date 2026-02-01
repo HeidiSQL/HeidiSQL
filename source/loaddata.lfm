@@ -1,32 +1,32 @@
 object loaddataform: Tloaddataform
   Left = 212
-  Height = 688
+  Height = 550
   Top = 111
-  Width = 656
+  Width = 525
   Caption = 'Import text file'
-  ClientHeight = 688
-  ClientWidth = 656
+  ClientHeight = 550
+  ClientWidth = 525
   Color = clBtnFace
-  Constraints.MinHeight = 688
-  Constraints.MinWidth = 656
-  DesignTimePPI = 120
+  Constraints.MinHeight = 550
+  Constraints.MinWidth = 525
+  Position = poMainFormCenter
+  LCLVersion = '4.4.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
-  Position = poMainFormCenter
   object btnImport: TButton
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 556
-    Height = 31
-    Top = 651
-    Width = 94
+    Left = 445
+    Height = 25
+    Top = 520
+    Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Import!'
     Enabled = False
     ModalResult = 1
@@ -37,12 +37,12 @@ object loaddataform: Tloaddataform
     AnchorSideRight.Control = btnImport
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 456
-    Height = 31
-    Top = 651
-    Width = 94
+    Left = 365
+    Height = 25
+    Top = 520
+    Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 7
@@ -51,67 +51,67 @@ object loaddataform: Tloaddataform
     AnchorSideLeft.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 6
-    Height = 99
-    Top = 10
-    Width = 644
+    Left = 5
+    Height = 81
+    Top = 8
+    Width = 515
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Input file'
-    ClientHeight = 74
-    ClientWidth = 640
+    ClientHeight = 61
+    ClientWidth = 511
     ParentBackground = False
     TabOrder = 0
     object lblFilename: TLabel
-      Left = 6
-      Height = 20
-      Top = 10
-      Width = 63
-      BorderSpacing.Around = 6
+      Left = 5
+      Height = 15
+      Top = 8
+      Width = 51
+      BorderSpacing.Around = 5
       Caption = 'Filename:'
       FocusControl = editFilename
     end
     object lblEncoding: TLabel
       AnchorSideTop.Control = editFilename
       AnchorSideTop.Side = asrBottom
-      Left = 6
-      Height = 20
-      Top = 40
-      Width = 65
-      BorderSpacing.Around = 6
+      Left = 5
+      Height = 15
+      Top = 33
+      Width = 53
+      BorderSpacing.Around = 5
       Caption = 'Encoding:'
     end
     object editFilename: TEditButton
-      Left = 104
-      Height = 28
-      Top = 6
-      Width = 524
+      Left = 83
+      Height = 23
+      Top = 5
+      Width = 418
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
-      ButtonWidth = 29
+      BorderSpacing.Around = 5
+      ButtonWidth = 23
       Images = MainForm.ImageListMain
       ImageIndex = 51
       MaxLength = 0
       NumGlyphs = 1
-      OnButtonClick = btnOpenFileClick
-      OnChange = editFilenameChange
-      OnDblClick = btnOpenFileClick
       PasswordChar = #0
       TabOrder = 0
       Text = 'editFilename'
+      OnButtonClick = btnOpenFileClick
+      OnChange = editFilenameChange
+      OnDblClick = btnOpenFileClick
     end
     object comboEncoding: TComboBox
       AnchorSideTop.Control = editFilename
       AnchorSideTop.Side = asrBottom
-      Left = 104
-      Height = 28
-      Top = 40
-      Width = 524
+      Left = 83
+      Height = 23
+      Top = 33
+      Width = 418
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
+      BorderSpacing.Around = 5
       DropDownCount = 16
-      ItemHeight = 20
+      ItemHeight = 15
       Sorted = True
       Style = csDropDownList
       TabOrder = 1
@@ -122,95 +122,95 @@ object loaddataform: Tloaddataform
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 286
-    Height = 169
-    Top = 115
-    Width = 364
+    Left = 229
+    Height = 135
+    Top = 94
+    Width = 291
     Anchors = [akTop, akRight]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Control characters'
-    ClientHeight = 144
-    ClientWidth = 360
+    ClientHeight = 115
+    ClientWidth = 287
     ParentBackground = False
     TabOrder = 2
     object lblFieldTerminater: TLabel
-      Left = 12
-      Height = 20
-      Top = 15
-      Width = 135
-      BorderSpacing.Around = 6
+      Left = 10
+      Height = 15
+      Top = 12
+      Width = 107
+      BorderSpacing.Around = 5
       Caption = 'Fields terminated by'
     end
     object lblFieldEncloser: TLabel
       AnchorSideTop.Control = editFieldTerminator
       AnchorSideTop.Side = asrBottom
-      Left = 12
-      Height = 20
-      Top = 46
-      Width = 121
-      BorderSpacing.Around = 6
+      Left = 10
+      Height = 15
+      Top = 38
+      Width = 96
+      BorderSpacing.Around = 5
       Caption = 'Fields enclosed by'
     end
     object lblFieldEscaper: TLabel
       AnchorSideTop.Control = editFieldEncloser
       AnchorSideTop.Side = asrBottom
-      Left = 12
-      Height = 20
-      Top = 80
-      Width = 117
-      BorderSpacing.Around = 6
+      Left = 10
+      Height = 15
+      Top = 66
+      Width = 92
+      BorderSpacing.Around = 5
       Caption = 'Fields escaped by'
     end
     object lblLineTerminator: TLabel
       AnchorSideTop.Control = editFieldEscaper
       AnchorSideTop.Side = asrBottom
-      Left = 12
-      Height = 20
-      Top = 114
-      Width = 130
-      BorderSpacing.Around = 6
+      Left = 10
+      Height = 15
+      Top = 94
+      Width = 104
+      BorderSpacing.Around = 5
       Caption = 'Lines terminated by'
     end
     object editFieldEscaper: TEdit
       AnchorSideTop.Control = editFieldEncloser
       AnchorSideTop.Side = asrBottom
-      Left = 181
-      Height = 28
-      Top = 80
-      Width = 61
-      BorderSpacing.Around = 6
+      Left = 145
+      Height = 23
+      Top = 66
+      Width = 49
+      BorderSpacing.Around = 5
       TabOrder = 3
       Text = '"'
     end
     object editFieldEncloser: TEdit
       AnchorSideTop.Control = editFieldTerminator
       AnchorSideTop.Side = asrBottom
-      Left = 181
-      Height = 28
-      Top = 46
-      Width = 61
-      BorderSpacing.Around = 6
+      Left = 145
+      Height = 23
+      Top = 38
+      Width = 49
+      BorderSpacing.Around = 5
       TabOrder = 1
       Text = '"'
     end
     object editFieldTerminator: TEdit
-      Left = 181
-      Height = 28
-      Top = 12
-      Width = 61
-      BorderSpacing.Around = 6
+      Left = 145
+      Height = 23
+      Top = 10
+      Width = 49
+      BorderSpacing.Around = 5
       TabOrder = 0
       Text = ';'
     end
     object chkFieldsEnclosedOptionally: TCheckBox
       AnchorSideTop.Control = editFieldTerminator
       AnchorSideTop.Side = asrBottom
-      Left = 250
-      Height = 24
-      Top = 46
-      Width = 106
+      Left = 200
+      Height = 19
+      Top = 38
+      Width = 84
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
+      BorderSpacing.Around = 5
       Caption = 'optionally'
       Checked = True
       State = cbChecked
@@ -219,11 +219,11 @@ object loaddataform: Tloaddataform
     object editLineTerminator: TEdit
       AnchorSideTop.Control = editFieldEscaper
       AnchorSideTop.Side = asrBottom
-      Left = 181
-      Height = 28
-      Top = 114
-      Width = 61
-      BorderSpacing.Around = 6
+      Left = 145
+      Height = 23
+      Top = 94
+      Width = 49
+      BorderSpacing.Around = 5
       TabOrder = 4
       Text = '\r\n'
     end
@@ -232,39 +232,39 @@ object loaddataform: Tloaddataform
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = grpFilename
     AnchorSideTop.Side = asrBottom
-    Left = 6
-    Height = 219
-    Top = 115
-    Width = 265
+    Left = 5
+    Height = 175
+    Top = 94
+    Width = 212
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Options'
-    ClientHeight = 194
-    ClientWidth = 261
+    ClientHeight = 155
+    ClientWidth = 208
     ParentBackground = False
     TabOrder = 1
     object lblIgnoreLinesCount: TLabel
-      Left = 179
-      Height = 20
-      Top = 12
-      Width = 30
-      BorderSpacing.Around = 6
+      Left = 143
+      Height = 15
+      Top = 10
+      Width = 24
+      BorderSpacing.Around = 5
       Caption = 'lines'
     end
     object lblIgnoreLines: TLabel
-      Left = 12
-      Height = 20
-      Top = 12
-      Width = 72
-      BorderSpacing.Around = 6
+      Left = 10
+      Height = 15
+      Top = 10
+      Width = 57
+      BorderSpacing.Around = 5
       Caption = 'Ignore first'
     end
     object editIgnoreLines: TEdit
-      Left = 110
-      Height = 28
-      Top = 9
-      Width = 58
-      BorderSpacing.Around = 6
+      Left = 88
+      Height = 23
+      Top = 7
+      Width = 46
+      BorderSpacing.Around = 5
       NumbersOnly = True
       TabOrder = 0
       Text = '1'
@@ -272,12 +272,12 @@ object loaddataform: Tloaddataform
     object chkLowPriority: TCheckBox
       AnchorSideTop.Control = editIgnoreLines
       AnchorSideTop.Side = asrBottom
-      Left = 12
-      Height = 24
-      Top = 43
-      Width = 245
+      Left = 10
+      Height = 19
+      Top = 35
+      Width = 195
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
+      BorderSpacing.Around = 5
       Caption = 'Low priority, avoid high server load'
       Checked = True
       State = cbChecked
@@ -286,36 +286,36 @@ object loaddataform: Tloaddataform
     object chkLocalNumbers: TCheckBox
       AnchorSideTop.Control = chkLowPriority
       AnchorSideTop.Side = asrBottom
-      Left = 12
-      Height = 24
-      Top = 73
-      Width = 245
+      Left = 10
+      Height = 19
+      Top = 59
+      Width = 195
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
+      BorderSpacing.Around = 5
       Caption = 'Input file contains local formatted numbers, e.g. 1.234,56 in Germany'
       TabOrder = 2
     end
     object chkTruncateTable: TCheckBox
       AnchorSideTop.Control = chkLocalNumbers
       AnchorSideTop.Side = asrBottom
-      Left = 12
-      Height = 24
-      Top = 103
-      Width = 245
+      Left = 10
+      Height = 19
+      Top = 83
+      Width = 195
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
+      BorderSpacing.Around = 5
       Caption = 'Truncate destination table before import'
       TabOrder = 3
     end
     object chkKeepDialogOpen: TCheckBox
       AnchorSideTop.Control = chkTruncateTable
       AnchorSideTop.Side = asrBottom
-      Left = 12
-      Height = 24
-      Top = 133
-      Width = 245
+      Left = 10
+      Height = 19
+      Top = 107
+      Width = 195
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
+      BorderSpacing.Around = 5
       Caption = 'Keep dialog open after import'
       TabOrder = 4
     end
@@ -324,13 +324,13 @@ object loaddataform: Tloaddataform
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = grpOptions
     AnchorSideTop.Side = asrBottom
-    Left = 6
-    Height = 154
-    Top = 340
-    Width = 265
+    Left = 5
+    Height = 123
+    Top = 274
+    Width = 212
     Anchors = [akTop, akLeft, akRight]
     AutoFill = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Handling of duplicate rows'
     ChildSizing.LeftRightSpacing = 6
     ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
@@ -339,8 +339,8 @@ object loaddataform: Tloaddataform
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 129
-    ClientWidth = 261
+    ClientHeight = 103
+    ClientWidth = 208
     ItemIndex = 2
     Items.Strings = (
       'INSERT (may throw errors)'
@@ -355,13 +355,13 @@ object loaddataform: Tloaddataform
     AnchorSideTop.Control = grpDuplicates
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = btnImport
-    Left = 6
-    Height = 145
-    Top = 500
-    Width = 265
+    Left = 5
+    Height = 113
+    Top = 402
+    Width = 212
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoFill = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Method'
     ChildSizing.LeftRightSpacing = 6
     ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
@@ -370,16 +370,16 @@ object loaddataform: Tloaddataform
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 120
-    ClientWidth = 261
+    ClientHeight = 93
+    ClientWidth = 208
     ItemIndex = 0
     Items.Strings = (
       'Server parses file contents (LOAD DATA)'
       'Client parses file contents'
     )
-    OnClick = grpParseMethodClick
     ParentBackground = False
     TabOrder = 4
+    OnClick = grpParseMethodClick
   end
   object grpDestination: TGroupBox
     AnchorSideTop.Control = grpChars
@@ -387,53 +387,53 @@ object loaddataform: Tloaddataform
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnImport
-    Left = 286
-    Height = 355
-    Top = 290
-    Width = 364
+    Left = 229
+    Height = 281
+    Top = 234
+    Width = 291
     Anchors = [akTop, akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Destination'
-    ClientHeight = 330
-    ClientWidth = 360
+    ClientHeight = 261
+    ClientWidth = 287
     ParentBackground = False
     TabOrder = 5
     object lblDatabase: TLabel
-      Left = 12
-      Height = 20
-      Top = 11
-      Width = 66
-      BorderSpacing.Around = 6
+      Left = 10
+      Height = 15
+      Top = 9
+      Width = 51
+      BorderSpacing.Around = 5
       Caption = 'Database:'
     end
     object lblTable: TLabel
       AnchorSideTop.Control = comboDatabase
       AnchorSideTop.Side = asrBottom
-      Left = 12
-      Height = 20
-      Top = 41
-      Width = 38
-      BorderSpacing.Around = 6
+      Left = 10
+      Height = 15
+      Top = 34
+      Width = 31
+      BorderSpacing.Around = 5
       Caption = 'Table:'
     end
     object lblColumns: TLabel
       AnchorSideTop.Control = comboTable
       AnchorSideTop.Side = asrBottom
-      Left = 12
-      Height = 20
-      Top = 75
-      Width = 60
-      BorderSpacing.Around = 6
+      Left = 10
+      Height = 15
+      Top = 62
+      Width = 51
+      BorderSpacing.Around = 5
       Caption = 'Columns:'
     end
     object comboDatabase: TComboBox
-      Left = 140
-      Height = 28
-      Top = 7
-      Width = 208
+      Left = 112
+      Height = 23
+      Top = 6
+      Width = 165
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
-      ItemHeight = 20
+      BorderSpacing.Around = 5
+      ItemHeight = 15
       Style = csDropDownList
       TabOrder = 0
       OnChange = comboDatabaseChange
@@ -441,13 +441,13 @@ object loaddataform: Tloaddataform
     object comboTable: TComboBox
       AnchorSideTop.Control = comboDatabase
       AnchorSideTop.Side = asrBottom
-      Left = 140
-      Height = 28
-      Top = 41
-      Width = 208
+      Left = 112
+      Height = 23
+      Top = 34
+      Width = 165
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
-      ItemHeight = 20
+      BorderSpacing.Around = 5
+      ItemHeight = 15
       Style = csDropDownList
       TabOrder = 1
       OnChange = comboTableChange
@@ -455,12 +455,12 @@ object loaddataform: Tloaddataform
     object chklistColumns: TCheckListBox
       AnchorSideTop.Control = comboTable
       AnchorSideTop.Side = asrBottom
-      Left = 140
-      Height = 244
-      Top = 75
-      Width = 204
+      Left = 112
+      Height = 190
+      Top = 62
+      Width = 162
       Anchors = [akTop, akLeft, akRight, akBottom]
-      BorderSpacing.Around = 6
+      BorderSpacing.Around = 5
       ItemHeight = 0
       TabOrder = 2
       OnClick = chklistColumnsClick
@@ -468,14 +468,14 @@ object loaddataform: Tloaddataform
     object ToolBarColMove: TToolBar
       AnchorSideTop.Control = lblColumns
       AnchorSideTop.Side = asrBottom
-      Left = 12
-      Height = 82
-      Top = 101
-      Width = 109
+      Left = 10
+      Height = 66
+      Top = 82
+      Width = 87
       Align = alNone
-      BorderSpacing.Around = 6
-      ButtonHeight = 35
-      ButtonWidth = 74
+      BorderSpacing.Around = 5
+      ButtonHeight = 28
+      ButtonWidth = 59
       Caption = 'ToolBarColMove'
       Images = MainForm.ImageListMain
       List = True
@@ -489,22 +489,22 @@ object loaddataform: Tloaddataform
         Top = 2
         Caption = 'Up'
         ImageIndex = 74
-        OnClick = btnColMoveClick
         Wrap = True
+        OnClick = btnColMoveClick
       end
       object btnColDown: TToolButton
         Left = 1
         Hint = 'Move down'
-        Top = 37
+        Top = 30
         Caption = 'Down'
         ImageIndex = 75
-        OnClick = btnColMoveClick
         Wrap = True
+        OnClick = btnColMoveClick
       end
       object btnCheckAll: TToolButton
         Left = 1
         Hint = 'Select / Deselect all'
-        Top = 72
+        Top = 58
         Caption = 'All'
         ImageIndex = 128
         OnClick = btnCheckAllClick

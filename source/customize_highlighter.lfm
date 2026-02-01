@@ -1,59 +1,59 @@
 object frmCustomizeHighlighter: TfrmCustomizeHighlighter
   Left = 0
-  Height = 311
+  Height = 249
   Top = 0
-  Width = 551
+  Width = 441
   BorderStyle = bsDialog
   Caption = 'Customize highlighter'
-  ClientHeight = 311
-  ClientWidth = 551
+  ClientHeight = 249
+  ClientWidth = 441
   Color = clBtnFace
-  DesignTimePPI = 120
   Font.Color = clWindowText
-  Font.Height = -15
+  Font.Height = -12
   Font.Name = 'Segoe UI'
+  Position = poOwnerFormCenter
+  LCLVersion = '4.4.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  Position = poOwnerFormCenter
   object lblBackground: TLabel
     AnchorSideTop.Control = comboHighlighter
     AnchorSideTop.Side = asrBottom
-    Left = 199
-    Height = 20
-    Top = 40
-    Width = 82
-    BorderSpacing.Around = 6
+    Left = 159
+    Height = 15
+    Top = 33
+    Width = 67
+    BorderSpacing.Around = 5
     Caption = 'Background:'
   end
   object lblForeground: TLabel
     AnchorSideTop.Control = editBackground
     AnchorSideTop.Side = asrBottom
-    Left = 199
-    Height = 20
-    Top = 74
-    Width = 80
-    BorderSpacing.Around = 6
+    Left = 159
+    Height = 15
+    Top = 61
+    Width = 65
+    BorderSpacing.Around = 5
     Caption = 'Foreground:'
   end
   object lblStyle: TLabel
     AnchorSideTop.Control = editForeground
     AnchorSideTop.Side = asrBottom
-    Left = 199
-    Height = 20
-    Top = 108
-    Width = 35
-    BorderSpacing.Around = 6
+    Left = 159
+    Height = 15
+    Top = 89
+    Width = 28
+    BorderSpacing.Around = 5
     Caption = 'Style:'
   end
   object comboHighlighter: TComboBox
     AnchorSideTop.Control = Owner
-    Left = 10
-    Height = 28
-    Top = 6
-    Width = 181
-    BorderSpacing.Around = 6
-    ItemHeight = 20
+    Left = 8
+    Height = 23
+    Top = 5
+    Width = 145
+    BorderSpacing.Around = 5
+    ItemHeight = 15
     Sorted = True
     Style = csDropDownList
     TabOrder = 0
@@ -62,11 +62,11 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
   object listboxAttributes: TListBox
     AnchorSideTop.Control = comboHighlighter
     AnchorSideTop.Side = asrBottom
-    Left = 10
-    Height = 216
-    Top = 40
-    Width = 181
-    BorderSpacing.Around = 6
+    Left = 8
+    Height = 173
+    Top = 33
+    Width = 145
+    BorderSpacing.Around = 5
     ItemHeight = 0
     TabOrder = 1
     OnClick = listboxAttributesClick
@@ -74,12 +74,12 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
   object chkBold: TCheckBox
     AnchorSideTop.Control = editForeground
     AnchorSideTop.Side = asrBottom
-    Left = 346
-    Height = 24
-    Top = 108
-    Width = 195
+    Left = 277
+    Height = 19
+    Top = 89
+    Width = 156
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Bold'
     TabOrder = 4
     OnClick = Modified
@@ -87,35 +87,35 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
   object chkItalic: TCheckBox
     AnchorSideTop.Control = chkBold
     AnchorSideTop.Side = asrBottom
-    Left = 346
-    Height = 24
-    Top = 138
-    Width = 195
+    Left = 277
+    Height = 19
+    Top = 113
+    Width = 156
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Italic'
     TabOrder = 5
     OnClick = Modified
   end
   object btnCancel: TButton
-    Left = 346
-    Height = 31
-    Top = 270
-    Width = 94
+    Left = 277
+    Height = 25
+    Top = 216
+    Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 7
   end
   object btnOK: TButton
-    Left = 245
-    Height = 31
-    Top = 270
-    Width = 94
+    Left = 196
+    Height = 25
+    Top = 216
+    Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'OK'
     Default = True
     ModalResult = 1
@@ -125,50 +125,50 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
   object editBackground: TEditButton
     AnchorSideTop.Control = comboHighlighter
     AnchorSideTop.Side = asrBottom
-    Left = 346
-    Height = 28
-    Top = 40
-    Width = 195
+    Left = 277
+    Height = 23
+    Top = 33
+    Width = 156
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     ButtonHint = 'Color picker'
-    ButtonWidth = 29
+    ButtonWidth = 23
     Images = MainForm.ImageListMain
     ImageIndex = 33
     MaxLength = 0
     NumGlyphs = 1
-    OnButtonClick = editColorRightButtonClick
-    OnExit = Modified
     PasswordChar = #0
     TabOrder = 2
+    OnButtonClick = editColorRightButtonClick
+    OnExit = Modified
   end
   object editForeground: TEditButton
     AnchorSideTop.Control = editBackground
     AnchorSideTop.Side = asrBottom
-    Left = 346
-    Height = 28
-    Top = 74
-    Width = 195
+    Left = 277
+    Height = 23
+    Top = 61
+    Width = 156
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     ButtonHint = 'Color picker'
-    ButtonWidth = 29
+    ButtonWidth = 23
     Images = MainForm.ImageListMain
     ImageIndex = 33
     MaxLength = 0
     NumGlyphs = 1
-    OnButtonClick = editColorRightButtonClick
-    OnExit = Modified
     PasswordChar = #0
     TabOrder = 3
+    OnButtonClick = editColorRightButtonClick
+    OnExit = Modified
   end
   object btnApply: TButton
-    Left = 447
-    Height = 31
-    Top = 270
-    Width = 94
+    Left = 358
+    Height = 25
+    Top = 216
+    Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Apply'
     TabOrder = 8
     OnClick = SaveSettings

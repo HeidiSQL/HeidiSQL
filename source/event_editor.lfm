@@ -1,22 +1,22 @@
 object frmEventEditor: TfrmEventEditor
   Left = 0
-  Height = 625
+  Height = 500
   Top = 0
-  Width = 875
-  ClientHeight = 625
-  ClientWidth = 875
-  DesignTimePPI = 120
+  Width = 700
+  ClientHeight = 500
+  ClientWidth = 700
+  LCLVersion = '4.4.0.0'
   ParentFont = False
   TabOrder = 0
   object lblBody: TLabel
     AnchorSideTop.Control = PageControlMain
     AnchorSideTop.Side = asrBottom
-    Left = 6
-    Height = 20
-    Top = 187
-    Width = 863
+    Left = 5
+    Height = 15
+    Top = 155
+    Width = 690
     Align = alTop
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Execution body:'
     FocusControl = SynMemoBody
   end
@@ -24,12 +24,12 @@ object frmEventEditor: TfrmEventEditor
     AnchorSideTop.Control = lblBody
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = btnSave
-    Left = 6
-    Height = 369
-    Top = 213
-    Width = 863
+    Left = 5
+    Height = 290
+    Top = 175
+    Width = 690
     Align = alTop
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.Height = -13
     Font.Name = 'Courier New'
@@ -39,7 +39,7 @@ object frmEventEditor: TfrmEventEditor
     ParentFont = False
     TabOrder = 1
     Gutter.LeftOffset = 2
-    Gutter.Width = 70
+    Gutter.Width = 59
     Gutter.MouseActions = <>
     RightGutter.Width = 0
     RightGutter.MouseActions = <>
@@ -75,8 +75,12 @@ object frmEventEditor: TfrmEventEditor
     OnChange = Modification
     inline SynLeftGutterPartList1: TSynGutterPartList
       object SynGutterMarks1: TSynGutterMarks
-        Width = 30
+        Width = 24
         MouseActions = <>
+        MaxExtraMarksColums = 0
+        Options = [sgmoDeDuplicateMarksOnOverflow]
+        MarkupInfo.Background = clBtnFace
+        MarkupInfo.Foreground = clNone
       end
       object SynGutterLineNumber1: TSynGutterLineNumber
         Width = 17
@@ -89,19 +93,21 @@ object frmEventEditor: TfrmEventEditor
         LeadingZeros = False
       end
       object SynGutterChanges1: TSynGutterChanges
-        Width = 5
+        Width = 4
         MouseActions = <>
         ModifiedColor = 59900
         SavedColor = clGreen
+        MarkupInfo.Background = clNone
+        MarkupInfo.Foreground = clGreen
+        MarkupInfo.FrameColor = 59900
       end
       object SynGutterSeparator1: TSynGutterSeparator
-        Width = 3
+        Width = 2
         MouseActions = <>
         MarkupInfo.Background = clWhite
         MarkupInfo.Foreground = clGray
       end
       object SynGutterCodeFolding1: TSynGutterCodeFolding
-        Width = 13
         MouseActions = <>
         MarkupInfo.Background = clNone
         MarkupInfo.Foreground = clGray
@@ -114,12 +120,12 @@ object frmEventEditor: TfrmEventEditor
     AnchorSideLeft.Control = Owner
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 6
-    Height = 31
-    Top = 588
-    Width = 94
+    Left = 5
+    Height = 25
+    Top = 470
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Help'
     TabOrder = 2
     OnClick = btnHelpClick
@@ -129,12 +135,12 @@ object frmEventEditor: TfrmEventEditor
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 106
-    Height = 31
-    Top = 588
-    Width = 94
+    Left = 85
+    Height = 25
+    Top = 470
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Discard'
     TabOrder = 3
     OnClick = btnDiscardClick
@@ -144,44 +150,44 @@ object frmEventEditor: TfrmEventEditor
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 206
-    Height = 31
-    Top = 588
-    Width = 94
+    Left = 165
+    Height = 25
+    Top = 470
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Save'
     Default = True
     TabOrder = 4
     OnClick = btnSaveClick
   end
   object PageControlMain: TPageControl
-    Left = 6
-    Height = 175
-    Top = 6
-    Width = 863
+    Left = 5
+    Height = 145
+    Top = 5
+    Width = 690
     ActivePage = tabSettings
     Align = alTop
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Images = MainForm.ImageListMain
     TabIndex = 0
     TabOrder = 0
     OnChange = PageControlMainChange
     object tabSettings: TTabSheet
       Caption = 'Settings'
-      ClientHeight = 142
-      ClientWidth = 855
+      ClientHeight = 117
+      ClientWidth = 682
       ImageIndex = 39
       object lblName: TLabel
         AnchorSideLeft.Control = tabSettings
         AnchorSideTop.Control = editName
         AnchorSideTop.Side = asrCenter
-        Left = 6
-        Height = 20
-        Top = 10
-        Width = 43
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 9
+        Width = 35
+        BorderSpacing.Around = 5
         Caption = 'Name:'
         FocusControl = editName
       end
@@ -189,11 +195,11 @@ object frmEventEditor: TfrmEventEditor
         AnchorSideLeft.Control = tabSettings
         AnchorSideTop.Control = editComment
         AnchorSideTop.Side = asrCenter
-        Left = 6
-        Height = 20
-        Top = 44
-        Width = 68
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 37
+        Width = 57
+        BorderSpacing.Around = 5
         Caption = 'Comment:'
       end
       object lblDefiner: TLabel
@@ -201,20 +207,20 @@ object frmEventEditor: TfrmEventEditor
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboDefiner
         AnchorSideTop.Side = asrCenter
-        Left = 499
-        Height = 20
-        Top = 10
-        Width = 52
-        BorderSpacing.Around = 6
+        Left = 399
+        Height = 15
+        Top = 9
+        Width = 41
+        BorderSpacing.Around = 5
         Caption = 'De&finer:'
       end
       object editName: TEdit
         AnchorSideTop.Control = tabSettings
-        Left = 105
-        Height = 28
-        Top = 6
-        Width = 388
-        BorderSpacing.Around = 6
+        Left = 84
+        Height = 23
+        Top = 5
+        Width = 310
+        BorderSpacing.Around = 5
         TabOrder = 0
         Text = 'editName'
         TextHint = 'Enter event name ...'
@@ -225,12 +231,12 @@ object frmEventEditor: TfrmEventEditor
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabSettings
         AnchorSideRight.Side = asrBottom
-        Left = 105
-        Height = 24
-        Top = 74
-        Width = 744
+        Left = 84
+        Height = 19
+        Top = 61
+        Width = 593
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Drop event after expiration'
         TabOrder = 2
         OnClick = Modification
@@ -240,12 +246,12 @@ object frmEventEditor: TfrmEventEditor
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabSettings
         AnchorSideRight.Side = asrBottom
-        Left = 105
-        Height = 28
-        Top = 40
-        Width = 744
+        Left = 84
+        Height = 23
+        Top = 33
+        Width = 593
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         TabOrder = 1
         Text = 'editComment'
         OnChange = Modification
@@ -257,14 +263,14 @@ object frmEventEditor: TfrmEventEditor
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = tabSettings
         AnchorSideBottom.Side = asrBottom
-        Left = 105
-        Height = 32
-        Top = 104
-        Width = 744
+        Left = 84
+        Height = 27
+        Top = 85
+        Width = 593
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoFill = True
         AutoSize = True
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'State'
         ChildSizing.LeftRightSpacing = 6
         ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
@@ -274,20 +280,20 @@ object frmEventEditor: TfrmEventEditor
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 3
         Columns = 3
-        OnClick = Modification
         TabOrder = 3
+        OnClick = Modification
       end
       object comboDefiner: TComboBox
         AnchorSideTop.Control = tabSettings
         AnchorSideRight.Control = tabSettings
         AnchorSideRight.Side = asrBottom
-        Left = 611
-        Height = 28
-        Top = 6
-        Width = 238
+        Left = 489
+        Height = 23
+        Top = 5
+        Width = 188
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         TabOrder = 4
         Text = 'comboDefiner'
         OnChange = Modification
@@ -296,18 +302,18 @@ object frmEventEditor: TfrmEventEditor
     end
     object tabScheduling: TTabSheet
       Caption = 'Timing'
-      ClientHeight = 142
-      ClientWidth = 855
+      ClientHeight = 117
+      ClientWidth = 682
       ImageIndex = 80
       object radioOnce: TRadioButton
         AnchorSideLeft.Control = tabScheduling
         AnchorSideTop.Control = dateOnce
         AnchorSideTop.Side = asrCenter
-        Left = 6
-        Height = 24
-        Top = 8
-        Width = 78
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 19
+        Top = 7
+        Width = 65
+        BorderSpacing.Around = 5
         Caption = 'Once, at:'
         Checked = True
         TabOrder = 0
@@ -318,26 +324,26 @@ object frmEventEditor: TfrmEventEditor
         AnchorSideLeft.Control = tabScheduling
         AnchorSideTop.Control = editEveryQuantity
         AnchorSideTop.Side = asrCenter
-        Left = 6
-        Height = 24
-        Top = 42
-        Width = 56
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 19
+        Top = 35
+        Width = 46
+        BorderSpacing.Around = 5
         Caption = 'Every'
         TabOrder = 3
         OnClick = radioScheduleClick
       end
       object dateOnce: TDateTimePicker
         AnchorSideTop.Control = tabScheduling
-        Left = 120
-        Height = 28
-        Top = 6
-        Width = 99
+        Left = 96
+        Height = 23
+        Top = 5
+        Width = 79
         CenturyFrom = 1941
         MaxDate = 2958465
         MinDate = -53780
         TabOrder = 1
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         TrailingSeparator = False
         TextForNullDate = 'NULL'
         LeadingZeros = True
@@ -356,15 +362,15 @@ object frmEventEditor: TfrmEventEditor
         AnchorSideLeft.Control = dateOnce
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = tabScheduling
-        Left = 225
-        Height = 28
-        Top = 6
-        Width = 81
+        Left = 180
+        Height = 23
+        Top = 5
+        Width = 65
         CenturyFrom = 1941
         MaxDate = 2958465
         MinDate = -53780
         TabOrder = 2
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         TrailingSeparator = False
         TextForNullDate = 'NULL'
         LeadingZeros = True
@@ -382,11 +388,11 @@ object frmEventEditor: TfrmEventEditor
       object editEveryQuantity: TEdit
         AnchorSideTop.Control = dateOnce
         AnchorSideTop.Side = asrBottom
-        Left = 120
-        Height = 28
-        Top = 40
-        Width = 66
-        BorderSpacing.Around = 6
+        Left = 96
+        Height = 23
+        Top = 33
+        Width = 53
+        BorderSpacing.Around = 5
         TabOrder = 4
         Text = '1'
         OnChange = Modification
@@ -396,12 +402,12 @@ object frmEventEditor: TfrmEventEditor
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = dateOnce
         AnchorSideTop.Side = asrBottom
-        Left = 192
-        Height = 28
-        Top = 40
-        Width = 166
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 154
+        Height = 23
+        Top = 33
+        Width = 133
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 5
         OnChange = comboEveryIntervalChange
@@ -409,11 +415,11 @@ object frmEventEditor: TfrmEventEditor
       object chkStarts: TCheckBox
         AnchorSideTop.Control = dateStarts
         AnchorSideTop.Side = asrCenter
-        Left = 120
-        Height = 24
-        Top = 76
-        Width = 78
-        BorderSpacing.Around = 6
+        Left = 96
+        Height = 19
+        Top = 63
+        Width = 63
+        BorderSpacing.Around = 5
         Caption = 'Starts at:'
         TabOrder = 6
         OnClick = chkStartsEndsClick
@@ -421,11 +427,11 @@ object frmEventEditor: TfrmEventEditor
       object chkEnds: TCheckBox
         AnchorSideTop.Control = dateEnds
         AnchorSideTop.Side = asrCenter
-        Left = 120
-        Height = 24
-        Top = 110
-        Width = 72
-        BorderSpacing.Around = 6
+        Left = 96
+        Height = 19
+        Top = 91
+        Width = 59
+        BorderSpacing.Around = 5
         Caption = 'Ends at:'
         TabOrder = 10
         OnClick = chkStartsEndsClick
@@ -433,15 +439,15 @@ object frmEventEditor: TfrmEventEditor
       object dateStarts: TDateTimePicker
         AnchorSideTop.Control = editEveryQuantity
         AnchorSideTop.Side = asrBottom
-        Left = 214
-        Height = 28
-        Top = 74
-        Width = 99
+        Left = 171
+        Height = 23
+        Top = 61
+        Width = 79
         CenturyFrom = 1941
         MaxDate = 2958465
         MinDate = -53780
         TabOrder = 7
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         TrailingSeparator = False
         TextForNullDate = 'NULL'
         LeadingZeros = True
@@ -461,15 +467,15 @@ object frmEventEditor: TfrmEventEditor
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = editEveryQuantity
         AnchorSideTop.Side = asrBottom
-        Left = 319
-        Height = 28
-        Top = 74
-        Width = 81
+        Left = 255
+        Height = 23
+        Top = 61
+        Width = 65
         CenturyFrom = 1941
         MaxDate = 2958465
         MinDate = -53780
         TabOrder = 8
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         TrailingSeparator = False
         TextForNullDate = 'NULL'
         LeadingZeros = True
@@ -489,15 +495,15 @@ object frmEventEditor: TfrmEventEditor
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = timeStarts
         AnchorSideTop.Side = asrBottom
-        Left = 319
-        Height = 28
-        Top = 108
-        Width = 81
+        Left = 255
+        Height = 23
+        Top = 89
+        Width = 65
         CenturyFrom = 1941
         MaxDate = 2958465
         MinDate = -53780
         TabOrder = 9
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         TrailingSeparator = False
         TextForNullDate = 'NULL'
         LeadingZeros = True
@@ -515,15 +521,15 @@ object frmEventEditor: TfrmEventEditor
       object dateEnds: TDateTimePicker
         AnchorSideTop.Control = dateStarts
         AnchorSideTop.Side = asrBottom
-        Left = 214
-        Height = 28
-        Top = 108
-        Width = 99
+        Left = 171
+        Height = 23
+        Top = 89
+        Width = 79
         CenturyFrom = 1941
         MaxDate = 2958465
         MinDate = -53780
         TabOrder = 11
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         TrailingSeparator = False
         TextForNullDate = 'NULL'
         LeadingZeros = True
@@ -541,14 +547,14 @@ object frmEventEditor: TfrmEventEditor
     end
     object tabCREATEcode: TTabSheet
       Caption = 'CREATE code'
-      ClientHeight = 142
-      ClientWidth = 855
+      ClientHeight = 117
+      ClientWidth = 682
       ImageIndex = 119
       inline SynMemoCREATEcode: TSynEdit
         Left = 0
-        Height = 142
+        Height = 117
         Top = 0
-        Width = 855
+        Width = 682
         Align = alClient
         Font.Height = -13
         Font.Name = 'Courier New'
@@ -558,7 +564,7 @@ object frmEventEditor: TfrmEventEditor
         ParentFont = False
         TabOrder = 0
         Gutter.LeftOffset = 2
-        Gutter.Width = 70
+        Gutter.Width = 59
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -594,8 +600,12 @@ object frmEventEditor: TfrmEventEditor
         LineHighlightColor.Foreground = clNone
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
-            Width = 30
+            Width = 24
             MouseActions = <>
+            MaxExtraMarksColums = 0
+            Options = [sgmoDeDuplicateMarksOnOverflow]
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
             Width = 17
@@ -608,19 +618,21 @@ object frmEventEditor: TfrmEventEditor
             LeadingZeros = False
           end
           object SynGutterChanges1: TSynGutterChanges
-            Width = 5
+            Width = 4
             MouseActions = <>
             ModifiedColor = 59900
             SavedColor = clGreen
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGreen
+            MarkupInfo.FrameColor = 59900
           end
           object SynGutterSeparator1: TSynGutterSeparator
-            Width = 3
+            Width = 2
             MouseActions = <>
             MarkupInfo.Background = clWhite
             MarkupInfo.Foreground = clGray
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
-            Width = 13
             MouseActions = <>
             MarkupInfo.Background = clNone
             MarkupInfo.Foreground = clGray
@@ -632,15 +644,15 @@ object frmEventEditor: TfrmEventEditor
     end
     object tabALTERcode: TTabSheet
       Caption = 'ALTER code'
-      ClientHeight = 142
-      ClientWidth = 855
+      ClientHeight = 117
+      ClientWidth = 682
       ImageIndex = 119
       TabVisible = False
       inline SynMemoALTERcode: TSynEdit
         Left = 0
-        Height = 142
+        Height = 117
         Top = 0
-        Width = 855
+        Width = 682
         Align = alClient
         Font.Height = -13
         Font.Name = 'Courier New'
@@ -650,7 +662,7 @@ object frmEventEditor: TfrmEventEditor
         ParentFont = False
         TabOrder = 0
         Gutter.LeftOffset = 2
-        Gutter.Width = 70
+        Gutter.Width = 59
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -686,8 +698,12 @@ object frmEventEditor: TfrmEventEditor
         LineHighlightColor.Foreground = clNone
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
-            Width = 30
+            Width = 24
             MouseActions = <>
+            MaxExtraMarksColums = 0
+            Options = [sgmoDeDuplicateMarksOnOverflow]
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
             Width = 17
@@ -700,19 +716,21 @@ object frmEventEditor: TfrmEventEditor
             LeadingZeros = False
           end
           object SynGutterChanges1: TSynGutterChanges
-            Width = 5
+            Width = 4
             MouseActions = <>
             ModifiedColor = 59900
             SavedColor = clGreen
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGreen
+            MarkupInfo.FrameColor = 59900
           end
           object SynGutterSeparator1: TSynGutterSeparator
-            Width = 3
+            Width = 2
             MouseActions = <>
             MarkupInfo.Background = clWhite
             MarkupInfo.Foreground = clGray
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
-            Width = 13
             MouseActions = <>
             MarkupInfo.Background = clNone
             MarkupInfo.Foreground = clGray

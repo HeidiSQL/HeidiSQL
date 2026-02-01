@@ -1,18 +1,18 @@
 object frmBinEditor: TfrmBinEditor
   Left = 0
-  Height = 119
+  Height = 95
   Top = 0
-  Width = 269
+  Width = 215
   Caption = 'Binary editor'
-  ClientHeight = 119
-  ClientWidth = 269
+  ClientHeight = 95
+  ClientWidth = 215
   Color = clBtnFace
-  DesignTimePPI = 120
+  Position = poMainFormCenter
+  LCLVersion = '4.4.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  Position = poMainFormCenter
   object lblTextLength: TLabel
     AnchorSideLeft.Control = tlbStandard
     AnchorSideLeft.Side = asrBottom
@@ -20,12 +20,12 @@ object frmBinEditor: TfrmBinEditor
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = tlbStandard
     AnchorSideBottom.Side = asrCenter
-    Left = 133
-    Height = 20
-    Top = 89
-    Width = 130
+    Left = 107
+    Height = 15
+    Top = 71
+    Width = 103
     Anchors = [akLeft, akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'lblTextLength'
     ParentBidiMode = False
   end
@@ -35,13 +35,13 @@ object frmBinEditor: TfrmBinEditor
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = tlbStandard
-    Left = 6
-    Height = 73
-    Top = 6
-    Width = 257
+    Left = 5
+    Height = 58
+    Top = 5
+    Width = 205
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Lines.Strings = (
       'memoText'
     )
@@ -55,13 +55,13 @@ object frmBinEditor: TfrmBinEditor
     AnchorSideLeft.Control = Owner
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 6
-    Height = 28
-    Top = 85
-    Width = 121
+    Left = 5
+    Height = 22
+    Top = 68
+    Width = 97
     Align = alNone
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'tlbStandard'
     Images = MainForm.ImageListMain
     ParentShowHint = False
@@ -76,7 +76,7 @@ object frmBinEditor: TfrmBinEditor
       OnClick = btnWrapClick
     end
     object btnLoadBinary: TToolButton
-      Left = 30
+      Left = 24
       Hint = 'Load binary file'
       Top = 2
       Caption = 'Load binary file'
@@ -84,7 +84,7 @@ object frmBinEditor: TfrmBinEditor
       OnClick = btnLoadBinaryClick
     end
     object btnCancel: TToolButton
-      Left = 59
+      Left = 47
       Hint = 'Cancel'
       Top = 2
       Caption = 'Cancel'
@@ -92,7 +92,7 @@ object frmBinEditor: TfrmBinEditor
       OnClick = btnCancelClick
     end
     object btnApply: TToolButton
-      Left = 88
+      Left = 70
       Hint = 'Apply changes'
       Top = 2
       Caption = 'Apply changes'

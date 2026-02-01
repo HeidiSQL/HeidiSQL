@@ -1,25 +1,25 @@
 object CreateDatabaseForm: TCreateDatabaseForm
   Left = 0
-  Height = 284
+  Height = 227
   Top = 0
-  Width = 396
+  Width = 317
   Caption = 'Create database ...'
-  ClientHeight = 284
-  ClientWidth = 396
+  ClientHeight = 227
+  ClientWidth = 317
   Color = clBtnFace
-  DesignTimePPI = 120
   Position = poOwnerFormCenter
+  LCLVersion = '4.4.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
   object lblDBName: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    Left = 6
-    Height = 20
-    Top = 6
-    Width = 43
-    BorderSpacing.Around = 6
+    Left = 5
+    Height = 15
+    Top = 5
+    Width = 35
+    BorderSpacing.Around = 5
     Caption = '&Name:'
     FocusControl = editDBName
   end
@@ -27,11 +27,11 @@ object CreateDatabaseForm: TCreateDatabaseForm
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = editDBName
     AnchorSideTop.Side = asrBottom
-    Left = 6
-    Height = 20
-    Top = 40
-    Width = 63
-    BorderSpacing.Around = 6
+    Left = 5
+    Height = 15
+    Top = 33
+    Width = 51
+    BorderSpacing.Around = 5
     Caption = 'C&ollation:'
     FocusControl = comboCollation
   end
@@ -41,11 +41,11 @@ object CreateDatabaseForm: TCreateDatabaseForm
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 6
-    Height = 20
-    Top = 136
-    Width = 88
-    BorderSpacing.Around = 6
+    Left = 5
+    Height = 15
+    Top = 111
+    Width = 70
+    BorderSpacing.Around = 5
     Caption = 'CREATE code'
   end
   object lblServerDefaultCollation: TLabel
@@ -53,23 +53,23 @@ object CreateDatabaseForm: TCreateDatabaseForm
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 120
-    Height = 20
-    Top = 74
-    Width = 101
-    BorderSpacing.Around = 6
+    Left = 96
+    Height = 15
+    Top = 61
+    Width = 80
+    BorderSpacing.Around = 5
     Caption = 'Servers default:'
   end
   object editDBName: TEdit
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 120
-    Height = 28
-    Top = 6
-    Width = 270
+    Left = 96
+    Height = 23
+    Top = 5
+    Width = 216
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     TabOrder = 0
     TextHint = 'Enter database name'
     OnChange = Modified
@@ -78,15 +78,15 @@ object CreateDatabaseForm: TCreateDatabaseForm
     AnchorSideTop.Control = lblServerDefaultCollation
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = btnCancel
-    Left = 184
-    Height = 30
-    Top = 100
-    Width = 100
+    Left = 147
+    Height = 25
+    Top = 81
+    Width = 80
     Anchors = [akTop, akRight]
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'OK'
-    Constraints.MinWidth = 100
+    Constraints.MinWidth = 80
     Default = True
     TabOrder = 2
     OnClick = btnOKClick
@@ -96,16 +96,16 @@ object CreateDatabaseForm: TCreateDatabaseForm
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 290
-    Height = 30
-    Top = 100
-    Width = 100
+    Left = 232
+    Height = 25
+    Top = 81
+    Width = 80
     Anchors = [akTop, akRight]
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Cancel = True
     Caption = 'Cancel'
-    Constraints.MinWidth = 100
+    Constraints.MinWidth = 80
     ModalResult = 2
     TabOrder = 3
   end
@@ -114,14 +114,14 @@ object CreateDatabaseForm: TCreateDatabaseForm
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 120
-    Height = 28
-    Top = 40
-    Width = 270
+    Left = 96
+    Height = 23
+    Top = 33
+    Width = 216
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     DropDownCount = 16
-    ItemHeight = 20
+    ItemHeight = 15
     Sorted = True
     Style = csDropDownList
     TabOrder = 1
@@ -135,14 +135,14 @@ object CreateDatabaseForm: TCreateDatabaseForm
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 6
-    Height = 116
-    Top = 162
-    Width = 384
-    BorderSpacing.Around = 6
+    Left = 5
+    Height = 91
+    Top = 131
+    Width = 307
+    BorderSpacing.Around = 5
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.Color = clWindowText
-    Font.Height = -16
+    Font.Height = -13
     Font.Name = 'Courier New'
     Font.Pitch = fpFixed
     Font.Quality = fqCleartypeNatural
@@ -150,7 +150,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
     ParentFont = False
     TabOrder = 4
     Gutter.Visible = False
-    Gutter.Width = 72
+    Gutter.Width = 57
     Gutter.MouseActions = <>
     RightGutter.Width = 0
     RightGutter.MouseActions = <>
@@ -183,11 +183,15 @@ object CreateDatabaseForm: TCreateDatabaseForm
     LineHighlightColor.Foreground = clNone
     inline SynLeftGutterPartList1: TSynGutterPartList
       object SynGutterMarks1: TSynGutterMarks
-        Width = 30
+        Width = 24
         MouseActions = <>
+        MaxExtraMarksColums = 0
+        Options = [sgmoDeDuplicateMarksOnOverflow]
+        MarkupInfo.Background = clBtnFace
+        MarkupInfo.Foreground = clNone
       end
       object SynGutterLineNumber1: TSynGutterLineNumber
-        Width = 21
+        Width = 17
         MouseActions = <>
         MarkupInfo.Background = clBtnFace
         MarkupInfo.Foreground = clNone
@@ -197,19 +201,21 @@ object CreateDatabaseForm: TCreateDatabaseForm
         LeadingZeros = False
       end
       object SynGutterChanges1: TSynGutterChanges
-        Width = 5
+        Width = 4
         MouseActions = <>
         ModifiedColor = 59900
         SavedColor = clGreen
+        MarkupInfo.Background = clNone
+        MarkupInfo.Foreground = clGreen
+        MarkupInfo.FrameColor = 59900
       end
       object SynGutterSeparator1: TSynGutterSeparator
-        Width = 3
+        Width = 2
         MouseActions = <>
         MarkupInfo.Background = clWhite
         MarkupInfo.Foreground = clGray
       end
       object SynGutterCodeFolding1: TSynGutterCodeFolding
-        Width = 13
         MouseActions = <>
         MarkupInfo.Background = clNone
         MarkupInfo.Foreground = clGray

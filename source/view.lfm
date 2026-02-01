@@ -1,19 +1,19 @@
 object frmView: TfrmView
   Left = 0
-  Height = 625
+  Height = 500
   Top = 0
-  Width = 875
-  ClientHeight = 625
-  ClientWidth = 875
-  DesignTimePPI = 120
+  Width = 700
+  ClientHeight = 500
+  ClientWidth = 700
+  LCLVersion = '4.4.0.0'
   ParentFont = False
   TabOrder = 0
   object lblSelect: TLabel
-    Left = 4
-    Height = 20
-    Top = 186
-    Width = 113
-    BorderSpacing.Around = 6
+    Left = 3
+    Height = 15
+    Top = 149
+    Width = 90
+    BorderSpacing.Around = 5
     Caption = 'Select statement:'
   end
   object lblDisabledWhy: TLabel
@@ -23,13 +23,13 @@ object frmView: TfrmView
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 306
-    Height = 31
-    Top = 588
-    Width = 563
+    Left = 245
+    Height = 25
+    Top = 470
+    Width = 450
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = False
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'You need the SHOW VIEW privilege in order to edit a view.'
     Layout = tlCenter
     Visible = False
@@ -41,11 +41,11 @@ object frmView: TfrmView
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnSave
-    Left = 6
-    Height = 360
-    Top = 222
-    Width = 863
-    BorderSpacing.Around = 6
+    Left = 5
+    Height = 284
+    Top = 181
+    Width = 690
+    BorderSpacing.Around = 5
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.Color = clWindowText
     Font.Height = -13
@@ -56,7 +56,7 @@ object frmView: TfrmView
     ParentFont = False
     TabOrder = 1
     Gutter.LeftOffset = 2
-    Gutter.Width = 70
+    Gutter.Width = 59
     Gutter.MouseActions = <>
     RightGutter.Width = 0
     RightGutter.MouseActions = <>
@@ -88,8 +88,12 @@ object frmView: TfrmView
     OnChange = Modification
     inline SynLeftGutterPartList1: TSynGutterPartList
       object SynGutterMarks1: TSynGutterMarks
-        Width = 30
+        Width = 24
         MouseActions = <>
+        MaxExtraMarksColums = 0
+        Options = [sgmoDeDuplicateMarksOnOverflow]
+        MarkupInfo.Background = clBtnFace
+        MarkupInfo.Foreground = clNone
       end
       object SynGutterLineNumber1: TSynGutterLineNumber
         Width = 17
@@ -102,19 +106,21 @@ object frmView: TfrmView
         LeadingZeros = False
       end
       object SynGutterChanges1: TSynGutterChanges
-        Width = 5
+        Width = 4
         MouseActions = <>
         ModifiedColor = 59900
         SavedColor = clGreen
+        MarkupInfo.Background = clNone
+        MarkupInfo.Foreground = clGreen
+        MarkupInfo.FrameColor = 59900
       end
       object SynGutterSeparator1: TSynGutterSeparator
-        Width = 3
+        Width = 2
         MouseActions = <>
         MarkupInfo.Background = clWhite
         MarkupInfo.Foreground = clGray
       end
       object SynGutterCodeFolding1: TSynGutterCodeFolding
-        Width = 13
         MouseActions = <>
         MarkupInfo.Background = clNone
         MarkupInfo.Foreground = clGray
@@ -128,12 +134,12 @@ object frmView: TfrmView
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 106
-    Height = 31
-    Top = 588
-    Width = 94
+    Left = 85
+    Height = 25
+    Top = 470
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Discard'
     TabOrder = 3
     OnClick = btnDiscardClick
@@ -143,12 +149,12 @@ object frmView: TfrmView
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 206
-    Height = 31
-    Top = 588
-    Width = 94
+    Left = 165
+    Height = 25
+    Top = 470
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Save'
     Default = True
     TabOrder = 4
@@ -158,12 +164,12 @@ object frmView: TfrmView
     AnchorSideLeft.Control = Owner
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 6
-    Height = 31
-    Top = 588
-    Width = 94
+    Left = 5
+    Height = 25
+    Top = 470
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Help'
     TabOrder = 2
     OnClick = btnHelpClick
@@ -173,42 +179,42 @@ object frmView: TfrmView
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 6
-    Height = 210
-    Top = 6
-    Width = 863
+    Left = 5
+    Height = 171
+    Top = 5
+    Width = 690
     ActivePage = tabOptions
     Align = alTop
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Images = MainForm.ImageListMain
     TabIndex = 0
     TabOrder = 0
     OnChange = PageControlMainChange
     object tabOptions: TTabSheet
       Caption = 'Options'
-      ClientHeight = 177
-      ClientWidth = 855
+      ClientHeight = 143
+      ClientWidth = 682
       ImageIndex = 14
       object lblName: TLabel
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = tabOptions
-        Left = 6
-        Height = 20
-        Top = 6
-        Width = 43
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 5
+        Width = 35
+        BorderSpacing.Around = 5
         Caption = 'Name:'
       end
       object lblDefiner: TLabel
         AnchorSideLeft.Control = editName
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = tabOptions
-        Left = 499
-        Height = 20
-        Top = 6
-        Width = 52
-        BorderSpacing.Around = 6
+        Left = 399
+        Height = 15
+        Top = 5
+        Width = 41
+        BorderSpacing.Around = 5
         Caption = 'Definer:'
       end
       object lblSecurity: TLabel
@@ -218,11 +224,11 @@ object frmView: TfrmView
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
-        Left = 499
-        Height = 20
-        Top = 40
-        Width = 83
-        BorderSpacing.Around = 6
+        Left = 399
+        Height = 15
+        Top = 33
+        Width = 68
+        BorderSpacing.Around = 5
         Caption = 'SQL security:'
       end
       object rgAlgorithm: TRadioGroup
@@ -232,13 +238,13 @@ object frmView: TfrmView
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = tabOptions
         AnchorSideBottom.Side = asrBottom
-        Left = 6
-        Height = 97
-        Top = 74
-        Width = 486
+        Left = 5
+        Height = 77
+        Top = 61
+        Width = 389
         Anchors = [akTop, akLeft, akBottom]
         AutoFill = True
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Algorithm'
         ChildSizing.LeftRightSpacing = 6
         ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
@@ -247,24 +253,24 @@ object frmView: TfrmView
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 72
-        ClientWidth = 482
+        ClientHeight = 57
+        ClientWidth = 385
         ItemIndex = 0
         Items.Strings = (
           'UNDEFINED'
           'MERGE'
           'TEMPTABLE'
         )
-        OnClick = Modification
         TabOrder = 3
+        OnClick = Modification
       end
       object editName: TEdit
         AnchorSideTop.Control = tabOptions
-        Left = 105
-        Height = 28
-        Top = 6
-        Width = 388
-        BorderSpacing.Around = 6
+        Left = 84
+        Height = 23
+        Top = 5
+        Width = 310
+        BorderSpacing.Around = 5
         TabOrder = 0
         Text = 'editName'
         TextHint = 'Enter view name'
@@ -274,13 +280,13 @@ object frmView: TfrmView
         AnchorSideTop.Control = tabOptions
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
-        Left = 606
-        Height = 28
-        Top = 6
-        Width = 243
+        Left = 485
+        Height = 23
+        Top = 5
+        Width = 192
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         TabOrder = 1
         Text = 'comboDefiner'
         OnChange = Modification
@@ -291,13 +297,13 @@ object frmView: TfrmView
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
-        Left = 606
-        Height = 28
-        Top = 40
-        Width = 243
+        Left = 485
+        Height = 23
+        Top = 33
+        Width = 192
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 2
         OnChange = Modification
@@ -311,14 +317,14 @@ object frmView: TfrmView
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = tabOptions
         AnchorSideBottom.Side = asrBottom
-        Left = 498
-        Height = 97
-        Top = 74
-        Width = 351
+        Left = 399
+        Height = 77
+        Top = 61
+        Width = 278
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoFill = True
         AutoSize = True
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Check option for updates'
         ChildSizing.LeftRightSpacing = 6
         ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
@@ -327,28 +333,28 @@ object frmView: TfrmView
         ChildSizing.ShrinkVertical = crsScaleChilds
         ChildSizing.Layout = cclLeftToRightThenTopToBottom
         ChildSizing.ControlsPerLine = 1
-        ClientHeight = 72
-        ClientWidth = 347
+        ClientHeight = 57
+        ClientWidth = 274
         ItemIndex = 0
         Items.Strings = (
           'None'
           'CASCADED'
           'LOCAL'
         )
-        OnClick = Modification
         TabOrder = 4
+        OnClick = Modification
       end
     end
     object tabCreateCode: TTabSheet
       Caption = 'CREATE code'
-      ClientHeight = 177
-      ClientWidth = 855
+      ClientHeight = 143
+      ClientWidth = 682
       ImageIndex = 39
       inline SynMemoCreateCode: TSynEdit
         Left = 0
-        Height = 177
+        Height = 143
         Top = 0
-        Width = 855
+        Width = 682
         Align = alClient
         Font.Color = clWindowText
         Font.Height = -13
@@ -358,7 +364,7 @@ object frmView: TfrmView
         ParentColor = False
         ParentFont = False
         TabOrder = 0
-        Gutter.Width = 68
+        Gutter.Width = 57
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -388,8 +394,12 @@ object frmView: TfrmView
         LineHighlightColor.Foreground = clNone
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
-            Width = 30
+            Width = 24
             MouseActions = <>
+            MaxExtraMarksColums = 0
+            Options = [sgmoDeDuplicateMarksOnOverflow]
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
             Width = 17
@@ -402,19 +412,21 @@ object frmView: TfrmView
             LeadingZeros = False
           end
           object SynGutterChanges1: TSynGutterChanges
-            Width = 5
+            Width = 4
             MouseActions = <>
             ModifiedColor = 59900
             SavedColor = clGreen
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGreen
+            MarkupInfo.FrameColor = 59900
           end
           object SynGutterSeparator1: TSynGutterSeparator
-            Width = 3
+            Width = 2
             MouseActions = <>
             MarkupInfo.Background = clWhite
             MarkupInfo.Foreground = clGray
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
-            Width = 13
             MouseActions = <>
             MarkupInfo.Background = clNone
             MarkupInfo.Foreground = clGray

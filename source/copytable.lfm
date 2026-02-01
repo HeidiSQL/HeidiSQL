@@ -1,14 +1,14 @@
 object CopyTableForm: TCopyTableForm
   Left = 393
-  Height = 380
+  Height = 304
   Top = 115
-  Width = 455
+  Width = 364
   Caption = 'Copy Table...'
-  ClientHeight = 380
-  ClientWidth = 455
+  ClientHeight = 304
+  ClientWidth = 364
   Color = clBtnFace
-  DesignTimePPI = 120
   Position = poMainFormCenter
+  LCLVersion = '4.4.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -17,35 +17,35 @@ object CopyTableForm: TCopyTableForm
   object lblNewTablename: TLabel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    Left = 6
-    Height = 20
-    Top = 6
-    Width = 179
-    BorderSpacing.Left = 6
-    BorderSpacing.Top = 6
+    Left = 5
+    Height = 15
+    Top = 5
+    Width = 144
+    BorderSpacing.Left = 5
+    BorderSpacing.Top = 5
     Caption = 'Copy "%s" to new db.table:'
   end
   object lblItems: TLabel
     AnchorSideLeft.Control = comboDatabase
     AnchorSideTop.Control = editNewTablename
     AnchorSideTop.Side = asrBottom
-    Left = 6
-    Height = 20
-    Top = 66
-    Width = 211
-    BorderSpacing.Top = 6
+    Left = 5
+    Height = 15
+    Top = 53
+    Width = 167
+    BorderSpacing.Top = 5
     Caption = 'Elements to create in new table:'
   end
   object lblWhere: TLabel
     AnchorSideLeft.Control = TreeElements
     AnchorSideTop.Side = asrBottom
     AnchorSideBottom.Control = MemoFilter
-    Left = 6
-    Height = 20
-    Top = 220
-    Width = 212
+    Left = 5
+    Height = 15
+    Top = 176
+    Width = 168
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Bottom = 6
+    BorderSpacing.Bottom = 5
     Caption = 'WHERE clause for data copying:'
   end
   object editNewTablename: TEdit
@@ -55,14 +55,14 @@ object CopyTableForm: TCopyTableForm
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 193
-    Height = 28
-    Top = 32
-    Width = 256
+    Left = 155
+    Height = 23
+    Top = 25
+    Width = 204
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 6
-    BorderSpacing.Top = 6
-    BorderSpacing.Right = 6
+    BorderSpacing.Left = 5
+    BorderSpacing.Top = 5
+    BorderSpacing.Right = 5
     TabOrder = 1
     OnChange = editNewTablenameChange
   end
@@ -71,13 +71,13 @@ object CopyTableForm: TCopyTableForm
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 345
-    Height = 31
-    Top = 343
-    Width = 104
+    Left = 276
+    Height = 25
+    Top = 274
+    Width = 83
     Anchors = [akRight, akBottom]
-    BorderSpacing.Right = 6
-    BorderSpacing.Bottom = 6
+    BorderSpacing.Right = 5
+    BorderSpacing.Bottom = 5
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
@@ -87,12 +87,12 @@ object CopyTableForm: TCopyTableForm
     AnchorSideLeft.Control = lblNewTablename
     AnchorSideTop.Control = lblNewTablename
     AnchorSideTop.Side = asrBottom
-    Left = 6
-    Height = 28
-    Top = 32
-    Width = 181
-    BorderSpacing.Top = 6
-    ItemHeight = 20
+    Left = 5
+    Height = 23
+    Top = 25
+    Width = 145
+    BorderSpacing.Top = 5
+    ItemHeight = 15
     Style = csDropDownList
     TabOrder = 0
   end
@@ -100,13 +100,13 @@ object CopyTableForm: TCopyTableForm
     AnchorSideRight.Control = btnCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 235
-    Height = 31
-    Top = 343
-    Width = 104
+    Left = 188
+    Height = 25
+    Top = 274
+    Width = 83
     Anchors = [akRight, akBottom]
-    BorderSpacing.Right = 6
-    BorderSpacing.Bottom = 6
+    BorderSpacing.Right = 5
+    BorderSpacing.Bottom = 5
     Caption = 'OK'
     Default = True
     ModalResult = 1
@@ -120,14 +120,14 @@ object CopyTableForm: TCopyTableForm
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnRecentFilters
-    Left = 6
-    Height = 112
-    Top = 92
-    Width = 443
+    Left = 5
+    Height = 87
+    Top = 73
+    Width = 354
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Top = 6
-    BorderSpacing.Right = 6
-    BorderSpacing.Bottom = 6
+    BorderSpacing.Top = 5
+    BorderSpacing.Right = 5
+    BorderSpacing.Bottom = 5
     Header.AutoSizeIndex = 0
     Header.Columns = <>
     Header.MainColumn = -1
@@ -147,15 +147,15 @@ object CopyTableForm: TCopyTableForm
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnOK
-    Left = 6
-    Height = 91
-    Top = 246
-    Width = 443
-    BorderSpacing.Right = 6
-    BorderSpacing.Bottom = 6
+    Left = 5
+    Height = 73
+    Top = 196
+    Width = 354
+    BorderSpacing.Right = 5
+    BorderSpacing.Bottom = 5
     Anchors = [akLeft, akRight, akBottom]
     Font.Color = clGrayText
-    Font.Height = -16
+    Font.Height = -13
     Font.Name = 'Courier New'
     Font.Pitch = fpFixed
     Font.Quality = fqNonAntialiased
@@ -200,21 +200,21 @@ object CopyTableForm: TCopyTableForm
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = MemoFilter
-    Left = 333
-    Height = 30
-    Top = 210
-    Width = 116
+    Left = 261
+    Height = 26
+    Top = 165
+    Width = 98
     Anchors = [akRight, akBottom]
     AutoSize = True
-    BorderSpacing.Right = 6
-    BorderSpacing.Bottom = 6
+    BorderSpacing.Right = 5
+    BorderSpacing.Bottom = 5
     Caption = 'Recent filters'
     Images = MainForm.ImageListMain
     ImageIndex = 108
     OnClick = btnRecentFiltersClick
   end
   object popupRecentFilters: TPopupMenu
-    Left = 260
-    Top = 200
+    Left = 208
+    Top = 160
   end
 end

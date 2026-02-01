@@ -1,30 +1,30 @@
 object frmPreferences: TfrmPreferences
   Left = 547
-  Height = 602
+  Height = 482
   Top = 163
-  Width = 890
+  Width = 712
   BorderIcons = [biSystemMenu]
   Caption = 'Preferences'
-  ClientHeight = 602
-  ClientWidth = 890
-  Constraints.MinHeight = 350
-  Constraints.MinWidth = 375
-  DesignTimePPI = 120
+  ClientHeight = 482
+  ClientWidth = 712
+  Constraints.MinHeight = 280
+  Constraints.MinWidth = 300
   Position = poMainFormCenter
+  LCLVersion = '4.4.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   object pagecontrolMain: TPageControl
     AnchorSideBottom.Control = btnOK
-    Left = 6
-    Height = 554
-    Top = 6
-    Width = 878
+    Left = 5
+    Height = 442
+    Top = 5
+    Width = 702
     ActivePage = tabMisc
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Images = MainForm.ImageListMain
     TabIndex = 0
     TabOrder = 4
@@ -32,40 +32,40 @@ object frmPreferences: TfrmPreferences
     OnChanging = pagecontrolMainChanging
     object tabMisc: TTabSheet
       Caption = 'General'
-      ClientHeight = 521
-      ClientWidth = 870
+      ClientHeight = 414
+      ClientWidth = 694
       ImageIndex = 137
       object lblMySQLBinaries: TLabel
         AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = chkColorBars
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 224
-        Width = 216
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 180
+        Width = 175
+        BorderSpacing.Around = 5
         Caption = 'MySQL command line programs:'
       end
       object lblLanguage: TLabel
         AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = editTerminal
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 292
-        Width = 156
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 236
+        Width = 124
+        BorderSpacing.Around = 5
         Caption = 'Application language: *'
       end
       object lblGUIFont: TLabel
         AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = comboAppLanguage
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 326
-        Width = 68
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 264
+        Width = 55
+        BorderSpacing.Around = 5
         Caption = 'GUI font: *'
       end
       object lblGUIFontSize: TLabel
@@ -73,56 +73,56 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabMisc
         AnchorSideRight.Side = asrBottom
-        Left = 850
-        Height = 20
-        Top = 326
-        Width = 14
+        Left = 678
+        Height = 15
+        Top = 264
+        Width = 11
         Anchors = [akTop, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'pt'
       end
       object lblTheme: TLabel
         AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = comboGUIFont
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 360
-        Width = 58
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 292
+        Width = 48
+        BorderSpacing.Around = 5
         Caption = 'Theme: *'
       end
       object lblIconPack: TLabel
         AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = comboTheme
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 394
-        Width = 66
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 320
+        Width = 54
+        BorderSpacing.Around = 5
         Caption = 'Icon pack:'
       end
       object lblWebSearchBaseUrl: TLabel
         AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = comboIconPack
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
+        Left = 5
+        Height = 15
         Hint = 'Used in footer of various message dialogs'
-        Top = 428
-        Width = 135
-        BorderSpacing.Around = 6
+        Top = 348
+        Width = 108
+        BorderSpacing.Around = 5
         Caption = 'Web search base url:'
       end
       object chkAutoReconnect: TCheckBox
         AnchorSideTop.Control = chkAllowMultiInstances
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 40
-        Width = 454
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 32
+        Width = 365
+        BorderSpacing.Around = 5
         Caption = 'Automatically reconnect to previously opened sessions on startup'
         TabOrder = 1
         OnClick = Modified
@@ -130,11 +130,11 @@ object frmPreferences: TfrmPreferences
       object chkRestoreLastDB: TCheckBox
         AnchorSideTop.Control = chkAutoReconnect
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 70
-        Width = 269
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 56
+        Width = 213
+        BorderSpacing.Around = 5
         Caption = 'Restore last used database on startup'
         Checked = True
         State = cbChecked
@@ -144,12 +144,12 @@ object frmPreferences: TfrmPreferences
       object chkUpdatecheck: TCheckBox
         AnchorSideTop.Control = chkRestoreLastDB
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
+        Left = 220
+        Height = 19
         Hint = '0 = on each application start'
-        Top = 100
-        Width = 216
-        BorderSpacing.Around = 6
+        Top = 80
+        Width = 175
+        BorderSpacing.Around = 5
         Caption = 'Check for updates each [day]:'
         TabOrder = 3
         OnClick = chkUpdatecheckClick
@@ -159,11 +159,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = chkRestoreLastDB
         AnchorSideTop.Side = asrBottom
-        Left = 497
-        Height = 28
-        Top = 100
-        Width = 54
-        BorderSpacing.Around = 6
+        Left = 400
+        Height = 23
+        Top = 80
+        Width = 43
+        BorderSpacing.Around = 5
         Enabled = False
         NumbersOnly = True
         TabOrder = 4
@@ -173,22 +173,22 @@ object frmPreferences: TfrmPreferences
       object chkDoStatistics: TCheckBox
         AnchorSideTop.Control = editUpdatecheckInterval
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
+        Left = 220
+        Height = 19
         Hint = 'This option, if enabled, will cause HeidiSQL to ping heidisql.com at most once every month.  This is used to count the used HeidiSQL and server versions.'
-        Top = 134
-        Width = 157
-        BorderSpacing.Around = 6
+        Top = 108
+        Width = 126
+        BorderSpacing.Around = 5
         Caption = 'Send usage statistics'
         TabOrder = 5
         OnClick = Modified
       end
       object chkAllowMultiInstances: TCheckBox
-        Left = 275
-        Height = 24
-        Top = 10
-        Width = 261
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 8
+        Width = 209
+        BorderSpacing.Around = 5
         Caption = 'Allow multiple application instances'
         Checked = True
         State = cbChecked
@@ -198,11 +198,11 @@ object frmPreferences: TfrmPreferences
       object chkColorBars: TCheckBox
         AnchorSideTop.Control = chkWheelZoom
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 194
-        Width = 251
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 156
+        Width = 202
+        BorderSpacing.Around = 5
         Caption = 'Display bars in various list columns'
         TabOrder = 7
         OnClick = Modified
@@ -212,13 +212,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabMisc
         AnchorSideRight.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 224
-        Width = 589
+        Left = 220
+        Height = 23
+        Top = 180
+        Width = 469
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ButtonWidth = 29
+        BorderSpacing.Around = 5
+        ButtonWidth = 23
         Images = MainForm.ImageListMain
         ImageIndex = 51
         MaxLength = 0
@@ -237,13 +237,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabMisc
         AnchorSideRight.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 292
-        Width = 589
+        Left = 220
+        Height = 23
+        Top = 236
+        Width = 469
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 9
         OnClick = Modified
@@ -253,13 +253,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Control = comboAppLanguage
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = editGUIFontSize
-        Left = 275
-        Height = 28
-        Top = 326
-        Width = 501
+        Left = 220
+        Height = 23
+        Top = 264
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 10
         OnChange = comboGUIFontChange
@@ -271,12 +271,12 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Control = comboAppLanguage
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = lblGUIFontSize
-        Left = 782
-        Height = 28
-        Top = 326
-        Width = 62
+        Left = 623
+        Height = 23
+        Top = 264
+        Width = 50
         Anchors = [akTop, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 11
         Text = '8'
@@ -285,11 +285,11 @@ object frmPreferences: TfrmPreferences
       object chkWheelZoom: TCheckBox
         AnchorSideTop.Control = chkDoStatistics
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 164
-        Width = 251
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 132
+        Width = 202
+        BorderSpacing.Around = 5
         Caption = 'Use Ctrl+Mousewheel for zooming'
         TabOrder = 6
         OnClick = Modified
@@ -300,13 +300,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabMisc
         AnchorSideRight.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 360
-        Width = 589
+        Left = 220
+        Height = 23
+        Top = 292
+        Width = 469
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 12
         OnChange = Modified
@@ -316,13 +316,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabMisc
         AnchorSideRight.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 394
-        Width = 589
+        Left = 220
+        Height = 23
+        Top = 320
+        Width = 469
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 13
         OnChange = Modified
@@ -332,13 +332,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabMisc
         AnchorSideRight.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 428
-        Width = 589
+        Left = 220
+        Height = 23
+        Top = 348
+        Width = 469
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Items.Strings = (
           'https://www.ecosia.org/search?q=%query'
           'https://www.startpage.com/do/search?query=%query'
@@ -357,11 +357,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = editMySQLBinaries
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 258
-        Width = 60
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 208
+        Width = 49
+        BorderSpacing.Around = 5
         Caption = 'Terminal:'
       end
       object editTerminal: TEditButton
@@ -369,13 +369,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabMisc
         AnchorSideRight.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 258
-        Width = 589
+        Left = 220
+        Height = 23
+        Top = 208
+        Width = 469
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ButtonWidth = 29
+        BorderSpacing.Around = 5
+        ButtonWidth = 23
         Images = MainForm.ImageListMain
         ImageIndex = 51
         MaxLength = 0
@@ -391,25 +391,25 @@ object frmPreferences: TfrmPreferences
     end
     object tabLogging: TTabSheet
       Caption = 'Logging'
-      ClientHeight = 521
-      ClientWidth = 870
+      ClientHeight = 414
+      ClientWidth = 694
       ImageIndex = 56
       object Label4: TLabel
-        Left = 10
-        Height = 20
-        Top = 14
-        Width = 52
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 11
+        Width = 41
+        BorderSpacing.Around = 5
         Caption = 'Log last'
       end
       object lblLogLinesHint: TLabel
         AnchorSideLeft.Control = editLogLines
         AnchorSideLeft.Side = asrBottom
-        Left = 347
-        Height = 20
-        Top = 14
-        Width = 102
-        BorderSpacing.Around = 6
+        Left = 278
+        Height = 15
+        Top = 11
+        Width = 81
+        BorderSpacing.Around = 5
         Caption = 'lines in SQL log'
       end
       object lblLogSnipHint: TLabel
@@ -417,31 +417,31 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = editLogLines
         AnchorSideTop.Side = asrBottom
-        Left = 347
-        Height = 20
-        Top = 44
-        Width = 189
-        BorderSpacing.Around = 6
+        Left = 278
+        Height = 15
+        Top = 36
+        Width = 151
+        BorderSpacing.Around = 5
         Caption = 'characters  (0 = no snipping)'
       end
       object lblLogSnip: TLabel
         AnchorSideTop.Control = editLogLines
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 44
-        Width = 137
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 36
+        Width = 108
+        BorderSpacing.Around = 5
         Caption = 'Snip SQL log lines to'
       end
       object lblLogLevel: TLabel
         AnchorSideTop.Control = editLogDir
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 112
-        Width = 74
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 92
+        Width = 60
+        BorderSpacing.Around = 5
         Caption = 'Log events:'
       end
       object lblQueryHistoryKeepDays: TLabel
@@ -449,20 +449,20 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = chkLogEventDebug
         AnchorSideTop.Side = asrBottom
-        Left = 508
-        Height = 20
-        Top = 298
-        Width = 289
-        BorderSpacing.Top = 6
-        BorderSpacing.Around = 6
+        Left = 408
+        Height = 15
+        Top = 241
+        Width = 229
+        BorderSpacing.Top = 5
+        BorderSpacing.Around = 5
         Caption = 'days to keep queries before removing them'
       end
       object editLogLines: TEdit
-        Left = 275
-        Height = 28
-        Top = 10
-        Width = 66
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 23
+        Top = 8
+        Width = 53
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 0
         Text = '1'
@@ -471,11 +471,11 @@ object frmPreferences: TfrmPreferences
       object editLogSnip: TEdit
         AnchorSideTop.Control = editLogLines
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 44
-        Width = 66
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 23
+        Top = 36
+        Width = 53
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 1
         Text = '2000'
@@ -484,11 +484,11 @@ object frmPreferences: TfrmPreferences
       object chkLogToFile: TCheckBox
         AnchorSideTop.Control = editLogSnip
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 78
-        Width = 156
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 64
+        Width = 123
+        BorderSpacing.Around = 5
         Caption = 'Write SQL log to file'
         TabOrder = 2
         OnClick = chkLogToFileClick
@@ -496,11 +496,11 @@ object frmPreferences: TfrmPreferences
       object chkLogEventErrors: TCheckBox
         AnchorSideTop.Control = editLogDir
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 112
-        Width = 59
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 92
+        Width = 48
+        BorderSpacing.Around = 5
         Caption = 'Errors'
         TabOrder = 4
         OnClick = Modified
@@ -508,11 +508,11 @@ object frmPreferences: TfrmPreferences
       object chkLogEventUserGeneratedSQL: TCheckBox
         AnchorSideTop.Control = chkLogEventErrors
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 142
-        Width = 206
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 116
+        Width = 164
+        BorderSpacing.Around = 5
         Caption = 'User-generated SQL queries'
         TabOrder = 5
         OnClick = Modified
@@ -520,11 +520,11 @@ object frmPreferences: TfrmPreferences
       object chkLogEventSQL: TCheckBox
         AnchorSideTop.Control = chkLogEventUserGeneratedSQL
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 172
-        Width = 153
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 140
+        Width = 123
+        BorderSpacing.Around = 5
         Caption = 'Internal SQL queries'
         TabOrder = 6
         OnClick = Modified
@@ -532,11 +532,11 @@ object frmPreferences: TfrmPreferences
       object chkLogEventInfo: TCheckBox
         AnchorSideTop.Control = chkLogEventScript
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 232
-        Width = 167
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 188
+        Width = 135
+        BorderSpacing.Around = 5
         Caption = 'Information messages'
         TabOrder = 8
         OnClick = Modified
@@ -544,11 +544,11 @@ object frmPreferences: TfrmPreferences
       object chkLogEventDebug: TCheckBox
         AnchorSideTop.Control = chkLogEventInfo
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 262
-        Width = 134
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 212
+        Width = 107
+        BorderSpacing.Around = 5
         Caption = 'Debug messages'
         TabOrder = 9
         OnClick = Modified
@@ -560,13 +560,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabLogging
         AnchorSideRight.Side = asrBottom
-        Left = 437
-        Height = 28
-        Top = 78
-        Width = 427
+        Left = 348
+        Height = 23
+        Top = 64
+        Width = 341
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ButtonWidth = 29
+        BorderSpacing.Around = 5
+        ButtonWidth = 23
         Enabled = False
         Images = MainForm.ImageListMain
         ImageIndex = 51
@@ -583,12 +583,12 @@ object frmPreferences: TfrmPreferences
       object chkQueryHistory: TCheckBox
         AnchorSideTop.Control = chkLogEventDebug
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 298
-        Width = 155
-        BorderSpacing.Top = 6
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 241
+        Width = 125
+        BorderSpacing.Top = 5
+        BorderSpacing.Around = 5
         Caption = 'Enable query history'
         TabOrder = 10
         OnClick = chkQueryHistoryClick
@@ -596,11 +596,11 @@ object frmPreferences: TfrmPreferences
       object chkHorizontalScrollbar: TCheckBox
         AnchorSideTop.Control = editQueryHistoryKeepDays
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 332
-        Width = 152
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 269
+        Width = 121
+        BorderSpacing.Around = 5
         Caption = 'Horizontal scrollbar'
         TabOrder = 12
         OnClick = Modified
@@ -610,12 +610,12 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = chkLogEventDebug
         AnchorSideTop.Side = asrBottom
-        Left = 436
-        Height = 28
-        Top = 298
-        Width = 66
-        BorderSpacing.Top = 6
-        BorderSpacing.Around = 6
+        Left = 350
+        Height = 23
+        Top = 241
+        Width = 53
+        BorderSpacing.Top = 5
+        BorderSpacing.Around = 5
         Enabled = False
         NumbersOnly = True
         TabOrder = 11
@@ -625,11 +625,11 @@ object frmPreferences: TfrmPreferences
       object chkLogEventScript: TCheckBox
         AnchorSideTop.Control = chkLogEventSQL
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 202
-        Width = 160
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 164
+        Width = 129
+        BorderSpacing.Around = 5
         Caption = 'Import/script queries'
         TabOrder = 7
         OnClick = Modified
@@ -637,11 +637,11 @@ object frmPreferences: TfrmPreferences
       object chkLogTimestamp: TCheckBox
         AnchorSideTop.Control = chkHorizontalScrollbar
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 362
-        Width = 256
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 293
+        Width = 203
+        BorderSpacing.Around = 5
         Caption = 'Add timestamp to all log messages'
         TabOrder = 13
         OnClick = Modified
@@ -649,96 +649,96 @@ object frmPreferences: TfrmPreferences
     end
     object tabSQL: TTabSheet
       Caption = 'SQL'
-      ClientHeight = 521
-      ClientWidth = 870
+      ClientHeight = 414
+      ClientWidth = 694
       ImageIndex = 57
       object lblFont: TLabel
-        Left = 10
-        Height = 20
-        Top = 14
-        Width = 74
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 11
+        Width = 59
+        BorderSpacing.Around = 5
         Caption = 'Editor font:'
       end
       object lblSQLFontSizeUnit: TLabel
         AnchorSideLeft.Control = editSQLFontSize
         AnchorSideLeft.Side = asrBottom
-        Left = 522
-        Height = 20
-        Top = 14
-        Width = 14
-        BorderSpacing.Around = 6
+        Left = 418
+        Height = 15
+        Top = 11
+        Width = 11
+        BorderSpacing.Around = 5
         Caption = 'pt'
       end
       object Label1: TLabel
         AnchorSideTop.Control = comboSQLFontName
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 44
-        Width = 67
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 36
+        Width = 55
+        BorderSpacing.Around = 5
         Caption = 'Tab width:'
       end
       object lblMaxQueryResults: TLabel
         AnchorSideTop.Control = editSQLTabWidth
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 78
-        Width = 138
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 64
+        Width = 112
+        BorderSpacing.Around = 5
         Caption = 'Maximum result sets:'
       end
       object lblSQLColElement: TLabel
         AnchorSideTop.Control = comboEditorColorsPreset
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 210
-        Width = 57
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 172
+        Width = 46
+        BorderSpacing.Around = 5
         Caption = 'Element:'
       end
       object lblSQLColBackground: TLabel
         AnchorSideTop.Control = cboxSQLColForeground
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 20
-        Top = 332
-        Width = 82
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 15
+        Top = 271
+        Width = 67
+        BorderSpacing.Around = 5
         Caption = 'Background:'
       end
       object lblSQLColForeground: TLabel
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = chkSQLItalic
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 20
-        Top = 274
-        Width = 80
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 15
+        Top = 224
+        Width = 65
+        BorderSpacing.Around = 5
         Caption = 'Foreground:'
       end
       object lblEditorColorsPreset: TLabel
         AnchorSideTop.Control = chkAutoUppercase
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 176
-        Width = 90
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 144
+        Width = 72
+        BorderSpacing.Around = 5
         Caption = 'Colors preset:'
       end
       object lblCompletionProposal: TLabel
         AnchorSideTop.Control = editMaxQueryResults
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 112
-        Width = 178
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 92
+        Width = 142
+        BorderSpacing.Around = 5
         Caption = 'Auto completion proposal:'
       end
       object lblCompletionProposalIntervalUnit: TLabel
@@ -746,21 +746,21 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = editMaxQueryResults
         AnchorSideTop.Side = asrBottom
-        Left = 407
-        Height = 20
-        Top = 112
-        Width = 19
-        BorderSpacing.Around = 6
+        Left = 326
+        Height = 15
+        Top = 92
+        Width = 16
+        BorderSpacing.Around = 5
         Caption = 'ms'
         Enabled = False
       end
       object comboSQLFontName: TComboBox
-        Left = 275
-        Height = 28
-        Top = 10
-        Width = 181
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 220
+        Height = 23
+        Top = 8
+        Width = 145
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Sorted = True
         Style = csDropDownList
         TabOrder = 0
@@ -769,11 +769,11 @@ object frmPreferences: TfrmPreferences
       object editSQLFontSize: TEdit
         AnchorSideLeft.Control = comboSQLFontName
         AnchorSideLeft.Side = asrBottom
-        Left = 462
-        Height = 28
-        Top = 10
-        Width = 54
-        BorderSpacing.Around = 6
+        Left = 370
+        Height = 23
+        Top = 8
+        Width = 43
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 1
         Text = '9'
@@ -782,11 +782,11 @@ object frmPreferences: TfrmPreferences
       object chkCompletionProposal: TCheckBox
         AnchorSideTop.Control = editMaxQueryResults
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 112
-        Width = 66
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 92
+        Width = 53
+        BorderSpacing.Around = 5
         Caption = 'Enable'
         TabOrder = 5
         OnClick = chkCompletionProposalClick
@@ -796,11 +796,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboSQLFontName
         AnchorSideTop.Side = asrBottom
-        Left = 332
-        Height = 24
-        Top = 44
-        Width = 118
-        BorderSpacing.Around = 6
+        Left = 266
+        Height = 19
+        Top = 36
+        Width = 95
+        BorderSpacing.Around = 5
         Caption = 'Tabs to spaces'
         TabOrder = 3
         OnClick = Modified
@@ -808,11 +808,11 @@ object frmPreferences: TfrmPreferences
       object editSQLTabWidth: TEdit
         AnchorSideTop.Control = comboSQLFontName
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 44
-        Width = 51
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 23
+        Top = 36
+        Width = 41
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 2
         Text = '0'
@@ -821,11 +821,11 @@ object frmPreferences: TfrmPreferences
       object editMaxQueryResults: TEdit
         AnchorSideTop.Control = editSQLTabWidth
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 78
-        Width = 51
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 23
+        Top = 64
+        Width = 41
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 4
         Text = '1'
@@ -834,12 +834,12 @@ object frmPreferences: TfrmPreferences
       object comboSQLColElement: TComboBox
         AnchorSideTop.Control = comboEditorColorsPreset
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 210
-        Width = 181
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 220
+        Height = 23
+        Top = 172
+        Width = 145
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 10
         OnChange = comboSQLColElementChange
@@ -847,11 +847,11 @@ object frmPreferences: TfrmPreferences
       object chkSQLBold: TCheckBox
         AnchorSideTop.Control = comboSQLColElement
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 244
-        Width = 52
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 200
+        Width = 42
+        BorderSpacing.Around = 5
         Caption = 'Bold'
         TabOrder = 11
         OnClick = SQLFontChange
@@ -861,11 +861,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboSQLColElement
         AnchorSideTop.Side = asrBottom
-        Left = 333
-        Height = 24
-        Top = 244
-        Width = 53
-        BorderSpacing.Around = 6
+        Left = 267
+        Height = 19
+        Top = 200
+        Width = 43
+        BorderSpacing.Around = 5
         Caption = 'Italic'
         TabOrder = 12
         OnClick = SQLFontChange
@@ -874,28 +874,28 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = lblSQLColForeground
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 26
-        Top = 300
-        Width = 181
+        Left = 220
+        Height = 22
+        Top = 244
+        Width = 145
         NoneColorColor = clNone
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 16
         TabOrder = 13
         OnChange = SQLFontChange
       end
       object cboxSQLColBackground: TColorBox
         AnchorSideTop.Control = lblSQLColBackground
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 26
-        Top = 358
-        Width = 181
+        Left = 220
+        Height = 22
+        Top = 291
+        Width = 145
         NoneColorColor = clNone
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 16
         TabOrder = 14
         OnChange = SQLFontChange
       end
@@ -909,14 +909,14 @@ object frmPreferences: TfrmPreferences
         AnchorSideBottom.Control = tabSQL
         AnchorSideBottom.Side = asrBottom
         Cursor = crHandPoint
-        Left = 462
-        Height = 339
-        Top = 176
-        Width = 402
-        BorderSpacing.Around = 6
+        Left = 370
+        Height = 265
+        Top = 144
+        Width = 319
+        BorderSpacing.Around = 5
         Anchors = [akTop, akLeft, akRight, akBottom]
         Font.Color = clWindowText
-        Font.Height = -16
+        Font.Height = -13
         Font.Name = 'Courier New'
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
@@ -925,7 +925,7 @@ object frmPreferences: TfrmPreferences
         TabOrder = 15
         OnClick = SynMemoSQLSampleClick
         Gutter.Visible = False
-        Gutter.Width = 72
+        Gutter.Width = 57
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -964,13 +964,15 @@ object frmPreferences: TfrmPreferences
         OnChange = SQLFontChange
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
-            Width = 30
+            Width = 24
             MouseActions = <>
             MaxExtraMarksColums = 0
             Options = [sgmoDeDuplicateMarksOnOverflow]
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
-            Width = 21
+            Width = 17
             MouseActions = <>
             MarkupInfo.Background = clBtnFace
             MarkupInfo.Foreground = clNone
@@ -980,19 +982,21 @@ object frmPreferences: TfrmPreferences
             LeadingZeros = False
           end
           object SynGutterChanges1: TSynGutterChanges
-            Width = 5
+            Width = 4
             MouseActions = <>
             ModifiedColor = 59900
             SavedColor = clGreen
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGreen
+            MarkupInfo.FrameColor = 59900
           end
           object SynGutterSeparator1: TSynGutterSeparator
-            Width = 3
+            Width = 2
             MouseActions = <>
             MarkupInfo.Background = clWhite
             MarkupInfo.Foreground = clGray
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
-            Width = 13
             MouseActions = <>
             MarkupInfo.Background = clNone
             MarkupInfo.Foreground = clGray
@@ -1004,12 +1008,12 @@ object frmPreferences: TfrmPreferences
       object chkAutoUppercase: TCheckBox
         AnchorSideTop.Control = editCompletionProposalInterval
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 146
-        Width = 572
+        Left = 220
+        Height = 19
+        Top = 120
+        Width = 456
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Auto uppercase reserved words and functions'
         TabOrder = 8
         OnClick = Modified
@@ -1017,12 +1021,12 @@ object frmPreferences: TfrmPreferences
       object comboEditorColorsPreset: TComboBox
         AnchorSideTop.Control = chkAutoUppercase
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 176
-        Width = 181
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 220
+        Height = 23
+        Top = 144
+        Width = 145
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 9
         OnChange = comboEditorColorsPresetChange
@@ -1032,12 +1036,12 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = editMaxQueryResults
         AnchorSideTop.Side = asrBottom
-        Left = 432
-        Height = 24
-        Top = 112
-        Width = 415
+        Left = 347
+        Height = 19
+        Top = 92
+        Width = 329
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Find matches in the middle'
         Enabled = False
         TabOrder = 7
@@ -1048,11 +1052,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = editMaxQueryResults
         AnchorSideTop.Side = asrBottom
-        Left = 347
-        Height = 28
-        Top = 112
-        Width = 54
-        BorderSpacing.Around = 6
+        Left = 278
+        Height = 23
+        Top = 92
+        Width = 43
+        BorderSpacing.Around = 5
         Enabled = False
         NumbersOnly = True
         TabOrder = 6
@@ -1062,15 +1066,15 @@ object frmPreferences: TfrmPreferences
     end
     object tabGridFormatting: TTabSheet
       Caption = 'Grid formatting'
-      ClientHeight = 521
-      ClientWidth = 870
+      ClientHeight = 414
+      ClientWidth = 694
       ImageIndex = 41
       object lblMaxColWidth: TLabel
-        Left = 10
-        Height = 20
-        Top = 14
-        Width = 163
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 11
+        Width = 134
+        BorderSpacing.Around = 5
         Caption = 'Maximum column width:'
       end
       object lblDataFontHint: TLabel
@@ -1078,103 +1082,103 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = editGridRowsLineCount
         AnchorSideTop.Side = asrBottom
-        Left = 520
-        Height = 20
-        Top = 112
-        Width = 14
-        BorderSpacing.Around = 6
+        Left = 417
+        Height = 15
+        Top = 92
+        Width = 11
+        BorderSpacing.Around = 5
         Caption = 'pt'
       end
       object lblDataFont: TLabel
         AnchorSideTop.Control = editGridRowsLineCount
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 112
-        Width = 32
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 92
+        Width = 27
+        BorderSpacing.Around = 5
         Caption = 'Font:'
         FocusControl = comboDataFontName
       end
       object lblMaxTotalRows: TLabel
         AnchorSideTop.Control = editMaxColWidth
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 44
-        Width = 201
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 36
+        Width = 160
+        BorderSpacing.Around = 5
         Caption = 'Rows per page and maximum:'
       end
       object lblGridRowsLinecount: TLabel
         AnchorSideTop.Control = editGridRowCountStep
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 78
-        Width = 165
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 64
+        Width = 131
+        BorderSpacing.Around = 5
         Caption = 'Lines of text in grid rows:'
       end
       object lblGridTextColors: TLabel
         AnchorSideTop.Control = comboDataFontName
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 146
-        Width = 104
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 120
+        Width = 82
+        BorderSpacing.Around = 5
         Caption = 'Grid text colors:'
       end
       object lblNullBackground: TLabel
         AnchorSideTop.Control = comboGridTextColors
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
+        Left = 8
+        Height = 15
         Hint = 'Use "None" to disable'
-        Top = 214
-        Width = 121
-        BorderSpacing.Around = 6
+        Top = 176
+        Width = 99
+        BorderSpacing.Around = 5
         Caption = 'NULL background:'
       end
       object Label2: TLabel
         AnchorSideTop.Control = cboxNullBackground
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 246
-        Width = 189
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 203
+        Width = 152
+        BorderSpacing.Around = 5
         Caption = 'Alternating row background:'
       end
       object Label3: TLabel
         AnchorSideTop.Control = cboxRowBackgroundEven
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 278
-        Width = 152
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 230
+        Width = 121
+        BorderSpacing.Around = 5
         Caption = 'Same text background:'
       end
       object lblLongSortRowNum: TLabel
         AnchorSideTop.Control = editRealTrailingZeros
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 344
-        Width = 174
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 285
+        Width = 139
+        BorderSpacing.Around = 5
         Caption = 'Sort warning on grid rows:'
       end
       object lblRealTrailingZeros: TLabel
         AnchorSideTop.Control = cboxRowHighlightSameText
         AnchorSideTop.Side = asrBottom
-        Left = 10
-        Height = 20
-        Top = 310
-        Width = 191
-        BorderSpacing.Around = 6
+        Left = 8
+        Height = 15
+        Top = 257
+        Width = 150
+        BorderSpacing.Around = 5
         Caption = 'Max decimal zeros for floats:'
       end
       object lblRealTrailingZerosHint: TLabel
@@ -1182,19 +1186,19 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = cboxRowHighlightSameText
         AnchorSideTop.Side = asrBottom
-        Left = 333
-        Height = 20
-        Top = 310
-        Width = 170
-        BorderSpacing.Around = 6
+        Left = 267
+        Height = 15
+        Top = 257
+        Width = 131
+        BorderSpacing.Around = 5
         Caption = 'Set to -1 to keep all zeros'
       end
       object editMaxColWidth: TEdit
-        Left = 275
-        Height = 28
-        Top = 10
-        Width = 52
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 23
+        Top = 8
+        Width = 42
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 0
         Text = '1'
@@ -1203,12 +1207,12 @@ object frmPreferences: TfrmPreferences
       object comboDataFontName: TComboBox
         AnchorSideTop.Control = editGridRowsLineCount
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 112
-        Width = 181
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 220
+        Height = 23
+        Top = 92
+        Width = 145
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 4
         OnChange = DataFontsChange
@@ -1218,11 +1222,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = editGridRowsLineCount
         AnchorSideTop.Side = asrBottom
-        Left = 462
-        Height = 28
-        Top = 112
-        Width = 52
-        BorderSpacing.Around = 6
+        Left = 370
+        Height = 23
+        Top = 92
+        Width = 42
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 5
         Text = '8'
@@ -1233,11 +1237,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = editMaxColWidth
         AnchorSideTop.Side = asrBottom
-        Left = 462
-        Height = 28
-        Top = 44
-        Width = 165
-        BorderSpacing.Around = 6
+        Left = 370
+        Height = 23
+        Top = 36
+        Width = 132
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 2
         OnChange = Modified
@@ -1246,11 +1250,11 @@ object frmPreferences: TfrmPreferences
       object editGridRowCountStep: TEdit
         AnchorSideTop.Control = editMaxColWidth
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 44
-        Width = 181
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 23
+        Top = 36
+        Width = 145
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 1
         OnChange = Modified
@@ -1259,11 +1263,11 @@ object frmPreferences: TfrmPreferences
       object editGridRowsLineCount: TEdit
         AnchorSideTop.Control = editGridRowCountStep
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 78
-        Width = 52
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 23
+        Top = 64
+        Width = 42
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 3
         Text = '1'
@@ -1272,12 +1276,12 @@ object frmPreferences: TfrmPreferences
       object comboGridTextColors: TComboBox
         AnchorSideTop.Control = comboGridTextColorsPreset
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 180
-        Width = 181
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 220
+        Height = 23
+        Top = 148
+        Width = 145
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 7
         OnSelect = comboGridTextColorsSelect
@@ -1287,26 +1291,26 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboGridTextColorsPreset
         AnchorSideTop.Side = asrBottom
-        Left = 462
-        Height = 26
-        Top = 180
-        Width = 165
+        Left = 370
+        Height = 22
+        Top = 148
+        Width = 132
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbCustomColor, cbPrettyNames]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 16
         TabOrder = 8
         OnSelect = colorBoxGridTextColorsSelect
       end
       object cboxNullBackground: TColorBox
         AnchorSideTop.Control = comboGridTextColors
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 26
-        Top = 214
-        Width = 181
+        Left = 220
+        Height = 22
+        Top = 176
+        Width = 145
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 16
         TabOrder = 9
         OnChange = Modified
         OnSelect = Modified
@@ -1316,38 +1320,38 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = cboxNullBackground
         AnchorSideTop.Side = asrBottom
-        Left = 462
-        Height = 26
-        Top = 246
-        Width = 165
+        Left = 370
+        Height = 22
+        Top = 203
+        Width = 132
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 16
         TabOrder = 11
         OnChange = Modified
       end
       object cboxRowBackgroundEven: TColorBox
         AnchorSideTop.Control = cboxNullBackground
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 26
-        Top = 246
-        Width = 181
+        Left = 220
+        Height = 22
+        Top = 203
+        Width = 145
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 16
         TabOrder = 10
         OnChange = Modified
       end
       object chkLocalNumberFormat: TCheckBox
         AnchorSideTop.Control = editLongSortRowNum
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 378
-        Width = 572
+        Left = 220
+        Height = 19
+        Top = 313
+        Width = 456
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Local number format'
         TabOrder = 15
         OnClick = Modified
@@ -1355,12 +1359,12 @@ object frmPreferences: TfrmPreferences
       object chkHintsOnResultTabs: TCheckBox
         AnchorSideTop.Control = chkLowercaseHex
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 438
-        Width = 572
+        Left = 220
+        Height = 19
+        Top = 361
+        Width = 456
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Pop up SQL text over result tabs'
         TabOrder = 17
         OnClick = Modified
@@ -1368,25 +1372,25 @@ object frmPreferences: TfrmPreferences
       object cboxRowHighlightSameText: TColorBox
         AnchorSideTop.Control = cboxRowBackgroundEven
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 26
-        Top = 278
-        Width = 181
+        Left = 220
+        Height = 22
+        Top = 230
+        Width = 145
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 16
         TabOrder = 12
         OnSelect = Modified
       end
       object comboGridTextColorsPreset: TComboBox
         AnchorSideTop.Control = comboDataFontName
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 146
-        Width = 181
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 220
+        Height = 23
+        Top = 120
+        Width = 145
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 6
         OnSelect = comboGridTextColorsPresetSelect
@@ -1394,11 +1398,11 @@ object frmPreferences: TfrmPreferences
       object editLongSortRowNum: TEdit
         AnchorSideTop.Control = editRealTrailingZeros
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 344
-        Width = 181
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 23
+        Top = 285
+        Width = 145
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 14
         Text = '0'
@@ -1406,23 +1410,23 @@ object frmPreferences: TfrmPreferences
       object chkLowercaseHex: TCheckBox
         AnchorSideTop.Control = chkLocalNumberFormat
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 408
-        Width = 572
+        Left = 220
+        Height = 19
+        Top = 337
+        Width = 456
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Lowercase hexadecimal'
         TabOrder = 16
       end
       object editRealTrailingZeros: TEdit
         AnchorSideTop.Control = cboxRowHighlightSameText
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 310
-        Width = 52
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 23
+        Top = 257
+        Width = 42
+        BorderSpacing.Around = 5
         NumbersOnly = True
         TabOrder = 13
         Text = '0'
@@ -1430,12 +1434,12 @@ object frmPreferences: TfrmPreferences
       object chkShowRowId: TCheckBox
         AnchorSideTop.Control = chkHintsOnResultTabs
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 468
-        Width = 574
+        Left = 220
+        Height = 19
+        Top = 385
+        Width = 457
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Show static row id column'
         TabOrder = 18
         OnClick = Modified
@@ -1443,26 +1447,26 @@ object frmPreferences: TfrmPreferences
     end
     object tabDataEditors: TTabSheet
       Caption = 'Data editors'
-      ClientHeight = 521
-      ClientWidth = 870
+      ClientHeight = 414
+      ClientWidth = 694
       ImageIndex = 33
       object lblLineBreakStyle: TLabel
         AnchorSideTop.Control = chkIncrementalSearch
         AnchorSideTop.Side = asrBottom
-        Left = 4
-        Height = 20
-        Top = 286
-        Width = 151
-        BorderSpacing.Around = 6
+        Left = 3
+        Height = 15
+        Top = 229
+        Width = 119
+        BorderSpacing.Around = 5
         Caption = 'Default linebreak style:'
       end
       object chkEditorBinary: TCheckBox
-        Left = 275
-        Height = 24
-        Top = 10
-        Width = 572
+        Left = 220
+        Height = 19
+        Top = 8
+        Width = 456
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Enable popup BLOB/HEX editor'
         TabOrder = 0
         OnClick = Modified
@@ -1470,12 +1474,12 @@ object frmPreferences: TfrmPreferences
       object chkEditorDatetime: TCheckBox
         AnchorSideTop.Control = chkEditorBinary
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 40
-        Width = 572
+        Left = 220
+        Height = 19
+        Top = 32
+        Width = 456
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Enable inplace date/time editor'
         TabOrder = 1
         OnClick = Modified
@@ -1483,12 +1487,12 @@ object frmPreferences: TfrmPreferences
       object chkPrefillDateTime: TCheckBox
         AnchorSideTop.Control = chkEditorDatetime
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 70
-        Width = 572
+        Left = 220
+        Height = 19
+        Top = 56
+        Width = 456
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Prefill empty date/time fields with current date/time'
         TabOrder = 2
         OnClick = Modified
@@ -1496,12 +1500,12 @@ object frmPreferences: TfrmPreferences
       object chkEditorEnum: TCheckBox
         AnchorSideTop.Control = chkPrefillDateTime
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 100
-        Width = 572
+        Left = 220
+        Height = 19
+        Top = 80
+        Width = 456
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Enable ENUM pulldown editor'
         TabOrder = 3
         OnClick = Modified
@@ -1509,12 +1513,12 @@ object frmPreferences: TfrmPreferences
       object chkEditorSet: TCheckBox
         AnchorSideTop.Control = chkEditorEnum
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 130
-        Width = 572
+        Left = 220
+        Height = 19
+        Top = 104
+        Width = 456
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Enable SET checkbox editor'
         TabOrder = 4
         OnClick = Modified
@@ -1522,12 +1526,12 @@ object frmPreferences: TfrmPreferences
       object chkReuseEditorConfiguration: TCheckBox
         AnchorSideTop.Control = chkColumnHeaderClick
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 196
-        Width = 572
+        Left = 220
+        Height = 19
+        Top = 157
+        Width = 456
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Remember filters, sorting and column selection across sessions'
         TabOrder = 6
         OnClick = Modified
@@ -1535,12 +1539,12 @@ object frmPreferences: TfrmPreferences
       object chkForeignDropDown: TCheckBox
         AnchorSideTop.Control = chkReuseEditorConfiguration
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 226
-        Width = 572
+        Left = 220
+        Height = 19
+        Top = 181
+        Width = 456
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Show values in foreign key columns'
         TabOrder = 7
         OnClick = Modified
@@ -1548,12 +1552,12 @@ object frmPreferences: TfrmPreferences
       object comboLineBreakStyle: TComboBox
         AnchorSideTop.Control = chkIncrementalSearch
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 286
-        Width = 181
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 220
+        Height = 23
+        Top = 229
+        Width = 145
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 9
         OnClick = Modified
@@ -1561,12 +1565,12 @@ object frmPreferences: TfrmPreferences
       object chkColumnHeaderClick: TCheckBox
         AnchorSideTop.Control = chkEditorSet
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 166
-        Width = 286
-        BorderSpacing.Top = 6
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 133
+        Width = 231
+        BorderSpacing.Top = 5
+        BorderSpacing.Around = 5
         Caption = 'Click on column headers toggles sorting'
         TabOrder = 5
         OnClick = Modified
@@ -1574,11 +1578,11 @@ object frmPreferences: TfrmPreferences
       object chkIncrementalSearch: TCheckBox
         AnchorSideTop.Control = chkForeignDropDown
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 256
-        Width = 247
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 205
+        Width = 201
+        BorderSpacing.Around = 5
         Caption = 'Incremental search through typing'
         TabOrder = 8
         OnClick = Modified
@@ -1586,19 +1590,19 @@ object frmPreferences: TfrmPreferences
     end
     object tabShortcuts: TTabSheet
       Caption = 'Shortcuts'
-      ClientHeight = 521
-      ClientWidth = 870
+      ClientHeight = 414
+      ClientWidth = 694
       ImageIndex = 13
       object lblShortcut1: TLabel
         AnchorSideLeft.Control = TreeShortcutItems
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = lblShortcutHint
         AnchorSideTop.Side = asrBottom
-        Left = 387
-        Height = 20
-        Top = 79
-        Width = 58
-        BorderSpacing.Around = 6
+        Left = 310
+        Height = 15
+        Top = 63
+        Width = 48
+        BorderSpacing.Around = 5
         Caption = 'Shortcut:'
       end
       object lblShortcutHint: TLabel
@@ -1606,13 +1610,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideRight.Control = tabShortcuts
         AnchorSideRight.Side = asrBottom
-        Left = 387
-        Height = 69
-        Top = 4
-        Width = 477
+        Left = 310
+        Height = 55
+        Top = 3
+        Width = 379
         Anchors = [akTop, akLeft, akRight]
         AutoSize = False
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Please select a shortcut item in the tree.'
         WordWrap = True
       end
@@ -1621,21 +1625,21 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboShortcut1Key
         AnchorSideTop.Side = asrBottom
-        Left = 387
-        Height = 20
-        Top = 145
-        Width = 129
-        BorderSpacing.Top = 6
-        BorderSpacing.Around = 6
+        Left = 310
+        Height = 15
+        Top = 116
+        Width = 105
+        BorderSpacing.Top = 5
+        BorderSpacing.Around = 5
         Caption = 'Secondary shortcut:'
       end
       object TreeShortcutItems: TLazVirtualStringTree
-        Left = 6
-        Height = 509
-        Top = 6
-        Width = 375
+        Left = 5
+        Height = 404
+        Top = 5
+        Width = 300
         Align = alLeft
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Colors.BorderColor = 15987699
         Colors.DisabledColor = clGray
         Colors.DropMarkColor = 15385233
@@ -1655,7 +1659,7 @@ object frmPreferences: TfrmPreferences
         Colors.UnfocusedSelectionBorderColor = clWhite
         Header.AutoSizeIndex = 0
         Header.Columns = <>
-        Header.Height = 25
+        Header.Height = 20
         Header.MainColumn = -1
         Images = MainForm.ImageListMain
         TabOrder = 0
@@ -1672,13 +1676,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabShortcuts
         AnchorSideRight.Side = asrBottom
-        Left = 780
-        Height = 30
-        Top = 105
-        Width = 84
+        Left = 616
+        Height = 26
+        Top = 83
+        Width = 73
         Anchors = [akTop, akRight]
         AutoSize = True
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Remove'
         Images = MainForm.ImageListMain
         ImageIndex = 26
@@ -1689,13 +1693,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabShortcuts
         AnchorSideRight.Side = asrBottom
-        Left = 780
-        Height = 30
-        Top = 171
-        Width = 84
+        Left = 616
+        Height = 26
+        Top = 136
+        Width = 73
         Anchors = [akTop, akRight]
         AutoSize = True
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Remove'
         Images = MainForm.ImageListMain
         ImageIndex = 26
@@ -1706,11 +1710,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = lblShortcut1
         AnchorSideTop.Side = asrBottom
-        Left = 387
-        Height = 24
-        Top = 105
-        Width = 51
-        BorderSpacing.Around = 6
+        Left = 310
+        Height = 19
+        Top = 83
+        Width = 42
+        BorderSpacing.Around = 5
         Caption = 'Shift'
         TabOrder = 1
         OnChange = Modified
@@ -1720,11 +1724,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = lblShortcut1
         AnchorSideTop.Side = asrBottom
-        Left = 444
-        Height = 24
-        Top = 105
-        Width = 40
-        BorderSpacing.Around = 6
+        Left = 357
+        Height = 19
+        Top = 83
+        Width = 33
+        BorderSpacing.Around = 5
         Caption = 'Alt'
         TabOrder = 2
         OnChange = Modified
@@ -1734,11 +1738,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = lblShortcut1
         AnchorSideTop.Side = asrBottom
-        Left = 490
-        Height = 24
-        Top = 105
-        Width = 44
-        BorderSpacing.Around = 6
+        Left = 395
+        Height = 19
+        Top = 83
+        Width = 37
+        BorderSpacing.Around = 5
         Caption = 'Ctrl'
         TabOrder = 3
         OnChange = Modified
@@ -1749,13 +1753,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Control = lblShortcut1
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = btnRemoveHotKey1
-        Left = 540
-        Height = 28
-        Top = 105
-        Width = 234
+        Left = 437
+        Height = 23
+        Top = 83
+        Width = 174
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 4
         OnChange = Modified
@@ -1765,11 +1769,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = lblShortcut2
         AnchorSideTop.Side = asrBottom
-        Left = 387
-        Height = 24
-        Top = 171
-        Width = 51
-        BorderSpacing.Around = 6
+        Left = 310
+        Height = 19
+        Top = 136
+        Width = 42
+        BorderSpacing.Around = 5
         Caption = 'Shift'
         TabOrder = 5
         OnChange = Modified
@@ -1779,11 +1783,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = lblShortcut2
         AnchorSideTop.Side = asrBottom
-        Left = 444
-        Height = 24
-        Top = 171
-        Width = 40
-        BorderSpacing.Around = 6
+        Left = 357
+        Height = 19
+        Top = 136
+        Width = 33
+        BorderSpacing.Around = 5
         Caption = 'Alt'
         TabOrder = 6
         OnChange = Modified
@@ -1793,11 +1797,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = lblShortcut2
         AnchorSideTop.Side = asrBottom
-        Left = 490
-        Height = 24
-        Top = 171
-        Width = 44
-        BorderSpacing.Around = 6
+        Left = 395
+        Height = 19
+        Top = 136
+        Width = 37
+        BorderSpacing.Around = 5
         Caption = 'Ctrl'
         TabOrder = 7
         OnChange = Modified
@@ -1808,13 +1812,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Control = lblShortcut2
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = btnRemoveHotKey2
-        Left = 540
-        Height = 28
-        Top = 171
-        Width = 234
+        Left = 437
+        Height = 23
+        Top = 136
+        Width = 174
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 8
         OnChange = Modified
@@ -1822,37 +1826,37 @@ object frmPreferences: TfrmPreferences
     end
     object tabFiles: TTabSheet
       Caption = 'Files and tabs'
-      ClientHeight = 521
-      ClientWidth = 870
+      ClientHeight = 414
+      ClientWidth = 694
       ImageIndex = 10
       object Label5: TLabel
         AnchorSideLeft.Control = tabFiles
         AnchorSideTop.Control = chkTabCloseOnMiddleClick
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 130
-        Width = 182
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 104
+        Width = 145
+        BorderSpacing.Around = 5
         Caption = 'Grayscale inactive tab icons'
       end
       object lblReformatter: TLabel
         AnchorSideLeft.Control = tabFiles
         AnchorSideTop.Control = comboTabIconsGrayscaleMode
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 164
-        Width = 83
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 132
+        Width = 66
+        BorderSpacing.Around = 5
         Caption = 'Reformatter:'
       end
       object chkAskFileSave: TCheckBox
-        Left = 275
-        Height = 24
-        Top = 10
-        Width = 302
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 8
+        Width = 240
+        BorderSpacing.Around = 5
         Caption = 'Prompt to save modified files on tab close'
         Checked = True
         State = cbChecked
@@ -1862,11 +1866,11 @@ object frmPreferences: TfrmPreferences
       object chkRestoreTabs: TCheckBox
         AnchorSideTop.Control = chkAskFileSave
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 40
-        Width = 438
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 32
+        Width = 351
+        BorderSpacing.Around = 5
         Caption = 'Reopen previously used SQL files and unsaved content in tabs *'
         TabOrder = 1
         OnClick = Modified
@@ -1874,11 +1878,11 @@ object frmPreferences: TfrmPreferences
       object chkTabCloseOnDoubleClick: TCheckBox
         AnchorSideTop.Control = chkRestoreTabs
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 70
-        Width = 184
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 56
+        Width = 148
+        BorderSpacing.Around = 5
         Caption = 'Close tab on doubleclick'
         TabOrder = 2
         OnClick = Modified
@@ -1886,11 +1890,11 @@ object frmPreferences: TfrmPreferences
       object chkTabCloseOnMiddleClick: TCheckBox
         AnchorSideTop.Control = chkTabCloseOnDoubleClick
         AnchorSideTop.Side = asrBottom
-        Left = 275
-        Height = 24
-        Top = 100
-        Width = 184
-        BorderSpacing.Around = 6
+        Left = 220
+        Height = 19
+        Top = 80
+        Width = 148
+        BorderSpacing.Around = 5
         Caption = 'Close tab on middleclick'
         TabOrder = 3
         OnClick = Modified
@@ -1900,13 +1904,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabFiles
         AnchorSideRight.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 130
-        Width = 589
+        Left = 220
+        Height = 23
+        Top = 104
+        Width = 469
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Items.Strings = (
           'Color icons on all tabs'
           'Grayscale icons on inactive query tabs only'
@@ -1921,13 +1925,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabFiles
         AnchorSideRight.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 164
-        Width = 589
+        Left = 220
+        Height = 23
+        Top = 132
+        Width = 469
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 5
       end
@@ -1935,11 +1939,11 @@ object frmPreferences: TfrmPreferences
         AnchorSideLeft.Control = tabFiles
         AnchorSideTop.Control = comboReformatter
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 198
-        Width = 175
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 160
+        Width = 142
+        BorderSpacing.Around = 5
         Caption = 'Custom snippets directory:'
       end
       object editCustomSnippetsDirectory: TEditButton
@@ -1947,13 +1951,13 @@ object frmPreferences: TfrmPreferences
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabFiles
         AnchorSideRight.Side = asrBottom
-        Left = 275
-        Height = 28
-        Top = 198
-        Width = 589
+        Left = 220
+        Height = 23
+        Top = 160
+        Width = 469
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ButtonWidth = 29
+        BorderSpacing.Around = 5
+        ButtonWidth = 23
         Images = MainForm.ImageListMain
         ImageIndex = 51
         MaxLength = 0
@@ -1972,16 +1976,16 @@ object frmPreferences: TfrmPreferences
     AnchorSideRight.Control = btnApply
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 678
-    Height = 30
-    Top = 566
-    Width = 100
+    Left = 542
+    Height = 25
+    Top = 452
+    Width = 80
     Anchors = [akRight, akBottom]
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Cancel = True
     Caption = 'Cancel'
-    Constraints.MinWidth = 100
+    Constraints.MinWidth = 80
     ModalResult = 2
     TabOrder = 2
   end
@@ -1989,15 +1993,15 @@ object frmPreferences: TfrmPreferences
     AnchorSideRight.Control = btnCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 572
-    Height = 30
-    Top = 566
-    Width = 100
+    Left = 457
+    Height = 25
+    Top = 452
+    Width = 80
     Anchors = [akRight, akBottom]
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'OK'
-    Constraints.MinWidth = 100
+    Constraints.MinWidth = 80
     Default = True
     ModalResult = 1
     TabOrder = 1
@@ -2008,15 +2012,15 @@ object frmPreferences: TfrmPreferences
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 784
-    Height = 30
-    Top = 566
-    Width = 100
+    Left = 627
+    Height = 25
+    Top = 452
+    Width = 80
     Anchors = [akRight, akBottom]
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Apply'
-    Constraints.MinWidth = 100
+    Constraints.MinWidth = 80
     Enabled = False
     TabOrder = 3
     OnClick = Apply
@@ -2025,15 +2029,15 @@ object frmPreferences: TfrmPreferences
     AnchorSideLeft.Control = Owner
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 6
-    Height = 30
-    Top = 566
-    Width = 133
+    Left = 5
+    Height = 25
+    Top = 452
+    Width = 110
     Anchors = [akLeft, akBottom]
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Restore defaults'
-    Constraints.MinWidth = 100
+    Constraints.MinWidth = 80
     TabOrder = 0
     OnClick = btnRestoreDefaultsClick
   end
@@ -2041,7 +2045,7 @@ object frmPreferences: TfrmPreferences
     DefaultFilter = 'SQL Files (*.sql)|*.sql'
     Enabled = False
     SQLDialect = sqlMySQL
-    Left = 730
-    Top = 490
+    Left = 584
+    Top = 392
   end
 end

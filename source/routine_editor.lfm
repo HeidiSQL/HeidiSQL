@@ -1,20 +1,20 @@
 object frmRoutineEditor: TfrmRoutineEditor
   Left = 0
-  Height = 625
+  Height = 500
   Top = 0
-  Width = 875
-  ClientHeight = 625
-  ClientWidth = 875
-  DesignTimePPI = 120
+  Width = 700
+  ClientHeight = 500
+  ClientWidth = 700
+  LCLVersion = '4.4.0.0'
   ParentFont = False
   TabOrder = 0
   object lblSQLcode: TLabel
-    Left = 6
-    Height = 20
-    Top = 238
-    Width = 863
+    Left = 5
+    Height = 15
+    Top = 193
+    Width = 690
     Align = alTop
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Routine body:'
     FocusControl = SynMemoBody
   end
@@ -23,21 +23,21 @@ object frmRoutineEditor: TfrmRoutineEditor
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 306
-    Height = 20
-    Top = 599
-    Width = 241
+    Left = 245
+    Height = 15
+    Top = 480
+    Width = 193
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'You have no privilege to this routine.'
     Visible = False
   end
   object spltTop: TSplitter
     Cursor = crVSplit
     Left = 0
-    Height = 10
-    Top = 222
-    Width = 875
+    Height = 8
+    Top = 180
+    Width = 700
     Align = alTop
     ResizeAnchor = akTop
   end
@@ -46,12 +46,12 @@ object frmRoutineEditor: TfrmRoutineEditor
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 206
-    Height = 31
-    Top = 588
-    Width = 94
+    Left = 165
+    Height = 25
+    Top = 470
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Save'
     Default = True
     TabOrder = 4
@@ -62,12 +62,12 @@ object frmRoutineEditor: TfrmRoutineEditor
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 106
-    Height = 31
-    Top = 588
-    Width = 94
+    Left = 85
+    Height = 25
+    Top = 470
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Discard'
     ModalResult = 2
     TabOrder = 3
@@ -77,24 +77,24 @@ object frmRoutineEditor: TfrmRoutineEditor
     AnchorSideLeft.Control = Owner
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 6
-    Height = 31
-    Top = 588
-    Width = 94
+    Left = 5
+    Height = 25
+    Top = 470
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Help'
     TabOrder = 2
     OnClick = btnHelpClick
   end
   inline SynMemoBody: TSynEdit
     AnchorSideBottom.Control = btnSave
-    Left = 6
-    Height = 318
-    Top = 264
-    Width = 863
+    Left = 5
+    Height = 252
+    Top = 213
+    Width = 690
     Align = alTop
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.Height = -13
     Font.Name = 'Courier New'
@@ -106,7 +106,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     OnDragDrop = SynMemoBodyDragDrop
     OnDragOver = SynMemoBodyDragOver
     Gutter.LeftOffset = 2
-    Gutter.Width = 70
+    Gutter.Width = 59
     Gutter.MouseActions = <>
     RightGutter.Width = 0
     RightGutter.MouseActions = <>
@@ -142,8 +142,12 @@ object frmRoutineEditor: TfrmRoutineEditor
     OnChange = Modification
     inline SynLeftGutterPartList1: TSynGutterPartList
       object SynGutterMarks1: TSynGutterMarks
-        Width = 30
+        Width = 24
         MouseActions = <>
+        MaxExtraMarksColums = 0
+        Options = [sgmoDeDuplicateMarksOnOverflow]
+        MarkupInfo.Background = clBtnFace
+        MarkupInfo.Foreground = clNone
       end
       object SynGutterLineNumber1: TSynGutterLineNumber
         Width = 17
@@ -156,19 +160,21 @@ object frmRoutineEditor: TfrmRoutineEditor
         LeadingZeros = False
       end
       object SynGutterChanges1: TSynGutterChanges
-        Width = 5
+        Width = 4
         MouseActions = <>
         ModifiedColor = 59900
         SavedColor = clGreen
+        MarkupInfo.Background = clNone
+        MarkupInfo.Foreground = clGreen
+        MarkupInfo.FrameColor = 59900
       end
       object SynGutterSeparator1: TSynGutterSeparator
-        Width = 3
+        Width = 2
         MouseActions = <>
         MarkupInfo.Background = clWhite
         MarkupInfo.Foreground = clGray
       end
       object SynGutterCodeFolding1: TSynGutterCodeFolding
-        Width = 13
         MouseActions = <>
         MarkupInfo.Background = clNone
         MarkupInfo.Foreground = clGray
@@ -178,33 +184,33 @@ object frmRoutineEditor: TfrmRoutineEditor
     end
   end
   object PageControlMain: TPageControl
-    Left = 6
-    Height = 210
-    Top = 6
-    Width = 863
+    Left = 5
+    Height = 170
+    Top = 5
+    Width = 690
     ActivePage = tabOptions
     Align = alTop
     AutoSize = True
-    BorderSpacing.Around = 6
-    Constraints.MinHeight = 125
+    BorderSpacing.Around = 5
+    Constraints.MinHeight = 100
     Images = MainForm.ImageListMain
     TabIndex = 0
     TabOrder = 0
     OnChange = PageControlMainChange
     object tabOptions: TTabSheet
       Caption = 'Options'
-      ClientHeight = 177
-      ClientWidth = 855
+      ClientHeight = 142
+      ClientWidth = 682
       ImageIndex = 39
       object lblName: TLabel
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = editName
         AnchorSideTop.Side = asrCenter
-        Left = 6
-        Height = 20
-        Top = 10
-        Width = 43
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 9
+        Width = 35
+        BorderSpacing.Around = 5
         Caption = '&Name:'
         FocusControl = editName
       end
@@ -212,11 +218,11 @@ object frmRoutineEditor: TfrmRoutineEditor
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = comboType
         AnchorSideTop.Side = asrCenter
-        Left = 6
-        Height = 20
-        Top = 78
-        Width = 34
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 65
+        Width = 28
+        BorderSpacing.Around = 5
         Caption = '&Type:'
         FocusControl = comboType
       end
@@ -224,11 +230,11 @@ object frmRoutineEditor: TfrmRoutineEditor
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = comboReturns
         AnchorSideTop.Side = asrCenter
-        Left = 6
-        Height = 20
-        Top = 112
-        Width = 52
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 93
+        Width = 43
+        BorderSpacing.Around = 5
         Caption = '&Returns:'
         FocusControl = comboReturns
       end
@@ -237,11 +243,11 @@ object frmRoutineEditor: TfrmRoutineEditor
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboDataAccess
         AnchorSideTop.Side = asrCenter
-        Left = 499
-        Height = 20
-        Top = 78
-        Width = 81
-        BorderSpacing.Around = 6
+        Left = 399
+        Height = 15
+        Top = 65
+        Width = 64
+        BorderSpacing.Around = 5
         Caption = '&Data access:'
         FocusControl = comboDataAccess
       end
@@ -250,11 +256,11 @@ object frmRoutineEditor: TfrmRoutineEditor
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboSecurity
         AnchorSideTop.Side = asrCenter
-        Left = 499
-        Height = 20
-        Top = 112
-        Width = 85
-        BorderSpacing.Around = 6
+        Left = 399
+        Height = 15
+        Top = 93
+        Width = 69
+        BorderSpacing.Around = 5
         Caption = 'SQL Se&curity:'
         FocusControl = comboSecurity
       end
@@ -262,11 +268,11 @@ object frmRoutineEditor: TfrmRoutineEditor
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = editComment
         AnchorSideTop.Side = asrCenter
-        Left = 6
-        Height = 20
-        Top = 44
-        Width = 68
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 37
+        Width = 57
+        BorderSpacing.Around = 5
         Caption = '&Comment:'
         FocusControl = editComment
       end
@@ -275,11 +281,11 @@ object frmRoutineEditor: TfrmRoutineEditor
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboDefiner
         AnchorSideTop.Side = asrCenter
-        Left = 499
-        Height = 20
-        Top = 10
-        Width = 52
-        BorderSpacing.Around = 6
+        Left = 399
+        Height = 15
+        Top = 9
+        Width = 41
+        BorderSpacing.Around = 5
         Caption = 'De&finer:'
       end
       object chkDeterministic: TCheckBox
@@ -288,12 +294,12 @@ object frmRoutineEditor: TfrmRoutineEditor
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
-        Left = 111
-        Height = 24
-        Top = 142
-        Width = 738
+        Left = 89
+        Height = 19
+        Top = 117
+        Width = 588
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = '&Deterministic'
         TabOrder = 7
         OnClick = Modification
@@ -303,12 +309,12 @@ object frmRoutineEditor: TfrmRoutineEditor
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
-        Left = 105
-        Height = 28
-        Top = 40
-        Width = 744
+        Left = 84
+        Height = 23
+        Top = 33
+        Width = 593
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         TabOrder = 2
         Text = 'editComment'
         OnChange = Modification
@@ -318,13 +324,13 @@ object frmRoutineEditor: TfrmRoutineEditor
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
-        Left = 611
-        Height = 28
-        Top = 108
-        Width = 238
+        Left = 489
+        Height = 23
+        Top = 89
+        Width = 188
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 6
         OnChange = Modification
@@ -334,13 +340,13 @@ object frmRoutineEditor: TfrmRoutineEditor
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
-        Left = 611
-        Height = 28
-        Top = 74
-        Width = 238
+        Left = 489
+        Height = 23
+        Top = 61
+        Width = 188
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 5
         OnChange = Modification
@@ -348,12 +354,12 @@ object frmRoutineEditor: TfrmRoutineEditor
       object comboReturns: TComboBox
         AnchorSideTop.Control = comboType
         AnchorSideTop.Side = asrBottom
-        Left = 105
-        Height = 28
-        Top = 108
-        Width = 388
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 84
+        Height = 23
+        Top = 89
+        Width = 310
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         TabOrder = 4
         Text = 'comboReturns'
         OnChange = Modification
@@ -361,23 +367,23 @@ object frmRoutineEditor: TfrmRoutineEditor
       object comboType: TComboBox
         AnchorSideTop.Control = editComment
         AnchorSideTop.Side = asrBottom
-        Left = 105
-        Height = 28
-        Top = 74
-        Width = 388
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 84
+        Height = 23
+        Top = 61
+        Width = 310
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 3
         OnSelect = comboTypeSelect
       end
       object editName: TEdit
         AnchorSideTop.Control = tabOptions
-        Left = 105
-        Height = 28
-        Top = 6
-        Width = 388
-        BorderSpacing.Around = 6
+        Left = 84
+        Height = 23
+        Top = 5
+        Width = 310
+        BorderSpacing.Around = 5
         TabOrder = 0
         Text = 'editName'
         TextHint = 'Enter routine name'
@@ -387,13 +393,13 @@ object frmRoutineEditor: TfrmRoutineEditor
         AnchorSideTop.Control = tabOptions
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
-        Left = 611
-        Height = 28
-        Top = 6
-        Width = 238
+        Left = 489
+        Height = 23
+        Top = 5
+        Width = 188
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         TabOrder = 1
         Text = 'comboDefiner'
         OnChange = Modification
@@ -402,14 +408,14 @@ object frmRoutineEditor: TfrmRoutineEditor
     end
     object tabParameters: TTabSheet
       Caption = 'Parameters'
-      ClientHeight = 177
-      ClientWidth = 855
+      ClientHeight = 142
+      ClientWidth = 682
       ImageIndex = 122
       object listParameters: TLazVirtualStringTree
-        Left = 103
-        Height = 177
+        Left = 83
+        Height = 142
         Top = 0
-        Width = 752
+        Width = 599
         Align = alClient
         DragImageKind = diMainColumnOnly
         DragMode = dmAutomatic
@@ -425,19 +431,19 @@ object frmRoutineEditor: TfrmRoutineEditor
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 1
             Text = 'Name'
-            Width = 485
+            Width = 385
           end        
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 2
             Text = 'Datatype'
-            Width = 112
+            Width = 90
           end        
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 3
             Text = 'Context'
-            Width = 88
+            Width = 70
           end>
         Header.MainColumn = 1
         Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoVisible, hoDisableAnimatedResize]
@@ -459,13 +465,13 @@ object frmRoutineEditor: TfrmRoutineEditor
       end
       object tlbParameters: TToolBar
         Left = 0
-        Height = 177
+        Height = 142
         Top = 0
-        Width = 103
+        Width = 83
         Align = alLeft
         AutoSize = True
-        ButtonHeight = 35
-        ButtonWidth = 102
+        ButtonHeight = 28
+        ButtonWidth = 82
         Caption = 'tlbParameters'
         Images = MainForm.ImageListMain
         List = True
@@ -476,38 +482,38 @@ object frmRoutineEditor: TfrmRoutineEditor
           Top = 2
           Caption = 'Add'
           ImageIndex = 45
-          OnClick = btnAddParamClick
           Wrap = True
+          OnClick = btnAddParamClick
         end
         object btnRemoveParam: TToolButton
           Left = 1
-          Top = 37
+          Top = 30
           Caption = 'Remove'
           Enabled = False
           ImageIndex = 46
-          OnClick = btnRemoveParamClick
           Wrap = True
+          OnClick = btnRemoveParamClick
         end
         object btnClearParams: TToolButton
           Left = 1
-          Top = 72
+          Top = 58
           Caption = 'Clear'
           ImageIndex = 26
-          OnClick = btnClearParamsClick
           Wrap = True
+          OnClick = btnClearParamsClick
         end
         object btnMoveUpParam: TToolButton
           Left = 1
-          Top = 107
+          Top = 86
           Caption = 'Move up'
           Enabled = False
           ImageIndex = 74
-          OnClick = btnMoveParamClick
           Wrap = True
+          OnClick = btnMoveParamClick
         end
         object btnMoveDownParam: TToolButton
           Left = 1
-          Top = 142
+          Top = 114
           Caption = 'Move down'
           Enabled = False
           ImageIndex = 75
@@ -517,14 +523,14 @@ object frmRoutineEditor: TfrmRoutineEditor
     end
     object tabCreateCode: TTabSheet
       Caption = 'CREATE code'
-      ClientHeight = 177
-      ClientWidth = 855
+      ClientHeight = 142
+      ClientWidth = 682
       ImageIndex = 119
       inline SynMemoCREATEcode: TSynEdit
         Left = 0
-        Height = 177
+        Height = 142
         Top = 0
-        Width = 855
+        Width = 682
         Align = alClient
         Font.Height = -13
         Font.Name = 'Courier New'
@@ -533,7 +539,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         ParentColor = False
         ParentFont = False
         TabOrder = 0
-        Gutter.Width = 68
+        Gutter.Width = 57
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -567,8 +573,12 @@ object frmRoutineEditor: TfrmRoutineEditor
         LineHighlightColor.Foreground = clNone
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
-            Width = 30
+            Width = 24
             MouseActions = <>
+            MaxExtraMarksColums = 0
+            Options = [sgmoDeDuplicateMarksOnOverflow]
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
             Width = 17
@@ -581,19 +591,21 @@ object frmRoutineEditor: TfrmRoutineEditor
             LeadingZeros = False
           end
           object SynGutterChanges1: TSynGutterChanges
-            Width = 5
+            Width = 4
             MouseActions = <>
             ModifiedColor = 59900
             SavedColor = clGreen
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGreen
+            MarkupInfo.FrameColor = 59900
           end
           object SynGutterSeparator1: TSynGutterSeparator
-            Width = 3
+            Width = 2
             MouseActions = <>
             MarkupInfo.Background = clWhite
             MarkupInfo.Foreground = clGray
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
-            Width = 13
             MouseActions = <>
             MarkupInfo.Background = clNone
             MarkupInfo.Foreground = clGray
@@ -609,13 +621,13 @@ object frmRoutineEditor: TfrmRoutineEditor
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 664
-    Height = 31
-    Top = 588
-    Width = 205
+    Left = 531
+    Height = 25
+    Top = 470
+    Width = 164
     Action = MainForm.actRunRoutines
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Images = MainForm.ImageListMain
     ImageIndex = 35
   end

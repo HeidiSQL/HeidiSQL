@@ -1,16 +1,15 @@
 object frmTableTools: TfrmTableTools
   Left = 734
-  Height = 479
+  Height = 383
   Top = 126
-  Width = 955
+  Width = 764
   BorderIcons = [biSystemMenu]
   Caption = 'Table tools'
-  ClientHeight = 479
-  ClientWidth = 955
+  ClientHeight = 383
+  ClientWidth = 764
   Color = clBtnFace
-  DesignTimePPI = 120
   Position = poMainFormCenter
-  LCLVersion = '4.2.0.0'
+  LCLVersion = '4.4.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
@@ -18,12 +17,12 @@ object frmTableTools: TfrmTableTools
     AnchorSideLeft.Control = Owner
     AnchorSideBottom.Control = btnSeeResults
     AnchorSideBottom.Side = asrCenter
-    Left = 6
-    Height = 20
-    Top = 447
-    Width = 100
+    Left = 5
+    Height = 15
+    Top = 357
+    Width = 79
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'lblCheckedSize'
   end
   object btnCloseOrCancel: TButton
@@ -31,12 +30,12 @@ object frmTableTools: TfrmTableTools
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 830
-    Height = 31
-    Top = 442
-    Width = 119
+    Left = 664
+    Height = 25
+    Top = 353
+    Width = 95
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Close'
     ModalResult = 2
     TabOrder = 3
@@ -48,46 +47,46 @@ object frmTableTools: TfrmTableTools
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnCloseOrCancel
-    Left = 6
-    Height = 430
-    Top = 6
-    Width = 943
+    Left = 5
+    Height = 343
+    Top = 5
+    Width = 754
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     BevelOuter = bvNone
-    ClientHeight = 430
-    ClientWidth = 943
+    ClientHeight = 343
+    ClientWidth = 754
     ParentBackground = False
     TabOrder = 0
     object spltHorizontally: TSplitter
       Cursor = crSizeWE
-      Left = 231
-      Height = 430
+      Left = 185
+      Height = 343
       Top = 0
-      Width = 5
+      Width = 4
       OnMoved = spltHorizontallyMoved
     end
     object pnlRight: TPanel
-      Left = 236
-      Height = 430
+      Left = 189
+      Height = 343
       Top = 0
-      Width = 707
+      Width = 565
       Align = alClient
       BevelOuter = bvNone
-      ClientHeight = 430
-      ClientWidth = 707
+      ClientHeight = 343
+      ClientWidth = 565
       ParentBackground = False
       TabOrder = 0
       object ResultGrid: TLazVirtualStringTree
         Left = 0
-        Height = 192
-        Top = 238
-        Width = 707
+        Height = 149
+        Top = 194
+        Width = 565
         Align = alClient
         Header.AutoSizeIndex = -1
         Header.Columns = <>
-        Header.Height = 25
+        Header.Height = 20
         Header.Images = MainForm.ImageListMain
         Header.MainColumn = -1
         Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
@@ -106,9 +105,9 @@ object frmTableTools: TfrmTableTools
       end
       object tabsTools: TPageControl
         Left = 0
-        Height = 238
+        Height = 194
         Top = 0
-        Width = 707
+        Width = 565
         ActivePage = tabMaintenance
         Align = alTop
         AutoSize = True
@@ -118,29 +117,29 @@ object frmTableTools: TfrmTableTools
         OnChange = ValidateControls
         object tabMaintenance: TTabSheet
           Caption = 'Maintenance'
-          ClientHeight = 205
-          ClientWidth = 699
+          ClientHeight = 166
+          ClientWidth = 557
           ImageIndex = 39
           object lblOperation: TLabel
             AnchorSideLeft.Control = tabMaintenance
             AnchorSideTop.Control = comboOperation
             AnchorSideTop.Side = asrCenter
-            Left = 6
-            Height = 20
-            Top = 10
-            Width = 70
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 15
+            Top = 9
+            Width = 56
+            BorderSpacing.Around = 5
             Caption = 'Operation:'
           end
           object lblOptions: TLabel
             AnchorSideLeft.Control = tabMaintenance
             AnchorSideTop.Control = comboOperation
             AnchorSideTop.Side = asrBottom
-            Left = 6
-            Height = 20
-            Top = 40
-            Width = 55
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 15
+            Top = 33
+            Width = 45
+            BorderSpacing.Around = 5
             Caption = 'Options:'
           end
           object comboOperation: TComboBox
@@ -148,14 +147,14 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Control = tabMaintenance
             AnchorSideRight.Control = tabMaintenance
             AnchorSideRight.Side = asrBottom
-            Left = 156
-            Height = 28
-            Top = 6
-            Width = 537
+            Left = 125
+            Height = 23
+            Top = 5
+            Width = 427
             Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
-            ItemHeight = 20
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
+            ItemHeight = 15
             Style = csDropDownList
             TabOrder = 0
             OnChange = ValidateControls
@@ -164,12 +163,12 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = tabMaintenance
             AnchorSideTop.Control = comboOperation
             AnchorSideTop.Side = asrBottom
-            Left = 156
-            Height = 24
-            Top = 40
-            Width = 58
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
+            Left = 125
+            Height = 19
+            Top = 33
+            Width = 49
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
             Caption = 'Quick'
             TabOrder = 1
             OnClick = ValidateControls
@@ -178,12 +177,12 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = tabMaintenance
             AnchorSideTop.Control = chkQuick
             AnchorSideTop.Side = asrBottom
-            Left = 156
-            Height = 24
-            Top = 70
-            Width = 47
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
+            Left = 125
+            Height = 19
+            Top = 57
+            Width = 39
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
             Caption = 'Fast'
             TabOrder = 2
             OnClick = ValidateControls
@@ -192,12 +191,12 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = tabMaintenance
             AnchorSideTop.Control = chkFast
             AnchorSideTop.Side = asrBottom
-            Left = 156
-            Height = 24
-            Top = 100
-            Width = 76
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
+            Left = 125
+            Height = 19
+            Top = 81
+            Width = 63
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
             Caption = 'Medium'
             TabOrder = 3
             OnClick = ValidateControls
@@ -206,12 +205,12 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = chkQuick
             AnchorSideTop.Control = comboOperation
             AnchorSideTop.Side = asrBottom
-            Left = 312
-            Height = 24
-            Top = 40
-            Width = 83
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
+            Left = 250
+            Height = 19
+            Top = 33
+            Width = 66
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
             Caption = 'Extended'
             TabOrder = 4
             OnClick = ValidateControls
@@ -220,12 +219,12 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = chkQuick
             AnchorSideTop.Control = chkExtended
             AnchorSideTop.Side = asrBottom
-            Left = 312
-            Height = 24
-            Top = 70
-            Width = 80
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
+            Left = 250
+            Height = 19
+            Top = 57
+            Width = 66
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
             Caption = 'Changed'
             TabOrder = 5
             OnClick = ValidateControls
@@ -234,12 +233,12 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = chkQuick
             AnchorSideTop.Control = chkChanged
             AnchorSideTop.Side = asrBottom
-            Left = 312
-            Height = 24
-            Top = 100
-            Width = 103
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
+            Left = 250
+            Height = 19
+            Top = 81
+            Width = 83
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
             Caption = 'Use FRM file'
             TabOrder = 6
             OnClick = ValidateControls
@@ -249,12 +248,12 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = tabMaintenance
             AnchorSideRight.Side = asrBottom
-            Left = 599
-            Height = 31
-            Top = 40
-            Width = 94
+            Left = 477
+            Height = 25
+            Top = 33
+            Width = 75
             Anchors = [akTop, akRight]
-            BorderSpacing.Around = 6
+            BorderSpacing.Around = 5
             Caption = 'Help'
             TabOrder = 7
             OnClick = btnHelpMaintenanceClick
@@ -263,12 +262,12 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = tabMaintenance
             AnchorSideTop.Control = chkMedium
             AnchorSideTop.Side = asrBottom
-            Left = 156
-            Height = 24
-            Top = 130
-            Width = 104
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
+            Left = 125
+            Height = 19
+            Top = 105
+            Width = 83
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
             Caption = 'For Upgrade'
             TabOrder = 8
             OnClick = ValidateControls
@@ -276,39 +275,39 @@ object frmTableTools: TfrmTableTools
         end
         object tabFind: TTabSheet
           Caption = 'Find text'
-          ClientHeight = 205
-          ClientWidth = 699
+          ClientHeight = 166
+          ClientWidth = 557
           ImageIndex = 30
           object lblFindText: TLabel
             AnchorSideTop.Control = tabsTextType
             AnchorSideTop.Side = asrCenter
-            Left = 4
-            Height = 20
-            Top = 43
-            Width = 78
-            BorderSpacing.Around = 6
+            Left = 3
+            Height = 15
+            Top = 36
+            Width = 62
+            BorderSpacing.Around = 5
             Caption = 'Text to find:'
           end
           object lblDataTypes: TLabel
             AnchorSideLeft.Control = tabFind
             AnchorSideTop.Control = comboDataTypes
             AnchorSideTop.Side = asrCenter
-            Left = 6
-            Height = 20
-            Top = 111
-            Width = 155
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 15
+            Top = 90
+            Width = 126
+            BorderSpacing.Around = 5
             Caption = 'Search in column types:'
           end
           object lblMatchType: TLabel
             AnchorSideLeft.Control = tabFind
             AnchorSideTop.Control = comboMatchType
             AnchorSideTop.Side = asrCenter
-            Left = 6
-            Height = 20
-            Top = 175
-            Width = 77
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 15
+            Top = 142
+            Width = 63
+            BorderSpacing.Around = 5
             Caption = 'Match type:'
           end
           object comboDataTypes: TComboBox
@@ -317,14 +316,14 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = tabFind
             AnchorSideRight.Side = asrBottom
-            Left = 256
-            Height = 28
-            Top = 107
-            Width = 437
+            Left = 205
+            Height = 23
+            Top = 86
+            Width = 347
             Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Left = 250
-            BorderSpacing.Around = 6
-            ItemHeight = 20
+            BorderSpacing.Left = 200
+            BorderSpacing.Around = 5
+            ItemHeight = 15
             Style = csDropDownList
             TabOrder = 0
           end
@@ -334,13 +333,13 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = tabFind
             AnchorSideRight.Side = asrBottom
-            Left = 256
-            Height = 24
-            Top = 141
-            Width = 437
+            Left = 205
+            Height = 19
+            Top = 114
+            Width = 347
             Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Left = 250
-            BorderSpacing.Around = 6
+            BorderSpacing.Left = 200
+            BorderSpacing.Around = 5
             Caption = 'Case sensitive'
             TabOrder = 1
           end
@@ -350,14 +349,14 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = tabFind
             AnchorSideRight.Side = asrBottom
-            Left = 256
-            Height = 28
-            Top = 171
-            Width = 437
+            Left = 205
+            Height = 23
+            Top = 138
+            Width = 347
             Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Left = 250
-            BorderSpacing.Around = 6
-            ItemHeight = 20
+            BorderSpacing.Left = 200
+            BorderSpacing.Around = 5
+            ItemHeight = 15
             ItemIndex = 0
             Items.Strings = (
               'Left and right wildcard'
@@ -375,26 +374,26 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Control = tabFind
             AnchorSideRight.Control = tabFind
             AnchorSideRight.Side = asrBottom
-            Left = 256
-            Height = 95
-            Top = 6
-            Width = 437
+            Left = 205
+            Height = 76
+            Top = 5
+            Width = 347
             ActivePage = tabSimpleText
             Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Left = 250
-            BorderSpacing.Around = 6
+            BorderSpacing.Left = 200
+            BorderSpacing.Around = 5
             TabIndex = 0
             TabOrder = 3
             OnChange = ValidateControls
             object tabSimpleText: TTabSheet
               Caption = 'Simple text'
-              ClientHeight = 62
-              ClientWidth = 429
+              ClientHeight = 48
+              ClientWidth = 339
               object memoFindText: TMemo
                 Left = 0
-                Height = 62
+                Height = 48
                 Top = 0
-                Width = 429
+                Width = 339
                 Align = alClient
                 ScrollBars = ssVertical
                 TabOrder = 0
@@ -403,16 +402,16 @@ object frmTableTools: TfrmTableTools
             end
             object tabSQL: TTabSheet
               Caption = 'SQL'
-              ClientHeight = 62
-              ClientWidth = 429
+              ClientHeight = 48
+              ClientWidth = 339
               ImageIndex = 1
               inline SynMemoFindText: TSynEdit
                 Left = 0
-                Height = 62
+                Height = 48
                 Top = 0
-                Width = 429
+                Width = 339
                 Align = alClient
-                Font.Height = -16
+                Font.Height = -13
                 Font.Name = 'Courier New'
                 Font.Pitch = fpFixed
                 Font.Quality = fqNonAntialiased
@@ -461,72 +460,72 @@ object frmTableTools: TfrmTableTools
         end
         object tabSQLexport: TTabSheet
           Caption = 'SQL export'
-          ClientHeight = 205
-          ClientWidth = 699
+          ClientHeight = 166
+          ClientWidth = 557
           ImageIndex = 9
           object lblExportData: TLabel
             AnchorSideLeft.Control = tabSQLexport
             AnchorSideTop.Control = comboExportData
             AnchorSideTop.Side = asrCenter
-            Left = 6
-            Height = 20
-            Top = 70
-            Width = 35
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 15
+            Top = 57
+            Width = 27
+            BorderSpacing.Around = 5
             Caption = 'Data:'
           end
           object lblExportOutputType: TLabel
             AnchorSideLeft.Control = tabSQLexport
             AnchorSideTop.Control = comboExportOutputType
             AnchorSideTop.Side = asrCenter
-            Left = 6
-            Height = 20
-            Top = 137
-            Width = 49
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 15
+            Top = 113
+            Width = 41
+            BorderSpacing.Around = 5
             Caption = 'Output:'
           end
           object lblExportDatabases: TLabel
             AnchorSideLeft.Control = tabSQLexport
             AnchorSideTop.Control = tabSQLexport
-            Left = 6
-            Height = 20
-            Top = 6
-            Width = 82
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 15
+            Top = 5
+            Width = 64
+            BorderSpacing.Around = 5
             Caption = 'Database(s):'
           end
           object lblExportTables: TLabel
             AnchorSideLeft.Control = tabSQLexport
             AnchorSideTop.Control = chkExportDatabasesDrop
             AnchorSideTop.Side = asrBottom
-            Left = 6
-            Height = 20
-            Top = 36
-            Width = 54
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 15
+            Top = 29
+            Width = 44
+            BorderSpacing.Around = 5
             Caption = 'Table(s):'
           end
           object lblExportOutputTarget: TLabel
             AnchorSideLeft.Control = tabSQLexport
             AnchorSideTop.Control = comboExportOutputTarget
             AnchorSideTop.Side = asrCenter
-            Left = 6
-            Height = 20
-            Top = 170
-            Width = 63
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 15
+            Top = 140
+            Width = 51
+            BorderSpacing.Around = 5
             Caption = 'Filename:'
           end
           object lblInsertSize: TLabel
             AnchorSideLeft.Control = tabSQLexport
             AnchorSideTop.Control = editInsertSize
             AnchorSideTop.Side = asrCenter
-            Left = 6
-            Height = 20
-            Top = 104
-            Width = 111
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 15
+            Top = 85
+            Width = 87
+            BorderSpacing.Around = 5
             Caption = 'Max INSERT size:'
           end
           object lblInsertSizeUnit: TLabel
@@ -534,11 +533,11 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Side = asrBottom
             AnchorSideTop.Control = editInsertSize
             AnchorSideTop.Side = asrCenter
-            Left = 312
-            Height = 20
-            Top = 104
-            Width = 155
-            BorderSpacing.Around = 6
+            Left = 250
+            Height = 15
+            Top = 85
+            Width = 121
+            BorderSpacing.Around = 5
             Caption = 'KB (0 = Single INSERTs)'
           end
           object btnExportOutputTargetSelect: TSpeedButton
@@ -546,24 +545,24 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrCenter
             AnchorSideRight.Control = tabSQLexport
             AnchorSideRight.Side = asrBottom
-            Left = 664
-            Height = 26
+            Left = 529
+            Height = 21
             Hint = 'Browse filesystem'
-            Top = 167
-            Width = 29
+            Top = 137
+            Width = 23
             Anchors = [akTop, akRight]
-            BorderSpacing.Around = 6
+            BorderSpacing.Around = 5
             Images = MainForm.ImageListMain
             ImageIndex = 51
             OnClick = btnExportOutputTargetSelectClick
           end
           object chkExportDatabasesCreate: TCheckBox
             AnchorSideTop.Control = tabSQLexport
-            Left = 240
-            Height = 24
-            Top = 6
-            Width = 64
-            BorderSpacing.Around = 6
+            Left = 192
+            Height = 19
+            Top = 5
+            Width = 52
+            BorderSpacing.Around = 5
             Caption = 'Create'
             TabOrder = 0
             OnClick = chkExportOptionClick
@@ -571,12 +570,12 @@ object frmTableTools: TfrmTableTools
           object chkExportDatabasesDrop: TCheckBox
             AnchorSideLeft.Control = tabSQLexport
             AnchorSideTop.Control = tabSQLexport
-            Left = 156
-            Height = 24
-            Top = 6
-            Width = 55
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
+            Left = 125
+            Height = 19
+            Top = 5
+            Width = 44
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
             Caption = 'Drop'
             TabOrder = 1
             OnClick = chkExportOptionClick
@@ -585,12 +584,12 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = tabSQLexport
             AnchorSideTop.Control = chkExportDatabasesDrop
             AnchorSideTop.Side = asrBottom
-            Left = 156
-            Height = 24
-            Top = 36
-            Width = 55
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
+            Left = 125
+            Height = 19
+            Top = 29
+            Width = 44
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
             Caption = 'Drop'
             TabOrder = 2
             OnClick = chkExportOptionClick
@@ -598,11 +597,11 @@ object frmTableTools: TfrmTableTools
           object chkExportTablesCreate: TCheckBox
             AnchorSideTop.Control = chkExportDatabasesDrop
             AnchorSideTop.Side = asrBottom
-            Left = 240
-            Height = 24
-            Top = 36
-            Width = 64
-            BorderSpacing.Around = 6
+            Left = 192
+            Height = 19
+            Top = 29
+            Width = 52
+            BorderSpacing.Around = 5
             Caption = 'Create'
             TabOrder = 3
             OnClick = chkExportOptionClick
@@ -613,14 +612,14 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = tabSQLexport
             AnchorSideRight.Side = asrBottom
-            Left = 156
-            Height = 28
-            Top = 66
-            Width = 537
+            Left = 125
+            Height = 23
+            Top = 53
+            Width = 427
             Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
-            ItemHeight = 20
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
+            ItemHeight = 15
             Style = csDropDownList
             TabOrder = 4
             OnChange = ValidateControls
@@ -631,15 +630,15 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = tabSQLexport
             AnchorSideRight.Side = asrBottom
-            Left = 156
-            Height = 26
-            Top = 134
-            Width = 537
+            Left = 125
+            Height = 22
+            Top = 109
+            Width = 427
             Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
             DropDownCount = 16
-            ItemHeight = 20
+            ItemHeight = 16
             Style = csOwnerDrawVariable
             TabOrder = 6
             OnChange = comboExportOutputTypeChange
@@ -651,15 +650,15 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Control = comboExportOutputType
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = btnExportOutputTargetSelect
-            Left = 156
-            Height = 28
-            Top = 166
-            Width = 502
+            Left = 125
+            Height = 23
+            Top = 136
+            Width = 399
             Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
             DropDownCount = 16
-            ItemHeight = 20
+            ItemHeight = 15
             ParentShowHint = False
             ShowHint = True
             TabOrder = 8
@@ -670,12 +669,12 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = tabSQLexport
             AnchorSideTop.Control = comboExportData
             AnchorSideTop.Side = asrBottom
-            Left = 156
-            Height = 28
-            Top = 100
-            Width = 150
-            BorderSpacing.Left = 150
-            BorderSpacing.Around = 6
+            Left = 125
+            Height = 23
+            Top = 81
+            Width = 120
+            BorderSpacing.Left = 120
+            BorderSpacing.Around = 5
             NumbersOnly = True
             TabOrder = 5
             Text = '0'
@@ -685,13 +684,13 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrCenter
             AnchorSideRight.Control = tabSQLexport
             AnchorSideRight.Side = asrBottom
-            Left = 595
-            Height = 30
-            Top = 99
-            Width = 98
+            Left = 464
+            Height = 26
+            Top = 79
+            Width = 88
             Anchors = [akTop, akRight]
             AutoSize = True
-            BorderSpacing.Around = 6
+            BorderSpacing.Around = 5
             Caption = 'Options'
             Images = MainForm.ImageListMain
             ImageIndex = 107
@@ -701,18 +700,18 @@ object frmTableTools: TfrmTableTools
         end
         object tabBulkTableEdit: TTabSheet
           Caption = 'Bulk table editor'
-          ClientHeight = 205
-          ClientWidth = 699
+          ClientHeight = 166
+          ClientWidth = 557
           ImageIndex = 19
           object chkBulkTableEditDatabase: TCheckBox
             AnchorSideLeft.Control = tabBulkTableEdit
             AnchorSideTop.Control = comboBulkTableEditDatabase
             AnchorSideTop.Side = asrCenter
-            Left = 6
-            Height = 24
-            Top = 6
-            Width = 144
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 19
+            Top = 5
+            Width = 115
+            BorderSpacing.Around = 5
             Caption = 'Move to database:'
             TabOrder = 0
             OnClick = chkBulkTableEditCheckComboClick
@@ -721,15 +720,15 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = tabBulkTableEdit
             AnchorSideRight.Control = tabBulkTableEdit
             AnchorSideRight.Side = asrBottom
-            Left = 256
-            Height = 28
-            Top = 4
-            Width = 437
+            Left = 205
+            Height = 23
+            Top = 3
+            Width = 347
             Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Left = 250
-            BorderSpacing.Around = 6
+            BorderSpacing.Left = 200
+            BorderSpacing.Around = 5
             Enabled = False
-            ItemHeight = 20
+            ItemHeight = 15
             Style = csDropDownList
             TabOrder = 1
           end
@@ -737,11 +736,11 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = tabBulkTableEdit
             AnchorSideTop.Control = chkBulkTableEditCharset
             AnchorSideTop.Side = asrBottom
-            Left = 6
-            Height = 24
-            Top = 138
-            Width = 200
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 19
+            Top = 113
+            Width = 161
+            BorderSpacing.Around = 5
             Caption = 'Reset auto increment value'
             TabOrder = 2
             OnClick = ValidateControls
@@ -750,11 +749,11 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = tabBulkTableEdit
             AnchorSideTop.Control = comboBulkTableEditCollation
             AnchorSideTop.Side = asrCenter
-            Left = 6
-            Height = 24
-            Top = 74
-            Width = 187
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 19
+            Top = 61
+            Width = 151
+            BorderSpacing.Around = 5
             Caption = 'Change default collation:'
             TabOrder = 3
             OnClick = chkBulkTableEditCheckComboClick
@@ -765,16 +764,16 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = tabBulkTableEdit
             AnchorSideRight.Side = asrBottom
-            Left = 256
-            Height = 28
-            Top = 72
-            Width = 437
+            Left = 205
+            Height = 23
+            Top = 59
+            Width = 347
             Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Left = 250
-            BorderSpacing.Around = 6
+            BorderSpacing.Left = 200
+            BorderSpacing.Around = 5
             DropDownCount = 16
             Enabled = False
-            ItemHeight = 20
+            ItemHeight = 15
             Sorted = True
             Style = csDropDownList
             TabOrder = 4
@@ -783,11 +782,11 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = tabBulkTableEdit
             AnchorSideTop.Control = comboBulkTableEditDatabase
             AnchorSideTop.Side = asrBottom
-            Left = 6
-            Height = 24
-            Top = 38
-            Width = 161
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 19
+            Top = 31
+            Width = 130
+            BorderSpacing.Around = 5
             Caption = 'Change table engine:'
             TabOrder = 5
             OnClick = chkBulkTableEditCheckComboClick
@@ -798,15 +797,15 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = tabBulkTableEdit
             AnchorSideRight.Side = asrBottom
-            Left = 256
-            Height = 28
-            Top = 38
-            Width = 437
+            Left = 205
+            Height = 23
+            Top = 31
+            Width = 347
             Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Left = 250
-            BorderSpacing.Around = 6
+            BorderSpacing.Left = 200
+            BorderSpacing.Around = 5
             Enabled = False
-            ItemHeight = 20
+            ItemHeight = 15
             Style = csDropDownList
             TabOrder = 6
           end
@@ -814,11 +813,11 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = tabBulkTableEdit
             AnchorSideTop.Control = comboBulkTableEditCharset
             AnchorSideTop.Side = asrCenter
-            Left = 6
-            Height = 24
-            Top = 108
-            Width = 144
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 19
+            Top = 89
+            Width = 118
+            BorderSpacing.Around = 5
             Caption = 'Convert to charset:'
             TabOrder = 7
             OnClick = chkBulkTableEditCheckComboClick
@@ -829,55 +828,55 @@ object frmTableTools: TfrmTableTools
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = tabBulkTableEdit
             AnchorSideRight.Side = asrBottom
-            Left = 256
-            Height = 28
-            Top = 106
-            Width = 437
+            Left = 205
+            Height = 23
+            Top = 87
+            Width = 347
             Anchors = [akTop, akLeft, akRight]
-            BorderSpacing.Left = 250
-            BorderSpacing.Around = 6
+            BorderSpacing.Left = 200
+            BorderSpacing.Around = 5
             DropDownCount = 16
             Enabled = False
-            ItemHeight = 20
+            ItemHeight = 15
             Style = csDropDownList
             TabOrder = 8
           end
         end
         object tabGenerateData: TTabSheet
           Caption = 'Generate data'
-          ClientHeight = 205
-          ClientWidth = 699
+          ClientHeight = 166
+          ClientWidth = 557
           ImageIndex = 130
           object lblGenerateDataNumRows: TLabel
             AnchorSideLeft.Control = tabGenerateData
             AnchorSideTop.Control = editGenerateDataNumRows
             AnchorSideTop.Side = asrCenter
-            Left = 6
-            Height = 20
-            Top = 8
-            Width = 110
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 15
+            Top = 7
+            Width = 89
+            BorderSpacing.Around = 5
             Caption = 'Number of rows:'
           end
           object lblGenerateDataNullAmount: TLabel
             AnchorSideLeft.Control = tabGenerateData
             AnchorSideTop.Control = editGenerateDataNullAmount
             AnchorSideTop.Side = asrCenter
-            Left = 6
-            Height = 20
-            Top = 42
-            Width = 183
-            BorderSpacing.Around = 6
+            Left = 5
+            Height = 15
+            Top = 35
+            Width = 149
+            BorderSpacing.Around = 5
             Caption = 'Amount of NULLs [percent]:'
           end
           object editGenerateDataNumRows: TEdit
             AnchorSideLeft.Control = tabGenerateData
-            Left = 256
-            Height = 28
-            Top = 4
-            Width = 151
-            BorderSpacing.Left = 250
-            BorderSpacing.Around = 6
+            Left = 205
+            Height = 23
+            Top = 3
+            Width = 121
+            BorderSpacing.Left = 200
+            BorderSpacing.Around = 5
             NumbersOnly = True
             TabOrder = 0
             Text = '1.000'
@@ -886,12 +885,12 @@ object frmTableTools: TfrmTableTools
             AnchorSideLeft.Control = tabGenerateData
             AnchorSideTop.Control = editGenerateDataNumRows
             AnchorSideTop.Side = asrBottom
-            Left = 256
-            Height = 28
-            Top = 38
-            Width = 151
-            BorderSpacing.Left = 250
-            BorderSpacing.Around = 6
+            Left = 205
+            Height = 23
+            Top = 31
+            Width = 121
+            BorderSpacing.Left = 200
+            BorderSpacing.Around = 5
             NumbersOnly = True
             TabOrder = 1
             Text = '10'
@@ -901,35 +900,35 @@ object frmTableTools: TfrmTableTools
     end
     object pnlLeft: TPanel
       Left = 0
-      Height = 430
+      Height = 343
       Top = 0
-      Width = 231
+      Width = 185
       Align = alLeft
       BevelOuter = bvNone
       Caption = 'pnlLeft'
-      ClientHeight = 430
-      ClientWidth = 231
+      ClientHeight = 343
+      ClientWidth = 185
       ParentBackground = False
       TabOrder = 1
       object pnlLeftTop: TPanel
         Left = 0
-        Height = 36
+        Height = 29
         Top = 0
-        Width = 231
+        Width = 185
         Align = alTop
         BevelOuter = bvNone
         Caption = 'pnlLeftTop'
-        ClientHeight = 36
-        ClientWidth = 231
+        ClientHeight = 29
+        ClientWidth = 185
         ParentBackground = False
         TabOrder = 0
         object editDatabaseFilter: TEditButton
-          Left = 5
-          Height = 28
+          Left = 4
+          Height = 23
           Hint = 'Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. "mydb;test.*;project\d+".'
           Top = 0
-          Width = 61
-          ButtonWidth = 29
+          Width = 49
+          ButtonWidth = 23
           Images = MainForm.ImageListMain
           ImageIndex = 193
           MaxLength = 0
@@ -943,12 +942,12 @@ object frmTableTools: TfrmTableTools
           OnKeyPress = editDatabaseTableFilterKeyPress
         end
         object editTableFilter: TEditButton
-          Left = 74
-          Height = 28
+          Left = 59
+          Height = 23
           Hint = 'Table filter|Can contain regular expressions, e.g. "phpbb_\d"'
           Top = 0
-          Width = 85
-          ButtonWidth = 29
+          Width = 68
+          ButtonWidth = 23
           Images = MainForm.ImageListMain
           ImageIndex = 193
           MaxLength = 0
@@ -964,23 +963,23 @@ object frmTableTools: TfrmTableTools
       end
       object TreeObjects: TLazVirtualStringTree
         Left = 0
-        Height = 394
-        Top = 36
-        Width = 231
+        Height = 314
+        Top = 29
+        Width = 185
         Align = alClient
         Header.AutoSizeIndex = 0
         Header.Columns = <        
           item
             Position = 0
             Text = 'Dummy, keeps compatibility to mainform.dbtree'
-            Width = 168
+            Width = 131
           end        
           item
             Alignment = taRightJustify
             Position = 1
             Text = 'Size'
           end>
-        Header.Height = 32
+        Header.Height = 26
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
         Images = MainForm.ImageListMain
         IncrementalSearch = isInitializedOnly
@@ -1007,12 +1006,12 @@ object frmTableTools: TfrmTableTools
     AnchorSideRight.Control = btnCloseOrCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 705
-    Height = 31
-    Top = 442
-    Width = 119
+    Left = 564
+    Height = 25
+    Top = 353
+    Width = 95
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Execute'
     TabOrder = 2
     OnClick = Execute
@@ -1021,12 +1020,12 @@ object frmTableTools: TfrmTableTools
     AnchorSideRight.Control = btnExecute
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 551
-    Height = 31
-    Top = 442
-    Width = 148
+    Left = 441
+    Height = 25
+    Top = 353
+    Width = 118
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'See results'
     ModalResult = 1
     TabOrder = 1
@@ -1035,8 +1034,8 @@ object frmTableTools: TfrmTableTools
   end
   object popupTree: TPopupMenu
     Images = MainForm.ImageListMain
-    Left = 180
-    Top = 440
+    Left = 144
+    Top = 352
     object menuCheckNone: TMenuItem
       Caption = 'Check none'
       ImageIndex = 65
@@ -1057,8 +1056,8 @@ object frmTableTools: TfrmTableTools
     end
   end
   object popupExportOptions: TPopupMenu
-    Left = 220
-    Top = 440
+    Left = 176
+    Top = 352
     object menuExportAddComments: TMenuItem
       AutoCheck = True
       Caption = 'Add comments'
@@ -1080,7 +1079,7 @@ object frmTableTools: TfrmTableTools
     Enabled = False
     Interval = 200
     OnTimer = timerCalcSizeTimer
-    Left = 330
-    Top = 440
+    Left = 264
+    Top = 352
   end
 end

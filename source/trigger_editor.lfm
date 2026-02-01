@@ -1,61 +1,61 @@
 object frmTriggerEditor: TfrmTriggerEditor
   Left = 0
-  Height = 625
+  Height = 500
   Top = 0
-  Width = 875
-  ClientHeight = 625
-  ClientWidth = 875
-  DesignTimePPI = 120
+  Width = 700
+  ClientHeight = 500
+  ClientWidth = 700
+  LCLVersion = '4.4.0.0'
   ParentFont = False
   TabOrder = 0
   object lblBody: TLabel
-    Left = 6
-    Height = 20
-    Top = 153
-    Width = 863
+    Left = 5
+    Height = 15
+    Top = 127
+    Width = 690
     Align = alTop
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Trigger statement: (e.g. "SET NEW.columnA = TRIM(OLD.columnA)"'
   end
   object PageControlMain: TPageControl
-    Left = 6
-    Height = 141
-    Top = 6
-    Width = 863
+    Left = 5
+    Height = 117
+    Top = 5
+    Width = 690
     ActivePage = tabOptions
     Align = alTop
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Images = MainForm.ImageListMain
     TabIndex = 0
     TabOrder = 4
     OnChange = PageControlMainChange
     object tabOptions: TTabSheet
       Caption = 'Options'
-      ClientHeight = 108
-      ClientWidth = 855
+      ClientHeight = 89
+      ClientWidth = 682
       ImageIndex = 39
       object lblDefiner: TLabel
         AnchorSideLeft.Control = editName
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboDefiner
         AnchorSideTop.Side = asrCenter
-        Left = 308
-        Height = 20
-        Top = 10
-        Width = 52
-        BorderSpacing.Around = 6
+        Left = 247
+        Height = 15
+        Top = 9
+        Width = 41
+        BorderSpacing.Around = 5
         Caption = 'Definer:'
       end
       object lblName: TLabel
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = editName
         AnchorSideTop.Side = asrCenter
-        Left = 6
-        Height = 20
-        Top = 10
-        Width = 43
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 9
+        Width = 35
+        BorderSpacing.Around = 5
         Caption = 'Name:'
         FocusControl = editName
       end
@@ -63,35 +63,35 @@ object frmTriggerEditor: TfrmTriggerEditor
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = comboTable
         AnchorSideTop.Side = asrCenter
-        Left = 6
-        Height = 20
-        Top = 44
-        Width = 60
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 37
+        Width = 48
+        BorderSpacing.Around = 5
         Caption = 'On table:'
       end
       object lblEvent: TLabel
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = comboTiming
         AnchorSideTop.Side = asrCenter
-        Left = 6
-        Height = 20
-        Top = 78
-        Width = 39
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 65
+        Width = 32
+        BorderSpacing.Around = 5
         Caption = 'Event:'
       end
       object comboDefiner: TComboBox
         AnchorSideTop.Control = tabOptions
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
-        Left = 380
-        Height = 28
-        Top = 6
-        Width = 469
+        Left = 304
+        Height = 23
+        Top = 5
+        Width = 373
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         TabOrder = 0
         Text = 'comboDefiner'
         OnChange = Modification
@@ -100,12 +100,12 @@ object frmTriggerEditor: TfrmTriggerEditor
       object editName: TEdit
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = tabOptions
-        Left = 106
-        Height = 28
-        Top = 6
-        Width = 196
-        BorderSpacing.Left = 100
-        BorderSpacing.Around = 6
+        Left = 85
+        Height = 23
+        Top = 5
+        Width = 157
+        BorderSpacing.Left = 80
+        BorderSpacing.Around = 5
         TabOrder = 1
         Text = 'editName'
         TextHint = 'Enter trigger name'
@@ -117,14 +117,14 @@ object frmTriggerEditor: TfrmTriggerEditor
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabOptions
         AnchorSideRight.Side = asrBottom
-        Left = 106
-        Height = 28
-        Top = 40
-        Width = 743
+        Left = 85
+        Height = 23
+        Top = 33
+        Width = 592
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Left = 100
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Left = 80
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 2
         OnChange = comboChange
@@ -135,14 +135,14 @@ object frmTriggerEditor: TfrmTriggerEditor
         AnchorSideTop.Side = asrBottom
         AnchorSideBottom.Control = tabOptions
         AnchorSideBottom.Side = asrBottom
-        Left = 106
-        Height = 28
-        Top = 74
-        Width = 196
+        Left = 85
+        Height = 23
+        Top = 61
+        Width = 157
         Anchors = [akTop, akLeft, akBottom]
-        BorderSpacing.Left = 100
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        BorderSpacing.Left = 80
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 3
         OnChange = comboChange
@@ -152,12 +152,12 @@ object frmTriggerEditor: TfrmTriggerEditor
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboTable
         AnchorSideTop.Side = asrBottom
-        Left = 308
-        Height = 28
-        Top = 74
-        Width = 181
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 247
+        Height = 23
+        Top = 61
+        Width = 145
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 4
         OnChange = comboChange
@@ -165,14 +165,14 @@ object frmTriggerEditor: TfrmTriggerEditor
     end
     object tabCreateCode: TTabSheet
       Caption = 'CREATE code'
-      ClientHeight = 108
-      ClientWidth = 855
+      ClientHeight = 89
+      ClientWidth = 682
       ImageIndex = 119
       inline SynMemoCreateCode: TSynEdit
         Left = 0
-        Height = 108
+        Height = 89
         Top = 0
-        Width = 855
+        Width = 682
         Align = alClient
         Font.Height = -13
         Font.Name = 'Courier New'
@@ -182,7 +182,7 @@ object frmTriggerEditor: TfrmTriggerEditor
         ParentFont = False
         TabOrder = 0
         Gutter.LeftOffset = 2
-        Gutter.Width = 70
+        Gutter.Width = 59
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -216,8 +216,12 @@ object frmTriggerEditor: TfrmTriggerEditor
         LineHighlightColor.Foreground = clNone
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
-            Width = 30
+            Width = 24
             MouseActions = <>
+            MaxExtraMarksColums = 0
+            Options = [sgmoDeDuplicateMarksOnOverflow]
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
             Width = 17
@@ -230,19 +234,21 @@ object frmTriggerEditor: TfrmTriggerEditor
             LeadingZeros = False
           end
           object SynGutterChanges1: TSynGutterChanges
-            Width = 5
+            Width = 4
             MouseActions = <>
             ModifiedColor = 59900
             SavedColor = clGreen
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGreen
+            MarkupInfo.FrameColor = 59900
           end
           object SynGutterSeparator1: TSynGutterSeparator
-            Width = 3
+            Width = 2
             MouseActions = <>
             MarkupInfo.Background = clWhite
             MarkupInfo.Foreground = clGray
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
-            Width = 13
             MouseActions = <>
             MarkupInfo.Background = clNone
             MarkupInfo.Foreground = clGray
@@ -260,12 +266,12 @@ object frmTriggerEditor: TfrmTriggerEditor
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnSave
-    Left = 6
-    Height = 403
-    Top = 179
-    Width = 863
+    Left = 5
+    Height = 318
+    Top = 147
+    Width = 690
     Align = alTop
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.Height = -13
     Font.Name = 'Courier New'
@@ -274,7 +280,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     ParentColor = False
     ParentFont = False
     TabOrder = 0
-    Gutter.Width = 68
+    Gutter.Width = 57
     Gutter.MouseActions = <>
     RightGutter.Width = 0
     RightGutter.MouseActions = <>
@@ -307,8 +313,12 @@ object frmTriggerEditor: TfrmTriggerEditor
     OnChange = Modification
     inline SynLeftGutterPartList1: TSynGutterPartList
       object SynGutterMarks1: TSynGutterMarks
-        Width = 30
+        Width = 24
         MouseActions = <>
+        MaxExtraMarksColums = 0
+        Options = [sgmoDeDuplicateMarksOnOverflow]
+        MarkupInfo.Background = clBtnFace
+        MarkupInfo.Foreground = clNone
       end
       object SynGutterLineNumber1: TSynGutterLineNumber
         Width = 17
@@ -321,19 +331,21 @@ object frmTriggerEditor: TfrmTriggerEditor
         LeadingZeros = False
       end
       object SynGutterChanges1: TSynGutterChanges
-        Width = 5
+        Width = 4
         MouseActions = <>
         ModifiedColor = 59900
         SavedColor = clGreen
+        MarkupInfo.Background = clNone
+        MarkupInfo.Foreground = clGreen
+        MarkupInfo.FrameColor = 59900
       end
       object SynGutterSeparator1: TSynGutterSeparator
-        Width = 3
+        Width = 2
         MouseActions = <>
         MarkupInfo.Background = clWhite
         MarkupInfo.Foreground = clGray
       end
       object SynGutterCodeFolding1: TSynGutterCodeFolding
-        Width = 13
         MouseActions = <>
         MarkupInfo.Background = clNone
         MarkupInfo.Foreground = clGray
@@ -346,12 +358,12 @@ object frmTriggerEditor: TfrmTriggerEditor
     AnchorSideLeft.Control = Owner
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 6
-    Height = 31
-    Top = 588
-    Width = 94
+    Left = 5
+    Height = 25
+    Top = 470
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Help'
     TabOrder = 1
     OnClick = btnHelpClick
@@ -361,12 +373,12 @@ object frmTriggerEditor: TfrmTriggerEditor
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 106
-    Height = 31
-    Top = 588
-    Width = 94
+    Left = 85
+    Height = 25
+    Top = 470
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Discard'
     TabOrder = 2
     OnClick = btnDiscardClick
@@ -376,12 +388,12 @@ object frmTriggerEditor: TfrmTriggerEditor
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 206
-    Height = 31
-    Top = 588
-    Width = 94
+    Left = 165
+    Height = 25
+    Top = 470
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Save'
     Default = True
     TabOrder = 3
@@ -389,7 +401,7 @@ object frmTriggerEditor: TfrmTriggerEditor
   end
   object SynCompletionProposalStatement: TSynCompletion
     OnExecute = SynCompletionProposalStatementExecute
-    Position = 0
+    Position = -1
     LinesInWindow = 6
     SelectedColor = clHighlight
     CaseSensitive = False
@@ -400,7 +412,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     ExecCommandID = ecSynCompletionExecute
     Editor = SynMemoBody
     ToggleReplaceWhole = False
-    Left = 330
-    Top = 380
+    Left = 264
+    Top = 304
   end
 end

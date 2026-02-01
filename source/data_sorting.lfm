@@ -1,34 +1,33 @@
 object frmDataSorting: TfrmDataSorting
   Left = 0
-  Height = 121
+  Height = 97
   Top = 0
-  Width = 255
+  Width = 204
   BorderStyle = bsNone
   Caption = 'DataSortingForm'
-  ClientHeight = 121
-  ClientWidth = 255
+  ClientHeight = 97
+  ClientWidth = 204
   Color = clBtnFace
-  DesignTimePPI = 120
-  LCLVersion = '4.2.0.0'
+  LCLVersion = '4.4.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   object pnlBevel: TPanel
     Left = 0
-    Height = 121
+    Height = 97
     Top = 0
-    Width = 255
+    Width = 204
     Align = alClient
     BorderWidth = 3
-    ClientHeight = 121
-    ClientWidth = 255
+    ClientHeight = 97
+    ClientWidth = 204
     ParentBackground = False
     TabOrder = 0
     object btnOK: TButton
-      Left = 4
-      Height = 31
-      Top = 85
-      Width = 75
+      Left = 3
+      Height = 25
+      Top = 68
+      Width = 60
       Anchors = [akLeft, akBottom]
       Caption = 'OK'
       Default = True
@@ -38,10 +37,10 @@ object frmDataSorting: TfrmDataSorting
       OnClick = btnOKClick
     end
     object btnCancel: TButton
-      Left = 85
-      Height = 31
-      Top = 85
-      Width = 75
+      Left = 68
+      Height = 25
+      Top = 68
+      Width = 60
       Anchors = [akLeft, akBottom]
       Cancel = True
       Caption = 'Cancel'
@@ -50,20 +49,20 @@ object frmDataSorting: TfrmDataSorting
       OnClick = btnCancelClick
     end
     object btnAddCol: TButton
-      Left = 168
-      Height = 31
-      Top = 85
-      Width = 75
+      Left = 134
+      Height = 25
+      Top = 68
+      Width = 60
       Anchors = [akLeft, akBottom]
       Caption = 'Add Col'
       TabOrder = 2
       OnClick = btnAddColClick
     end
     object btnReset: TSpeedButton
-      Left = 87
-      Height = 31
-      Top = 49
-      Width = 156
+      Left = 69
+      Height = 25
+      Top = 39
+      Width = 125
       Action = MainForm.actDataResetSorting
       Anchors = [akRight, akBottom]
       Images = MainForm.ImageListMain

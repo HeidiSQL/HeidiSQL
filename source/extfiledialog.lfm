@@ -1,41 +1,41 @@
 object frmExtFileDialog: TfrmExtFileDialog
   Left = 306
-  Height = 544
+  Height = 435
   Top = 123
-  Width = 872
+  Width = 698
   BorderIcons = [biSystemMenu]
   Caption = 'Open existing file'
-  ClientHeight = 544
-  ClientWidth = 872
-  DesignTimePPI = 120
+  ClientHeight = 435
+  ClientWidth = 698
   Position = poOwnerFormCenter
+  LCLVersion = '4.4.0.0'
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   object pnlBottom: TPanel
-    Left = 10
-    Height = 68
-    Top = 466
-    Width = 852
+    Left = 8
+    Height = 56
+    Top = 371
+    Width = 682
     Align = alBottom
     AutoSize = True
-    BorderSpacing.Around = 10
+    BorderSpacing.Around = 8
     BevelOuter = bvNone
-    ClientHeight = 68
-    ClientWidth = 852
+    ClientHeight = 56
+    ClientWidth = 682
     TabOrder = 2
     object editFilename: TEdit
       AnchorSideLeft.Control = lblFilename
       AnchorSideLeft.Side = asrBottom
       AnchorSideTop.Control = pnlBottom
       AnchorSideRight.Control = comboFileType
-      Left = 73
-      Height = 28
+      Left = 59
+      Height = 23
       Top = 0
-      Width = 549
+      Width = 439
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Right = 10
+      BorderSpacing.Right = 8
       TabOrder = 0
       Text = 'editFilename'
       OnEditingDone = editFilenameEditingDone
@@ -45,10 +45,10 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideTop.Control = editFilename
       AnchorSideTop.Side = asrCenter
       Left = 0
-      Height = 20
+      Height = 15
       Top = 4
-      Width = 63
-      BorderSpacing.Right = 10
+      Width = 51
+      BorderSpacing.Right = 8
       Caption = 'Filename:'
     end
     object comboFileType: TComboBox
@@ -56,13 +56,13 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideTop.Control = pnlBottom
       AnchorSideRight.Control = pnlBottom
       AnchorSideRight.Side = asrBottom
-      Left = 632
-      Height = 28
+      Left = 506
+      Height = 23
       Top = 0
-      Width = 220
+      Width = 176
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Bottom = 10
-      ItemHeight = 20
+      BorderSpacing.Bottom = 8
+      ItemHeight = 15
       Items.Strings = (
         ''
       )
@@ -77,15 +77,15 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideRight.Control = btnCancel
       AnchorSideBottom.Control = pnlBottom
       AnchorSideBottom.Side = asrBottom
-      Left = 632
-      Height = 30
-      Top = 38
-      Width = 105
+      Left = 506
+      Height = 25
+      Top = 31
+      Width = 84
       Anchors = [akTop, akRight, akBottom]
       AutoSize = True
-      BorderSpacing.Right = 10
+      BorderSpacing.Right = 8
       Caption = 'OK'
-      Constraints.MinWidth = 105
+      Constraints.MinWidth = 84
       Default = True
       ModalResult = 1
       TabOrder = 2
@@ -95,15 +95,15 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = pnlBottom
       AnchorSideRight.Side = asrBottom
-      Left = 747
-      Height = 30
-      Top = 38
-      Width = 105
+      Left = 598
+      Height = 25
+      Top = 31
+      Width = 84
       Anchors = [akTop, akRight]
       AutoSize = True
       Cancel = True
       Caption = 'Cancel'
-      Constraints.MinWidth = 105
+      Constraints.MinWidth = 84
       ModalResult = 2
       TabOrder = 3
     end
@@ -111,13 +111,13 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideTop.Control = comboFileType
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = btnOk
-      Left = 402
-      Height = 28
-      Top = 38
-      Width = 220
+      Left = 322
+      Height = 23
+      Top = 31
+      Width = 176
       Anchors = [akTop, akRight]
-      BorderSpacing.Right = 10
-      ItemHeight = 20
+      BorderSpacing.Right = 8
+      ItemHeight = 15
       Style = csDropDownList
       TabOrder = 4
       Visible = False
@@ -127,12 +127,12 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideTop.Control = comboEncoding
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = comboEncoding
-      Left = 327
-      Height = 20
-      Top = 42
-      Width = 65
+      Left = 261
+      Height = 15
+      Top = 35
+      Width = 53
       Anchors = [akTop, akRight]
-      BorderSpacing.Right = 10
+      BorderSpacing.Right = 8
       Caption = 'Encoding:'
       Visible = False
     end
@@ -140,13 +140,13 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideTop.Control = comboFileType
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = lblEncoding
-      Left = 117
-      Height = 28
-      Top = 38
-      Width = 200
+      Left = 93
+      Height = 23
+      Top = 31
+      Width = 160
       Anchors = [akTop, akRight]
-      BorderSpacing.Right = 10
-      ItemHeight = 20
+      BorderSpacing.Right = 8
+      ItemHeight = 15
       Style = csDropDownList
       TabOrder = 5
       Visible = False
@@ -156,12 +156,12 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideTop.Control = comboLineBreaks
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = comboLineBreaks
-      Left = 34
-      Height = 20
-      Top = 42
-      Width = 73
+      Left = 26
+      Height = 15
+      Top = 35
+      Width = 59
       Anchors = [akTop, akRight]
-      BorderSpacing.Right = 10
+      BorderSpacing.Right = 8
       Caption = 'Linebreaks:'
       Visible = False
     end
@@ -169,12 +169,12 @@ object frmExtFileDialog: TfrmExtFileDialog
   object ShellTreeView: TShellTreeView
     AnchorSideTop.Control = lblPath
     AnchorSideTop.Side = asrBottom
-    Left = 10
-    Height = 416
-    Top = 40
-    Width = 261
+    Left = 8
+    Height = 332
+    Top = 31
+    Width = 209
     Align = alLeft
-    BorderSpacing.Left = 10
+    BorderSpacing.Left = 8
     HideSelection = False
     TabOrder = 0
     Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
@@ -184,20 +184,20 @@ object frmExtFileDialog: TfrmExtFileDialog
     OnChanging = ShellTreeViewChanging
   end
   object splitterMain: TSplitter
-    Left = 271
-    Height = 416
-    Top = 40
-    Width = 6
+    Left = 217
+    Height = 332
+    Top = 31
+    Width = 5
   end
   object ShellListView: TShellListView
     AnchorSideTop.Control = lblPath
     AnchorSideTop.Side = asrBottom
-    Left = 277
-    Height = 416
-    Top = 40
-    Width = 585
+    Left = 222
+    Height = 332
+    Top = 31
+    Width = 468
     Align = alClient
-    BorderSpacing.Right = 10
+    BorderSpacing.Right = 8
     Color = clDefault
     RowSelect = True
     SortType = stText
@@ -210,12 +210,12 @@ object frmExtFileDialog: TfrmExtFileDialog
   end
   object lblPath: TLabel
     Cursor = crHandPoint
-    Left = 10
-    Height = 20
-    Top = 10
-    Width = 852
+    Left = 8
+    Height = 15
+    Top = 8
+    Width = 682
     Align = alTop
-    BorderSpacing.Around = 10
+    BorderSpacing.Around = 8
     Caption = 'lblPath'
     ParentShowHint = False
     ShowHint = True
@@ -227,7 +227,7 @@ object frmExtFileDialog: TfrmExtFileDialog
     AutoEnabled = True
     Interval = 200
     OnTimer = IdleTimerTreeNodeScrolltoviewTimer
-    Left = 32
-    Top = 64
+    Left = 26
+    Top = 51
   end
 end

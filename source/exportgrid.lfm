@@ -1,31 +1,31 @@
 object frmExportGrid: TfrmExportGrid
   Left = 0
-  Height = 515
+  Height = 412
   Top = 0
-  Width = 630
+  Width = 504
   BorderIcons = [biSystemMenu]
   Caption = 'Export grid rows'
-  ClientHeight = 515
-  ClientWidth = 630
+  ClientHeight = 412
+  ClientWidth = 504
   Color = clBtnFace
-  Constraints.MinHeight = 400
-  Constraints.MinWidth = 400
-  DesignTimePPI = 120
+  Constraints.MinHeight = 320
+  Constraints.MinWidth = 320
+  Position = poMainFormCenter
+  LCLVersion = '4.4.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  Position = poMainFormCenter
   object btnOK: TButton
     AnchorSideRight.Control = btnCancel
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 430
-    Height = 31
-    Top = 478
-    Width = 94
+    Left = 344
+    Height = 25
+    Top = 382
+    Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'OK'
     ModalResult = 1
     TabOrder = 5
@@ -36,12 +36,12 @@ object frmExportGrid: TfrmExportGrid
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 530
-    Height = 31
-    Top = 478
-    Width = 94
+    Left = 424
+    Height = 25
+    Top = 382
+    Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 4
@@ -51,14 +51,14 @@ object frmExportGrid: TfrmExportGrid
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 10
-    Height = 73
-    Top = 198
-    Width = 614
+    Left = 8
+    Height = 58
+    Top = 162
+    Width = 491
     Anchors = [akTop, akLeft, akRight]
     AutoFill = True
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Row selection'
     ChildSizing.LeftRightSpacing = 6
     ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
@@ -67,8 +67,8 @@ object frmExportGrid: TfrmExportGrid
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 48
-    ClientWidth = 610
+    ClientHeight = 38
+    ClientWidth = 487
     ItemIndex = 1
     Items.Strings = (
       'Selected rows'
@@ -81,35 +81,35 @@ object frmExportGrid: TfrmExportGrid
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 10
-    Height = 129
-    Top = 6
-    Width = 614
+    Left = 8
+    Height = 105
+    Top = 5
+    Width = 491
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Output target'
-    ClientHeight = 104
-    ClientWidth = 610
+    ClientHeight = 85
+    ClientWidth = 487
     ParentBackground = False
     TabOrder = 0
     object lblEncoding: TLabel
       AnchorSideTop.Control = editFilename
       AnchorSideTop.Side = asrBottom
-      Left = 6
-      Height = 20
-      Top = 70
-      Width = 65
-      BorderSpacing.Around = 6
+      Left = 5
+      Height = 15
+      Top = 57
+      Width = 53
+      BorderSpacing.Around = 5
       Caption = 'Encoding:'
     end
     object radioOutputCopyToClipboard: TRadioButton
-      Left = 6
-      Height = 24
-      Top = 6
-      Width = 592
+      Left = 5
+      Height = 19
+      Top = 5
+      Width = 472
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
+      BorderSpacing.Around = 5
       Caption = 'Copy to clipboard'
       Checked = True
       TabOrder = 0
@@ -119,11 +119,11 @@ object frmExportGrid: TfrmExportGrid
     object radioOutputFile: TRadioButton
       AnchorSideTop.Control = radioOutputCopyToClipboard
       AnchorSideTop.Side = asrBottom
-      Left = 6
-      Height = 24
-      Top = 36
-      Width = 44
-      BorderSpacing.Around = 6
+      Left = 5
+      Height = 19
+      Top = 29
+      Width = 36
+      BorderSpacing.Around = 5
       Caption = 'File'
       TabOrder = 1
       OnClick = ValidateControls
@@ -131,34 +131,34 @@ object frmExportGrid: TfrmExportGrid
     object editFilename: TEditButton
       AnchorSideTop.Control = radioOutputCopyToClipboard
       AnchorSideTop.Side = asrBottom
-      Left = 95
-      Height = 28
-      Top = 36
-      Width = 503
+      Left = 76
+      Height = 23
+      Top = 29
+      Width = 401
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
-      ButtonWidth = 29
+      BorderSpacing.Around = 5
+      ButtonWidth = 23
       Images = MainForm.ImageListMain
       ImageIndex = 51
       MaxLength = 0
       NumGlyphs = 1
-      OnButtonClick = editFilenameRightButtonClick
-      OnChange = editFilenameChange
-      OnDblClick = editFilenameRightButtonClick
       PasswordChar = #0
       TabOrder = 2
       TextHint = 'Doubleclick to select file'
+      OnButtonClick = editFilenameRightButtonClick
+      OnChange = editFilenameChange
+      OnDblClick = editFilenameRightButtonClick
     end
     object comboEncoding: TComboBox
       AnchorSideTop.Control = editFilename
       AnchorSideTop.Side = asrBottom
-      Left = 95
-      Height = 28
-      Top = 70
-      Width = 503
+      Left = 76
+      Height = 23
+      Top = 57
+      Width = 401
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
-      ItemHeight = 20
+      BorderSpacing.Around = 5
+      ItemHeight = 15
       Style = csDropDownList
       TabOrder = 3
     end
@@ -169,95 +169,95 @@ object frmExportGrid: TfrmExportGrid
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnOK
-    Left = 10
-    Height = 195
-    Top = 277
-    Width = 614
+    Left = 8
+    Height = 152
+    Top = 225
+    Width = 491
     Anchors = [akTop, akLeft, akRight, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Options'
-    ClientHeight = 170
-    ClientWidth = 610
+    ClientHeight = 132
+    ClientWidth = 487
     ParentBackground = False
     TabOrder = 3
     object lblSeparator: TLabel
-      Left = 349
-      Height = 20
-      Top = 9
-      Width = 102
-      BorderSpacing.Around = 6
+      Left = 279
+      Height = 15
+      Top = 7
+      Width = 80
+      BorderSpacing.Around = 5
       Caption = 'Field separator:'
     end
     object lblEncloser: TLabel
       AnchorSideTop.Control = editSeparator
       AnchorSideTop.Side = asrBottom
-      Left = 349
-      Height = 20
-      Top = 40
-      Width = 58
-      BorderSpacing.Around = 6
+      Left = 279
+      Height = 15
+      Top = 33
+      Width = 47
+      BorderSpacing.Around = 5
       Caption = 'Encloser:'
     end
     object lblTerminator: TLabel
       AnchorSideTop.Control = editEncloser
       AnchorSideTop.Side = asrBottom
-      Left = 349
-      Height = 20
-      Top = 74
-      Width = 104
-      BorderSpacing.Around = 6
+      Left = 279
+      Height = 15
+      Top = 61
+      Width = 84
+      BorderSpacing.Around = 5
       Caption = 'Line terminator:'
     end
     object lblNull: TLabel
       AnchorSideTop.Control = editTerminator
       AnchorSideTop.Side = asrBottom
-      Left = 349
-      Height = 20
-      Top = 108
-      Width = 77
-      BorderSpacing.Around = 6
+      Left = 279
+      Height = 15
+      Top = 89
+      Width = 63
+      BorderSpacing.Around = 5
       Caption = 'NULL value:'
     end
     object chkIncludeColumnNames: TCheckBox
       AnchorSideTop.Control = grpOptions
-      Left = 10
-      Height = 24
-      Top = 6
-      Width = 169
-      BorderSpacing.Around = 6
+      Left = 8
+      Height = 19
+      Top = 5
+      Width = 139
+      BorderSpacing.Around = 5
       Caption = 'Include column names'
       Checked = True
       State = cbChecked
       TabOrder = 0
     end
     object editSeparator: TEditButton
-      Left = 500
-      Height = 28
-      Top = 6
-      Width = 98
+      Left = 400
+      Height = 23
+      Top = 5
+      Width = 77
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
-      ButtonWidth = 29
+      BorderSpacing.Around = 5
+      ButtonWidth = 23
       Images = MainForm.ImageListMain
       ImageIndex = 108
       MaxLength = 0
       NumGlyphs = 1
-      OnButtonClick = editCSVRightButtonClick
-      OnChange = editCSVChange
       PasswordChar = #0
       TabOrder = 5
       Text = ';'
+      OnButtonClick = editCSVRightButtonClick
+      OnChange = editCSVChange
     end
     object editEncloser: TEditButton
       AnchorSideTop.Control = editSeparator
       AnchorSideTop.Side = asrBottom
-      Left = 500
-      Height = 28
-      Top = 40
-      Width = 98
+      Left = 400
+      Height = 23
+      Top = 33
+      Width = 77
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
-      ButtonWidth = 29
+      BorderSpacing.Around = 5
+      ButtonWidth = 23
       Images = MainForm.ImageListMain
       ImageIndex = 108
       MaxLength = 0
@@ -270,55 +270,55 @@ object frmExportGrid: TfrmExportGrid
     object editTerminator: TEditButton
       AnchorSideTop.Control = editEncloser
       AnchorSideTop.Side = asrBottom
-      Left = 500
-      Height = 28
-      Top = 74
-      Width = 98
+      Left = 400
+      Height = 23
+      Top = 61
+      Width = 77
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
-      ButtonWidth = 29
+      BorderSpacing.Around = 5
+      ButtonWidth = 23
       Images = MainForm.ImageListMain
       ImageIndex = 108
       MaxLength = 0
       NumGlyphs = 1
-      OnButtonClick = editCSVRightButtonClick
-      OnChange = editCSVChange
       PasswordChar = #0
       TabOrder = 7
       Text = '\r\n'
+      OnButtonClick = editCSVRightButtonClick
+      OnChange = editCSVChange
     end
     object chkIncludeAutoIncrement: TCheckBox
       AnchorSideTop.Control = chkIncludeColumnNames
       AnchorSideTop.Side = asrBottom
-      Left = 10
-      Height = 24
-      Top = 36
-      Width = 226
-      BorderSpacing.Around = 6
+      Left = 8
+      Height = 19
+      Top = 29
+      Width = 185
+      BorderSpacing.Around = 5
       Caption = 'Include auto increment column'
       TabOrder = 1
     end
     object chkIncludeQuery: TCheckBox
       AnchorSideTop.Control = chkIncludeAutoIncrement
       AnchorSideTop.Side = asrBottom
-      Left = 10
-      Height = 24
-      Top = 66
-      Width = 140
-      BorderSpacing.Around = 6
+      Left = 8
+      Height = 19
+      Top = 53
+      Width = 114
+      BorderSpacing.Around = 5
       Caption = 'Include SQL query'
       TabOrder = 2
     end
     object editNull: TEditButton
       AnchorSideTop.Control = editTerminator
       AnchorSideTop.Side = asrBottom
-      Left = 500
-      Height = 28
-      Top = 108
-      Width = 98
+      Left = 400
+      Height = 23
+      Top = 89
+      Width = 77
       Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 6
-      ButtonWidth = 29
+      BorderSpacing.Around = 5
+      ButtonWidth = 23
       Images = MainForm.ImageListMain
       ImageIndex = 108
       MaxLength = 0
@@ -331,22 +331,22 @@ object frmExportGrid: TfrmExportGrid
     object chkRemoveLinebreaks: TCheckBox
       AnchorSideTop.Control = chkIncludeQuery
       AnchorSideTop.Side = asrBottom
-      Left = 10
-      Height = 24
-      Top = 96
-      Width = 242
-      BorderSpacing.Around = 6
+      Left = 8
+      Height = 19
+      Top = 77
+      Width = 195
+      BorderSpacing.Around = 5
       Caption = 'Remove linebreaks from contents'
       TabOrder = 3
     end
     object chkOpenFile: TCheckBox
       AnchorSideTop.Control = chkRemoveLinebreaks
       AnchorSideTop.Side = asrBottom
-      Left = 10
-      Height = 24
-      Top = 126
-      Width = 175
-      BorderSpacing.Around = 6
+      Left = 8
+      Height = 19
+      Top = 101
+      Width = 139
+      BorderSpacing.Around = 5
       Caption = 'Open file after creation'
       TabOrder = 4
     end
@@ -354,12 +354,12 @@ object frmExportGrid: TfrmExportGrid
   object btnSetClipboardDefaults: TSpeedButton
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 10
-    Height = 31
-    Top = 478
-    Width = 191
+    Left = 8
+    Height = 25
+    Top = 382
+    Width = 153
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Save clipboard settings'
     Images = MainForm.ImageListMain
     ImageIndex = 4
@@ -370,28 +370,28 @@ object frmExportGrid: TfrmExportGrid
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 10
-    Height = 51
-    Top = 141
-    Width = 614
+    Left = 8
+    Height = 42
+    Top = 115
+    Width = 491
     Anchors = [akTop, akLeft, akRight]
     AutoSize = True
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Output format'
-    ClientHeight = 26
-    ClientWidth = 610
+    ClientHeight = 22
+    ClientWidth = 487
     ParentBackground = False
     TabOrder = 1
     object comboFormat: TComboBoxEx
       AnchorSideTop.Control = grpFormat
-      Left = 10
-      Height = 26
+      Left = 8
+      Height = 22
       Top = 0
-      Width = 588
+      Width = 469
       Anchors = [akTop, akLeft, akRight]
       DropDownCount = 20
       Images = MainForm.ImageListMain
-      ItemHeight = 20
+      ItemHeight = 16
       ItemsEx = <      
         item
           Caption = 'Excel CSV'
@@ -406,14 +406,14 @@ object frmExportGrid: TfrmExportGrid
         item
           Caption = '...'
         end>
-      OnSelect = comboFormatSelect
       Style = csExDropDownList
       TabOrder = 0
+      OnSelect = comboFormatSelect
     end
   end
   object popupCSVchar: TPopupMenu
-    Left = 200
-    Top = 8
+    Left = 160
+    Top = 6
     object menuCSVtab: TMenuItem
       Caption = 'Tab'
       Hint = '\t'
@@ -481,7 +481,7 @@ object frmExportGrid: TfrmExportGrid
   end
   object popupRecentFiles: TPopupMenu
     OnPopup = popupRecentFilesPopup
-    Left = 310
-    Top = 8
+    Left = 248
+    Top = 6
   end
 end

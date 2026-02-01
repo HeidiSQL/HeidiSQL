@@ -1,30 +1,30 @@
 object frmTextEditor: TfrmTextEditor
   Left = 0
-  Height = 191
+  Height = 153
   Top = 0
-  Width = 602
+  Width = 482
   Caption = 'Text editor'
-  ClientHeight = 191
-  ClientWidth = 602
+  ClientHeight = 153
+  ClientWidth = 482
   Color = clBtnFace
-  Constraints.MinHeight = 125
-  Constraints.MinWidth = 375
-  DesignTimePPI = 120
+  Constraints.MinHeight = 100
+  Constraints.MinWidth = 300
   Position = poMainFormCenter
+  LCLVersion = '4.4.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   object Panel1: TPanel
     Left = 0
-    Height = 40
-    Top = 151
-    Width = 602
+    Height = 33
+    Top = 120
+    Width = 482
     Align = alBottom
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 40
-    ClientWidth = 602
+    ClientHeight = 33
+    ClientWidth = 482
     ParentBackground = False
     TabOrder = 0
     object lblTextLength: TLabel
@@ -33,11 +33,11 @@ object frmTextEditor: TfrmTextEditor
       AnchorSideTop.Control = comboHighlighter
       AnchorSideTop.Side = asrCenter
       AnchorSideBottom.Side = asrBottom
-      Left = 507
-      Height = 20
-      Top = 10
-      Width = 89
-      BorderSpacing.Around = 6
+      Left = 404
+      Height = 15
+      Top = 9
+      Width = 71
+      BorderSpacing.Around = 5
       Caption = 'lblTextLength'
       Layout = tlCenter
       ParentBidiMode = False
@@ -47,13 +47,13 @@ object frmTextEditor: TfrmTextEditor
       AnchorSideTop.Control = Panel1
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
-      Left = 6
-      Height = 28
-      Top = 6
-      Width = 308
+      Left = 5
+      Height = 22
+      Top = 5
+      Width = 244
       Align = alNone
       AutoSize = True
-      BorderSpacing.Around = 6
+      BorderSpacing.Around = 5
       Caption = 'tlbStandard'
       EdgeBorders = []
       Images = MainForm.ImageListMain
@@ -70,7 +70,7 @@ object frmTextEditor: TfrmTextEditor
         OnClick = btnWrapClick
       end
       object btnLinebreaks: TToolButton
-        Left = 30
+        Left = 24
         Top = 0
         Caption = 'Linebreaks'
         DropdownMenu = popupLinebreaks
@@ -78,7 +78,7 @@ object frmTextEditor: TfrmTextEditor
         Style = tbsDropDown
       end
       object btnLoadText: TToolButton
-        Left = 74
+        Left = 59
         Hint = 'Load textfile'
         Top = 0
         Caption = 'Load textfile'
@@ -86,7 +86,7 @@ object frmTextEditor: TfrmTextEditor
         OnClick = btnLoadTextClick
       end
       object btnCancel: TToolButton
-        Left = 103
+        Left = 82
         Hint = 'Cancel'
         Top = 0
         Caption = 'Cancel'
@@ -94,7 +94,7 @@ object frmTextEditor: TfrmTextEditor
         OnClick = btnCancelClick
       end
       object btnApply: TToolButton
-        Left = 132
+        Left = 105
         Hint = 'Apply changes'
         Top = 0
         Caption = 'Apply changes'
@@ -102,38 +102,38 @@ object frmTextEditor: TfrmTextEditor
         OnClick = btnApplyClick
       end
       object btnSeparator1: TToolButton
-        Left = 161
-        Height = 28
+        Left = 128
+        Height = 22
         Top = 0
         Caption = 'btnSeparator1'
         ImageIndex = 60
         Style = tbsSeparator
       end
       object btnSearchFind: TToolButton
-        Left = 169
+        Left = 134
         Top = 0
         Action = MainForm.actQueryFind
       end
       object btnSearchFindNext: TToolButton
-        Left = 198
+        Left = 157
         Top = 0
         Action = MainForm.actQueryFindAgain
       end
       object btnSearchReplace: TToolButton
-        Left = 227
+        Left = 180
         Top = 0
         Action = MainForm.actQueryReplace
       end
       object ToolButton1: TToolButton
-        Left = 256
-        Height = 28
+        Left = 203
+        Height = 22
         Top = 0
         Caption = 'ToolButton1'
         ImageIndex = 60
         Style = tbsSeparator
       end
       object btnCustomizeHighlighter: TToolButton
-        Left = 264
+        Left = 209
         Top = 0
         Caption = 'Customize highlighter'
         DropdownMenu = popupHighlighter
@@ -148,12 +148,12 @@ object frmTextEditor: TfrmTextEditor
       AnchorSideTop.Control = Panel1
       AnchorSideBottom.Control = Panel1
       AnchorSideBottom.Side = asrBottom
-      Left = 320
-      Height = 28
-      Top = 6
-      Width = 181
-      BorderSpacing.Around = 6
-      ItemHeight = 20
+      Left = 254
+      Height = 23
+      Top = 5
+      Width = 145
+      BorderSpacing.Around = 5
+      ItemHeight = 15
       Sorted = True
       Style = csDropDownList
       TabOrder = 1
@@ -167,12 +167,12 @@ object frmTextEditor: TfrmTextEditor
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Panel1
     Left = 0
-    Height = 151
+    Height = 120
     Top = 0
-    Width = 602
+    Width = 482
     Align = alClient
     Font.Color = clWindowText
-    Font.Height = -16
+    Font.Height = -13
     Font.Name = 'Courier New'
     Font.Pitch = fpFixed
     Font.Quality = fqCleartypeNatural
@@ -182,7 +182,7 @@ object frmTextEditor: TfrmTextEditor
     TabOrder = 1
     OnClick = MemoTextClick
     OnKeyDown = MemoTextKeyDown
-    Gutter.Width = 71
+    Gutter.Width = 57
     Gutter.MouseActions = <>
     RightGutter.Width = 0
     RightGutter.MouseActions = <>
@@ -218,11 +218,15 @@ object frmTextEditor: TfrmTextEditor
     OnChange = MemoTextChange
     inline SynLeftGutterPartList1: TSynGutterPartList
       object SynGutterMarks1: TSynGutterMarks
-        Width = 30
+        Width = 24
         MouseActions = <>
+        MaxExtraMarksColums = 0
+        Options = [sgmoDeDuplicateMarksOnOverflow]
+        MarkupInfo.Background = clBtnFace
+        MarkupInfo.Foreground = clNone
       end
       object SynGutterLineNumber1: TSynGutterLineNumber
-        Width = 21
+        Width = 17
         LeftOffset = 2
         MouseActions = <>
         MarkupInfo.Background = clBtnFace
@@ -233,13 +237,15 @@ object frmTextEditor: TfrmTextEditor
         LeadingZeros = False
       end
       object SynGutterChanges1: TSynGutterChanges
-        Width = 5
+        Width = 4
         MouseActions = <>
         ModifiedColor = 59900
         SavedColor = clGreen
+        MarkupInfo.Background = clNone
+        MarkupInfo.Foreground = clGreen
+        MarkupInfo.FrameColor = 59900
       end
       object SynGutterCodeFolding1: TSynGutterCodeFolding
-        Width = 13
         MouseActions = <>
         MarkupInfo.Background = clNone
         MarkupInfo.Foreground = clGray
@@ -249,8 +255,8 @@ object frmTextEditor: TfrmTextEditor
     end
   end
   object popupLinebreaks: TPopupMenu
-    Left = 10
-    Top = 20
+    Left = 8
+    Top = 16
     object menuWindowsLB: TMenuItem
       Caption = 'Windows linebreaks'
       ImageIndex = 123
@@ -280,12 +286,12 @@ object frmTextEditor: TfrmTextEditor
   object TimerMemoChange: TTimer
     Interval = 200
     OnTimer = TimerMemoChangeTimer
-    Left = 150
-    Top = 20
+    Left = 120
+    Top = 16
   end
   object popupEditor: TPopupMenu
-    Left = 300
-    Top = 20
+    Left = 240
+    Top = 16
     object Selectall1: TMenuItem
       Action = MainForm.actSelectAll
     end
@@ -312,8 +318,8 @@ object frmTextEditor: TfrmTextEditor
     end
   end
   object popupHighlighter: TPopupMenu
-    Left = 440
-    Top = 40
+    Left = 352
+    Top = 32
     object menuCustomizeHighlighter: TMenuItem
       Caption = 'Customize highlighter'
       ImageIndex = 39

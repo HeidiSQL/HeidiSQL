@@ -1,11 +1,11 @@
 object frmTableEditor: TfrmTableEditor
   Left = 0
-  Height = 626
+  Height = 501
   Top = 0
-  Width = 875
-  ClientHeight = 626
-  ClientWidth = 875
-  DesignTimePPI = 120
+  Width = 700
+  ClientHeight = 501
+  ClientWidth = 700
+  LCLVersion = '4.4.0.0'
   ParentFont = False
   TabOrder = 0
   object SplitterTopBottom: TSplitter
@@ -13,17 +13,17 @@ object frmTableEditor: TfrmTableEditor
     AnchorSideTop.Side = asrBottom
     Cursor = crVSplit
     Left = 0
-    Height = 10
-    Top = 210
-    Width = 875
+    Height = 8
+    Top = 170
+    Width = 700
     Align = alTop
     ResizeAnchor = akTop
   end
   object PageControlMain: TPageControl
     Left = 0
-    Height = 210
+    Height = 170
     Top = 0
-    Width = 875
+    Width = 700
     ActivePage = tabBasic
     Align = alTop
     AutoSize = True
@@ -33,40 +33,40 @@ object frmTableEditor: TfrmTableEditor
     OnChange = PageControlMainChange
     object tabBasic: TTabSheet
       Caption = 'Basic'
-      ClientHeight = 177
-      ClientWidth = 867
+      ClientHeight = 142
+      ClientWidth = 692
       ImageIndex = 14
       object lblName: TLabel
         AnchorSideLeft.Control = tabBasic
         AnchorSideTop.Control = tabBasic
-        Left = 6
-        Height = 20
-        Top = 6
-        Width = 43
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 5
+        Width = 35
+        BorderSpacing.Around = 5
         Caption = 'Name:'
       end
       object lblComment: TLabel
         AnchorSideLeft.Control = tabBasic
         AnchorSideTop.Control = editName
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 40
-        Width = 68
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 33
+        Width = 57
+        BorderSpacing.Around = 5
         Caption = 'Comment:'
       end
       object editName: TEdit
         AnchorSideTop.Control = tabBasic
         AnchorSideRight.Control = tabBasic
         AnchorSideRight.Side = asrBottom
-        Left = 120
-        Height = 28
-        Top = 6
-        Width = 741
+        Left = 96
+        Height = 23
+        Top = 5
+        Width = 591
         Anchors = [akTop, akLeft, akRight]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         TabOrder = 0
         Text = 'editName'
         TextHint = 'Enter table name'
@@ -79,12 +79,12 @@ object frmTableEditor: TfrmTableEditor
         AnchorSideRight.Side = asrBottom
         AnchorSideBottom.Control = tabBasic
         AnchorSideBottom.Side = asrBottom
-        Left = 120
-        Height = 131
-        Top = 40
-        Width = 741
+        Left = 96
+        Height = 104
+        Top = 33
+        Width = 591
         Anchors = [akTop, akLeft, akRight, akBottom]
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Lines.Strings = (
           'memoComment'
         )
@@ -96,120 +96,120 @@ object frmTableEditor: TfrmTableEditor
     end
     object tabOptions: TTabSheet
       Caption = 'Options'
-      ClientHeight = 177
-      ClientWidth = 867
+      ClientHeight = 142
+      ClientWidth = 692
       ImageIndex = 39
       object lblAutoinc: TLabel
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = tabOptions
-        Left = 6
-        Height = 20
-        Top = 6
-        Width = 105
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 5
+        Width = 86
+        BorderSpacing.Around = 5
         Caption = 'Auto increment:'
       end
       object lblCollation: TLabel
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = tabOptions
-        Left = 356
-        Height = 20
-        Top = 6
-        Width = 114
-        BorderSpacing.Left = 350
-        BorderSpacing.Around = 6
+        Left = 285
+        Height = 15
+        Top = 5
+        Width = 90
+        BorderSpacing.Left = 280
+        BorderSpacing.Around = 5
         Caption = 'Default collation:'
       end
       object lblAvgRowLen: TLabel
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = editAutoInc
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 40
-        Width = 133
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 33
+        Width = 106
+        BorderSpacing.Around = 5
         Caption = 'Average row length:'
       end
       object lblEngine: TLabel
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = comboCollation
         AnchorSideTop.Side = asrBottom
-        Left = 356
-        Height = 20
-        Top = 40
-        Width = 48
-        BorderSpacing.Left = 350
-        BorderSpacing.Around = 6
+        Left = 285
+        Height = 15
+        Top = 33
+        Width = 39
+        BorderSpacing.Left = 280
+        BorderSpacing.Around = 5
         Caption = 'Engine:'
       end
       object lblMaxRows: TLabel
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = editAvgRowLen
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 74
-        Width = 139
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 61
+        Width = 114
+        BorderSpacing.Around = 5
         Caption = 'Maximum row count:'
       end
       object lblUnion: TLabel
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = comboEngine
         AnchorSideTop.Side = asrBottom
-        Left = 356
-        Height = 20
-        Top = 74
-        Width = 86
-        BorderSpacing.Left = 350
-        BorderSpacing.Around = 6
+        Left = 285
+        Height = 15
+        Top = 61
+        Width = 69
+        BorderSpacing.Left = 280
+        BorderSpacing.Around = 5
         Caption = 'Union tables:'
       end
       object lblRowFormat: TLabel
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = chkChecksum
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 20
-        Top = 138
-        Width = 81
-        BorderSpacing.Around = 6
+        Left = 5
+        Height = 15
+        Top = 113
+        Width = 65
+        BorderSpacing.Around = 5
         Caption = 'Row format:'
       end
       object lblInsertMethod: TLabel
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = memoUnionTables
         AnchorSideTop.Side = asrBottom
-        Left = 356
-        Height = 20
-        Top = 135
-        Width = 106
-        BorderSpacing.Left = 350
-        BorderSpacing.Around = 6
+        Left = 285
+        Height = 15
+        Top = 110
+        Width = 85
+        BorderSpacing.Left = 280
+        BorderSpacing.Around = 5
         Caption = 'INSERT method:'
       end
       object editAutoInc: TEdit
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = tabOptions
-        Left = 176
-        Height = 28
-        Top = 6
-        Width = 150
-        BorderSpacing.Left = 170
-        BorderSpacing.Around = 6
+        Left = 141
+        Height = 23
+        Top = 5
+        Width = 120
+        BorderSpacing.Left = 136
+        BorderSpacing.Around = 5
         TabOrder = 0
         OnChange = editNumEditChange
       end
       object comboCollation: TComboBox
         AnchorSideTop.Control = tabOptions
-        Left = 505
-        Height = 28
-        Top = 6
-        Width = 162
-        BorderSpacing.Around = 6
+        Left = 404
+        Height = 23
+        Top = 5
+        Width = 130
+        BorderSpacing.Around = 5
         DropDownCount = 16
-        ItemHeight = 20
+        ItemHeight = 15
         Sorted = True
         Style = csDropDownList
         TabOrder = 5
@@ -219,11 +219,11 @@ object frmTableEditor: TfrmTableEditor
         AnchorSideLeft.Control = comboCollation
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = tabOptions
-        Left = 673
-        Height = 24
-        Top = 6
-        Width = 106
-        BorderSpacing.Around = 6
+        Left = 539
+        Height = 19
+        Top = 5
+        Width = 86
+        BorderSpacing.Around = 5
         Caption = 'Convert data'
         TabOrder = 6
         OnClick = chkCharsetConvertClick
@@ -232,24 +232,24 @@ object frmTableEditor: TfrmTableEditor
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = editAutoInc
         AnchorSideTop.Side = asrBottom
-        Left = 176
-        Height = 28
-        Top = 40
-        Width = 150
-        BorderSpacing.Left = 170
-        BorderSpacing.Around = 6
+        Left = 141
+        Height = 23
+        Top = 33
+        Width = 120
+        BorderSpacing.Left = 136
+        BorderSpacing.Around = 5
         TabOrder = 1
         OnChange = editNumEditChange
       end
       object comboEngine: TComboBox
         AnchorSideTop.Control = comboCollation
         AnchorSideTop.Side = asrBottom
-        Left = 505
-        Height = 28
-        Top = 40
-        Width = 276
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 404
+        Height = 23
+        Top = 33
+        Width = 221
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 7
         OnSelect = comboEngineSelect
@@ -258,23 +258,23 @@ object frmTableEditor: TfrmTableEditor
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = editAvgRowLen
         AnchorSideTop.Side = asrBottom
-        Left = 176
-        Height = 28
-        Top = 74
-        Width = 150
-        BorderSpacing.Left = 170
-        BorderSpacing.Around = 6
+        Left = 141
+        Height = 23
+        Top = 61
+        Width = 120
+        BorderSpacing.Left = 136
+        BorderSpacing.Around = 5
         TabOrder = 2
         OnChange = editNumEditChange
       end
       object memoUnionTables: TMemo
         AnchorSideTop.Control = comboEngine
         AnchorSideTop.Side = asrBottom
-        Left = 505
-        Height = 55
-        Top = 74
-        Width = 276
-        BorderSpacing.Around = 6
+        Left = 404
+        Height = 44
+        Top = 61
+        Width = 221
+        BorderSpacing.Around = 5
         Lines.Strings = (
           'memoUnion'
         )
@@ -285,12 +285,12 @@ object frmTableEditor: TfrmTableEditor
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = editMaxRows
         AnchorSideTop.Side = asrBottom
-        Left = 6
-        Height = 24
-        Top = 108
-        Width = 148
+        Left = 5
+        Height = 19
+        Top = 89
+        Width = 123
         Alignment = taLeftJustify
-        BorderSpacing.Around = 6
+        BorderSpacing.Around = 5
         Caption = 'Checksum for rows:'
         TabOrder = 3
         OnClick = Modification
@@ -299,13 +299,13 @@ object frmTableEditor: TfrmTableEditor
         AnchorSideLeft.Control = tabOptions
         AnchorSideTop.Control = chkChecksum
         AnchorSideTop.Side = asrBottom
-        Left = 176
-        Height = 28
-        Top = 138
-        Width = 150
-        BorderSpacing.Left = 170
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 141
+        Height = 23
+        Top = 113
+        Width = 120
+        BorderSpacing.Left = 136
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 4
         OnChange = Modification
@@ -313,12 +313,12 @@ object frmTableEditor: TfrmTableEditor
       object comboInsertMethod: TComboBox
         AnchorSideTop.Control = memoUnionTables
         AnchorSideTop.Side = asrBottom
-        Left = 505
-        Height = 28
-        Top = 135
-        Width = 276
-        BorderSpacing.Around = 6
-        ItemHeight = 20
+        Left = 404
+        Height = 23
+        Top = 110
+        Width = 221
+        BorderSpacing.Around = 5
+        ItemHeight = 15
         Style = csDropDownList
         TabOrder = 9
         OnClick = Modification
@@ -326,14 +326,14 @@ object frmTableEditor: TfrmTableEditor
     end
     object tabIndexes: TTabSheet
       Caption = 'Indexes'
-      ClientHeight = 177
-      ClientWidth = 867
+      ClientHeight = 142
+      ClientWidth = 692
       ImageIndex = 13
       object treeIndexes: TLazVirtualStringTree
-        Left = 83
-        Height = 177
+        Left = 67
+        Height = 142
         Top = 0
-        Width = 784
+        Width = 625
         Align = alClient
         DragMode = dmAutomatic
         DragType = dtVCL
@@ -344,28 +344,28 @@ object frmTableEditor: TfrmTableEditor
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
             Text = 'Name'
-            Width = 305
+            Width = 241
           end        
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 1
             Text = 'Type / Length'
-            Width = 125
+            Width = 100
           end        
           item
             Position = 2
             Text = 'Algorithm'
-            Width = 100
+            Width = 80
           end        
           item
             Position = 3
             Text = 'Comment'
-            Width = 150
+            Width = 120
           end        
           item
             Position = 4
             Text = 'Direction'
-            Width = 100
+            Width = 80
           end>
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
@@ -392,13 +392,13 @@ object frmTableEditor: TfrmTableEditor
       end
       object tlbIndexes: TToolBar
         Left = 0
-        Height = 177
+        Height = 142
         Top = 0
-        Width = 83
+        Width = 67
         Align = alLeft
         AutoSize = True
-        ButtonHeight = 35
-        ButtonWidth = 82
+        ButtonHeight = 28
+        ButtonWidth = 66
         Caption = 'tlbIndexes'
         Images = MainForm.ImageListMain
         List = True
@@ -416,7 +416,7 @@ object frmTableEditor: TfrmTableEditor
         object btnRemoveIndex: TToolButton
           Left = 1
           Hint = 'Remove index'
-          Top = 37
+          Top = 30
           Caption = 'Remove'
           ImageIndex = 46
           Wrap = True
@@ -425,7 +425,7 @@ object frmTableEditor: TfrmTableEditor
         object btnClearIndexes: TToolButton
           Left = 1
           Hint = 'Clear indexes'
-          Top = 72
+          Top = 58
           Caption = 'Clear'
           ImageIndex = 26
           Wrap = True
@@ -434,7 +434,7 @@ object frmTableEditor: TfrmTableEditor
         object btnMoveUpIndex: TToolButton
           Left = 1
           Hint = 'Move up'
-          Top = 107
+          Top = 86
           Caption = 'Up'
           ImageIndex = 74
           Wrap = True
@@ -443,7 +443,7 @@ object frmTableEditor: TfrmTableEditor
         object btnMoveDownIndex: TToolButton
           Left = 1
           Hint = 'Move down'
-          Top = 142
+          Top = 114
           Caption = 'Down'
           ImageIndex = 75
           OnClick = btnMoveDownIndexClick
@@ -452,18 +452,18 @@ object frmTableEditor: TfrmTableEditor
     end
     object tabForeignKeys: TTabSheet
       Caption = 'Foreign keys'
-      ClientHeight = 177
-      ClientWidth = 867
+      ClientHeight = 142
+      ClientWidth = 692
       ImageIndex = 136
       object tlbForeignKeys: TToolBar
         Left = 0
-        Height = 177
+        Height = 142
         Top = 0
-        Width = 83
+        Width = 67
         Align = alLeft
         AutoSize = True
-        ButtonHeight = 35
-        ButtonWidth = 82
+        ButtonHeight = 28
+        ButtonWidth = 66
         Caption = 'tlbForeignKeys'
         Images = MainForm.ImageListMain
         List = True
@@ -479,7 +479,7 @@ object frmTableEditor: TfrmTableEditor
         end
         object btnRemoveForeignKey: TToolButton
           Left = 1
-          Top = 37
+          Top = 30
           Caption = 'Remove'
           Enabled = False
           ImageIndex = 46
@@ -488,7 +488,7 @@ object frmTableEditor: TfrmTableEditor
         end
         object btnClearForeignKeys: TToolButton
           Left = 1
-          Top = 72
+          Top = 58
           Caption = 'Clear'
           Enabled = False
           ImageIndex = 26
@@ -496,10 +496,10 @@ object frmTableEditor: TfrmTableEditor
         end
       end
       object listForeignKeys: TLazVirtualStringTree
-        Left = 83
-        Height = 177
+        Left = 67
+        Height = 142
         Top = 0
-        Width = 784
+        Width = 625
         Align = alClient
         EditDelay = 0
         Header.AutoSizeIndex = -1
@@ -508,37 +508,37 @@ object frmTableEditor: TfrmTableEditor
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
             Text = 'Key name'
-            Width = 245
+            Width = 196
           end        
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 1
             Text = 'Columns'
-            Width = 100
+            Width = 80
           end        
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 2
             Text = 'Reference table'
-            Width = 125
+            Width = 100
           end        
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 3
             Text = 'Foreign columns'
-            Width = 100
+            Width = 80
           end        
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 4
             Text = 'On UPDATE'
-            Width = 100
+            Width = 80
           end        
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 5
             Text = 'On DELETE'
-            Width = 114
+            Width = 85
           end>
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
@@ -561,18 +561,18 @@ object frmTableEditor: TfrmTableEditor
     end
     object tabCheckConstraints: TTabSheet
       Caption = 'Check constraints'
-      ClientHeight = 177
-      ClientWidth = 867
+      ClientHeight = 142
+      ClientWidth = 692
       ImageIndex = 55
       object tlbCheckConstraints: TToolBar
         Left = 0
-        Height = 177
+        Height = 142
         Top = 0
-        Width = 83
+        Width = 67
         Align = alLeft
         AutoSize = True
-        ButtonHeight = 35
-        ButtonWidth = 82
+        ButtonHeight = 28
+        ButtonWidth = 66
         Caption = 'tlbCheckConstraints'
         Images = MainForm.ImageListMain
         List = True
@@ -588,7 +588,7 @@ object frmTableEditor: TfrmTableEditor
         end
         object btnRemoveCheckConstraint: TToolButton
           Left = 1
-          Top = 37
+          Top = 30
           Caption = 'Remove'
           Enabled = False
           ImageIndex = 46
@@ -597,7 +597,7 @@ object frmTableEditor: TfrmTableEditor
         end
         object btnClearCheckConstraints: TToolButton
           Left = 1
-          Top = 72
+          Top = 58
           Caption = 'Clear'
           Enabled = False
           ImageIndex = 26
@@ -605,10 +605,10 @@ object frmTableEditor: TfrmTableEditor
         end
       end
       object listCheckConstraints: TLazVirtualStringTree
-        Left = 83
-        Height = 177
+        Left = 67
+        Height = 142
         Top = 0
-        Width = 784
+        Width = 625
         Align = alClient
         EditDelay = 0
         Header.AutoSizeIndex = 1
@@ -617,13 +617,13 @@ object frmTableEditor: TfrmTableEditor
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus, coEditable]
             Position = 0
             Text = 'Name'
-            Width = 250
+            Width = 200
           end        
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus, coEditable]
             Position = 1
             Text = 'Check clause'
-            Width = 534
+            Width = 421
           end>
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
@@ -645,14 +645,14 @@ object frmTableEditor: TfrmTableEditor
     end
     object tabPartitions: TTabSheet
       Caption = 'Partitions'
-      ClientHeight = 177
-      ClientWidth = 867
+      ClientHeight = 142
+      ClientWidth = 692
       ImageIndex = 186
       inline SynMemoPartitions: TSynEdit
         Left = 0
-        Height = 177
+        Height = 142
         Top = 0
-        Width = 867
+        Width = 692
         Align = alClient
         Font.Height = -13
         Font.Name = 'Courier New'
@@ -662,7 +662,7 @@ object frmTableEditor: TfrmTableEditor
         ParentFont = False
         TabOrder = 0
         Gutter.LeftOffset = 2
-        Gutter.Width = 70
+        Gutter.Width = 59
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -698,8 +698,12 @@ object frmTableEditor: TfrmTableEditor
         LineHighlightColor.Foreground = clNone
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
-            Width = 30
+            Width = 24
             MouseActions = <>
+            MaxExtraMarksColums = 0
+            Options = [sgmoDeDuplicateMarksOnOverflow]
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
             Width = 17
@@ -712,19 +716,21 @@ object frmTableEditor: TfrmTableEditor
             LeadingZeros = False
           end
           object SynGutterChanges1: TSynGutterChanges
-            Width = 5
+            Width = 4
             MouseActions = <>
             ModifiedColor = 59900
             SavedColor = clGreen
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGreen
+            MarkupInfo.FrameColor = 59900
           end
           object SynGutterSeparator1: TSynGutterSeparator
-            Width = 3
+            Width = 2
             MouseActions = <>
             MarkupInfo.Background = clWhite
             MarkupInfo.Foreground = clGray
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
-            Width = 13
             MouseActions = <>
             MarkupInfo.Background = clNone
             MarkupInfo.Foreground = clGray
@@ -736,14 +742,14 @@ object frmTableEditor: TfrmTableEditor
     end
     object tabCREATEcode: TTabSheet
       Caption = 'CREATE code'
-      ClientHeight = 177
-      ClientWidth = 867
+      ClientHeight = 142
+      ClientWidth = 692
       ImageIndex = 119
       inline SynMemoCREATEcode: TSynEdit
         Left = 0
-        Height = 177
+        Height = 142
         Top = 0
-        Width = 867
+        Width = 692
         Align = alClient
         Font.Height = -13
         Font.Name = 'Courier New'
@@ -753,7 +759,7 @@ object frmTableEditor: TfrmTableEditor
         ParentFont = False
         TabOrder = 0
         Gutter.LeftOffset = 2
-        Gutter.Width = 70
+        Gutter.Width = 59
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -789,8 +795,12 @@ object frmTableEditor: TfrmTableEditor
         LineHighlightColor.Foreground = clNone
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
-            Width = 30
+            Width = 24
             MouseActions = <>
+            MaxExtraMarksColums = 0
+            Options = [sgmoDeDuplicateMarksOnOverflow]
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
             Width = 17
@@ -803,19 +813,21 @@ object frmTableEditor: TfrmTableEditor
             LeadingZeros = False
           end
           object SynGutterChanges1: TSynGutterChanges
-            Width = 5
+            Width = 4
             MouseActions = <>
             ModifiedColor = 59900
             SavedColor = clGreen
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGreen
+            MarkupInfo.FrameColor = 59900
           end
           object SynGutterSeparator1: TSynGutterSeparator
-            Width = 3
+            Width = 2
             MouseActions = <>
             MarkupInfo.Background = clWhite
             MarkupInfo.Foreground = clGray
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
-            Width = 13
             MouseActions = <>
             MarkupInfo.Background = clNone
             MarkupInfo.Foreground = clGray
@@ -827,14 +839,14 @@ object frmTableEditor: TfrmTableEditor
     end
     object tabALTERCode: TTabSheet
       Caption = 'ALTER code'
-      ClientHeight = 177
-      ClientWidth = 867
+      ClientHeight = 142
+      ClientWidth = 692
       ImageIndex = 119
       inline SynMemoALTERcode: TSynEdit
         Left = 0
-        Height = 177
+        Height = 142
         Top = 0
-        Width = 867
+        Width = 692
         Align = alClient
         Font.Height = -13
         Font.Name = 'Courier New'
@@ -844,7 +856,7 @@ object frmTableEditor: TfrmTableEditor
         ParentFont = False
         TabOrder = 0
         Gutter.LeftOffset = 2
-        Gutter.Width = 70
+        Gutter.Width = 59
         Gutter.MouseActions = <>
         RightGutter.Width = 0
         RightGutter.MouseActions = <>
@@ -880,8 +892,12 @@ object frmTableEditor: TfrmTableEditor
         LineHighlightColor.Foreground = clNone
         inline SynLeftGutterPartList1: TSynGutterPartList
           object SynGutterMarks1: TSynGutterMarks
-            Width = 30
+            Width = 24
             MouseActions = <>
+            MaxExtraMarksColums = 0
+            Options = [sgmoDeDuplicateMarksOnOverflow]
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
             Width = 17
@@ -894,19 +910,21 @@ object frmTableEditor: TfrmTableEditor
             LeadingZeros = False
           end
           object SynGutterChanges1: TSynGutterChanges
-            Width = 5
+            Width = 4
             MouseActions = <>
             ModifiedColor = 59900
             SavedColor = clGreen
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGreen
+            MarkupInfo.FrameColor = 59900
           end
           object SynGutterSeparator1: TSynGutterSeparator
-            Width = 3
+            Width = 2
             MouseActions = <>
             MarkupInfo.Background = clWhite
             MarkupInfo.Foreground = clGray
           end
           object SynGutterCodeFolding1: TSynGutterCodeFolding
-            Width = 13
             MouseActions = <>
             MarkupInfo.Background = clNone
             MarkupInfo.Foreground = clGray
@@ -924,26 +942,26 @@ object frmTableEditor: TfrmTableEditor
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 0
-    Height = 35
-    Top = 220
-    Width = 875
+    Height = 28
+    Top = 178
+    Width = 700
     Align = alTop
     Alignment = taLeftJustify
     AutoSize = True
     BevelOuter = bvNone
     Caption = 'Columns:'
-    ClientHeight = 35
-    ClientWidth = 875
+    ClientHeight = 28
+    ClientWidth = 700
     TabOrder = 1
     object tlbColumns: TToolBar
       Left = 0
-      Height = 35
+      Height = 28
       Top = 0
-      Width = 875
+      Width = 700
       Align = alClient
       AutoSize = True
-      ButtonHeight = 35
-      ButtonWidth = 82
+      ButtonHeight = 28
+      ButtonWidth = 66
       Caption = 'Columns:'
       EdgeBorders = []
       Images = MainForm.ImageListMain
@@ -959,7 +977,7 @@ object frmTableEditor: TfrmTableEditor
         OnClick = btnAddColumnClick
       end
       object btnRemoveColumn: TToolButton
-        Left = 83
+        Left = 67
         Hint = 'Remove column'
         Top = 0
         Caption = 'Remove'
@@ -967,7 +985,7 @@ object frmTableEditor: TfrmTableEditor
         OnClick = btnRemoveColumnClick
       end
       object btnMoveUpColumn: TToolButton
-        Left = 168
+        Left = 139
         Hint = 'Move up'
         Top = 0
         Caption = 'Up'
@@ -975,7 +993,7 @@ object frmTableEditor: TfrmTableEditor
         OnClick = btnMoveUpColumnClick
       end
       object btnMoveDownColumn: TToolButton
-        Left = 250
+        Left = 205
         Hint = 'Move down'
         Top = 0
         Caption = 'Down'
@@ -987,12 +1005,12 @@ object frmTableEditor: TfrmTableEditor
   object listColumns: TLazVirtualStringTree
     AnchorSideBottom.Control = btnSave
     Left = 0
-    Height = 328
-    Top = 255
-    Width = 875
+    Height = 260
+    Top = 206
+    Width = 700
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
-    Constraints.MinHeight = 25
+    Constraints.MinHeight = 20
     DragMode = dmAutomatic
     DragType = dtVCL
     EditDelay = 0
@@ -1003,33 +1021,33 @@ object frmTableEditor: TfrmTableEditor
         MinWidth = 20
         Position = 0
         Text = '#'
-        Width = 25
+        Width = 20
       end    
       item
         MinWidth = 50
         Position = 1
         Text = 'Name'
-        Width = 125
+        Width = 100
       end    
       item
         Position = 2
         Text = 'Datatype'
-        Width = 112
+        Width = 90
       end    
       item
         Position = 3
         Text = 'Length/Set'
-        Width = 112
+        Width = 90
       end    
       item
         Position = 4
         Text = 'Unsigned'
-        Width = 75
+        Width = 60
       end    
       item
         Position = 5
         Text = 'Allow NULL'
-        Width = 81
+        Width = 65
       end    
       item
         Position = 6
@@ -1038,27 +1056,27 @@ object frmTableEditor: TfrmTableEditor
       item
         Position = 7
         Text = 'Default'
-        Width = 125
+        Width = 100
       end    
       item
         Position = 8
         Text = 'Comment'
-        Width = 162
+        Width = 130
       end    
       item
         Position = 9
         Text = 'Collation'
-        Width = 125
+        Width = 100
       end    
       item
         Position = 10
         Text = 'Expression'
-        Width = 125
+        Width = 100
       end    
       item
         Position = 11
         Text = 'Virtuality'
-        Width = 125
+        Width = 100
       end    
       item
         Hint = 'Spatial reference system'
@@ -1108,12 +1126,12 @@ object frmTableEditor: TfrmTableEditor
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 206
-    Height = 31
-    Top = 589
-    Width = 94
+    Left = 165
+    Height = 25
+    Top = 471
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Save'
     Default = True
     TabOrder = 5
@@ -1124,12 +1142,12 @@ object frmTableEditor: TfrmTableEditor
     AnchorSideLeft.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 106
-    Height = 31
-    Top = 589
-    Width = 94
+    Left = 85
+    Height = 25
+    Top = 471
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Discard'
     TabOrder = 4
     OnClick = btnDiscardClick
@@ -1138,12 +1156,12 @@ object frmTableEditor: TfrmTableEditor
     AnchorSideLeft.Control = Owner
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 6
-    Height = 31
-    Top = 589
-    Width = 94
+    Left = 5
+    Height = 25
+    Top = 471
+    Width = 75
     Anchors = [akLeft, akBottom]
-    BorderSpacing.Around = 6
+    BorderSpacing.Around = 5
     Caption = 'Help'
     TabOrder = 3
     OnClick = btnHelpClick
@@ -1151,8 +1169,8 @@ object frmTableEditor: TfrmTableEditor
   object popupProperties: TPopupMenu
     Images = MainForm.ImageListMain
     OnPopup = popupPropertiesPopup
-    Left = 500
-    Top = 450
+    Left = 400
+    Top = 360
     object Copy1: TMenuItem
       Action = MainForm.actCopy
     end
@@ -1196,8 +1214,8 @@ object frmTableEditor: TfrmTableEditor
   object popupColumns: TPopupMenu
     Images = MainForm.ImageListMain
     OnPopup = popupColumnsPopup
-    Left = 390
-    Top = 450
+    Left = 312
+    Top = 360
     object menuCopyColumnCell: TMenuItem
       Action = MainForm.actCopy
     end
