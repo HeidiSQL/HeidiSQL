@@ -4175,7 +4175,7 @@ var
   Batch: TSQLBatch;
 begin
   Result := TDBQueryList.Create(False);
-  Batch := TSQLBatch.Create;
+  Batch := TSQLBatch.Create(FParameters.NetTypeGroup);
   Batch.SQL := FLastQuerySQL;
   for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
     r := Parameters.CreateQuery(Self);
@@ -5132,7 +5132,7 @@ var
   i: Integer;
 begin
   Query(SQL, True);
-  Batch := TSQLBatch.Create;
+  Batch := TSQLBatch.Create(FParameters.NetTypeGroup);
   Batch.SQL := SQL;
   FreeAndNil(FPrefetchResults);
   FPrefetchResults := TDBQueryList.Create(True);

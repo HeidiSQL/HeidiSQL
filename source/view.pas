@@ -250,7 +250,7 @@ begin
     sql := sql + 'RENAME TABLE '+ViewName + ' TO '+RenameView + ';' + sLineBreak;
   end;
 
-  Result := TSQLBatch.Create;
+  Result := TSQLBatch.Create(DBObject.Connection.Parameters.NetTypeGroup);
   Result.SQL := Trim(SQL);
 end;
 
