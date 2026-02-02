@@ -2065,6 +2065,7 @@ begin
   FInfSch := 'information_schema';
   FInformationSchemaObjects := TStringList.Create;
   FInformationSchemaObjects.CaseSensitive := False;
+  FInformationSchemaObjects.UseLocale := False;
   // Characters in identifiers which don't need to be quoted
   FIdentCharsNoQuote := ['A'..'Z', 'a'..'z', '0'..'9', '_'];
   FMaxRowsPerInsert := 10000;
@@ -8064,8 +8065,10 @@ begin
   FRecordCount := 0;
   FColumnNames := TStringList.Create;
   FColumnNames.CaseSensitive := False;
+  FColumnNames.UseLocale := False;
   FColumnOrgNames := TStringList.Create;
   FColumnOrgNames.CaseSensitive := False;
+  FColumnOrgNames.UseLocale := False;
   FStoreResult := True;
   FDBObject := nil;
   FFormatSettings := DefaultFormatSettings;
