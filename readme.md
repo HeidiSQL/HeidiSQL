@@ -16,7 +16,22 @@ Delphi 12.1 is required for building HeidiSQL for Windows. Older Delphi versions
 of the other free compilers cannot currently compile HeidiSQL.
 
 Once Delphi is installed, you need to load the SynEdit project from the components folder. Build both run-time and design-time packages. Install the 
-design-time package. Do the same for the VirtualTree component project, and install madExcept.
+design-time package. Do the same for the VirtualTree component project.
+
+Second you need install [madExcept](http://madshi.net/madCollection.exe).
+
+Third compile *.rc files:
+
+| folder | file | command |
+| ------ | ------ | ------ |
+|HeidiSQL/source/vcl-styles-utils |AwesomeFont.RC| brcc32 AwesomeFont.RC|
+|HeidiSQL/res| icon.rc | cgrc icon.rc |
+|HeidiSQL/res| icon-question.rc | brcc32 icon-question.rc |
+|HeidiSQL/res| version.rc | brcc32 version.rc |
+|HeidiSQL/res| manifest.rc | manifest.rc |
+|HeidiSQL/res| styles.rc | brcc32 styles.rc |
+|HeidiSQL/res| updater.rc | brcc32 updater.rc |
+> if updater.rc and updater.exe are not exists. you can copy them from updater64.rc and updater64.exe.
 
 Afterwards, load the HeidiSQL project from the packages folder.
 
