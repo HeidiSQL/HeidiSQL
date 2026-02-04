@@ -9988,8 +9988,8 @@ end;}
 function TDBQuery.TableName: String;
 var
   i: Integer;
-  NextTable: String;
-  //rx: TRegExpr;
+  NextTable, Quotes, Ident: String;
+  rx: TRegExpr;
 begin
   // Get table name from a result set
   Result := '';
@@ -10000,17 +10000,21 @@ begin
     if not NextTable.IsEmpty then
       Result := NextTable;
   end;
-  {if Result.IsEmpty then begin
+  if Result.IsEmpty then begin
+    // Poor detection of table name in the SQL query, only for cases where the driver is not able to do it better.
+    // Tested with MS SQL: SELECT * FROM master."dbo".containers
     // Untested with joins, compute columns and views
-    Result := GetTableNameFromSQLEx(SQL, idMixCase);
     rx := TRegExpr.Create;
-    rx.Expression := '\.([^\.]+)$';
-    if rx.Exec(Result) then
-      Result := rx.Match[1];
+    rx.ModifierI := True;
+    Quotes := QuoteRegExprMetaChars(Connection.QuoteChars);
+    Ident := '['+Quotes+']?[^\s\.'+Quotes+']+['+Quotes+']?';
+    rx.Expression := '\bFROM\s+('+Ident+'\.)?('+Ident+'\.)?('+Ident+')\b';
+    if rx.Exec(FSQL) then
+      Result := Connection.DeQuoteIdent(rx.Match[3]);
     rx.Free;
     if Result.IsEmpty then
       raise EDbError.Create('Could not determine name of table.');
-  end;}
+  end;
 end;
 
 
@@ -10053,7 +10057,8 @@ end;
 {$IFDEF HASMSSQL}
 function TSqlSrvQuery.TableName(Column: Integer): String;
 begin
-  Result := '';
+  // Mostly empty on MSSQL, so the poor regex in TDBQuery.TableName has to be sufficient
+  Result := FCurrentResults.Fields[Column].Origin;
 end;
 {$ENDIF}
 
