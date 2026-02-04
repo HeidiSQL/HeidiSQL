@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2026-01-28 19:41+0100\n"
+"PO-Revision-Date: 2026-02-04 17:28+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -6415,6 +6415,12 @@ msgstr "Version: \"%s\""
 
 msgid "Theme: \"%s\""
 msgstr "Theme: \"%s\""
+
+msgid "Automatic, depending on system settings"
+msgstr "Automatic, depending on system settings"
+
+msgid "No need to set this on %s - it just works automatically."
+msgstr "No need to set this on %s - it just works automatically."
 
 msgid "Pixels per inch on current monitor: %d"
 msgstr "Pixels per inch on current monitor: %d"

@@ -320,6 +320,11 @@ begin
   end;
   ExeFiles.Free;
   comboSSHExe.Items.Add('ssh.exe');
+
+  // Translate combo items
+  for i:=0 to comboSSLVerification.Items.Count-1 do begin
+    comboSSLVerification.Items[i] := _(comboSSLVerification.Items[i]);
+  end;
 end;
 
 procedure Tconnform.btnNewDropdown(Sender: TObject);

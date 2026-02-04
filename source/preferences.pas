@@ -513,7 +513,7 @@ begin
   comboTheme.Items.Add(_('Dark'));
   {$ELSE}
   lblTheme.Enabled := False;
-  comboTheme.Items.Text := 'Themes are not supported in the Lazarus release';
+  comboTheme.Items.Text := f_('No need to set this on %s - it just works automatically.', [GetOS]);
   comboTheme.Enabled := False;
   {$ENDIF}
   comboTheme.ItemIndex := 0;
