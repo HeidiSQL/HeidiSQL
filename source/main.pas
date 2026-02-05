@@ -906,7 +906,7 @@ type
     procedure SynMemoQueryDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
     procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
-    procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer; AFiles: TStrings);
+    procedure FormDropFiles(Sender: TObject; const FileNames: array of string);
     procedure popupHostPopup(Sender: TObject);
     procedure popupDBPopup(Sender: TObject);
     procedure popupDataGridPopup(Sender: TObject);
@@ -7748,20 +7748,24 @@ end;
 
 
 
-procedure TMainForm.SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
-  AFiles: TStrings);
+procedure TMainForm.FormDropFiles(Sender: TObject;
+  const FileNames: array of string);
 var
   i: Integer;
   Tab: TQueryTab;
+  Files: TStringList;
 begin
   // One or more files from explorer or somewhere else was dropped onto the
   // query-memo - load their contents into seperate tabs
-  if not RunQueryFiles(AFiles, nil, False) then begin
-    for i:=0 to AFiles.Count-1 do begin
+  Files := TStringList.Create;
+  Files.AddStrings(FileNames);
+  if not RunQueryFiles(Files, nil, False) then begin
+    for i:=0 to Files.Count-1 do begin
       Tab := GetOrCreateEmptyQueryTab(True);
-      Tab.LoadContents(AFiles[i], False, nil);
+      Tab.LoadContents(Files[i], False, nil);
     end;
   end;
+  Files.Free;
 end;
 
 
