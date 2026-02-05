@@ -2723,7 +2723,23 @@ begin
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
+var
+  DlgResult: TModalResult;
+  SessionManager: TConnForm;
 begin
+  // Display session manager
+  // Cannot be done in OnCreate because we need ready forms here
+  if (not SessionManagerStartupDone) and (Connections.Count = 0) then begin
+    SessionManagerStartupDone := True;
+    SessionManager := TConnForm.Create(Self);
+    DlgResult := SessionManager.ShowModal;
+    SessionManager.Free;
+    if DlgResult = mrCancel then begin
+      actExitApplicationExecute(nil);
+    end;
+  end;
+  SessionManagerStartupDone := True;
+
   {LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(ScaleFactor*100)]));
   if TStyleManager.IsCustomStyleActive and (ScaleFactor<>1) then begin
     LogSQL(f_('Caution: Style "%s" selected and non-default DPI factor - be aware that some styles appear broken with high DPI settings!', [TStyleManager.ActiveStyle.Name]));
@@ -14469,22 +14485,7 @@ end;
 
 
 procedure TMainForm.ApplicationIdle(Sender: TObject; var Done: Boolean);
-var
-  DlgResult: TModalResult;
-  SessionManager: TConnForm;
 begin
-  // Display session manager
-  // Cannot be done in OnCreate because we need ready forms here
-  if (not SessionManagerStartupDone) and (Connections.Count = 0) then begin
-    SessionManagerStartupDone := True;
-    SessionManager := TConnForm.Create(Self);
-    DlgResult := SessionManager.ShowModal;
-    SessionManager.Free;
-    if DlgResult = mrCancel then begin
-      actExitApplicationExecute(nil);
-    end;
-  end;
-  SessionManagerStartupDone := True;
 
   // Sort list tables in idle time, so ListTables.TreeOptions.AutoSort does not crash the list
   // when dropping a right-clicked database
