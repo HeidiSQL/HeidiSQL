@@ -555,7 +555,7 @@ begin
     tmp := '';
     if ProcOrFunc = 'PROCEDURE' then
       tmp := tmp + Parameters[i].Context + ' ';
-    tmp := tmp + DBObject.Connection.QuoteIdent(Parameters[i].Name) + ' ' + Parameters[i].Datatype;
+    tmp := tmp + DBObject.Connection.QuoteIdent(Parameters[i].Name.Trim) + ' ' + Parameters[i].Datatype;
     Params.Add(tmp);
   end;
   if Params.Count > 0 then
