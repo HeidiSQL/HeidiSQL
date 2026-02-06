@@ -6265,7 +6265,7 @@ begin
   // Todo: include database name
   // Todo: default values
   Result := TTableColumnList.Create(True);
-  ColQuery := GetResults('SELECT * FROM '+QuoteIdent(Table.Database)+'.pragma_table_info('+EscapeString(Table.Name)+')');
+  ColQuery := GetResults('SELECT * FROM '+QuoteIdent(Table.Database)+'.pragma_table_xinfo('+EscapeString(Table.Name)+')');
   while not ColQuery.Eof do begin
     Col := TTableColumn.Create(Self);
     Result.Add(Col);
@@ -6277,6 +6277,11 @@ begin
     Col.DefaultText := '';
     Col.OnUpdateType := cdtNothing;
     Col.OnUpdateText := '';
+    case StrToIntDef(ColQuery.Col('hidden'), 0) of
+      1: Col.Invisible := True;
+      2: Col.Virtuality := 'VIRTUAL';
+      3: Col.Virtuality := 'STORED';
+    end;
     ColQuery.Next;
   end;
   ColQuery.Free;
@@ -6547,7 +6552,7 @@ var
 begin
   Result := TTableKeyList.Create(True);
   ColQuery := GetResults('SELECT * '+
-    'FROM '+QuoteIdent(Table.Database)+'.pragma_table_info('+EscapeString(Table.Name)+') '+
+    'FROM '+QuoteIdent(Table.Database)+'.pragma_table_xinfo('+EscapeString(Table.Name)+') '+
     'WHERE pk!=0 ORDER BY pk');
   NewKey := nil;
   while not ColQuery.Eof do begin
