@@ -1580,6 +1580,7 @@ var
   Col: PTableColumn;
   Key: TTableKey;
   WasModified: Boolean;
+  OldDatatype: TDBDatatype;
 begin
   // Column property edited
   Col := Sender.GetNodeData(Node);
@@ -1603,6 +1604,7 @@ begin
     end;
 
     ColNumDatatype: begin
+      OldDatatype := Col.DataType;
       Col.DataType := DBObject.Connection.GetDatatypeByName(NewText, False, Col.Name);
       // Reset length/set for column types which don't support that
       if not Col.DataType.HasLength then
@@ -1621,34 +1623,36 @@ begin
       if (not Col.LengthCustomized) or (Col.DataType.RequiresLength and (Col.LengthSet = '')) then
         Col.LengthSet := Col.DataType.DefLengthSet;
       // Auto-change default type and text
-      if not Col.DataType.HasDefault then begin
-        Col.DefaultType := cdtNothing;
-        Col.DefaultText := '';
-      end else begin
-        // Auto-fix user selected default type which can be invalid now
-        case Col.DataType.Category of
-          dtcInteger: begin
-            Col.DefaultType := cdtExpression;
-            if Col.AllowNull then
-              Col.DefaultType := cdtNull
-            else
-              Col.DefaultText := IntToStr(MakeInt(Col.DefaultText));
-          end;
-          dtcReal: begin
-            Col.DefaultType := cdtExpression;
-            if Col.AllowNull then
-              Col.DefaultType := cdtNull
-            else
-              Col.DefaultText := FloatToStr(MakeFloat(Col.DefaultText));
-          end;
-          dtcText, dtcBinary, dtcSpatial, dtcOther: begin
-            Col.DefaultType := cdtText;
-            if Col.AllowNull then
-              Col.DefaultType := cdtNull;
-          end;
-          dtcTemporal: begin
-            if Col.DefaultType = cdtAutoinc then
-              Col.DefaultType := cdtNothing;
+      if Col.DataType.Category <> OldDatatype.Category then begin
+        if not Col.DataType.HasDefault then begin
+          Col.DefaultType := cdtNothing;
+          Col.DefaultText := '';
+        end else begin
+          // Auto-fix user selected default type which can be invalid now
+          case Col.DataType.Category of
+            dtcInteger: begin
+              Col.DefaultType := cdtExpression;
+              if Col.AllowNull then
+                Col.DefaultType := cdtNull
+              else
+                Col.DefaultText := IntToStr(MakeInt(Col.DefaultText));
+            end;
+            dtcReal: begin
+              Col.DefaultType := cdtExpression;
+              if Col.AllowNull then
+                Col.DefaultType := cdtNull
+              else
+                Col.DefaultText := FloatToStr(MakeFloat(Col.DefaultText));
+            end;
+            dtcText, dtcBinary, dtcSpatial, dtcOther: begin
+              Col.DefaultType := cdtText;
+              if Col.AllowNull then
+                Col.DefaultType := cdtNull;
+            end;
+            dtcTemporal: begin
+              if Col.DefaultType = cdtAutoinc then
+                Col.DefaultType := cdtNothing;
+            end;
           end;
         end;
       end;
