@@ -1340,6 +1340,9 @@ begin
   Stream := TFileStream.Create(Filename, fmOpenRead or fmShareDenyNone);
   if Encoding = nil then
     Encoding := DetectEncoding(Stream);
+  // For a 0-bytes file, override the encoding to one without BOM
+  if _GetFileSize(Filename) < Length(Encoding.GetPreamble) then
+    Encoding := UTF8NoBOMEncoding;
   // If the file contains a BOM, advance the stream's position
   BomLen := 0;
   if Length(Encoding.GetPreamble) > 0 then begin
