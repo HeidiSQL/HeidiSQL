@@ -6735,7 +6735,7 @@ begin
       if pid = Conn.ThreadId then
         LogSQL(f_('Ignoring own process id #%d when trying to kill it.', [pid]))
       else try
-        Conn.Query(Conn.GetSQLSpecifity(spKillProcess, [pid]));
+        Conn.Query(Conn.GetSQLSpecifity(spKillQuery, [pid]));
       except
         on E:EDbError do begin
           if Conn.LastErrorCode <> ER_NO_SUCH_THREAD then
