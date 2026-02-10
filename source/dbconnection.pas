@@ -7563,6 +7563,7 @@ var
   obj: TDBObject;
   Results: TDBQuery;
   TypeS: String;
+  UnionRowCount: TStringList;
 begin
   // Tables, views and procedures
   Results := nil;
@@ -7593,6 +7594,34 @@ begin
       Results.Next;
     end;
     FreeAndNil(Results);
+
+    if FParameters.FullTableStatus then begin
+      UnionRowCount := TStringList.Create;
+      for obj in Cache do begin
+        if obj.NodeType <> lntTable then
+          Continue;
+        UnionRowCount.Add('SELECT '+EscapeString(obj.Name)+', COUNT(*) FROM '+QuoteIdent(obj.Database)+'.'+QuoteIdent(obj.Name));
+      end;
+      if UnionRowCount.Count > 0 then
+      try
+        Results := GetResults(Implode(' UNION ', UnionRowCount));
+        while not Results.Eof do begin
+          for obj in Cache do begin
+            if (obj.NodeType = lntTable) and (obj.Name = Results.Col(0)) then begin
+              obj.Rows := StrToInt64Def(Results.Col(1), -1);
+              obj.RowsAreExact := True;
+              break;
+            end;
+          end;
+          Results.Next;
+        end;
+        FreeAndNil(Results);
+      except
+        on E:EDbError do
+          Log(lcError, 'Full table status with row count not available in this database');
+      end;
+      UnionRowCount.Free;
+    end;
   end;
 end;
 
