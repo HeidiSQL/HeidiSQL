@@ -1217,6 +1217,8 @@ begin
     NewIndex := FColumns.IndexOf(ToCol^);
     if Mode = dmBelow then
       Inc(NewIndex);
+    // Fix crash when moving to very bottom
+    NewIndex := Min(NewIndex, FColumns.Count-1);
     FColumns.Move(FColumns.IndexOf(FocusedCol^), NewIndex);
     FocusedCol.Status := esModified;
     Modification(Sender);
