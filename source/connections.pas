@@ -1213,7 +1213,7 @@ end;
 
 procedure Tconnform.editHostChange(Sender: TObject);
 begin
-  editSSHhost.TextHint := TEdit(Sender).Text;
+  editSSHhost.TextHint := editHost.Text;
   Modification(Sender);
 end;
 
