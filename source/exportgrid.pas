@@ -1045,7 +1045,7 @@ begin
               else if GridData.IsNull(ResultCol) then
                 Data := 'NULL'
               else if (GridData.DataType(ResultCol).Index = dbdtBit) and GridData.Connection.Parameters.IsAnyMySQL then
-                Data := 'b' + GridData.Connection.EscapeString(Data)
+                Data := GridData.Connection.EscapeString(Data, GridData.DataType(ResultCol))
               else if (GridData.DataType(ResultCol).Category in [dtcText, dtcTemporal, dtcOther])
                 or ((GridData.DataType(ResultCol).Category in [dtcBinary, dtcSpatial]) and Mainform.actBlobAsText.Checked)
                 then

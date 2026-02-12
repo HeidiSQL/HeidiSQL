@@ -5148,11 +5148,13 @@ end;
 function TDBConnection.EscapeString(Text: String; Datatype: TDBDatatype): String;
 var
   DoQuote: Boolean;
+  ValuePrefix: String;
 const
   CategoriesNeedQuote = [dtcText, dtcBinary, dtcTemporal, dtcSpatial, dtcOther];
 begin
   // Quote text based on the passed datatype
   DoQuote := Datatype.Category in CategoriesNeedQuote;
+  ValuePrefix := '';
   case Datatype.Category of
     // Some special cases
     dtcBinary: begin
@@ -5162,11 +5164,13 @@ begin
     dtcInteger, dtcReal: begin
       if (not IsNumeric(Text)) and (not IsHex(Text)) then
         DoQuote := True;
-      if Datatype.Index = dbdtBit then
+      if (Datatype.Index = dbdtBit) and FParameters.IsAnyMySQL then begin
         DoQuote := True;
+        ValuePrefix := 'b';
+      end;
     end;
   end;
-  Result := EscapeString(Text, False, DoQuote);
+  Result := ValuePrefix + EscapeString(Text, False, DoQuote);
 end;
 
 
@@ -9154,13 +9158,13 @@ begin
       except
         Result := String(FCurrentResults.Fields[Column].AsAnsiString);
       end;
-      if Datatype(Column).Index = dbdtBit then begin
-        if UpperCase(Result) = 'TRUE' then
-          Result := '1'
-        else
-          Result := '0';
-      end
     end;
+    if Datatype(Column).Index = dbdtBit then begin
+      if (UpperCase(Result) = 'TRUE') or (Result = '1') then
+        Result := '1'
+      else
+        Result := '0';
+    end
   end else if not IgnoreErrors then
     Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
 end;
@@ -9862,11 +9866,8 @@ begin
       else if Cell.NewIsFunction then
         Val := Cell.NewText
       else case Datatype(i).Category of
-        dtcInteger, dtcReal: begin
+        dtcInteger, dtcReal:
           Val := Connection.EscapeString(Cell.NewText, Datatype(i));
-          if (Datatype(i).Index = dbdtBit) and FConnection.Parameters.IsAnyMySQL then
-            Val := 'b' + Val;
-        end;
         dtcBinary, dtcSpatial:
           Val := FConnection.EscapeBin(Cell.NewText);
         dtcTemporal:
@@ -10251,7 +10252,7 @@ begin
       case DataType(j).Category of
         dtcInteger, dtcReal: begin
           if DataType(j).Index = dbdtBit then
-            Result := Result + '=b' + Connection.EscapeString(ColVal)
+            Result := Result + '=' + Connection.EscapeString(ColVal, DataType(j))
           else begin
             // Guess (!) the default value silently inserted by the server. This is likely
             // to be incomplete in cases where a UNIQUE key allows NULL here

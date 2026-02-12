@@ -2078,12 +2078,6 @@ begin
               if Data.IsNull(i) then
                 Row := Row + 'NULL'
               else case Data.DataType(i).Category of
-                dtcInteger, dtcReal: begin
-                  if Data.DataType(i).Index = dbdtBit then
-                    Row := Row + 'b' + Quoter.EscapeString(Data.Col(i))
-                  else
-                    Row := Row + Data.Col(i);
-                end;
                 dtcBinary, dtcSpatial: begin
                   BinContent := Data.HexValue(i);
                   if Length(BinContent) > 0 then
