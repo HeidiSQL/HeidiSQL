@@ -2103,7 +2103,7 @@ begin
                   else
                     Row := Row + Quoter.EscapeString('');
                 end;
-                else Row := Row + Quoter.EscapeString(Data.Col(i));
+                else Row := Row + Quoter.EscapeString(Data.Col(i), Data.DataType(i));
               end;
               Row := Row + ', ';
             end;
