@@ -6822,7 +6822,7 @@ var
   Rows: String;
 begin
   // Get row number from a table
-  Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
+  Rows := GetVar('SELECT COUNT(*) FROM '+QuotedDbAndTableName(Obj.Database, Obj.Name), 0);
   Result := MakeInt(Rows);
 end;
 
@@ -6847,15 +6847,16 @@ var
   Rows: String;
 begin
   // Get row number from a mssql table
-  if ServerVersionInt >= 900 then begin
+  if (ServerVersionInt < 900) or ForceExact then begin
+    Result := inherited
+  end
+  else begin
     Rows := GetVar('SELECT SUM('+QuoteIdent('rows')+') FROM '+QuoteIdent('sys')+'.'+QuoteIdent('partitions')+
       ' WHERE '+QuoteIdent('index_id')+' IN (0, 1)'+
       ' AND '+QuoteIdent('object_id')+' = object_id('+EscapeString(Obj.Database+'.'+Obj.Schema+'.'+Obj.Name)+')'
       );
-  end else begin
-    Rows := GetVar('SELECT COUNT(*) FROM '+Obj.QuotedDbAndTableName);
+    Result := MakeInt(Rows);
   end;
-  Result := MakeInt(Rows);
 end;
 {$ENDIF}
 
@@ -7424,13 +7425,19 @@ begin
   // Tables, views and procedures
   Results := nil;
   // Schema support introduced in MSSQL 2005 (9.0). See issue #3212.
+  // RowsInTable added in 12.16
   SchemaSelect := EscapeString('');
   if ServerVersionInt >= 900 then
     SchemaSelect := 'SCHEMA_NAME('+QuoteIdent('schema_id')+')';
   try
-    Results := GetResults('SELECT *, '+SchemaSelect+' AS '+EscapeString('schema')+
-      ' FROM '+QuoteIdent(db)+GetSQLSpecifity(spDbObjectsTable)+
-      ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+', '+EscapeString('TR')+', '+EscapeString('FN')+', '+EscapeString('TF')+', '+EscapeString('IF')+')');
+    Results := GetResults('SELECT o.*, '+SchemaSelect+' AS '+EscapeString('schema')+', rc.RowsInTable'+
+      ' FROM '+QuoteIdent(db)+GetSQLSpecifity(spDbObjectsTable)+ ' AS o'+
+      ' LEFT JOIN ('+
+      '   SELECT object_id, SUM(rows) AS RowsInTable FROM '+QuoteIdent(db)+'.sys.partitions'+
+      '   WHERE index_id IN (0,1)'+ // -- heap or clustered index
+      '   GROUP BY object_id'+
+      ' ) AS rc ON rc.object_id = o.object_id'+
+      ' WHERE o.'+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+', '+EscapeString('TR')+', '+EscapeString('FN')+', '+EscapeString('TF')+', '+EscapeString('IF')+')');
   except
     on E:EDbError do;
   end;
@@ -7454,6 +7461,8 @@ begin
         obj.NodeType := lntTrigger
       else if (tp = 'FN') or (tp = 'TF') or (tp = 'IF') then
         obj.NodeType := lntFunction;
+      obj.Rows := StrToInt64Def(Results.Col('RowsInTable'), -1);
+      obj.RowsAreExact := False; // approximate, not guaranteed exact.
       // Set reasonable default value for calculation of export chunks. See #343
       // OFFSET..FETCH supported from v11.0/2012
       // Disabled, leave at -1 and prefer a generic calculation in TfrmTableTools.DoExport
