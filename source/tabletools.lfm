@@ -1061,14 +1061,22 @@ object frmTableTools: TfrmTableTools
     object menuExportAddComments: TMenuItem
       AutoCheck = True
       Caption = 'Add comments'
+      OnClick = menuExportOptionClick
+    end
+    object menuExportTransactions: TMenuItem
+      AutoCheck = True
+      Caption = 'Wrap data DML in transactions'
+      OnClick = menuExportOptionClick
     end
     object menuExportRemoveAutoIncrement: TMenuItem
       AutoCheck = True
       Caption = 'Remove AUTO_INCREMENT clauses'
+      OnClick = menuExportOptionClick
     end
     object menuExportRemoveDefiner: TMenuItem
       AutoCheck = True
       Caption = 'Remove DEFINER clauses'
+      OnClick = menuExportOptionClick
     end
     object menuCopyMysqldumpCommand: TMenuItem
       Caption = 'Copy mysqldump command'

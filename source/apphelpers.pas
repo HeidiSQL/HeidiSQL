@@ -191,7 +191,7 @@ type
     asSSLCert, asSSLCA, asSSLCipher, asSSLVerification, asSSLWarnUnused, asNetType, asCompressed, asLocalTimeZone, asQueryTimeout, asKeepAlive,
     asStartupScriptFilename, asDatabases, asComment, asDatabaseFilter, asTableFilter, asFilterVT, asExportSQLCreateDatabases,
     asExportSQLCreateTables, asExportSQLDataHow, asExportSQLDataInsertSize, asExportSQLFilenames, asExportZIPFilenames, asExportSQLDirectories,
-    asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asExportSQLAddComments, asExportSQLRemoveAutoIncrement, asExportSQLRemoveDefiner,
+    asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asExportSQLAddComments, asExportSQLTransactions, asExportSQLRemoveAutoIncrement, asExportSQLRemoveDefiner,
     asGridExportWindowWidth, asGridExportWindowHeight, asGridExportOutputCopy, asGridExportOutputFile,
     asGridExportFilename, asGridExportRecentFiles, asGridExportEncoding, asGridExportFormat, asGridExportSelection,
     asGridExportColumnNames, asGridExportIncludeAutoInc, asGridExportIncludeQuery, asGridExportRemoveLinebreaks, asGridExportOpenFile,
@@ -3682,6 +3682,7 @@ begin
   InitSetting(asExportSQLServerDatabase,          'ExportSQL_ServerDatabase',              0, False, '');
   InitSetting(asExportSQLOutput,                  'ExportSQL_Output',                      0);
   InitSetting(asExportSQLAddComments,             'ExportSQLAddComments',                  0, True);
+  InitSetting(asExportSQLTransactions,            'ExportSQLTransactions',                 0, False);
   InitSetting(asExportSQLRemoveAutoIncrement,     'ExportSQLRemoveAutoIncrement',          0, False);
   InitSetting(asExportSQLRemoveDefiner,           'ExportSQLRemoveDefiner',                0, True);
   InitSetting(asGridExportWindowWidth,            'GridExportWindowWidth',                 450);
