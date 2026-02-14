@@ -161,7 +161,8 @@ const
 
 const
   VSCLASS_DARK_EDIT      = 'DarkMode_CFD::Edit';
-  VSCLASS_DARK_TAB       = 'BrowserTab::Tab';
+  VSCLASS_DARK_TAB1      = 'BrowserTab::Tab';
+  VSCLASS_DARK_TAB2      = 'DarkMode_DarkTheme::Tab';
   VSCLASS_DARK_BUTTON    = 'DarkMode_Explorer::Button';
   VSCLASS_DARK_COMBOBOX  = 'DarkMode_CFD::Combobox';
   VSCLASS_DARK_SCROLLBAR = 'DarkMode_Explorer::ScrollBar';
@@ -200,6 +201,7 @@ var
   DrawControl: TDrawControl;
   DefSubclassProc: function(hWnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
   SetWindowSubclass: function(hWnd: HWND; pfnSubclass: SUBCLASSPROC; uIdSubclass: UINT_PTR; dwRefData: DWORD_PTR): BOOL; stdcall;
+  VSCLASS_DARK_TAB:PWideChar;
 
 var
   TrampolineOpenThemeData: function(hwnd: HWND; pszClassList: LPCWSTR): HTHEME; stdcall =  nil;
@@ -2373,6 +2375,11 @@ begin
   if not IsDarkModeEnabled then
     Exit;
 
+  if g_buildNumber>=26100{24H2} then
+    VSCLASS_DARK_TAB:=VSCLASS_DARK_TAB2
+  else
+    VSCLASS_DARK_TAB:=VSCLASS_DARK_TAB1;
+
   InitializeColors(CS);
 
   WinRegister(ClassNameW);
@@ -2507,7 +2514,6 @@ begin
 end;
 
 initialization
-
 finalization
   if Assigned(ThemeClass) then
     FreeAndNil(ThemeClass);
