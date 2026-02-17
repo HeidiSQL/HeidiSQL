@@ -5,7 +5,7 @@
 interface
 
 uses
-  Classes, SysUtils, Types, dbstructures;
+  Classes, SysUtils, Types, dbstructures, StrUtils;
 
 
 const
@@ -319,6 +319,13 @@ type
       constructor Create(UsedDllFile, HintDefaultDll: String); override;
       function IsLibMariadb: Boolean;
   end;
+
+  TMySqlProvider = class(TSqlProvider)
+    public
+      function GetSql(AId: TQueryId): string; override;
+  end;
+
+
 var
   MySQLKeywords: TStringList;
   MySQLErrorCodes: TStringList;
@@ -3218,6 +3225,110 @@ begin
   AssignProc(@mysql_thread_init, 'mysql_thread_init');
   AssignProc(@mysql_thread_end, 'mysql_thread_end');
   AssignProc(@mysql_warning_count, 'mysql_warning_count');
+end;
+
+
+{ TMySqlProvider }
+
+function TMySqlProvider.GetSql(AId: TQueryId): string;
+begin
+  case AId of
+    qDatabaseDrop: Result := 'DROP DATABASE %s';
+    qEmptyTable: Result := 'TRUNCATE ';
+    qRenameTable: Result := 'RENAME TABLE %s TO %s';
+    qRenameView: Result := 'RENAME TABLE %s TO %s';
+    qCurrentUserHost: Result := 'SELECT CURRENT_USER()';
+    qLikeCompare: Result := '%s LIKE %s';
+    qAddColumn: Result := 'ADD COLUMN %s';
+    qChangeColumn: Result := 'CHANGE COLUMN %s %s';
+    qGlobalStatus: Result := IfThen(
+      FNetType = ntMySQL_ProxySQLAdmin,
+      'SELECT * FROM stats_mysql_global',
+      'SHOW /*!50002 GLOBAL */ STATUS'
+      );
+    qCommandsCounters: Result := IfThen(
+      FNetType = ntMySQL_ProxySQLAdmin,
+      'SELECT * FROM stats_mysql_commands_counters',
+      'SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%'''
+      );
+    qSessionVariables: Result := 'SHOW VARIABLES';
+    qGlobalVariables: Result := 'SHOW GLOBAL VARIABLES';
+    qISSchemaCol: Result := '%s_SCHEMA';
+    qUSEQuery: Result := 'USE %s';
+    qKillQuery: Result := IfThen(
+      FNetType = ntMySQL_RDS,
+      'CALL mysql.rds_kill_query(%d)',
+      IfThen(
+        FServerVersion >= 50000,
+        'KILL QUERY %d',
+        'KILL %d'
+        )
+      );
+    qKillProcess: Result := IfThen(
+      FNetType = ntMySQL_RDS,
+      'CALL mysql.rds_kill(%d)',
+      'KILL %d'
+      );
+    qFuncLength: Result := 'LENGTH';
+    qFuncCeil: Result := 'CEIL';
+    qFuncLeft: Result := IfThen(
+      FNetType = ntMySQL_ProxySQLAdmin,
+      'SUBSTR(%s, 1, %d)',
+      'LEFT(%s, %d)'
+      );
+    qFuncNow: Result := IfThen(
+      FNetType = ntMySQL_ProxySQLAdmin,
+      'CURRENT_TIMESTAMP',
+      'NOW()'
+      );
+    qFuncLastAutoIncNumber: Result := 'LAST_INSERT_ID()';
+    qLockedTables: Result := IfThen(
+      (FNetType <> ntMySQL_ProxySQLAdmin) and (FServerVersion >= 50124),
+      'SHOW OPEN TABLES FROM %s WHERE in_use!=0',
+      ''
+      );
+    qDisableForeignKeyChecks: Result := IfThen(
+      FServerVersion >= 40014,
+      'SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0',
+      ''
+      );
+    qEnableForeignKeyChecks: Result := IfThen(
+      FServerVersion >= 40014,
+      'SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1)',
+      ''
+      );
+    qForeignKeyDrop: Result := 'DROP FOREIGN KEY %s';
+    qGetTableColumns: Result := '';
+    qGetCollations: Result := IfThen(
+      FServerVersion >= 40100,
+      'SHOW COLLATION',
+      ''
+      );
+    // Issue #1917: MariaDB 10.10.1+ versions have additional collations in IS.COLLATION_CHARACTER_SET_APPLICABILITY
+    qGetCollationsExtended: Result := IfThen(
+      FServerVersion >= 101001,
+      'SELECT'+
+        ' FULL_COLLATION_NAME AS `Collation`'+
+        ', CHARACTER_SET_NAME AS `Charset`'+
+        ', ID AS `Id`'+
+        ', IS_DEFAULT AS `Default`'+
+        ', 0 AS `Sortlen`'+
+        ' FROM information_schema.COLLATION_CHARACTER_SET_APPLICABILITY'+
+        ' ORDER BY `Collation`',
+      ''
+      );
+    qGetCharsets: Result := IfThen(
+      FServerVersion >= 40100,
+      'SHOW CHARSET',
+      ''
+      );
+    qGetRowCountApprox: Result := IfThen(
+      FNetType <> ntMySQL_ProxySQLAdmin,
+      'SHOW TABLE STATUS LIKE :EscapedName',
+      ''
+      );
+    else Result := inherited;
+  end;
 end;
 
 

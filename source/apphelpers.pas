@@ -1850,9 +1850,9 @@ begin
     if Result <> '' then
       Result := Result + ', ';
     if SortItem.Order = sioAscending then
-      SortOrder := Connection.GetSQLSpecifity(spOrderAsc)
+      SortOrder := Connection.SqlProvider.GetSql(qOrderAsc)
     else
-      SortOrder := Connection.GetSQLSpecifity(spOrderDesc);
+      SortOrder := Connection.SqlProvider.GetSql(qOrderDesc);
     Result := Result + Connection.QuoteIdent(SortItem.Column) + ' ' + SortOrder;
   end;
 end;

@@ -154,6 +154,11 @@ type
       constructor CreateWithMultipleCipherFunctions(UsedDllFile, HintDefaultDll: String);
   end;
 
+  TSQLiteProvider = class(TSqlProvider)
+    public
+      function GetSql(AId: TQueryId): string; override;
+  end;
+
 var
 
   SQLiteDatatypes: Array[0..15] of TDBDatatype =
@@ -388,5 +393,46 @@ begin
     AssignProc(@sqlite3mc_config_cipher, 'sqlite3mc_config_cipher');
   end;
 end;
+
+
+{ TSQLiteProvider }
+
+function TSQLiteProvider.GetSql(AId: TQueryId): string;
+begin
+  case AId of
+    qDatabaseDrop: Result := 'DROP DATABASE %s';
+    qEmptyTable: Result := 'DELETE FROM ';
+    qRenameTable: Result := 'ALTER TABLE %s RENAME TO %s';
+    qRenameView: Result := 'ALTER TABLE %s RENAME TO %s';
+    qCurrentUserHost: Result := ''; // unsupported
+    qLikeCompare: Result := '%s LIKE %s';
+    qAddColumn: Result := 'ADD COLUMN %s';
+    qChangeColumn: Result := ''; // SQLite only supports renaming
+    qRenameColumn: Result := 'RENAME COLUMN %s TO %s';
+    qSessionVariables: Result := 'SELECT null, null'; // Todo: combine "PRAGMA pragma_list" + "PRAGMA a; PRAGMY b; ..."?
+    qGlobalVariables: Result := 'SHOW GLOBAL VARIABLES';
+    qISSchemaCol: Result := '%s_SCHEMA';
+    qUSEQuery: Result := '';
+    qKillQuery: Result := 'KILL %d';
+    qKillProcess: Result := 'KILL %d';
+    qFuncLength: Result := 'LENGTH';
+    qFuncCeil: Result := 'CEIL';
+    qFuncLeft: Result := 'SUBSTR(%s, 1, %d)';
+    qFuncNow: Result := 'DATETIME()';
+    qFuncLastAutoIncNumber: Result := 'LAST_INSERT_ID()';
+    qLockedTables: Result := '';
+    qDisableForeignKeyChecks: Result := '';
+    qEnableForeignKeyChecks: Result := '';
+    qForeignKeyDrop: Result := 'DROP FOREIGN KEY %s';
+    qGetTableColumns: Result := 'SELECT * FROM pragma_table_xinfo(%s, %s)';
+    // See https://www.sqlite.org/datatype3.html#collation_sequence_examples
+    qGetCollations: Result := 'SELECT name AS "Collation", '''' AS "Charset", '''' AS "Id", '''' AS "Default", '''' AS "Compiled", ''1'' AS Sortlen from pragma_collation_list';
+    qGetCharsets: Result := 'SELECT ''UTF-8'' AS "Charset", ''UTF-8'' AS "Description" '+
+      'UNION SELECT ''UTF-16le'', ''UTF-16 Little Endian'' '+
+      'UNION SELECT ''UTF-16be'', ''UTF-16 Big Endian''';
+    else Result := inherited;
+  end;
+end;
+
 
 end.

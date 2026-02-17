@@ -14,7 +14,7 @@ uses
   laz.VirtualTrees, Menus, Graphics, extra_controls, lazaruscompat,
   {$IFDEF Windows} ActiveX {$ELSE} laz.FakeActiveX {$ENDIF},
   dbconnection, RegExpr, Types, FileUtil,
-  Math, ActnList, ComboEx, EditBtn, Buttons, ColorBox, extfiledialog;
+  Math, ActnList, ComboEx, EditBtn, Buttons, ColorBox, extfiledialog, dbstructures;
 
 type
 

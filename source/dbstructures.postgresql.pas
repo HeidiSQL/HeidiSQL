@@ -5,7 +5,7 @@ unit dbstructures.postgresql;
 interface
 
 uses
-  dbstructures;
+  dbstructures, StrUtils;
 
 type
   // PostgreSQL structures
@@ -36,6 +36,11 @@ type
     PQlibVersion: function(): Integer; cdecl;
     protected
       procedure AssignProcedures; override;
+  end;
+
+  TPostgreSQLProvider = class(TSqlProvider)
+    public
+      function GetSql(AId: TQueryId): string; override;
   end;
 
 const InvalidOid: POid = 0;
@@ -572,6 +577,147 @@ begin
   AssignProc(@PQgetlength, 'PQgetlength');
   AssignProc(@PQgetisnull, 'PQgetisnull');
   AssignProc(@PQlibVersion, 'PQlibVersion');
+end;
+
+
+{ TPostgreSQLProvider }
+
+function TPostgreSQLProvider.GetSql(AId: TQueryId): string;
+begin
+  case AId of
+    qDatabaseDrop: Result := 'DROP SCHEMA %s';
+    qEmptyTable: Result := 'DELETE FROM ';
+    qRenameTable: Result := 'ALTER TABLE %s RENAME TO %s';
+    qRenameView: Result := 'ALTER VIEW %s RENAME TO %s';
+    qCurrentUserHost: Result := 'SELECT CURRENT_USER';
+    qLikeCompare: Result := '%s ILIKE %s';
+    qAddColumn: Result := 'ADD %s';
+    qChangeColumn: Result := 'ALTER COLUMN %s %s';
+    qRenameColumn: Result := 'RENAME COLUMN %s TO %s';
+    qForeignKeyEventAction: Result := 'RESTRICT,CASCADE,SET NULL,NO ACTION,SET DEFAULT';
+    qSessionVariables: Result := 'SHOW ALL';
+    qGlobalVariables: Result := 'SHOW ALL';
+    qISSchemaCol: Result := '%s_schema';
+    qUSEQuery: Result := 'SET search_path TO %s';
+    qKillQuery: Result := 'SELECT pg_cancel_backend(%d)';
+    qKillProcess: Result := 'SELECT pg_cancel_backend(%d)';
+    qFuncLength: Result := 'LENGTH';
+    qFuncCeil: Result := 'CEIL';
+    qFuncLeft: Result := 'SUBSTRING(%s, 1, %d)';
+    qFuncNow: Result := 'NOW()';
+    qFuncLastAutoIncNumber: Result := 'LASTVAL()';
+    qLockedTables: Result := '';
+    qDisableForeignKeyChecks: Result := '';
+    qEnableForeignKeyChecks: Result := '';
+    qForeignKeyDrop: Result := 'DROP CONSTRAINT %s';
+
+    // This uses pg_attribute.attgenerated, which only exists starting in PostgreSQL 12
+    qGetTableColumns: Result := IfThen(
+      FServerVersion >= 120000,
+      'SELECT ' +
+      '    n.nspname AS table_schema, ' +
+      '    c.relname AS table_name, ' +
+      '    a.attname AS column_name, ' +
+      '    a.attnum  AS ordinal_position, ' +
+      '    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type, ' +
+      // YES/NO like information_schema.is_nullable
+      '    CASE ' +
+      '        WHEN a.attnotnull THEN ''NO'' ' +
+      '        ELSE ''YES'' ' +
+      '    END AS is_nullable, ' +
+      // Character maximum length (in characters)
+      '    CASE ' +
+      '        WHEN (bt.typcategory = ''S'' OR (bt.oid IS NULL AND t.typcategory = ''S'')) ' +
+      '             AND a.atttypmod <> -1 ' +
+      '        THEN a.atttypmod - 4 ' +
+      '        ELSE NULL ' +
+      '    END AS character_maximum_length, ' +
+      // Numeric precision / scale (NULL for non-numeric)
+      '    CASE ' +
+      '        WHEN (bt.typcategory IN (''N'',''F'')) OR (bt.oid IS NULL AND t.typcategory IN (''N'',''F'')) ' +
+      '        THEN ' +
+      '            CASE ' +
+      '                WHEN a.atttypmod = -1 THEN NULL ' +
+      '                ELSE ((a.atttypmod - 4) >> 16)::integer ' +
+      '            END ' +
+      '    END AS numeric_precision, ' +
+      '    CASE ' +
+      '        WHEN (bt.typcategory IN (''N'',''F'')) OR (bt.oid IS NULL AND t.typcategory IN (''N'',''F'')) ' +
+      '        THEN ' +
+      '            CASE ' +
+      '                WHEN a.atttypmod = -1 THEN NULL ' +
+      '                ELSE ((a.atttypmod - 4) & 65535)::integer ' +
+      '            END ' +
+      '    END AS numeric_scale, ' +
+      // Datetime precision (for time/timestamp/interval)
+      '    CASE ' +
+      '        WHEN (bt.typcategory = ''D'' OR (bt.oid IS NULL AND t.typcategory = ''D'')) ' +
+      '             AND a.atttypmod <> -1 ' +
+      '        THEN a.atttypmod ' +
+      '        ELSE NULL ' +
+      '    END AS datetime_precision, ' +
+      // Character set name: PostgreSQL has one per DB; mimic information_schema
+      '    CASE ' +
+      '        WHEN (bt.typcategory = ''S'' OR (bt.oid IS NULL AND t.typcategory = ''S'')) ' +
+      '        THEN current_database() ' +
+      '        ELSE NULL ' +
+      '    END AS character_set_name, ' +
+      // Collation name for collatable columns
+      '    CASE ' +
+      '        WHEN (bt.typcategory = ''S'' OR (bt.oid IS NULL AND t.typcategory = ''S'')) ' +
+      '        THEN ' +
+      '            CASE ' +
+      '                WHEN a.attcollation <> t.typcollation ' +
+      '                THEN coll.collname ' +
+      '                ELSE NULL ' +
+      '            END ' +
+      '        ELSE NULL ' +
+      '    END AS collation_name, ' +
+      // Default expression for non-generated columns
+      '    CASE ' +
+      '        WHEN a.attgenerated = '''' AND a.atthasdef ' +
+      '        THEN pg_get_expr(ad.adbin, ad.adrelid) ' +
+      '        ELSE NULL ' +
+      '    END AS column_default, ' +
+      // Generation expression for generated columns
+      '    CASE ' +
+      '        WHEN a.attgenerated <> '''' AND a.atthasdef ' +
+      '        THEN pg_get_expr(ad.adbin, ad.adrelid) ' +
+      '        ELSE NULL ' +
+      '    END AS generation_expression, ' +
+      '    d.description AS column_comment ' +
+      'FROM pg_catalog.pg_class     AS c ' +
+      'JOIN pg_catalog.pg_namespace AS n  ON n.oid      = c.relnamespace ' +
+      'JOIN pg_catalog.pg_attribute AS a  ON a.attrelid = c.oid ' +
+      'JOIN pg_catalog.pg_type      AS t  ON t.oid      = a.atttypid ' +
+      'LEFT JOIN pg_catalog.pg_type AS bt ON bt.oid     = t.typbasetype ' +
+      'LEFT JOIN pg_catalog.pg_attrdef AS ad ' +
+      '       ON ad.adrelid = a.attrelid ' +
+      '      AND ad.adnum   = a.attnum ' +
+      'LEFT JOIN pg_catalog.pg_description AS d ' +
+      '       ON d.objoid   = a.attrelid ' +
+      '      AND d.objsubid = a.attnum ' +
+      'LEFT JOIN pg_catalog.pg_collation AS coll ' +
+      '       ON coll.oid   = a.attcollation ' +
+      'WHERE n.nspname = %s ' +
+      '  AND a.attnum > 0 ' +
+      '  AND NOT a.attisdropped ' +
+      '  AND c.relname = %s ' +
+      'ORDER BY ordinal_position',
+      '' // ServerVersion < 12
+      );
+
+    qGetCharsets: Result := 'SELECT DISTINCT pg_encoding_to_char(enc) AS "Charset" FROM '+
+      '(SELECT conforencoding AS enc FROM pg_catalog.pg_conversion '+
+      '  UNION '+
+      '  SELECT contoencoding AS enc FROM pg_catalog.pg_conversion) AS x';
+    qGetRowCountApprox: Result := 'SELECT reltuples::bigint FROM pg_class'+
+      ' LEFT JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace'+
+      ' WHERE pg_class.relkind=''r'''+
+      '   AND pg_namespace.nspname=:EscapedDatabase'+
+      '   AND pg_class.relname=:EscapedName';
+    else Result := inherited;
+  end;
 end;
 
 

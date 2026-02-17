@@ -529,7 +529,7 @@ begin
     end;
     // Rename table
     if ObjectExists and (editName.Text <> DBObject.Name) then begin
-      Rename := DBObject.Connection.GetSQLSpecifity(spRenameTable, [DBObject.QuotedName, DBObject.Connection.QuoteIdent(editName.Text)]);
+      Rename := DBObject.Connection.SqlProvider.GetSql(qRenameTable, [DBObject.QuotedName, DBObject.Connection.QuoteIdent(editName.Text)]);
       DBObject.Connection.Query(Rename);
       DBObject.Connection.ShowWarnings;
     end;
@@ -658,7 +658,7 @@ begin
   //   ALTER TABLE  statement. Separate statements are required."
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
-      Specs.Add(Conn.GetSQLSpecifity(spForeignKeyDrop, [Conn.QuoteIdent(FForeignKeys[i].OldKeyName)]));
+      Specs.Add(Conn.SqlProvider.GetSql(qForeignKeyDrop, [Conn.QuoteIdent(FForeignKeys[i].OldKeyName)]));
   end;
   FinishSpecs;
 
@@ -724,8 +724,8 @@ begin
   for Col in FColumns do begin
     if Col.Status <> esUntouched then begin
       OverrideCollation := IfThen(chkCharsetConvert.Checked, comboCollation.Text);
-      AlterColBase := Conn.GetSQLSpecifity(spChangeColumn);
-      AddColBase := Conn.GetSQLSpecifity(spAddColumn);
+      AlterColBase := Conn.SqlProvider.GetSql(qChangeColumn);
+      AddColBase := Conn.SqlProvider.GetSql(qAddColumn);
 
       case Conn.Parameters.NetTypeGroup of
 
@@ -776,7 +776,7 @@ begin
               if Col.Name <> Col.OldName then begin
                 FinishSpecs;
                 Specs.Add(
-                  Conn.GetSQLSpecifity(spRenameColumn, [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)])
+                  Conn.SqlProvider.GetSql(qRenameColumn, [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)])
                   );
                 FinishSpecs;
               end;
@@ -812,7 +812,7 @@ begin
               // Rename
               if Col.Name <> Col.OldName then begin
                 Specs.Add(
-                  Conn.GetSQLSpecifity(spRenameColumn, [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)])
+                  Conn.SqlProvider.GetSql(qRenameColumn, [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)])
                   );
               end;
             end;
@@ -882,7 +882,7 @@ begin
   end;
 
   for i:=0 to FDeletedForeignKeys.Count-1 do begin
-    Specs.Add(Conn.GetSQLSpecifity(spForeignKeyDrop, [Conn.QuoteIdent(FDeletedForeignKeys[i])]));
+    Specs.Add(Conn.SqlProvider.GetSql(qForeignKeyDrop, [Conn.QuoteIdent(FDeletedForeignKeys[i])]));
   end;
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Added or FForeignKeys[i].Modified then
@@ -2921,7 +2921,7 @@ begin
       end;
     4, 5: begin
         EnumEditor := TEnumEditorLink.Create(VT, True, nil);
-        EnumEditor.ValueList := Explode(',', DBObject.Connection.GetSQLSpecifity(spForeignKeyEventAction));
+        EnumEditor.ValueList := Explode(',', DBObject.Connection.SqlProvider.GetSql(qForeignKeyEventAction));
         EditLink := EnumEditor;
       end;
   end;

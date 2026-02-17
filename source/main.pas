@@ -3746,7 +3746,7 @@ begin
           db := DBObject.Database;
           Node := FindDBNode(DBtree, Conn, db);
           SetActiveDatabase('', Conn);
-          Conn.Query(Conn.GetSQLSpecifity(spDatabaseDrop, [Conn.QuoteIdent(db)]));
+          Conn.Query(Conn.SqlProvider.GetSql(qDatabaseDrop, [Conn.QuoteIdent(db)]));
           DBtree.DeleteNode(Node);
           Conn.ClearDbObjects(db);
           Conn.RefreshAllDatabases;
@@ -3785,8 +3785,8 @@ begin
   if MessageDialog(f_('Drop %d object(s) in database "%s"?', [ObjectList.Count, Conn.Database]), msg, mtCriticalConfirmation, [mbok,mbcancel]) = mrOk then begin
     try
       // Disable foreign key checks to avoid SQL errors
-      if Conn.Has(frForeignKeyChecksVar) then
-        Conn.Query('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0');
+      if Conn.SqlProvider.Has(qDisableForeignKeyChecks) then
+        Conn.Query(Conn.SqlProvider.GetSql(qDisableForeignKeyChecks));
       // Compose and run DROP [TABLE|VIEW|...] queries
       Editor := ActiveObjectEditor;
       for DBObject in ObjectList do begin
@@ -3794,8 +3794,8 @@ begin
         if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
           Editor.Modified := False;
       end;
-      if Conn.Has(frForeignKeyChecksVar) then
-        Conn.Query('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS');
+      if Conn.SqlProvider.Has(qEnableForeignKeyChecks) then
+        Conn.Query(Conn.SqlProvider.GetSql(qEnableForeignKeyChecks));
       // Refresh ListTables + dbtree so the dropped tables are gone:
       Conn.ClearDbObjects(ActiveDatabase);
       RefreshTree;
@@ -4481,8 +4481,8 @@ begin
     ErrorDialog(_('No table(s) selected.'))
   else begin
     Conn := ActiveConnection;
-    QueryDisableChecks := Conn.GetSQLSpecifity(spDisableForeignKeyChecks);
-    QueryEnableChecks := Conn.GetSQLSpecifity(spEnableForeignKeyChecks);
+    QueryDisableChecks := Conn.SqlProvider.GetSql(qDisableForeignKeyChecks);
+    QueryEnableChecks := Conn.SqlProvider.GetSql(qEnableForeignKeyChecks);
     Dialog := TTaskDialog.Create(Self);
     Dialog.Text := f_('Empty %d table(s) and/or view(s)?', [Objects.count]);
     Dialog.CommonButtons := [tcbOk, tcbCancel];
@@ -4502,7 +4502,7 @@ begin
           Conn.Query(QueryDisableChecks);
         try
           for TableOrView in Objects do begin
-            Conn.Query(Conn.GetSQLSpecifity(spEmptyTable) + TableOrView.QuotedName);
+            Conn.Query(Conn.SqlProvider.GetSql(qEmptyTable) + TableOrView.QuotedName);
             ProgressStep;
           end;
           actRefresh.Execute;
@@ -5959,7 +5959,7 @@ begin
           and (not IsKeyColumn) // We need full length of any key column, so DataGridLoadFullRow() has the chance to fetch the right row
           and ((ColMaxLen > GRIDMAXDATA) or (ColMaxLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
           then begin
-            Select := Select + DBObj.Connection.GetSQLSpecifity(spFuncLeft, [c.CastAsText, GRIDMAXDATA]) + ', ';
+            Select := Select + DBObj.Connection.SqlProvider.GetSql(qFuncLeft, [c.CastAsText, GRIDMAXDATA]) + ', ';
           end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dbdtTimestamp) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
           end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dbdtHierarchyid) then begin
@@ -6671,7 +6671,7 @@ begin
       if pid = Conn.ThreadId then
         LogSQL(f_('Ignoring own process id #%d when trying to kill it.', [pid]))
       else try
-        Conn.Query(Conn.GetSQLSpecifity(spKillQuery, [pid]));
+        Conn.Query(Conn.SqlProvider.GetSql(qKillQuery, [pid]));
       except
         on E:EDbError do begin
           if Conn.LastErrorCode <> ER_NO_SUCH_THREAD then
@@ -7457,9 +7457,9 @@ begin
     // rename table
     case Obj.NodeType of
       lntTable:
-        sql := Obj.Connection.GetSQLSpecifity(spRenameTable);
+        sql := Obj.Connection.SqlProvider.GetSql(qRenameTable);
       lntView:
-        sql := Obj.Connection.GetSQLSpecifity(spRenameView);
+        sql := Obj.Connection.SqlProvider.GetSql(qRenameView);
       else
         raise EDbError.Create('Cannot rename '+Obj.ObjType);
     end;
@@ -7555,7 +7555,7 @@ begin
         else if Act = actQuickFilterPrompt4 then
           Filter := Col + ' < ' + Conn.EscapeString(Val, TableCol.DataType)
         else if Act = actQuickFilterPrompt5 then
-          Filter := Conn.GetSQLSpecifity(spLikeCompare, [Col, Conn.EscapeString('%'+Val+'%', TableCol.DataType)]);
+          Filter := Conn.SqlProvider.GetSql(qLikeCompare, [Col, Conn.EscapeString('%'+Val+'%', TableCol.DataType)]);
       end;
     end
     else begin
@@ -7998,13 +7998,13 @@ begin
         actQuickFilterFocused1.Hint := actQuickFilterFocused1.Hint + Results.Connection.EscapeString(Value, Datatype) + ', ';
         actQuickFilterFocused2.Hint := actQuickFilterFocused2.Hint + Results.Connection.EscapeString(Value, Datatype) + ', ';
         actQuickFilterFocused3.Hint := actQuickFilterFocused3.Hint +
-          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''' + Results.Connection.EscapeString(Value, True, False) + '%''']) +
+          Results.Connection.SqlProvider.GetSql(qLikeCompare, [Col, '''' + Results.Connection.EscapeString(Value, True, False) + '%''']) +
           ' OR ';
         actQuickFilterFocused4.Hint := actQuickFilterFocused4.Hint +
-          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '''']) +
+          Results.Connection.SqlProvider.GetSql(qLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '''']) +
           ' OR ';
         actQuickFilterFocused5.Hint := actQuickFilterFocused5.Hint +
-          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '%''']) +
+          Results.Connection.SqlProvider.GetSql(qLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '%''']) +
           ' OR ';
         actQuickFilterFocused6.Hint := actQuickFilterFocused6.Hint + Col + ' > ' + Results.Connection.EscapeString(Value, Datatype) + ' OR ';
         actQuickFilterFocused7.Hint := actQuickFilterFocused7.Hint + Col + ' < ' + Results.Connection.EscapeString(Value, Datatype) + ' OR ';
@@ -8057,7 +8057,7 @@ begin
   actQuickFilterPrompt2.Hint := Col + ' != "..."';
   actQuickFilterPrompt3.Hint := Col + ' > "..."';
   actQuickFilterPrompt4.Hint := Col + ' < "..."';
-  actQuickFilterPrompt5.Hint := Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '"%...%"']);
+  actQuickFilterPrompt5.Hint := Results.Connection.SqlProvider.GetSql(qLikeCompare, [Col, '"%...%"']);
   actQuickFilterNull.Hint := Col + ' IS NULL';
   actQuickFilterNotNull.Hint := Col + ' IS NOT NULL';
 
@@ -8073,7 +8073,7 @@ begin
     actQuickFilterClipboard4.Enabled := true;
     actQuickFilterClipboard4.Hint := Col + ' < ' + Results.Connection.EscapeString(Value, Datatype);
     actQuickFilterClipboard5.Enabled := true;
-    actQuickFilterClipboard5.Hint := Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '%''']);
+    actQuickFilterClipboard5.Hint := Results.Connection.SqlProvider.GetSql(qLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '%''']);
     actQuickFilterClipboard6.Enabled := true;
     actQuickFilterClipboard6.Hint := Col + ' IN (' + Value + ')';
   end else begin
@@ -8086,7 +8086,7 @@ begin
     actQuickFilterClipboard4.Enabled := false;
     actQuickFilterClipboard4.Hint := Col + ' < ' + CLPBRD;
     actQuickFilterClipboard5.Enabled := false;
-    actQuickFilterClipboard5.Hint := Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '%' + CLPBRD + '%']);
+    actQuickFilterClipboard5.Hint := Results.Connection.SqlProvider.GetSql(qLikeCompare, [Col, '%' + CLPBRD + '%']);
     actQuickFilterClipboard6.Enabled := false;
     actQuickFilterClipboard6.Hint := Col + ' IN (' + CLPBRD + ')';
   end;
@@ -8235,7 +8235,7 @@ const
 begin
   // Local and UTC date/time menu items
   Conn := ActiveConnection;
-  DateTimeSQL := 'SELECT ' + Conn.GetSQLSpecifity(spFuncNow);
+  DateTimeSQL := 'SELECT ' + Conn.SqlProvider.GetSql(qFuncNow);
   LocalTime := Conn.ParseDateTime(Conn.GetVar(DateTimeSQL));
   DecodeDateTime(LocalTime, y, m, d, h, i, s, ms);
   DataDateTime.Caption := Format(FrmDateTime, [_('Date and time'), y,m,d,h,i,s]);
@@ -10156,7 +10156,7 @@ begin
     for i:=0 to SelectedTableColumns.Count-1 do begin
       // The normal case: do a LIKE comparison
       Condition := '''%' + Conn.EscapeString(ed.Text, True, False)+'%''';
-      Condition := Conn.GetSQLSpecifity(spLikeCompare, [SelectedTableColumns[i].CastAsText, Condition]);
+      Condition := Conn.SqlProvider.GetSql(qLikeCompare, [SelectedTableColumns[i].CastAsText, Condition]);
       if not SelectedTableColumns[i].DataType.ValueMustMatch.IsEmpty then begin
         // Use an exact comparison for some PostgreSQL data types to overcome SQL errors, e.g. UUID, INT etc.
         // Also, prevent other errors by matching the value against a certain regular expression.
@@ -10771,7 +10771,7 @@ begin
 
         KeyCol := Conn.QuoteIdent(ForeignKey.ForeignColumns[idx]);
         if TextCol <> '' then begin
-          SQL := KeyCol+', ' + Conn.GetSQLSpecifity(spFuncLeft, [Conn.QuoteIdent(TextCol), 256])+
+          SQL := KeyCol+', ' + Conn.SqlProvider.GetSql(qFuncLeft, [Conn.QuoteIdent(TextCol), 256])+
             ' FROM ' + RefObj.QuotedDbAndTableName +
             ' GROUP BY '+KeyCol+', '+Conn.QuoteIdent(TextCol)+ // MSSQL complains if the text columns is not grouped
             ' ORDER BY '+Conn.QuoteIdent(TextCol);
@@ -11437,14 +11437,14 @@ begin
       FVariableNames.Sorted := True;
       FSessionVars := TStringList.Create;
       FGlobalVars := TStringList.Create;
-      Variables := Conn.GetResults(Conn.GetSQLSpecifity(spSessionVariables));
+      Variables := Conn.GetResults(Conn.SqlProvider.GetSql(qSessionVariables));
       while not Variables.Eof do begin
         FVariableNames.Add(Variables.Col(0));
         FSessionVars.Values[Variables.Col(0)] := IfThen(Variables.IsNull(1), TEXT_NULL, Variables.Col(1));
         Variables.Next;
       end;
       Variables.Free;
-      Variables := Conn.GetResults(Conn.GetSQLSpecifity(spGlobalVariables));
+      Variables := Conn.GetResults(Conn.SqlProvider.GetSql(qGlobalVariables));
       while not Variables.Eof do begin
         FVariableNames.Add(Variables.Col(0));
         FGlobalVars.Values[Variables.Col(0)] := Variables.Col(1);
@@ -11454,7 +11454,7 @@ begin
       Variables.Free;
       vt.RootNodeCount := FVariableNames.Count;
     end else if vt = ListStatus then begin
-      Results := Conn.GetResults(Conn.GetSQLSpecifity(spGlobalStatus));
+      Results := Conn.GetResults(Conn.SqlProvider.GetSql(qGlobalStatus));
       FStatusServerUptime := Conn.ServerUptime;
     end else if vt = ListProcesses then begin
       case Conn.Parameters.NetTypeGroup of
@@ -11508,8 +11508,8 @@ begin
             ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('status')+'), '+
             'NULL AS '+Conn.QuoteIdent('Info')+' '+
             'FROM '+Conn.QuoteIdent('sys')+'.'+Conn.QuoteIdent('sysprocesses')+' AS '+Conn.QuoteIdent('p')+
-            ', '+Conn.GetSQLSpecifity(spDatabaseTable)+' AS '+Conn.QuoteIdent('d')+
-            ' WHERE '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('dbid')+'='+Conn.QuoteIdent('d')+'.'+Conn.GetSQLSpecifity(spDatabaseTableId)
+            ', '+Conn.SqlProvider.GetSql(qDatabaseTable)+' AS '+Conn.QuoteIdent('d')+
+            ' WHERE '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('dbid')+'='+Conn.QuoteIdent('d')+'.'+Conn.SqlProvider.GetSql(qDatabaseTableId)
             );
         end;
         ngPgSQL: begin
@@ -11535,7 +11535,7 @@ begin
         Results.Next;
       end;
     end else if vt = ListCommandStats then begin
-      Results := Conn.GetResults(Conn.GetSQLSpecifity(spCommandsCounters));
+      Results := Conn.GetResults(Conn.SqlProvider.GetSql(qCommandsCounters));
       FCommandStatsServerUptime := Conn.ServerUptime;
       FCommandStatsQueryCount := 0;
       while not Results.Eof do begin
@@ -13740,7 +13740,7 @@ begin
       Killer.OnLog := LogSQL;
       try
         Killer.Active := True;
-        KillCommand := Killer.GetSQLSpecifity(spKillQuery, [ActiveConnection.ThreadId]);
+        KillCommand := Killer.SqlProvider.GetSql(qKillQuery, [ActiveConnection.ThreadId]);
         Killer.Query(KillCommand);
       except
         on E:EDbError do begin

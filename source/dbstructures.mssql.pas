@@ -5,7 +5,13 @@
 interface
 
 uses
-  dbstructures;
+  dbstructures, StrUtils;
+
+type
+  TMsSqlProvider = class(TSqlProvider)
+    public
+      function GetSql(AId: TQueryId): string; override;
+  end;
 
 var
 
@@ -408,5 +414,78 @@ var
 
 
 implementation
+
+
+function TMsSqlProvider.GetSql(AId: TQueryId): string;
+begin
+  case AId of
+    qDatabaseTable: Result := IfThen(
+      ServerVersion<=899,
+      'master..sysdatabases',
+      'sys.databases'
+      );
+    qDatabaseTableId: Result := IfThen(
+      ServerVersion<=899,
+      'dbid',
+      'database_id'
+      );
+    qDatabaseDrop: Result := 'DROP DATABASE %s';
+    qDbObjectsTable: Result := IfThen(
+      ServerVersion<=899,
+      '..sysobjects',
+      '.sys.objects'
+      );
+    qDbObjectsCreateCol: Result := IfThen(
+      ServerVersion<=899,
+      'crdate',
+      'create_date'
+      );
+    qDbObjectsUpdateCol: Result := IfThen(
+      ServerVersion<=899,
+      '',
+      'modify_date'
+      );
+    qDbObjectsTypeCol: Result := IfThen(
+      ServerVersion<=899,
+      'xtype',
+      'type'
+      );
+    qEmptyTable: Result := 'DELETE FROM ';
+    qRenameTable: Result := 'EXEC sp_rename %s, %s';
+    qRenameView: Result := 'EXEC sp_rename %s, %s';
+    qCurrentUserHost: Result := 'SELECT SYSTEM_USER';
+    qLikeCompare: Result := '%s LIKE %s';
+    qAddColumn: Result := 'ADD %s';
+    qChangeColumn: Result := 'ALTER COLUMN %s %s';
+    qSessionVariables: Result := 'SELECT comment, value FROM master.dbo.syscurconfigs ORDER BY comment';
+    qGlobalVariables: Result := 'SELECT comment, value FROM master.dbo.syscurconfigs ORDER BY comment';
+    qISSchemaCol: Result := '%s_CATALOG';
+    qUSEQuery: Result := 'USE %s';
+    qKillQuery: Result := 'KILL %d';
+    qKillProcess: Result := 'KILL %d';
+    qFuncLength: Result := 'LEN';
+    qFuncCeil: Result := 'CEILING';
+    qFuncLeft: Result := 'LEFT(%s, %d)';
+    qFuncNow: Result := 'GETDATE()';
+    qFuncLastAutoIncNumber: Result := 'LAST_INSERT_ID()';
+    qLockedTables: Result := '';
+    qDisableForeignKeyChecks: Result := '';
+    qEnableForeignKeyChecks: Result := '';
+    qForeignKeyDrop: Result := 'DROP FOREIGN KEY %s';
+    qGetTableColumns: Result := '';
+    qGetCollations: Result := 'SELECT '''' AS "Collation", '+
+      ''''' AS "Charset", 0 AS "Id", '+
+      ''''' AS "Default", '''' AS "Compiled", '+
+      '1 AS "Sortlen"';
+    qGetCharsets: Result := 'SELECT name AS Charset, description AS Description FROM master.sys.syscharsets';
+    qGetRowCountApprox: Result := IfThen(
+      FServerVersion >= 900,
+      'SELECT SUM("rows") FROM "sys"."partitions" WHERE "index_id" IN (0, 1) AND "object_id" = object_id(:EscapedDbSchemaName)',
+      ''
+      );
+    else Result := inherited;
+  end;
+end;
+
 
 end.

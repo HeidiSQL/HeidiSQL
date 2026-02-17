@@ -5,10 +5,62 @@
 interface
 
 uses
-  Classes, SysUtils, Graphics;
+  Classes, SysUtils, Graphics, StrUtils, Generics.Collections;
 
 
 type
+
+  TNetType = (
+    ntMySQL_TCPIP,
+    ntMySQL_NamedPipe,
+    ntMySQL_SSHtunnel,
+    ntMSSQL_NamedPipe,
+    ntMSSQL_TCPIP,
+    ntMSSQL_SPX,
+    ntMSSQL_VINES,
+    ntMSSQL_RPC,
+    ntPgSQL_TCPIP,
+    ntPgSQL_SSHtunnel,
+    ntSQLite,
+    ntMySQL_ProxySQLAdmin,
+    ntInterbase_TCPIP,
+    ntInterbase_Local,
+    ntFirebird_TCPIP,
+    ntFirebird_Local,
+    ntMySQL_RDS,
+    ntSQLiteEncrypted
+    );
+  TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase);
+  TNetTypeLibs = TDictionary<TNetType, TStringList>;
+
+  // SQL query ids and provider
+  TStringMap = TDictionary<string,string>;
+  TQueryId = (qDatabaseTable, qDatabaseTableId, qDatabaseDrop,
+    qDbObjectsTable, qDbObjectsCreateCol, qDbObjectsUpdateCol, qDbObjectsTypeCol,
+    qEmptyTable, qRenameTable, qRenameView, qCurrentUserHost, qLikeCompare,
+    qAddColumn, qChangeColumn, qRenameColumn, qForeignKeyEventAction,
+    qGlobalStatus, qCommandsCounters, qSessionVariables, qGlobalVariables,
+    qISSchemaCol,
+    qUSEQuery, qKillQuery, qKillProcess,
+    qFuncLength, qFuncCeil, qFuncLeft, qFuncNow, qFuncLastAutoIncNumber,
+    qLockedTables, qDisableForeignKeyChecks, qEnableForeignKeyChecks,
+    qOrderAsc, qOrderDesc, qGetRowCountExact, qGetRowCountApprox,
+    qForeignKeyDrop, qGetTableColumns, qGetCollations, qGetCollationsExtended, qGetCharsets);
+  TSqlProvider = class
+    strict protected
+      FNetType: TNetType;
+      FServerVersion: Integer;
+    public
+      constructor Create(ANetType: TNetType);
+      function Has(AId: TQueryId): Boolean;
+      // Base version, just returns the original SQL string
+      function GetSql(AId: TQueryId): string; overload; virtual;
+      // Version for simple strings passed to Format()
+      function GetSql(AId: TQueryId; const Args: array of const): string; overload;
+      // Version for named parameters
+      function GetSql(AId: TQueryId; NamedParameters: TStringMap): string; overload;
+      property ServerVersion: Integer read FServerVersion write FServerVersion;
+  end;
 
   // Column types
   TDBDatatypeIndex = (dbdtTinyint, dbdtSmallint, dbdtMediumint, dbdtInt, dbdtUint, dbdtBigint, dbdtSerial, dbdtBigSerial,
@@ -130,6 +182,52 @@ var
 implementation
 
 uses apphelpers;
+
+
+{ TSqlProvider }
+
+constructor TSqlProvider.Create(ANetType: TNetType);
+begin
+  FNetType := ANetType;
+  FServerVersion := 0;
+end;
+
+function TSqlProvider.Has(AId: TQueryId): Boolean;
+begin
+  Result := not GetSql(AId).IsEmpty;
+end;
+
+function TSqlProvider.GetSql(AId: TQueryId): string;
+begin
+  // Basic default SQL snippets compatible to all or most servers
+  case AId of
+    qForeignKeyEventAction: Result := 'RESTRICT,CASCADE,SET NULL,NO ACTION';
+    qOrderAsc: Result := 'ASC';
+    qOrderDesc: Result := 'DESC';
+    qGetRowCountExact: Result := 'SELECT COUNT(*) FROM :QuotedDbAndTableName';
+    else Result := '';
+  end;
+end;
+
+function TSqlProvider.GetSql(AId: TQueryId; const Args: array of const): string;
+begin
+  Result := GetSql(AId);
+  if Result.IsEmpty then
+    Exit;
+  Result := Format(Result, Args);
+end;
+
+function TSqlProvider.GetSql(AId: TQueryId; NamedParameters: TStringMap): string;
+var
+  Key: String;
+begin
+  Result := GetSql(AId);
+  if Result.IsEmpty then
+    Exit;
+  for Key in NamedParameters.Keys do begin
+    Result := StringReplace(Result, ':'+Key, NamedParameters[Key], [rfReplaceAll]);
+  end;
+end;
 
 
 
