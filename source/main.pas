@@ -12047,8 +12047,13 @@ begin
   // Event handler for both dynamic popup menu items and filter combobox
   if Sender is TMenuItem then
     key := (Sender as TMenuItem).Tag
-  else
-    key := (Sender as TComboBox).ItemIndex+1;
+  else if Sender is TComboBox then
+    key := (Sender as TComboBox).ItemIndex+1
+  else begin
+    Beep;
+    LogSQL('Unhandled '+Sender.ClassName+' in LoadRecentFilter');
+    Exit;
+  end;
   Path := AppSettings.AppendDelimiter(GetRegKeyTable) + REGKEY_RECENTFILTERS;
   if AppSettings.SessionPathExists(Path) then begin
     AppSettings.SessionPath := Path;
