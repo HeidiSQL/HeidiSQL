@@ -4429,11 +4429,11 @@ end;
 procedure TMainForm.DataGridContextPopup(Sender: TObject; MousePos: TPoint;
   var Handled: Boolean);
 var
-  HitInfo: THitInfo;
+  Tree: TLazVirtualStringTree;
 begin
-  // Prevent context popup if clicked on header, or click was not on a node
-  (Sender as TLazVirtualStringTree).GetHitTestInfoAt(MousePos.X, MousePos.Y, True, {%H-}HitInfo);
-  Handled := (HitInfo.HitNode = nil);
+  // Prevent context popup if clicked on header
+  Tree := Sender as TLazVirtualStringTree;
+  Handled := Tree.Header.InHeader(MousePos);
 end;
 
 procedure TMainForm.FormActivate(Sender: TObject);
