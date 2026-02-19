@@ -332,7 +332,7 @@ var
 
 
   // MySQL Data Type List and Properties
-  MySQLDatatypes: array [0..41] of TDBDatatype =
+  MySQLDatatypes: array [0..42] of TDBDatatype =
   (
     (
       Index:           dbdtUnknown;
@@ -354,6 +354,19 @@ var
         'A very small integer. The signed range is -128 to 127. ' +
         'The unsigned range is 0 to 255.';
       HasLength:       True;
+      RequiresLength:  False;
+      MaxSize:         127;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dbdtBool;
+      NativeType:      1;
+      Name:            'BOOLEAN';
+      Description:     'Synonym of TINYINT(1)';
+      HasLength:       False;
       RequiresLength:  False;
       MaxSize:         127;
       HasBinary:       False;
