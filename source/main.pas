@@ -3544,7 +3544,7 @@ begin
   // Enable or disable ImageView action
   Grid := ActiveGrid;
   (Sender as TAction).Enabled := (Grid <> nil)
-    and (Grid.FocusedColumn-1 <> NoColumn)
+    and (Grid.FocusedColumn > 0) // may be NoColumn/-1 or InvalidColumn/-2
     and (GridResult(Grid).DataType(Grid.FocusedColumn-1).Category = dtcBinary)
 end;
 
