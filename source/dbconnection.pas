@@ -2833,6 +2833,10 @@ begin
   MainFile := IfThen(FileNames.Count>=1, FileNames[0], '');
 
   if Value then begin
+    // Fixes "out of memory" crash in sqlite3_open, see issue #1367
+    if not FileExists(MainFile) then
+      raise EDbError.Create(f_('File does not exist: %s', [MainFile]));
+
     DoBeforeConnect;
 
     ConnectResult := FLib.sqlite3_open(
