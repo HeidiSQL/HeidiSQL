@@ -750,6 +750,7 @@ var
   AttriIdx: Integer;
   Attri: TSynHighlighterAttributes;
   Foreground, Background: TColor;
+  FontStyle: Integer;
 begin
   if comboSQLFontName.ItemIndex > -1 then
     SynMemoSQLSample.Font.Name := comboSQLFontName.Items[comboSQLFontName.ItemIndex];
@@ -772,9 +773,12 @@ begin
     else Attri.Style := Attri.Style - [fsBold];
     if chkSQLItalic.Checked then Attri.Style := Attri.Style + [fsItalic]
     else Attri.Style := Attri.Style - [fsItalic];
+    FontStyle := Attri.IntegerStyle;
+    // Write attribute settings to in-memory color scheme
     Attri := FAppColorScheme.SynSqlSyn.Attribute[AttriIdx];
     Attri.Foreground := Foreground;
     Attri.Background := Background;
+    Attri.IntegerStyle := FontStyle;
   end;
   Modified(Sender);
 end;
