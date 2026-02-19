@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2026-02-04 17:28+0100\n"
+"PO-Revision-Date: 2026-02-19 18:41+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -5213,8 +5213,8 @@ msgid "All data types"
 msgstr "All data types"
 
 #: tabletools.pas:370
-msgid "Selected objects size: %s"
-msgstr "Selected objects size: %s"
+msgid "%s selected objects, size: %s"
+msgstr "%s selected objects, size: %s"
 
 #: tabletools.pas:725
 msgid "%s%s doesn't have columns of selected type (%s)."
