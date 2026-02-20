@@ -71,6 +71,7 @@ type
     procedure SetInitialDir(const AValue: String);
     procedure SetFilterIndex(AValue: Integer);
     function GetPathPartAt(X: Integer): String;
+    procedure SetOptions(AValue: TOpenOptions);
   public
     property OnTypeChange: TNotifyEvent read FOnTypeChange write FOnTypeChange;
     property Title: String write SetTitle;
@@ -79,7 +80,7 @@ type
     property FileName: String read GetFileName write SetFileName;
     property InitialDir: String read FInitialDir write SetInitialDir;
     property DefaultExt: String read FDefaultExt write FDefaultExt;
-    property Options: TOpenOptions read FOptions write FOptions;
+    property Options: TOpenOptions read FOptions write SetOptions;
     property Files: TStringList read FFiles;
     property FilterIndex: Integer read FFilterIndex write SetFilterIndex;
   end;
@@ -157,7 +158,6 @@ var
   LineBreakIndexInt: Integer;
   PreviousDir: String;
 begin
-  ShellListView.MultiSelect := ofAllowMultiSelect in FOptions;
   PreviousDir := AppSettings.ReadString(asFileDialogPreviousDir);
   if not FInitialDir.IsEmpty then
     SetInitialDir(FInitialDir)
@@ -234,6 +234,17 @@ begin
         break;
     end;
     Result := Copy(lblPath.Caption, 1, i);
+  end;
+end;
+
+procedure TfrmExtFileDialog.SetOptions(AValue: TOpenOptions);
+begin
+  if FOptions = AValue then
+    Exit;
+  FOptions := AValue;
+  if (ofAllowMultiSelect in FOptions) <> ShellListView.MultiSelect then begin
+    // This would crash if we would do it in FormShow. See issue #2410
+    ShellListView.MultiSelect := ofAllowMultiSelect in FOptions;
   end;
 end;
 
