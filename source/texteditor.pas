@@ -141,11 +141,15 @@ begin
   end;
   if Assigned(Detected) then
     SelectLineBreaks(Detected);
-  if (Length(text) > SIZE_MB) then begin
-    MainForm.LogSQL(_('Auto-disabling wordwrap for large text'));
+  if (Length(text) > SIZE_KB*10) then begin
+    MainForm.LogSQL(_('Auto-disabling wordwrap and syntax highlighter for large text'));
     btnWrap.Enabled := False;
+    comboHighlighter.Enabled := False;
+    btnCustomizeHighlighter.Enabled := False;
   end else begin
     btnWrap.Enabled := True;
+    comboHighlighter.Enabled := True;
+    btnCustomizeHighlighter.Enabled := True;
   end;
 
   MemoText.Text := text;
@@ -379,6 +383,8 @@ var
   SelStart, SelLength: Integer;
 begin
   // Code highlighter selected
+  if not comboHighlighter.Enabled then
+    Exit;
   SelStart := MemoText.SelStart;
   SelLength := MemoText.SelEnd - MemoText.SelStart;
   MemoText.Highlighter := nil;
