@@ -94,6 +94,7 @@ var
   i: Integer;
   Col: String;
 begin
+  AppSettings.WriteBool(asDisplayedColumnsSorted, chkSort.Checked);
   AppSettings.WriteBool(asShowRowId, chkShowRowId.Checked);
   // Prepare string for storing in registry.
   // Use quote-character as separator to ensure columnnames can
