@@ -234,7 +234,7 @@ type
     asCreateDbCollation, asRealTrailingZeros,
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
     asReformatter, asReformatterNoDialog, asAlwaysGenerateFilter,
-    asGenerateDataNumRows, asGenerateDataNullAmount, asWebOnceAction,
+    asGenerateDataNumRows, asGenerateDataNullAmount, asWebOnceAction, asDisplayLogPanel, asDisplayTreeFilters,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -3840,6 +3840,8 @@ begin
   InitSetting(asRowBackgroundOdd,                 'RowBackgroundOdd',                      clNone);
   InitSetting(asGroupTreeObjects,                 'GroupTreeObjects',                      0, False);
   InitSetting(asDisplayObjectSizeColumn,          'DisplayObjectSizeColumn',               0, True);
+  InitSetting(asDisplayLogPanel,                  'DisplayLogPanel',                       0, True);
+  InitSetting(asDisplayTreeFilters,               'DisplayTreeFilters',                    0, True);
   InitSetting(asActionShortcut1,                  'Shortcut1_%s',                          0);
   InitSetting(asActionShortcut2,                  'Shortcut2_%s',                          0);
   InitSetting(asHighlighterForeground,            'SQL Attr %s Foreground',                0);

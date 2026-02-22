@@ -524,7 +524,6 @@ type
     pnlRight: TPanel;
     btnCloseFilterPanel: TSpeedButton;
     actFilterPanel: TAction;
-    actFindInVT1: TMenuItem;
     TimerFilterVT: TTimer;
     actFindTextOnServer: TAction;
     actFindTextOnServer1: TMenuItem;
@@ -806,7 +805,6 @@ type
     btnDonate: TToolButton;
     ToolButton2: TToolButton;
     actResetPanelDimensions: TAction;
-    Resetpaneldimensions1: TMenuItem;
     popupApplyFilter: TPopupMenu;
     menuAlwaysGenerateFilter: TMenuItem;
     actGenerateData: TAction;
@@ -816,6 +814,17 @@ type
     actCopyGridNodes1: TMenuItem;
     actQueryTable: TAction;
     Selecttop1000rows1: TMenuItem;
+    MainMenuDisplay: TMenuItem;
+    actDisplayObjectSize: TAction;
+    menuDisplaysizeofobjects1: TMenuItem;
+    menuShowonlyfavorites1: TMenuItem;
+    menuFilterpanel1: TMenuItem;
+    menuResetpaneldimensions1: TMenuItem;
+    actDisplayLogPanel: TAction;
+    actDisplayTreeFilters: TAction;
+    menuDisplayLogPanel1: TMenuItem;
+    menuTreefilters1: TMenuItem;
+    Separator1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure actNextTabExecute(Sender: TObject);
     procedure actPreviousTabExecute(Sender: TObject);
@@ -981,7 +990,7 @@ type
     procedure AnyGridAfterCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
-    procedure menuShowSizeColumnClick(Sender: TObject);
+    procedure actDisplayObjectSizeExecute(Sender: TObject);
     procedure AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
@@ -1217,6 +1226,8 @@ type
     procedure actCopyGridNodesExecute(Sender: TObject);
     procedure ApplicationException(Sender: TObject; E: Exception);
     procedure actQueryTableExecute(Sender: TObject);
+    procedure actDisplayLogPanelExecute(Sender: TObject);
+    procedure actDisplayTreeFiltersExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1993,10 +2004,14 @@ begin
   DataGridTable := nil;
   FActiveDbObj := nil;
 
-  // Database tree options
+  // Display options, and database tree options
   actGroupObjects.Checked := AppSettings.ReadBool(asGroupTreeObjects);
-  if AppSettings.ReadBool(asDisplayObjectSizeColumn) then
-    menuShowSizeColumn.Click;
+  actDisplayObjectSize.Checked := AppSettings.ReadBool(asDisplayObjectSizeColumn);
+  actDisplayObjectSizeExecute(nil);
+  actDisplayLogPanel.Checked := AppSettings.ReadBool(asDisplayLogPanel);
+  actDisplayLogPanelExecute(nil);
+  actDisplayTreeFilters.Checked := AppSettings.ReadBool(asDisplayTreeFilters);
+  actDisplayTreeFiltersExecute(nil);
   if AppSettings.ReadBool(asAutoExpand) then
     menuAutoExpand.Click;
   if AppSettings.ReadBool(asDoubleClickInsertsNodeText) then
@@ -10883,20 +10898,43 @@ begin
 end;
 
 
-procedure TMainForm.menuShowSizeColumnClick(Sender: TObject);
-var
-  Item: TMenuItem;
+procedure TMainForm.actDisplayLogPanelExecute(Sender: TObject);
 begin
-  if coVisible in DBtree.Header.Columns[1].Options then
-    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options - [coVisible]
-  else
-    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible];
-  Item := Sender as TMenuItem;
-  Item.Checked := coVisible in DBtree.Header.Columns[1].Options;
+  if actDisplayLogPanel.Checked then begin
+    SynMemoSQLLog.Visible := True;
+    spltTopBottom.Visible := True;
+    // ensure z-order: top panel, splitter, memo
+    spltTopBottom.BringToFront;
+    SynMemoSQLLog.BringToFront;
+  end
+  else begin
+    spltTopBottom.Visible := False;
+    SynMemoSQLLog.Visible := False;
+  end;
   AppSettings.ResetPath;
-  AppSettings.WriteBool(asDisplayObjectSizeColumn, Item.Checked);
+  AppSettings.WriteBool(asDisplayLogPanel, actDisplayLogPanel.Checked);
 end;
 
+procedure TMainForm.actDisplayObjectSizeExecute(Sender: TObject);
+var
+  ColOptions: TVTColumnOptions;
+begin
+  ColOptions := DBtree.Header.Columns[1].Options;
+  if actDisplayObjectSize.Checked then
+    ColOptions := ColOptions + [coVisible]
+  else
+    ColOptions := ColOptions - [coVisible];
+  DBtree.Header.Columns[1].Options := ColOptions;
+  AppSettings.ResetPath;
+  AppSettings.WriteBool(asDisplayObjectSizeColumn, actDisplayObjectSize.Checked);
+end;
+
+procedure TMainForm.actDisplayTreeFiltersExecute(Sender: TObject);
+begin
+  ToolBarTree.Visible := actDisplayTreeFilters.Checked;
+  AppSettings.ResetPath;
+  AppSettings.WriteBool(asDisplayTreeFilters, actDisplayTreeFilters.Checked);
+end;
 
 procedure TMainForm.menuAlwaysGenerateFilterClick(Sender: TObject);
 begin
@@ -12540,10 +12578,7 @@ begin
   // Click on "tree favorites" main button
   // Note: a TSpeedButton connected to an auto-checked TAction needs AllowAllUp + GroupIndex>0
   editDatabaseTableFilterChange(Sender);
-  if actFavoriteObjectsOnly.Checked then
-    actFavoriteObjectsOnly.ImageIndex := 112
-  else
-    actFavoriteObjectsOnly.ImageIndex := 113;
+  actFavoriteObjectsOnly.ImageIndex := IfThen(actFavoriteObjectsOnly.Checked, 112, 113);
 end;
 
 
