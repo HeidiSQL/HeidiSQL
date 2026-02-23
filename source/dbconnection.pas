@@ -3225,6 +3225,9 @@ procedure TDBConnection.DoAfterConnect;
 var
   SQLFunctionsFileOrder: String;
   MajorMinorVer, MajorVer: String;
+  StartupScript: String;
+  StartupBatch: TSQLBatch;
+  SqlQuery: TSQLSentence;
 begin
   FSqlProvider.ServerVersion := ServerVersionInt;
   AppSettings.SessionPath := FParameters.SessionPath;
@@ -3258,6 +3261,24 @@ begin
   else
     SQLFunctionsFileOrder := '';
   FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFileOrder);
+
+  // Process startup script
+  StartupScript := Trim(FParameters.StartupScriptFilename);
+  if StartupScript <> '' then begin
+    StartupScript := ExpandFileName(StartupScript);
+    if not FileExists(StartupScript) then
+      Log(lcError, f_('Startup script file not found: %s', [StartupScript]))
+    else begin
+      StartupBatch := TSQLBatch.Create(FParameters.NetTypeGroup);
+      StartupBatch.SQL := ReadTextfile(StartupScript, nil);
+      for SqlQuery in StartupBatch do try
+        Query(SqlQuery.SQL);
+      except
+        // Suppress popup, errors get logged into SQL log
+      end;
+      StartupBatch.Free;
+    end;
+  end;
 end;
 
 

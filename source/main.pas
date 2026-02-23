@@ -4237,9 +4237,7 @@ end;
 function TMainform.InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
 var
   RestoreLastActiveDatabase: Boolean;
-  StartupScript, LastActiveDatabase: String;
-  StartupBatch: TSQLBatch;
-  Query: TSQLSentence;
+  LastActiveDatabase: String;
   SessionNode, DBNode: PVirtualNode;
 begin
   Connection := Params.CreateConnection(Self);
@@ -4283,24 +4281,6 @@ begin
         SessionNode := GetRootNode(DBtree, Connection);
         SelectNode(DBtree, SessionNode);
         DBtree.Expanded[SessionNode] := True;
-      end;
-    end;
-
-    // Process startup script
-    StartupScript := Trim(Connection.Parameters.StartupScriptFilename);
-    if StartupScript <> '' then begin
-      StartupScript := ExpandFileName(StartupScript);
-      if not FileExists(StartupScript) then
-        ErrorDialog(f_('Startup script file not found: %s', [StartupScript]))
-      else begin
-        StartupBatch := TSQLBatch.Create(Connection.Parameters.NetTypeGroup);
-        StartupBatch.SQL := ReadTextfile(StartupScript, nil);
-        for Query in StartupBatch do try
-          Connection.Query(Query.SQL);
-        except
-          // Suppress popup, errors get logged into SQL log
-        end;
-        StartupBatch.Free;
       end;
     end;
 
