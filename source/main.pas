@@ -9208,6 +9208,8 @@ begin
   if Sender = ListProcesses then begin
     Idx := Sender.GetNodeData(Node);
     Results := GridResult(Sender);
+    if not Results.Connection.Active then
+      Exit;
     Results.RecNo := Idx^;
     case Kind of
       ikNormal, ikSelected: begin
@@ -9252,11 +9254,15 @@ var
 begin
   Idx := Sender.GetNodeData(Node);
   Results := GridResult(Sender);
-  // See issue #3416
-  if (Results = nil) and (Sender <> ListVariables) then
-    Exit;
-  if Results <> nil then
+
+  // See issue #3416. Note: ListVariables does not depend on a live result, but on a StringList.
+  if Sender <> ListVariables then begin
+    // See issue #1875
+    if (Results = nil) or (not Results.Connection.Active) then
+      Exit;
     Results.RecNo := Idx^;
+  end;
+
 
   if (Sender = ListStatus) and (Column in [1,2,3]) then begin
     CellText := Results.Col(1);

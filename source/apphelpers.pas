@@ -1491,6 +1491,7 @@ begin
     end;
     VT.EndUpdate;
   end;
+  VT.DefaultText := '-'; // "Node" by default
   {$IFNDEF WINDOWS}
   // Disable grid lines, looks ok on Windows with dotted light lines, but not on macOS and Linux
   if (toHotTrack in VT.TreeOptions.PaintOptions) then
