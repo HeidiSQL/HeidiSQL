@@ -1508,6 +1508,7 @@ var
   PanelRect: TRect;
   ImageIndex: Integer;
   Conn: TDBConnection;
+  TS: TTextStyle;
 begin
   // Refresh one status bar panel, probably with icon
   ImageIndex := -1;
@@ -1532,6 +1533,11 @@ begin
     ImageListMain.DrawForControl(StatusBar.Canvas, PanelRect.Left, PanelRect.Top+2, ImageIndex, ImageListMain.Width, StatusBar);
     OffsetRect(PanelRect, Scale96ToForm(ImageListMain.Width)+4, 0);
   end;
+  // Enable clipping, so a longer text does not get written into the panel right besides this one
+  // If we'd write StatusBar.Canvas.TextStyle.Clipping := True;, we only modify the temporary copy and the change is lost immediately
+  TS := StatusBar.Canvas.TextStyle;  // get record copy
+  TS.Clipping := True;               // modify
+  StatusBar.Canvas.TextStyle := TS;  // write back
   StatusBar.Canvas.TextRect(PanelRect, PanelRect.Left, PanelRect.Top+2, Panel.Text);
 end;
 
