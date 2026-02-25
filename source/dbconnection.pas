@@ -269,7 +269,7 @@ type
       procedure Connect;
       constructor Create(Connection: TDBConnection);
       destructor Destroy; override;
-      function SshpassPath: String;
+      class function SshpassPath: String;
   end;
 
   TSQLFunction = class(TPersistent)
@@ -1035,7 +1035,7 @@ begin
   inherited;
 end;
 
-function TSecureShellCmd.SshpassPath: String;
+class function TSecureShellCmd.SshpassPath: String;
 begin
   {$IFDEF DARWIN}
   // See https://www.heidisql.com/forum.php?t=44716

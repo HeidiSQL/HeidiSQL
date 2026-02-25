@@ -576,9 +576,9 @@ object connform: Tconnform
         Left = 199
         Height = 15
         Top = 141
-        Width = 283
+        Width = 173
         BorderSpacing.Around = 5
-        Caption = 'Make sure sshpass is available when using a password'
+        Caption = 'hint to the user he needs sshpass'
         Enabled = False
       end
     end

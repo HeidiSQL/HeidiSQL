@@ -1615,6 +1615,7 @@ begin
       editSSHPassword.Enabled := Params.SSHActive;
       lblSshPassHint.Enabled := Params.SSHActive and (editSSHPassword.Text <> '');
       lblSshPassHint.Visible := not Params.SshIsPlink;
+      lblSshPassHint.Caption := f_('Make sure %s is available when using a password', [TSecureShellCmd.SshpassPath]);
       lblSSHTimeout.Enabled := Params.SSHActive;
       editSSHTimeout.Enabled := Params.SSHActive;
       lblSSHkeyfile.Enabled := Params.SSHActive;
