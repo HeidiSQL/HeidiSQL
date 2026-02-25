@@ -269,6 +269,7 @@ type
       procedure Connect;
       constructor Create(Connection: TDBConnection);
       destructor Destroy; override;
+      function SshpassPath: String;
   end;
 
   TSQLFunction = class(TPersistent)
@@ -1034,6 +1035,15 @@ begin
   inherited;
 end;
 
+function TSecureShellCmd.SshpassPath: String;
+begin
+  {$IFDEF DARWIN}
+  // See https://www.heidisql.com/forum.php?t=44716
+  Result := '/opt/homebrew/bin/sshpass';
+  {$ELSE}
+  Result := '';
+  {$ENDIF}
+end;
 
 procedure TSecureShellCmd.Connect;
 var
@@ -1085,7 +1095,7 @@ begin
   SshCmd := SshCmd + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port);
 
   if not EnvSshpass.IsEmpty then begin
-    SshCmd := 'sshpass -e ' + SshCmd;
+    SshCmd := SshpassPath + ' -e ' + SshCmd;
     EnvList := TStringList.Create;
     for i := 0 to GetEnvironmentVariableCount - 1 do
       EnvList.Add(GetEnvironmentString(i));
