@@ -96,31 +96,12 @@ Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "extra\dll\plugins\*.dll"; DestDir: "{app}\plugins"; Flags: ignoreversion
 Source: "extra\Snippets\*.sql"; DestDir: "{#SnippetsDir}"; Tasks: install_snippets
-Source: "extra\dll\plink-64.exe"; DestDir: "{app}"; DestName: "plink.exe"; Flags: ignoreversion
-Source: "extra\dll\plink-0.81-64.exe"; DestDir: "{app}"; DestName: "plink-0.81.exe"; Flags: ignoreversion
-; MySQL + MariaDB:
-Source: "extra\dll\libmariadb.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Flags: ignoreversion
-Source: "extra\dll\libmysql.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Flags: ignoreversion
-Source: "extra\dll\libmysql-6.1.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; Flags: ignoreversion
-Source: "extra\dll\libmysql-8.4.0.dll"; DestDir: "{app}"; DestName: "libmysql-8.4.0.dll"; Flags: ignoreversion
-Source: "extra\dll\libmysql-9.4.0.dll"; DestDir: "{app}"; DestName: "libmysql-9.4.0.dll"; Flags: ignoreversion
-; PostgreSQL:
-Source: "extra\dll\libpq-15.dll"; DestDir: "{app}"; DestName: "libpq-15.dll"; Flags: ignoreversion
-Source: "extra\dll\libpq-17.dll"; DestDir: "{app}"; DestName: "libpq-17.dll"; Flags: ignoreversion
-Source: "extra\dll\libintl-9.dll"; DestDir: "{app}"; DestName: "libintl-9.dll"; Flags: ignoreversion
-Source: "extra\dll\libssl-3-x64.dll"; DestDir: "{app}"; DestName: "libssl-3-x64.dll"; Flags: ignoreversion
-Source: "extra\dll\libcrypto-3-x64.dll"; DestDir: "{app}"; DestName: "libcrypto-3-x64.dll"; Flags: ignoreversion
-Source: "extra\dll\LICENSE-openssl"; DestDir: "{app}"; Flags: ignoreversion
-Source: "extra\dll\libiconv-2.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Flags: ignoreversion
-Source: "extra\dll\libwinpthread-1.dll"; DestDir: "{app}"; DestName: "libwinpthread-1.dll"; Flags: ignoreversion
-; SQLite:
-Source: "extra\dll\sqlite3.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Flags: ignoreversion
-Source: "extra\dll\sqlite3mc.dll"; DestDir: "{app}"; DestName: "sqlite3mc.dll"; Flags: ignoreversion
-; Interbase/Firebird:
-Source: "extra\dll\ibclient64-14.1.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "extra\dll\fbclient-4.0.dll"; DestDir: "{app}"; DestName: "fbclient-4.0.dll"; Flags: ignoreversion
+; Just everything from the dll folder, including plink and some others
+Source: "extra\dll\*.*"; DestDir: "{app}"; Flags: ignoreversion
 ; SQL function definitions
 Source: "extra\ini\functions-*.ini"; DestDir: "{app}"; Flags: ignoreversion
+; Translation files
+Source: "extra\locale\*.mo"; DestDir: "{app}\locale"; Flags: ignoreversion
 
 
 [Icons]

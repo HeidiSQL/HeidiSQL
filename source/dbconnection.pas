@@ -1040,8 +1040,14 @@ begin
   {$IFDEF DARWIN}
   // See https://www.heidisql.com/forum.php?t=44716
   Result := '/opt/homebrew/bin/sshpass';
-  {$ELSE}
-  Result := '';
+  {$ENDIF}
+  {$IFDEF WINDOWS}
+  // https://github.com/xhcoding/sshpass-win32
+  Result := GetAppDir + 'sshpass.exe';
+  {$ENDIF}
+  {$IFDEF LINUX}
+  // Should be found in a known path
+  Result := 'sshpass';
   {$ENDIF}
 end;
 
@@ -1055,7 +1061,7 @@ var
   CheckIntervalMs: Integer;
   TimeStartedMs, WaitedMs, TimeOutMs: Int64;
   EnvSshpass: String;
-  EnvList: TStringList;
+  EnvList, ProcOutput: TStringList;
 begin
   // Check if local port is open
   PortChecks := 0;
@@ -1115,7 +1121,13 @@ begin
     FProcess.Execute;
   except
     on E:EProcess do begin
-      ErrorText := CRLF + CRLF + SshCmdDisplay + CRLF + CRLF + 'System message: ' + SysErrorMessage(GetLastOSError);
+      ProcOutput := TStringList.Create;
+      ProcOutput.LoadFromStream(FProcess.Output);
+      ErrorText := sLineBreak +
+        SshCmdDisplay + sLineBreak +
+        ProcOutput.Text + sLineBreak +
+        'System message: ' + SysErrorMessage(GetLastOSError);
+      ProcOutput.Free;
       ErrorText := f_('Could not execute SSH command: %s', [ErrorText]);
       raise EDbError.Create(ErrorText);
     end;
