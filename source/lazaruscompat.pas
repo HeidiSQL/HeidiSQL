@@ -37,6 +37,7 @@ type
   TStringsHelper = class helper for TStrings
     public
       function Contains(const S: String): Boolean;
+      function IsEmpty: Boolean;
   end;
 
 const
@@ -249,6 +250,11 @@ end;
 function TStringsHelper.Contains(const S: String): Boolean;
 begin
   Result := IndexOf(S) >= 0;
+end;
+
+function TStringsHelper.IsEmpty: Boolean;
+begin
+  Result := Count = 0;
 end;
 
 end.
