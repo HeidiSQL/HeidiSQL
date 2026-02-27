@@ -529,7 +529,10 @@ begin
     end;
     // Rename table
     if ObjectExists and (editName.Text <> DBObject.Name) then begin
-      Rename := DBObject.Connection.SqlProvider.GetSql(qRenameTable, [DBObject.QuotedName, DBObject.Connection.QuoteIdent(editName.Text)]);
+      Rename := DBObject.Connection.SqlProvider.GetSql(qRenameTable, [
+          DBObject.QuotedName(True, False),
+          DBObject.Connection.QuoteIdent(editName.Text)
+        ]);
       DBObject.Connection.Query(Rename);
       DBObject.Connection.ShowWarnings;
     end;
