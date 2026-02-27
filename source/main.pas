@@ -215,6 +215,7 @@ type
   { TMainForm }
 
   TMainForm = class(TExtForm)
+    actCopyColumnNames: TAction;
     actPreferencesSQL: TAction;
     MainMenu1: TMainMenu;
     MainMenuFile: TMenuItem;
@@ -222,6 +223,7 @@ type
     MainMenuHelp: TMenuItem;
     FollowForeignKey: TMenuItem;
     menuColorScheme: TMenuItem;
+    MenuItem3: TMenuItem;
     menuSQLpreferences: TMenuItem;
     menuQFdummy: TMenuItem;
     N1: TMenuItem;
@@ -10139,14 +10141,20 @@ var
   Col: TColumnIndex;
   List: TStringList;
 begin
-  Grid := PopupComponent(Sender) as TVirtualStringTree;
+  if Sender is TMenuItem then
+    Grid := PopupComponent(Sender) as TVirtualStringTree
+  else if Screen.ActiveControl is TVirtualStringTree then
+    Grid := Screen.ActiveControl as TVirtualStringTree
+  else
+    Exit;
+
   List := TStringList.Create;
   Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
   while Col > NoColumn do begin
     List.Add(Grid.Header.Columns[Col].Text);
     Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
   end;
-  Clipboard.TryAsText := List.CommaText;
+  Clipboard.TryAsText := List.Text;
   List.Free;
 end;
 
