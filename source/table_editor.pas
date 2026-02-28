@@ -21,7 +21,9 @@ type
     btnDiscard: TButton;
     btnHelp: TButton;
     listColumns: TLazVirtualStringTree;
+    ListViewReverseForeignKeys: TListView;
     PageControlMain: TPageControl;
+    spltForeignKeyListings: TSplitter;
     tabBasic: TTabSheet;
     tabIndexes: TTabSheet;
     tabOptions: TTabSheet;
@@ -213,6 +215,7 @@ type
     { Private declarations }
     FLoaded: Boolean;
     CreateCodeValid, AlterCodeValid: Boolean;
+    FReverseForeignKeysLoaded: Boolean;
     FColumns: TTableColumnList;
     FKeys, FDeletedKeys: TTableKeyList;
     FForeignKeys: TForeignKeyList;
@@ -248,6 +251,7 @@ type
     procedure CalcMinColWidth;
     procedure UpdateTabCaptions;
     function MoveNodeAllowed(Sender: TLazVirtualStringTree): Boolean;
+    procedure LoadReverseForeignKeys(Sender: TObject);
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -448,6 +452,7 @@ begin
   ResetModificationFlags;
   CreateCodeValid := False;
   AlterCodeValid := False;
+  FReverseForeignKeysLoaded := False;
   PageControlMainChange(Self); // Foreign key editor needs a hit
   // Buttons are randomly moved, since VirtualTree update, see #440
   btnSave.Top := Height - btnSave.Height - 3;
@@ -2556,7 +2561,10 @@ begin
   listForeignKeys.EndEditNode;
   listCheckConstraints.EndEditNode;
   // Ensure SynMemo's have focus, otherwise Select-All and Copy actions may fail
-  if PageControlMain.ActivePage = tabCREATEcode then begin
+  if PageControlMain.ActivePage = tabForeignKeys then begin
+    LoadReverseForeignKeys(Sender);
+  end
+  else if PageControlMain.ActivePage = tabCREATEcode then begin
     SynMemoCreateCode.TrySetFocus;
   end
   else if PageControlMain.ActivePage = tabALTERcode then begin
@@ -3070,6 +3078,34 @@ begin
   end;
 end;
 
+procedure TfrmTableEditor.LoadReverseForeignKeys(Sender: TObject);
+var
+  SqlGet: String;
+  Results: TDBQuery;
+  ListItem: TListItem;
+begin
+  if FReverseForeignKeysLoaded then
+    Exit;
+  SqlGet := DBObject.Connection.SqlProvider.GetSql(qGetReverseForeignKeys, DBObject.AsStringMap);
+  if SqlGet.IsEmpty then
+    Exit;
+  ListViewReverseForeignKeys.BeginUpdate;
+  ListViewReverseForeignKeys.Clear;
+  try
+    Results := DBObject.Connection.GetResults(SqlGet);
+    while not Results.Eof do begin
+      ListItem := ListViewReverseForeignKeys.Items.Add;
+      ListItem.ImageIndex := ICONINDEX_TABLE;
+      ListItem.Caption := Results.Col(0);
+      ListItem.SubItems.Add(Results.Col(1));
+      Results.Next;
+    end;
+  except
+    on EDbError do;
+  end;
+  ListViewReverseForeignKeys.EndUpdate;
+  FReverseForeignKeysLoaded := True;
+end;
 
 procedure TfrmTableEditor.btnHelpClick(Sender: TObject);
 begin
