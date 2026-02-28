@@ -498,6 +498,15 @@ object frmTableEditor: TfrmTableEditor
           ImageIndex = 26
           OnClick = btnClearForeignKeysClick
         end
+        object btnShowReverseForeignKeys: TToolButton
+          Left = 1
+          Hint = 'Show reverse foreign keys'
+          Top = 86
+          Caption = 'Reverse'
+          ImageIndex = 40
+          Style = tbsCheck
+          OnClick = btnShowReverseForeignKeysClick
+        end
       end
       object listForeignKeys: TLazVirtualStringTree
         AnchorSideLeft.Control = tlbForeignKeys
@@ -581,6 +590,7 @@ object frmTableEditor: TfrmTableEditor
         Top = 0
         Width = 178
         Anchors = [akTop, akLeft, akRight, akBottom]
+        AutoWidthLastColumn = True
         Columns = <        
           item
             AutoSize = True
@@ -588,16 +598,17 @@ object frmTableEditor: TfrmTableEditor
             Width = 63
           end        
           item
-            AutoSize = True
             Caption = 'Table'
-            Width = 44
+            Width = 111
           end>
         ColumnClick = False
         ReadOnly = True
         RowSelect = True
         SmallImages = MainForm.ImageListMain
         TabOrder = 2
+        Visible = False
         ViewStyle = vsReport
+        OnDblClick = ListViewReverseForeignKeysDblClick
       end
       object spltForeignKeyListings: TSplitter
         AnchorSideTop.Control = tabForeignKeys
@@ -611,6 +622,7 @@ object frmTableEditor: TfrmTableEditor
         Align = alNone
         Anchors = [akTop, akBottom]
         ResizeAnchor = akRight
+        Visible = False
       end
     end
     object tabCheckConstraints: TTabSheet

@@ -233,7 +233,7 @@ type
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asCreateDbCollation, asRealTrailingZeros,
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
-    asReformatter, asReformatterNoDialog, asAlwaysGenerateFilter,
+    asReformatter, asReformatterNoDialog, asAlwaysGenerateFilter, asDisplayReverseForeignKeys,
     asGenerateDataNumRows, asGenerateDataNullAmount, asWebOnceAction, asDisplayLogPanel, asDisplayTreeFilters,
     asUnused);
   TAppSetting = record
@@ -3783,6 +3783,7 @@ begin
   InitSetting(asReformatter,                      'Reformatter',                           0);
   InitSetting(asReformatterNoDialog,              'ReformatterNoDialog',                   0);
   InitSetting(asAlwaysGenerateFilter,             'AlwaysGenerateFilter',                  0, False);
+  InitSetting(asDisplayReverseForeignKeys,        'DisplayReverseForeignKeys',             0, False);
   InitSetting(asGenerateDataNumRows,              'GenerateDataNumRows',                   1000);
   InitSetting(asGenerateDataNullAmount,           'GenerateDataNullAmount',                10);
 
