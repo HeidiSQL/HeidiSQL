@@ -591,6 +591,7 @@ object frmTableEditor: TfrmTableEditor
         Width = 178
         Anchors = [akTop, akLeft, akRight, akBottom]
         AutoWidthLastColumn = True
+        BorderStyle = bsNone
         Columns = <        
           item
             AutoSize = True
