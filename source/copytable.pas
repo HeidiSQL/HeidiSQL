@@ -361,6 +361,7 @@ var
   Key: TTableKey;
   ForeignKey: TForeignKey;
   CreateLines: TStringList;
+  NewObj: TDBObject;
 begin
   // Compose and run CREATE query
 
@@ -494,7 +495,13 @@ begin
     end;
     // actRefresh takes care of whether the table editor is open
     // See also issue #1597
-    MainForm.actRefresh.Execute
+    MainForm.actRefresh.Execute;
+    // Select it in tree
+    NewObj := TDBObject.Create(FDBObj.Connection);
+    NewObj.NodeType := lntTable;
+    NewObj.Database := comboDatabase.Text;
+    NewObj.Name := editNewTablename.Text;
+    MainForm.ActiveDbObj := NewObj;
   except
     on E:EDbError do begin
       Screen.Cursor := crDefault;
