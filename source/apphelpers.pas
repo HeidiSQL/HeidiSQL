@@ -3766,8 +3766,7 @@ begin
       and CanFocus then
       SetFocus;
   except
-    on E:EInvalidOperation do
-      MessageBeep(MB_ICONWARNING);
+    MessageBeep(MB_ICONWARNING);
   end;
 end;
 

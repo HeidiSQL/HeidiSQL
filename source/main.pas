@@ -1511,8 +1511,10 @@ begin
     2: ImageIndex := 149;
     3: begin
       Conn := ActiveConnection;
-      if Conn <> nil then
+      if Conn <> nil then try
         ImageIndex := Conn.Parameters.ImageIndex;
+      except
+      end;
     end;
     5: ImageIndex := 190;
     6: begin
@@ -4333,7 +4335,7 @@ begin
   for i:=High(FTreeClickHistory) downto Low(FTreeClickHistory) do begin
     if FTreeClickHistory[i] <> nil then begin
       DBObj := DBtree.GetNodeData(FTreeClickHistory[i]);
-      if DBObj = nil then // Session disconnected
+      if (DBObj = nil) or (DBObj.Connection = nil) or (not DBObj.Connection.Active) then // Session disconnected
         Break;
       if DBObj.Connection.Parameters.SessionPath = SessionPath then begin
         Node := FTreeClickHistory[i];
@@ -9714,6 +9716,8 @@ begin
   if Column > 0 then
     Exit;
   DBObj := Sender.GetNodeData(Node);
+  if not Assigned(DBObj) then
+    Exit;
   case Kind of
     ikNormal, ikSelected: begin
         ImageIndex := DBObj.ImageIndex;
