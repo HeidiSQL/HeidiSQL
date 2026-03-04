@@ -6,6 +6,7 @@ uses
   System.SysUtils,
   Vcl.Dialogs,
   Vcl.Controls,
+  Vcl.ComCtrls,
   Winapi.Windows,
   main in '..\..\source\main.pas' {MainForm},
   about in '..\..\source\about.pas' {AboutBox},
@@ -96,6 +97,7 @@ begin
     // First time translation via dxgettext.
     // Issue #3064: Ignore TFont, so "Default" on mainform for WinXP users does not get broken.
     gnugettext.TP_GlobalIgnoreClass(TFont);
+    gnugettext.TP_GlobalIgnoreClass(TComboBoxEx);
 
     // Enable padding in customized tooltips
     HintWindowClass := TExtHintWindow;
