@@ -154,7 +154,7 @@ object frmPreferences: TfrmPreferences
         TabOrder = 3
         OnClick = chkUpdatecheckClick
       end
-      object editUpdatecheckInterval: TEdit
+      object spinUpdatecheckInterval: TSpinEditEx
         AnchorSideLeft.Control = chkUpdatecheck
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = chkRestoreLastDB
@@ -165,13 +165,15 @@ object frmPreferences: TfrmPreferences
         Width = 43
         BorderSpacing.Around = 5
         Enabled = False
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 4
-        Text = '1'
         OnChange = Modified
+        NullValue = 0
+        Value = 1
       end
       object chkDoStatistics: TCheckBox
-        AnchorSideTop.Control = editUpdatecheckInterval
+        AnchorSideTop.Control = spinUpdatecheckInterval
         AnchorSideTop.Side = asrBottom
         Left = 220
         Height = 19
@@ -252,7 +254,7 @@ object frmPreferences: TfrmPreferences
         Tag = 1
         AnchorSideTop.Control = comboAppLanguage
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = editGUIFontSize
+        AnchorSideRight.Control = spinGUIFontSize
         Left = 220
         Height = 23
         Top = 264
@@ -264,7 +266,7 @@ object frmPreferences: TfrmPreferences
         TabOrder = 10
         OnChange = comboGUIFontChange
       end
-      object editGUIFontSize: TEdit
+      object spinGUIFontSize: TSpinEditEx
         Tag = 1
         AnchorSideLeft.Control = comboGUIFont
         AnchorSideLeft.Side = asrBottom
@@ -277,10 +279,12 @@ object frmPreferences: TfrmPreferences
         Width = 50
         Anchors = [akTop, akRight]
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 11
-        Text = '8'
         OnChange = Modified
+        NullValue = 0
+        Value = 8
       end
       object chkWheelZoom: TCheckBox
         AnchorSideTop.Control = chkDoStatistics
@@ -403,7 +407,7 @@ object frmPreferences: TfrmPreferences
         Caption = 'Log last'
       end
       object lblLogLinesHint: TLabel
-        AnchorSideLeft.Control = editLogLines
+        AnchorSideLeft.Control = spinLogLines
         AnchorSideLeft.Side = asrBottom
         Left = 278
         Height = 15
@@ -413,9 +417,9 @@ object frmPreferences: TfrmPreferences
         Caption = 'lines in SQL log'
       end
       object lblLogSnipHint: TLabel
-        AnchorSideLeft.Control = editLogSnip
+        AnchorSideLeft.Control = spinLogSnip
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = editLogLines
+        AnchorSideTop.Control = spinLogLines
         AnchorSideTop.Side = asrBottom
         Left = 278
         Height = 15
@@ -425,7 +429,7 @@ object frmPreferences: TfrmPreferences
         Caption = 'characters  (0 = no snipping)'
       end
       object lblLogSnip: TLabel
-        AnchorSideTop.Control = editLogLines
+        AnchorSideTop.Control = spinLogLines
         AnchorSideTop.Side = asrBottom
         Left = 8
         Height = 15
@@ -445,7 +449,7 @@ object frmPreferences: TfrmPreferences
         Caption = 'Log events:'
       end
       object lblQueryHistoryKeepDays: TLabel
-        AnchorSideLeft.Control = editQueryHistoryKeepDays
+        AnchorSideLeft.Control = spinQueryHistoryKeepDays
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = chkLogEventDebug
         AnchorSideTop.Side = asrBottom
@@ -457,32 +461,36 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 5
         Caption = 'days to keep queries before removing them'
       end
-      object editLogLines: TEdit
+      object spinLogLines: TSpinEditEx
         Left = 220
         Height = 23
         Top = 8
         Width = 53
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 0
-        Text = '1'
         OnChange = Modified
+        NullValue = 0
+        Value = 1
       end
-      object editLogSnip: TEdit
-        AnchorSideTop.Control = editLogLines
+      object spinLogSnip: TSpinEditEx
+        AnchorSideTop.Control = spinLogLines
         AnchorSideTop.Side = asrBottom
         Left = 220
         Height = 23
         Top = 36
         Width = 53
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 1
-        Text = '2000'
         OnChange = Modified
+        NullValue = 0
+        Value = 2000
       end
       object chkLogToFile: TCheckBox
-        AnchorSideTop.Control = editLogSnip
+        AnchorSideTop.Control = spinLogSnip
         AnchorSideTop.Side = asrBottom
         Left = 220
         Height = 19
@@ -556,7 +564,7 @@ object frmPreferences: TfrmPreferences
       object editLogDir: TEditButton
         AnchorSideLeft.Control = chkLogToFile
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = editLogSnip
+        AnchorSideTop.Control = spinLogSnip
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabLogging
         AnchorSideRight.Side = asrBottom
@@ -594,7 +602,7 @@ object frmPreferences: TfrmPreferences
         OnClick = chkQueryHistoryClick
       end
       object chkHorizontalScrollbar: TCheckBox
-        AnchorSideTop.Control = editQueryHistoryKeepDays
+        AnchorSideTop.Control = spinQueryHistoryKeepDays
         AnchorSideTop.Side = asrBottom
         Left = 220
         Height = 19
@@ -605,7 +613,7 @@ object frmPreferences: TfrmPreferences
         TabOrder = 12
         OnClick = Modified
       end
-      object editQueryHistoryKeepDays: TEdit
+      object spinQueryHistoryKeepDays: TSpinEditEx
         AnchorSideLeft.Control = chkQueryHistory
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = chkLogEventDebug
@@ -617,10 +625,12 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Top = 5
         BorderSpacing.Around = 5
         Enabled = False
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 11
-        Text = '1'
         OnChange = Modified
+        NullValue = 0
+        Value = 1
       end
       object chkLogEventScript: TCheckBox
         AnchorSideTop.Control = chkLogEventSQL
@@ -661,7 +671,7 @@ object frmPreferences: TfrmPreferences
         Caption = 'Editor font:'
       end
       object lblSQLFontSizeUnit: TLabel
-        AnchorSideLeft.Control = editSQLFontSize
+        AnchorSideLeft.Control = spinSQLFontSize
         AnchorSideLeft.Side = asrBottom
         Left = 418
         Height = 15
@@ -681,7 +691,7 @@ object frmPreferences: TfrmPreferences
         Caption = 'Tab width:'
       end
       object lblMaxQueryResults: TLabel
-        AnchorSideTop.Control = editSQLTabWidth
+        AnchorSideTop.Control = spinSQLTabWidth
         AnchorSideTop.Side = asrBottom
         Left = 8
         Height = 15
@@ -732,7 +742,7 @@ object frmPreferences: TfrmPreferences
         Caption = 'Colors preset:'
       end
       object lblCompletionProposal: TLabel
-        AnchorSideTop.Control = editMaxQueryResults
+        AnchorSideTop.Control = spinMaxQueryResults
         AnchorSideTop.Side = asrBottom
         Left = 8
         Height = 15
@@ -742,9 +752,9 @@ object frmPreferences: TfrmPreferences
         Caption = 'Auto completion proposal:'
       end
       object lblCompletionProposalIntervalUnit: TLabel
-        AnchorSideLeft.Control = editCompletionProposalInterval
+        AnchorSideLeft.Control = spinCompletionProposalInterval
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = editMaxQueryResults
+        AnchorSideTop.Control = spinMaxQueryResults
         AnchorSideTop.Side = asrBottom
         Left = 326
         Height = 15
@@ -766,7 +776,7 @@ object frmPreferences: TfrmPreferences
         TabOrder = 0
         OnChange = SQLFontChange
       end
-      object editSQLFontSize: TEdit
+      object spinSQLFontSize: TSpinEditEx
         AnchorSideLeft.Control = comboSQLFontName
         AnchorSideLeft.Side = asrBottom
         Left = 370
@@ -774,13 +784,15 @@ object frmPreferences: TfrmPreferences
         Top = 8
         Width = 43
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 1
-        Text = '9'
         OnExit = SQLFontChange
+        NullValue = 0
+        Value = 0
       end
       object chkCompletionProposal: TCheckBox
-        AnchorSideTop.Control = editMaxQueryResults
+        AnchorSideTop.Control = spinMaxQueryResults
         AnchorSideTop.Side = asrBottom
         Left = 220
         Height = 19
@@ -792,7 +804,7 @@ object frmPreferences: TfrmPreferences
         OnClick = chkCompletionProposalClick
       end
       object chkTabsToSpaces: TCheckBox
-        AnchorSideLeft.Control = editSQLTabWidth
+        AnchorSideLeft.Control = spinSQLTabWidth
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboSQLFontName
         AnchorSideTop.Side = asrBottom
@@ -805,7 +817,7 @@ object frmPreferences: TfrmPreferences
         TabOrder = 3
         OnClick = Modified
       end
-      object editSQLTabWidth: TEdit
+      object spinSQLTabWidth: TSpinEditEx
         AnchorSideTop.Control = comboSQLFontName
         AnchorSideTop.Side = asrBottom
         Left = 220
@@ -813,23 +825,27 @@ object frmPreferences: TfrmPreferences
         Top = 36
         Width = 41
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 2
-        Text = '0'
         OnExit = SQLFontChange
+        NullValue = 0
+        Value = 0
       end
-      object editMaxQueryResults: TEdit
-        AnchorSideTop.Control = editSQLTabWidth
+      object spinMaxQueryResults: TSpinEditEx
+        AnchorSideTop.Control = spinSQLTabWidth
         AnchorSideTop.Side = asrBottom
         Left = 220
         Height = 23
         Top = 64
         Width = 41
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 4
-        Text = '1'
         OnChange = Modified
+        NullValue = 0
+        Value = 1
       end
       object comboSQLColElement: TComboBox
         AnchorSideTop.Control = comboEditorColorsPreset
@@ -1006,7 +1022,7 @@ object frmPreferences: TfrmPreferences
         end
       end
       object chkAutoUppercase: TCheckBox
-        AnchorSideTop.Control = editCompletionProposalInterval
+        AnchorSideTop.Control = spinCompletionProposalInterval
         AnchorSideTop.Side = asrBottom
         Left = 220
         Height = 19
@@ -1034,7 +1050,7 @@ object frmPreferences: TfrmPreferences
       object chkCompletionProposalSearchOnMid: TCheckBox
         AnchorSideLeft.Control = lblCompletionProposalIntervalUnit
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = editMaxQueryResults
+        AnchorSideTop.Control = spinMaxQueryResults
         AnchorSideTop.Side = asrBottom
         Left = 347
         Height = 19
@@ -1047,10 +1063,10 @@ object frmPreferences: TfrmPreferences
         TabOrder = 7
         OnClick = Modified
       end
-      object editCompletionProposalInterval: TEdit
+      object spinCompletionProposalInterval: TSpinEditEx
         AnchorSideLeft.Control = chkCompletionProposal
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = editMaxQueryResults
+        AnchorSideTop.Control = spinMaxQueryResults
         AnchorSideTop.Side = asrBottom
         Left = 278
         Height = 23
@@ -1058,10 +1074,12 @@ object frmPreferences: TfrmPreferences
         Width = 43
         BorderSpacing.Around = 5
         Enabled = False
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 6
-        Text = '0'
         OnChange = Modified
+        NullValue = 0
+        Value = 0
       end
     end
     object tabGridFormatting: TTabSheet
@@ -1078,9 +1096,9 @@ object frmPreferences: TfrmPreferences
         Caption = 'Maximum column width:'
       end
       object lblDataFontHint: TLabel
-        AnchorSideLeft.Control = editDataFontSize
+        AnchorSideLeft.Control = spinDataFontSize
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = editGridRowsLineCount
+        AnchorSideTop.Control = spinGridRowsLineCount
         AnchorSideTop.Side = asrBottom
         Left = 417
         Height = 15
@@ -1090,7 +1108,7 @@ object frmPreferences: TfrmPreferences
         Caption = 'pt'
       end
       object lblDataFont: TLabel
-        AnchorSideTop.Control = editGridRowsLineCount
+        AnchorSideTop.Control = spinGridRowsLineCount
         AnchorSideTop.Side = asrBottom
         Left = 8
         Height = 15
@@ -1101,7 +1119,7 @@ object frmPreferences: TfrmPreferences
         FocusControl = comboDataFontName
       end
       object lblMaxTotalRows: TLabel
-        AnchorSideTop.Control = editMaxColWidth
+        AnchorSideTop.Control = spinMaxColWidth
         AnchorSideTop.Side = asrBottom
         Left = 8
         Height = 15
@@ -1111,7 +1129,7 @@ object frmPreferences: TfrmPreferences
         Caption = 'Rows per page and maximum:'
       end
       object lblGridRowsLinecount: TLabel
-        AnchorSideTop.Control = editGridRowCountStep
+        AnchorSideTop.Control = spinGridRowCountStep
         AnchorSideTop.Side = asrBottom
         Left = 8
         Height = 15
@@ -1162,7 +1180,7 @@ object frmPreferences: TfrmPreferences
         Caption = 'Same text background:'
       end
       object lblLongSortRowNum: TLabel
-        AnchorSideTop.Control = editRealTrailingZeros
+        AnchorSideTop.Control = spinRealTrailingZeros
         AnchorSideTop.Side = asrBottom
         Left = 8
         Height = 15
@@ -1182,7 +1200,7 @@ object frmPreferences: TfrmPreferences
         Caption = 'Max decimal zeros for floats:'
       end
       object lblRealTrailingZerosHint: TLabel
-        AnchorSideLeft.Control = editRealTrailingZeros
+        AnchorSideLeft.Control = spinRealTrailingZeros
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = cboxRowHighlightSameText
         AnchorSideTop.Side = asrBottom
@@ -1193,19 +1211,21 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 5
         Caption = 'Set to -1 to keep all zeros'
       end
-      object editMaxColWidth: TEdit
+      object spinMaxColWidth: TSpinEditEx
         Left = 220
         Height = 23
         Top = 8
         Width = 42
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 0
-        Text = '1'
         OnChange = Modified
+        NullValue = 0
+        Value = 1
       end
       object comboDataFontName: TComboBox
-        AnchorSideTop.Control = editGridRowsLineCount
+        AnchorSideTop.Control = spinGridRowsLineCount
         AnchorSideTop.Side = asrBottom
         Left = 220
         Height = 23
@@ -1217,61 +1237,71 @@ object frmPreferences: TfrmPreferences
         TabOrder = 4
         OnChange = DataFontsChange
       end
-      object editDataFontSize: TEdit
+      object spinDataFontSize: TSpinEditEx
         AnchorSideLeft.Control = comboDataFontName
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = editGridRowsLineCount
+        AnchorSideTop.Control = spinGridRowsLineCount
         AnchorSideTop.Side = asrBottom
         Left = 370
         Height = 23
         Top = 92
         Width = 42
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 5
-        Text = '8'
         OnChange = DataFontsChange
+        NullValue = 0
+        Value = 8
       end
-      object editGridRowCountMax: TEdit
-        AnchorSideLeft.Control = editGridRowCountStep
+      object spinGridRowCountMax: TSpinEditEx
+        AnchorSideLeft.Control = spinGridRowCountStep
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = editMaxColWidth
+        AnchorSideTop.Control = spinMaxColWidth
         AnchorSideTop.Side = asrBottom
         Left = 370
         Height = 23
         Top = 36
         Width = 132
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 2
         OnChange = Modified
         OnExit = editGridRowCountExit
+        NullValue = 0
+        Value = 0
       end
-      object editGridRowCountStep: TEdit
-        AnchorSideTop.Control = editMaxColWidth
+      object spinGridRowCountStep: TSpinEditEx
+        AnchorSideTop.Control = spinMaxColWidth
         AnchorSideTop.Side = asrBottom
         Left = 220
         Height = 23
         Top = 36
         Width = 145
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 1
         OnChange = Modified
         OnExit = editGridRowCountExit
+        NullValue = 0
+        Value = 0
       end
-      object editGridRowsLineCount: TEdit
-        AnchorSideTop.Control = editGridRowCountStep
+      object spinGridRowsLineCount: TSpinEditEx
+        AnchorSideTop.Control = spinGridRowCountStep
         AnchorSideTop.Side = asrBottom
         Left = 220
         Height = 23
         Top = 64
         Width = 42
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 3
-        Text = '1'
         OnChange = Modified
+        NullValue = 0
+        Value = 1
       end
       object comboGridTextColors: TComboBox
         AnchorSideTop.Control = comboGridTextColorsPreset
@@ -1344,7 +1374,7 @@ object frmPreferences: TfrmPreferences
         OnChange = Modified
       end
       object chkLocalNumberFormat: TCheckBox
-        AnchorSideTop.Control = editLongSortRowNum
+        AnchorSideTop.Control = spinLongSortRowNum
         AnchorSideTop.Side = asrBottom
         Left = 220
         Height = 19
@@ -1395,17 +1425,19 @@ object frmPreferences: TfrmPreferences
         TabOrder = 6
         OnSelect = comboGridTextColorsPresetSelect
       end
-      object editLongSortRowNum: TEdit
-        AnchorSideTop.Control = editRealTrailingZeros
+      object spinLongSortRowNum: TSpinEditEx
+        AnchorSideTop.Control = spinRealTrailingZeros
         AnchorSideTop.Side = asrBottom
         Left = 220
         Height = 23
         Top = 285
         Width = 145
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 14
-        Text = '0'
+        NullValue = 0
+        Value = 0
       end
       object chkLowercaseHex: TCheckBox
         AnchorSideTop.Control = chkLocalNumberFormat
@@ -1419,7 +1451,7 @@ object frmPreferences: TfrmPreferences
         Caption = 'Lowercase hexadecimal'
         TabOrder = 16
       end
-      object editRealTrailingZeros: TEdit
+      object spinRealTrailingZeros: TSpinEditEx
         AnchorSideTop.Control = cboxRowHighlightSameText
         AnchorSideTop.Side = asrBottom
         Left = 220
@@ -1427,9 +1459,11 @@ object frmPreferences: TfrmPreferences
         Top = 257
         Width = 42
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 13
-        Text = '0'
+        NullValue = 0
+        Value = 0
       end
       object chkShowRowId: TCheckBox
         AnchorSideTop.Control = chkHintsOnResultTabs

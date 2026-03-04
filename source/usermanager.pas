@@ -7,7 +7,7 @@ interface
 uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls, EditBtn, Buttons,
   ExtCtrls, ClipBrd, Generics.Collections, Generics.Defaults, RegExpr, extra_controls,
-  dbconnection, dbstructures, dbstructures.mysql, apphelpers, laz.VirtualTrees, Menus;
+  dbconnection, dbstructures, dbstructures.mysql, apphelpers, laz.VirtualTrees, Menus, SpinEx;
 
 {$I const.inc}
 
@@ -97,10 +97,10 @@ type
     lblMaxUpdates: TLabel;
     lblMaxConnections: TLabel;
     lblMaxUserConnections: TLabel;
-    editMaxQueries: TEdit;
-    editMaxUpdates: TEdit;
-    editMaxConnections: TEdit;
-    editMaxUserConnections: TEdit;
+    spinMaxQueries: TSpinEditEx;
+    spinMaxUpdates: TSpinEditEx;
+    spinMaxConnections: TSpinEditEx;
+    spinMaxUserConnections: TSpinEditEx;
     tabSSL: TTabSheet;
     lblCipher: TLabel;
     editCipher: TEdit;
@@ -477,10 +477,10 @@ begin
     // Any TUpDown triggers a OnChange event on its TEdit when the UpDown gets painted
     User := listUsers.GetNodeData(listUsers.FocusedNode);
     Modified := Modified
-      or (editMaxQueries.Text <> IntToStr(User.MaxQueries))
-      or (editMaxUpdates.Text <> IntToStr(User.MaxUpdates))
-      or (editMaxConnections.Text <> IntToStr(User.MaxConnections))
-      or (editMaxUserConnections.Text <> IntToStr(User.MaxUserConnections));
+      or (spinMaxQueries.Value <> User.MaxQueries)
+      or (spinMaxUpdates.Value <> User.MaxUpdates)
+      or (spinMaxConnections.Value <> User.MaxConnections)
+      or (spinMaxUserConnections.Value <> User.MaxUserConnections);
   end else begin
     Modified := True;
   end;
@@ -564,10 +564,10 @@ begin
   editPassword.Clear;
   editPassword.TextHint := '';
   editRepeatPassword.Clear;
-  editMaxQueries.Text := '0';
-  editMaxUpdates.Text := '0';
-  editMaxConnections.Text := '0';
-  editMaxUserConnections.Text := '0';
+  spinMaxQueries.Value := 0;
+  spinMaxUpdates.Value := 0;
+  spinMaxConnections.Value := 0;
+  spinMaxUserConnections.Value := 0;
   comboSSL.ItemIndex := 0;
   comboSSL.OnChange(Sender);
   editCipher.Clear;
@@ -739,10 +739,10 @@ begin
       on E:EDbError do;
     end;
 
-    editMaxQueries.Text := User.MaxQueries.ToString;
-    editMaxUpdates.Text := User.MaxUpdates.ToString;
-    editMaxConnections.Text := User.MaxConnections.ToString;
-    editMaxUserConnections.Text := User.MaxUserConnections.ToString;
+    spinMaxQueries.Value := User.MaxQueries;
+    spinMaxUpdates.Value := User.MaxUpdates;
+    spinMaxConnections.Value := User.MaxConnections;
+    spinMaxUserConnections.Value := User.MaxUserConnections;
     comboSSL.ItemIndex := User.SSL;
     comboSSL.OnChange(comboSSL);
     editCipher.Text := User.Cipher;
@@ -792,13 +792,13 @@ begin
   lblMaxQueries.Enabled := UserSelected and (FConnection.ServerVersionInt >= 40002);
 
   tabLimitations.Enabled := UserSelected;
-  editMaxQueries.Enabled := lblMaxQueries.Enabled;
+  spinMaxQueries.Enabled := lblMaxQueries.Enabled;
   lblMaxUpdates.Enabled := lblMaxQueries.Enabled;
-  editMaxUpdates.Enabled := lblMaxQueries.Enabled;
+  spinMaxUpdates.Enabled := lblMaxQueries.Enabled;
   lblMaxConnections.Enabled := lblMaxQueries.Enabled;
-  editMaxConnections.Enabled := lblMaxQueries.Enabled;
+  spinMaxConnections.Enabled := lblMaxQueries.Enabled;
   lblMaxUserConnections.Enabled := UserSelected and (FConnection.ServerVersionInt >= 50003);
-  editMaxUserConnections.Enabled := lblMaxUserConnections.Enabled;
+  spinMaxUserConnections.Enabled := lblMaxUserConnections.Enabled;
 
   tabSSL.Enabled := UserSelected;
   comboSSL.Enabled := UserSelected;
@@ -1313,10 +1313,10 @@ begin
 
         // Resource limits, with 0 by default
         WithClauses := TStringList.Create;
-        WithClauses.Add('MAX_QUERIES_PER_HOUR '+editMaxQueries.Text);
-        WithClauses.Add('MAX_UPDATES_PER_HOUR '+editMaxUpdates.Text);
-        WithClauses.Add('MAX_CONNECTIONS_PER_HOUR '+editMaxConnections.Text);
-        WithClauses.Add('MAX_USER_CONNECTIONS '+editMaxUserConnections.Text);
+        WithClauses.Add('MAX_QUERIES_PER_HOUR '+spinMaxQueries.Value.ToString);
+        WithClauses.Add('MAX_UPDATES_PER_HOUR '+spinMaxUpdates.Value.ToString);
+        WithClauses.Add('MAX_CONNECTIONS_PER_HOUR '+spinMaxConnections.Value.ToString);
+        WithClauses.Add('MAX_USER_CONNECTIONS '+spinMaxUserConnections.Value.ToString);
         FConnection.Query('ALTER USER ' + UserHost + ' WITH ' + Implode(' ', WithClauses));
         FConnection.ShowWarnings;
         WithClauses.Free;

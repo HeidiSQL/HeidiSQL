@@ -13,7 +13,7 @@ uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   laz.VirtualTrees, Menus, Graphics, extra_controls, lazaruscompat,
   {$IFDEF Windows} ActiveX {$ELSE} laz.FakeActiveX {$ENDIF},
-  dbconnection, RegExpr, Types, FileUtil,
+  dbconnection, RegExpr, Types, FileUtil, SpinEx,
   Math, ActnList, ComboEx, EditBtn, Buttons, ColorBox, extfiledialog, dbstructures;
 
 type
@@ -42,7 +42,7 @@ type
     lblUsername: TLabel;
     lblNetworkType: TLabel;
     chkCompressed: TCheckBox;
-    editPort: TEdit;
+    spinPort: TSpinEditEx;
     editPassword: TEdit;
     editUsername: TEditButton;
     editHost: TEditButton;
@@ -55,7 +55,7 @@ type
     lblCounterRight1: TLabel;
     lblLastConnectRight: TLabel;
     tabSSHtunnel: TTabSheet;
-    editSSHlocalport: TEdit;
+    spinSSHlocalport: TSpinEditEx;
     editSSHUser: TEdit;
     editSSHPassword: TEdit;
     lblSSHLocalPort: TLabel;
@@ -65,14 +65,14 @@ type
     comboNetType: TComboBoxEx;
     lblSSHhost: TLabel;
     editSSHhost: TEdit;
-    editSSHport: TEdit;
+    spinSSHport: TSpinEditEx;
     editSSHPrivateKey: TEditButton;
     lblSSHkeyfile: TLabel;
     editDatabases: TEditButton;
     lblDatabase: TLabel;
     chkLoginPrompt: TCheckBox;
     lblSSHTimeout: TLabel;
-    editSSHTimeout: TEdit;
+    spinSSHTimeout: TSpinEditEx;
     chkWindowsAuth: TCheckBox;
     chkCleartextPluginEnabled: TCheckBox;
     splitterMain: TSplitter;
@@ -101,11 +101,11 @@ type
     lblComment: TLabel;
     memoComment: TMemo;
     lblQueryTimeout: TLabel;
-    editQueryTimeout: TEdit;
+    spinQueryTimeout: TSpinEditEx;
     menuMoreGeneralHelp: TMenuItem;
     menuRename: TMenuItem;
     lblKeepAlive: TLabel;
-    editKeepAlive: TEdit;
+    spinKeepAlive: TSpinEditEx;
     lblCounterRight2: TLabel;
     lblCounterLeft2: TLabel;
     TimerButtonAnimation: TTimer;
@@ -490,11 +490,11 @@ begin
     Sess.LoginPrompt := chkLoginPrompt.Checked;
     Sess.WindowsAuth := chkWindowsAuth.Checked;
     Sess.CleartextPluginEnabled := chkCleartextPluginEnabled.Checked;
-    Sess.Port := StrToIntDef(editPort.Text, 0);
+    Sess.Port := spinPort.Value;
     Sess.NetType := SelectedNetType;
     Sess.Compressed := chkCompressed.Checked;
-    Sess.QueryTimeout := StrToIntDef(editQueryTimeout.Text, 0);
-    Sess.KeepAlive := StrToIntDef(editKeepAlive.Text, 0);
+    Sess.QueryTimeout := spinQueryTimeout.Value;
+    Sess.KeepAlive := spinKeepAlive.Value;
     Sess.LocalTimeZone := chkLocalTimeZone.Checked;
     Sess.FullTableStatus := chkFullTableStatus.Checked;
     Sess.SessionColor := ColorBoxBackgroundColor.Selected;
@@ -505,12 +505,12 @@ begin
     Sess.SSHActive := chkSSHActive.Enabled and chkSSHActive.Checked;
     Sess.SSHExe := comboSSHExe.Text;
     Sess.SSHHost := editSSHhost.Text;
-    Sess.SSHPort := MakeInt(editSSHport.Text);
+    Sess.SSHPort := spinSSHport.Value;
     Sess.SSHUser := editSSHUser.Text;
     Sess.SSHPassword := editSSHPassword.Text;
-    Sess.SSHTimeout := StrToIntDef(editSSHTimeout.Text, 0);
+    Sess.SSHTimeout := spinSSHTimeout.Value;
     Sess.SSHPrivateKey := editSSHPrivateKey.Text;
-    Sess.SSHLocalPort := MakeInt(editSSHlocalport.Text);
+    Sess.SSHLocalPort := spinSSHlocalport.Value;
     Sess.WantSSL := chkWantSSL.Checked;
     Sess.SSLPrivateKey := editSSLPrivateKey.Text;
     Sess.SSLCertificate := editSSLCertificate.Text;
@@ -719,8 +719,8 @@ begin
     Result.LoginPrompt := chkLoginPrompt.Checked;
     Result.WindowsAuth := chkWindowsAuth.Checked;
     Result.CleartextPluginEnabled := chkCleartextPluginEnabled.Checked;
-    if editPort.Enabled then
-      Result.Port := StrToIntDef(editPort.Text, 0)
+    if spinPort.Enabled then
+      Result.Port := spinPort.Value
     else
       Result.Port := 0;
     Result.AllDatabasesStr := editDatabases.Text;
@@ -728,12 +728,12 @@ begin
     Result.Comment := memoComment.Text;
     Result.SSHActive := chkSSHActive.Enabled and chkSSHActive.Checked;
     Result.SSHHost := editSSHHost.Text;
-    Result.SSHPort := MakeInt(editSSHPort.Text);
+    Result.SSHPort := spinSSHPort.Value;
     Result.SSHUser := editSSHuser.Text;
     Result.SSHPassword := editSSHpassword.Text;
-    Result.SSHTimeout := StrToIntDef(editSSHTimeout.Text, 0);
+    Result.SSHTimeout := spinSSHTimeout.Value;
     Result.SSHPrivateKey := editSSHPrivateKey.Text;
-    Result.SSHLocalPort := MakeInt(editSSHlocalport.Text);
+    Result.SSHLocalPort := spinSSHlocalport.Value;
     Result.SSHExe := comboSSHExe.Text;
     Result.WantSSL := chkWantSSL.Checked;
     Result.SSLPrivateKey := editSSLPrivateKey.Text;
@@ -743,8 +743,8 @@ begin
     Result.SSLVerification := comboSSLVerification.ItemIndex;
     Result.StartupScriptFilename := editStartupScript.Text;
     Result.Compressed := chkCompressed.Checked;
-    Result.QueryTimeout := StrToIntDef(editQueryTimeout.Text, 0);
-    Result.KeepAlive := StrToIntDef(editKeepAlive.Text, 0);
+    Result.QueryTimeout := spinQueryTimeout.Value;
+    Result.KeepAlive := spinKeepAlive.Value;
     Result.LocalTimeZone := chkLocalTimeZone.Checked;
     Result.FullTableStatus := chkFullTableStatus.Checked;
     Result.SessionColor := ColorBoxBackgroundColor.Selected;
@@ -1034,10 +1034,10 @@ begin
     chkLoginPrompt.Checked := Sess.LoginPrompt;
     chkWindowsAuth.Checked := Sess.WindowsAuth;
     chkCleartextPluginEnabled.Checked := Sess.CleartextPluginEnabled;
-    editPort.Text := Sess.Port.ToString;
+    spinPort.Value := Sess.Port;
     chkCompressed.Checked := Sess.Compressed;
-    editQueryTimeout.Text := Sess.QueryTimeout.ToString;
-    editKeepAlive.Text := Sess.KeepAlive.ToString;
+    spinQueryTimeout.Value := Sess.QueryTimeout;
+    spinKeepAlive.Value := Sess.KeepAlive;
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     chkFullTableStatus.Checked := Sess.FullTableStatus;
     ColorBoxBackgroundColor.Items.Objects[0] := TObject(Sess.SessionColor);
@@ -1056,12 +1056,12 @@ begin
     chkSSHActive.Checked := Sess.SSHActive;
     comboSSHExe.Text := Sess.SSHExe;
     editSSHHost.Text := Sess.SSHHost;
-    editSSHport.Text := IntToStr(Sess.SSHPort);
+    spinSSHport.Value := Sess.SSHPort;
     editSSHUser.Text := Sess.SSHUser;
     editSSHPassword.Text := Sess.SSHPassword;
-    editSSHTimeout.Text := Sess.SSHTimeout.ToString;
+    spinSSHTimeout.Value := Sess.SSHTimeout;
     editSSHPrivateKey.Text := Sess.SSHPrivateKey;
-    editSSHlocalport.Text := IntToStr(Sess.SSHLocalPort);
+    spinSSHlocalport.Value := Sess.SSHLocalPort;
     chkWantSSL.Checked := Sess.WantSSL;
     editSSLPrivateKey.Text := Sess.SSLPrivateKey;
     editSSLCertificate.Text := Sess.SSLCertificate;
@@ -1426,8 +1426,8 @@ begin
   Params := CurrentParams;
 
   if Params.NetTypeGroup <> FLastSelectedNetTypeGroup then begin
-    if not editPort.Modified then
-      editPort.Text := Params.DefaultPort.ToString;
+    if not spinPort.Modified then
+      spinPort.Value := Params.DefaultPort;
     if not editUsername.Modified then
       editUsername.Text := Params.DefaultUsername;
     if not editIgnoreDatabasePattern.Modified then
@@ -1468,10 +1468,10 @@ begin
       or (Sess.LoginPrompt <> chkLoginPrompt.Checked)
       or (Sess.WindowsAuth <> chkWindowsAuth.Checked)
       or (Sess.CleartextPluginEnabled <> chkCleartextPluginEnabled.Checked)
-      or (Sess.Port <> StrToIntDef(editPort.Text, 0))
+      or (Sess.Port <> spinPort.Value)
       or (Sess.Compressed <> chkCompressed.Checked)
-      or (Sess.QueryTimeout <> StrToIntDef(editQueryTimeout.Text, 0))
-      or (Sess.KeepAlive <> StrToIntDef(editKeepAlive.Text, 0))
+      or (Sess.QueryTimeout <> spinQueryTimeout.Value)
+      or (Sess.KeepAlive <> spinKeepAlive.Value)
       or (Sess.LocalTimeZone <> chkLocalTimeZone.Checked)
       or (Sess.FullTableStatus <> chkFullTableStatus.Checked)
       or (Sess.SessionColor <> ColorBoxBackgroundColor.Selected)
@@ -1482,12 +1482,12 @@ begin
       or (Sess.Comment <> memoComment.Text)
       or (Sess.SSHActive <> chkSSHActive.Checked)
       or (Sess.SSHHost <> editSSHHost.Text)
-      or (IntToStr(Sess.SSHPort) <> editSSHPort.Text)
+      or (Sess.SSHPort <> spinSSHPort.Value)
       or (Sess.SSHExe <> comboSSHExe.Text)
-      or (IntToStr(Sess.SSHLocalPort) <> editSSHlocalport.Text)
+      or (Sess.SSHLocalPort <> spinSSHlocalport.Value)
       or (Sess.SSHUser <> editSSHUser.Text)
       or (Sess.SSHPassword <> editSSHPassword.Text)
-      or (Sess.SSHTimeout <> StrToIntDef(editSSHTimeout.Text, 0))
+      or (Sess.SSHTimeout <> spinSSHTimeout.Value)
       or (Sess.SSHPrivateKey <> editSSHPrivateKey.Text)
       or (Sess.WantSSL <> chkWantSSL.Checked)
       or (Sess.SSLPrivateKey <> editSSLPrivateKey.Text)
@@ -1504,7 +1504,7 @@ begin
     FOnlyPasswordModified := PasswordModified and (not FSessionModified);
     FSessionModified := FSessionModified or PasswordModified;
     if (Sender=editHost) or (Sender=editUsername) or (Sender=editPassword) or
-      (Sender=comboNetType) or (Sender=chkWindowsAuth) or (Sender=editPort) or
+      (Sender=comboNetType) or (Sender=chkWindowsAuth) or (Sender=spinPort) or
       (Sender=chkCleartextPluginEnabled) then begin
       // Be sure to use the modified connection params next time the user clicks the "Databases" pulldown
       FreeAndNil(FPopupDatabases);
@@ -1596,7 +1596,7 @@ begin
       lblPassword.Enabled := lblUsername.Enabled;
       editPassword.Enabled := lblUsername.Enabled;
       lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP, ntFirebird_TCPIP];
-      editPort.Enabled := lblPort.Enabled;
+      spinPort.Enabled := lblPort.Enabled;
       chkCompressed.Enabled := Params.IsAnyMySQL;
       lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
       lblDatabase.Enabled := lblDatabase.Enabled or (Params.NetType = ntSQLiteEncrypted);
@@ -1608,7 +1608,7 @@ begin
       comboSSHExe.Enabled := Params.SSHActive;
       lblSSHhost.Enabled := Params.SSHActive;
       editSSHhost.Enabled := Params.SSHActive;
-      editSSHport.Enabled := Params.SSHActive;
+      spinSSHport.Enabled := Params.SSHActive;
       lblSSHUser.Enabled := Params.SSHActive;
       editSSHUser.Enabled := Params.SSHActive;
       lblSSHPassword.Enabled := Params.SSHActive;
@@ -1617,11 +1617,11 @@ begin
       lblSshPassHint.Visible := not Params.SshIsPlink;
       lblSshPassHint.Caption := f_('Make sure %s is available when using a password', [TSecureShellCmd.SshpassPath]);
       lblSSHTimeout.Enabled := Params.SSHActive;
-      editSSHTimeout.Enabled := Params.SSHActive;
+      spinSSHTimeout.Enabled := Params.SSHActive;
       lblSSHkeyfile.Enabled := Params.SSHActive;
       editSSHPrivateKey.Enabled := Params.SSHActive;
       lblSSHLocalPort.Enabled := Params.SSHActive;
-      editSSHlocalport.Enabled := Params.SSHActive;
+      spinSSHlocalport.Enabled := Params.SSHActive;
       // Advanced tab:
       chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       lblSSLPrivateKey.Enabled := Params.WantSSL;
@@ -1635,7 +1635,7 @@ begin
       lblSSLVerification.Enabled := Params.WantSSL;
       comboSSLVerification.Enabled := Params.WantSSL;
       lblQueryTimeout.Enabled := True;
-      editQueryTimeout.Enabled := lblQueryTimeout.Enabled;
+      spinQueryTimeout.Enabled := lblQueryTimeout.Enabled;
       chkLocalTimeZone.Enabled := Params.NetTypeGroup = ngMySQL;
       chkFullTableStatus.Enabled := (Params.NetTypeGroup in [ngMySQL, ngPgSQL, ngSQLite]) and (Params.NetType <> ntMySQL_ProxySQLAdmin);
       chkCleartextPluginEnabled.Enabled := Params.NetTypeGroup = ngMySQL;

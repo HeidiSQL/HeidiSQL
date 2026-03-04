@@ -259,18 +259,20 @@ object loaddataform: Tloaddataform
       BorderSpacing.Around = 5
       Caption = 'Ignore first'
     end
-    object editIgnoreLines: TEdit
+    object spinIgnoreLines: TSpinEditEx
       Left = 88
       Height = 23
       Top = 7
       Width = 46
       BorderSpacing.Around = 5
-      NumbersOnly = True
+      MaxLength = 0
+      SpinButtonWidth = 17
       TabOrder = 0
-      Text = '1'
+      NullValue = 0
+      Value = 1
     end
     object chkLowPriority: TCheckBox
-      AnchorSideTop.Control = editIgnoreLines
+      AnchorSideTop.Control = spinIgnoreLines
       AnchorSideTop.Side = asrBottom
       Left = 10
       Height = 19

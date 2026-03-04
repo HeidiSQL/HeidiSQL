@@ -11,7 +11,7 @@ unit loaddata;
 interface
 
 uses
-  SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst,
+  SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst, SpinEx,
   RegExpr, ExtCtrls, Math, EditBtn, extra_controls, extfiledialog, lazaruscompat,
   dbconnection, dbstructures;
 
@@ -43,7 +43,7 @@ type
     chkFieldsEnclosedOptionally: TCheckBox;
     grpOptions: TGroupBox;
     lblIgnoreLinesCount: TLabel;
-    editIgnoreLines: TEdit;
+    spinIgnoreLines: TSpinEditEx;
     editLineTerminator: TEdit;
     lblLineTerminator: TLabel;
     lblIgnoreLines: TLabel;
@@ -106,7 +106,7 @@ begin
   editLineTerminator.Text := AppSettings.ReadString(asCSVImportTerminator);
   chkFieldsEnclosedOptionally.Checked :=  AppSettings.ReadBool(asCSVImportFieldsEnclosedOptionally);
   editFieldEscaper.Text := AppSettings.ReadString(asCSVImportFieldEscaper);
-  editIgnoreLines.Text := AppSettings.ReadInt(asCSVImportIgnoreLines).ToString;
+  spinIgnoreLines.Value := AppSettings.ReadInt(asCSVImportIgnoreLines);
   chkLowPriority.Checked := AppSettings.ReadBool(asCSVImportLowPriority);
   chkLocalNumbers.Checked := AppSettings.ReadBool(asCSVImportLocalNumbers);
   chkKeepDialogOpen.Checked := AppSettings.ReadBool(asCSVKeepDialogOpen);
@@ -172,7 +172,7 @@ begin
   AppSettings.WriteString(asCSVImportTerminator, editLineTerminator.Text);
   AppSettings.WriteBool(asCSVImportFieldsEnclosedOptionally, chkFieldsEnclosedOptionally.Checked);
   AppSettings.WriteString(asCSVImportFieldEscaper, editFieldEscaper.Text);
-  AppSettings.WriteInt(asCSVImportIgnoreLines, StrToIntDef(editIgnoreLines.Text, 0));
+  AppSettings.WriteInt(asCSVImportIgnoreLines, spinIgnoreLines.Value);
   AppSettings.WriteBool(asCSVImportLowPriority, chkLowPriority.Checked);
   AppSettings.WriteBool(asCSVImportLocalNumbers, chkLocalNumbers.Checked);
   AppSettings.WriteBool(asCSVKeepDialogOpen, chkKeepDialogOpen.Checked);
@@ -424,8 +424,8 @@ begin
   // Lines:
   if FLineTerm <> '' then
     SQL := SQL + 'LINES TERMINATED BY ' + FConnection.EscapeString(FLineTerm) + ' ';
-  if editIgnoreLines.Text <> '' then
-    SQL := SQL + 'IGNORE ' + editIgnoreLines.Text + ' LINES ';
+  if spinIgnoreLines.Value > 0 then
+    SQL := SQL + 'IGNORE ' + spinIgnoreLines.Value.ToString + ' LINES ';
 
   // Column listing
   SQL := SQL + '(';
@@ -617,7 +617,7 @@ begin
   FRowCount := 0;
   LineNum := 0;
   RowCountInChunk := 0;
-  IgnoreLines := StrToIntDef(editIgnoreLines.Text, 0);
+  IgnoreLines := spinIgnoreLines.Value;
   ValueCount := 0;
   PacketSize := SIZE_MB div 2;
   NextChar;

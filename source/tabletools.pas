@@ -12,7 +12,7 @@ interface
 uses
   SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs,
   laz.VirtualTrees, ExtCtrls, Graphics, RegExpr, Math, Generics.Collections, extra_controls,
-  dbconnection, apphelpers, lazaruscompat, Menus, DateUtils, Zipper, StrUtils,
+  dbconnection, apphelpers, lazaruscompat, Menus, DateUtils, Zipper, StrUtils, SpinEx,
   SynEdit, ClipBrd, generic_types, fpjson, Variants, EditBtn, LazFileUtils, Types, LCLType, extfiledialog;
 
 type
@@ -76,7 +76,7 @@ type
     menuCheckNone: TMenuItem;
     chkForUpgrade: TCheckBox;
     lblInsertSize: TLabel;
-    editInsertSize: TEdit;
+    spinInsertSize: TSpinEditEx;
     lblInsertSizeUnit: TLabel;
     btnExportOptions: TBitBtn;
     popupExportOptions: TPopupMenu;
@@ -99,9 +99,9 @@ type
     timerCalcSize: TTimer;
     tabGenerateData: TTabSheet;
     lblGenerateDataNumRows: TLabel;
-    editGenerateDataNumRows: TEdit;
+    spinGenerateDataNumRows: TSpinEditEx;
     lblGenerateDataNullAmount: TLabel;
-    editGenerateDataNullAmount: TEdit;
+    spinGenerateDataNullAmount: TSpinEditEx;
     menuInvertCheck: TMenuItem;
     menuExportTransactions: TMenuItem;
     procedure FormCreate(Sender: TObject);
@@ -270,7 +270,7 @@ begin
   chkExportTablesCreate.Checked := AppSettings.ReadBool(asExportSQLCreateTables);
   comboExportData.Items.Text := DATA_NO+CRLF +DATA_REPLACE+CRLF +DATA_INSERT+CRLF +DATA_INSERTNEW+CRLF +DATA_UPDATE;
   comboExportData.ItemIndex := AppSettings.ReadInt(asExportSQLDataHow);
-  editInsertSize.Text := AppSettings.ReadInt(asExportSQLDataInsertSize).ToString;
+  spinInsertSize.Value := AppSettings.ReadInt(asExportSQLDataInsertSize);
   menuExportAddComments.Checked := AppSettings.ReadBool(asExportSQLAddComments);
   menuExportTransactions.Checked := AppSettings.ReadBool(asExportSQLTransactions);
   menuExportRemoveAutoIncrement.Checked := AppSettings.ReadBool(asExportSQLRemoveAutoIncrement);
@@ -294,8 +294,8 @@ begin
   comboExportOutputTarget.Text := '';
 
   // Generate data tab
-  editGenerateDataNumRows.Text := AppSettings.ReadInt(asGenerateDataNumRows).ToString;
-  editGenerateDataNullAmount.Text := AppSettings.ReadInt(asGenerateDataNullAmount).ToString;
+  spinGenerateDataNumRows.Value := AppSettings.ReadInt(asGenerateDataNumRows);
+  spinGenerateDataNullAmount.Value := AppSettings.ReadInt(asGenerateDataNullAmount);
 
   // Various
   FixVT(TreeObjects);
@@ -565,7 +565,7 @@ begin
       AppSettings.WriteBool(asExportSQLCreateTables, chkExportTablesCreate.Checked);
       AppSettings.WriteInt(asExportSQLDataHow, comboExportData.ItemIndex);
       if comboExportData.ItemIndex > 0 then
-        AppSettings.WriteInt(asExportSQLDataInsertSize, StrToInt64Def(editInsertSize.Text, 0));
+        AppSettings.WriteInt(asExportSQLDataInsertSize, spinInsertSize.Value);
       AppSettings.WriteBool(asExportSQLAddComments, menuExportAddComments.Checked);
       AppSettings.WriteBool(asExportSQLTransactions, menuExportTransactions.Checked);
       AppSettings.WriteBool(asExportSQLRemoveAutoIncrement, menuExportRemoveAutoIncrement.Checked);
@@ -604,8 +604,8 @@ begin
     end;
 
     tmGenerateData: begin
-      AppSettings.WriteInt(asGenerateDataNumRows, StrToInt64Def(editGenerateDataNumRows.Text, 0));
-      AppSettings.WriteInt(asGenerateDataNullAmount, StrToInt64Def(editGenerateDataNullAmount.Text, 0));
+      AppSettings.WriteInt(asGenerateDataNumRows, spinGenerateDataNumRows.Value);
+      AppSettings.WriteInt(asGenerateDataNullAmount, spinGenerateDataNullAmount.Value);
     end;
 
   end;
@@ -661,7 +661,7 @@ begin
     btnExecute.Caption := _('Export');
     btnExecute.Enabled := SomeChecked and ((comboExportOutputTarget.Text <> '') or (not comboExportOutputTarget.Enabled));
     lblInsertSize.Enabled := comboExportData.ItemIndex > 0;
-    editInsertSize.Enabled := lblInsertSize.Enabled;
+    spinInsertSize.Enabled := lblInsertSize.Enabled;
     lblInsertSizeUnit.Enabled := lblInsertSize.Enabled;
   end else if tabsTools.ActivePage = tabBulkTableEdit then begin
     btnExecute.Caption := _('Update');
@@ -1810,7 +1810,7 @@ begin
 
   StartTime := GetTickCount64;
   ExportStreamStartOfQueryPos := 0;
-  MaxInsertSize := Trunc(StrToInt64Def(editInsertSize.Text, 0) * SIZE_KB * 0.9);
+  MaxInsertSize := Trunc(spinInsertSize.Value * SIZE_KB * 0.9);
 
   if ToDir then begin
     FreeAndNil(ExportStream);
@@ -2295,7 +2295,7 @@ begin
     AddNotes(DBObj, STRSKIPPED+'cannot insert rows in a '+LowerCase(DBObj.ObjType), '');
     Exit;
   end;
-  AddNotes(DBObj, 'Inserting '+FormatNumber(editGenerateDataNumRows.Text)+' rows into '+DBObj.Name, '');
+  AddNotes(DBObj, 'Inserting '+FormatNumber(spinGenerateDataNumRows.Value)+' rows into '+DBObj.Name, '');
   UpdateResultGrid;
 
   Columns := DBObj.TableColumns;
@@ -2320,8 +2320,8 @@ begin
 
   Randomize;
 
-  NumRows := StrToInt64Def(editGenerateDataNumRows.Text, 0);
-  NullsAmount := StrToInt64Def(editGenerateDataNullAmount.Text, 0);
+  NumRows := spinGenerateDataNumRows.Value;
+  NullsAmount := spinGenerateDataNullAmount.Value;
 
   for i:=1 to NumRows do begin
     Values.Clear;

@@ -5,7 +5,7 @@ unit editvar;
 interface
 
 uses
-  SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
+  SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, SpinEx,
   dbconnection, dbstructures, dbstructures.mysql, ComCtrls, RegExpr, extra_controls;
 
 type
@@ -22,7 +22,7 @@ type
     radioBooleanOn: TRadioButton;
     radioBooleanOff: TRadioButton;
     comboEnum: TComboBox;
-    editNumber: TEdit;
+    spinNumber: TSpinEditEx;
     editString: TEdit;
     lblString: TLabel;
     lblNumber: TLabel;
@@ -107,7 +107,7 @@ begin
   lblString.Enabled := FVarType = vtString;
   editString.Enabled := FVarType = vtString;
   lblNumber.Enabled := FVarType = vtNumeric;
-  editNumber.Enabled := FVarType = vtNumeric;
+  spinNumber.Enabled := FVarType = vtNumeric;
   lblEnum.Enabled := FVarType = vtEnum;
   comboEnum.Enabled := FVarType = vtEnum;
   lblBoolean.Enabled := FVarType = vtBoolean;
@@ -121,9 +121,9 @@ begin
       editString.SetFocus;
     end;
     vtNumeric: begin
-      editNumber.Text := FVarValue;
-      editNumber.SelectAll;
-      editNumber.SetFocus;
+      spinNumber.Value := MakeInt(FVarValue);
+      spinNumber.SelectAll;
+      spinNumber.SetFocus;
     end;
     vtBoolean: begin
       val := UpperCase(FVarValue);
@@ -170,7 +170,7 @@ begin
   Conn := MainForm.ActiveConnection;
 
   case FVarType of
-    vtNumeric: val := editNumber.Text;
+    vtNumeric: val := spinNumber.Value.ToString;
     vtString: begin
       // Various variables are int64 or float, for which we have no specific
       // editor other than the string editor. Do not quote these to avoid

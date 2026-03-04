@@ -519,7 +519,7 @@ object frmTableTools: TfrmTableTools
           end
           object lblInsertSize: TLabel
             AnchorSideLeft.Control = tabSQLexport
-            AnchorSideTop.Control = editInsertSize
+            AnchorSideTop.Control = spinInsertSize
             AnchorSideTop.Side = asrCenter
             Left = 5
             Height = 15
@@ -529,9 +529,9 @@ object frmTableTools: TfrmTableTools
             Caption = 'Max INSERT size:'
           end
           object lblInsertSizeUnit: TLabel
-            AnchorSideLeft.Control = editInsertSize
+            AnchorSideLeft.Control = spinInsertSize
             AnchorSideLeft.Side = asrBottom
-            AnchorSideTop.Control = editInsertSize
+            AnchorSideTop.Control = spinInsertSize
             AnchorSideTop.Side = asrCenter
             Left = 250
             Height = 15
@@ -626,7 +626,7 @@ object frmTableTools: TfrmTableTools
           end
           object comboExportOutputType: TComboBox
             AnchorSideLeft.Control = tabSQLexport
-            AnchorSideTop.Control = editInsertSize
+            AnchorSideTop.Control = spinInsertSize
             AnchorSideTop.Side = asrBottom
             AnchorSideRight.Control = tabSQLexport
             AnchorSideRight.Side = asrBottom
@@ -665,7 +665,7 @@ object frmTableTools: TfrmTableTools
             Text = 'comboExportOutputTarget'
             OnChange = comboExportOutputTargetChange
           end
-          object editInsertSize: TEdit
+          object spinInsertSize: TSpinEditEx
             AnchorSideLeft.Control = tabSQLexport
             AnchorSideTop.Control = comboExportData
             AnchorSideTop.Side = asrBottom
@@ -675,12 +675,14 @@ object frmTableTools: TfrmTableTools
             Width = 120
             BorderSpacing.Left = 120
             BorderSpacing.Around = 5
-            NumbersOnly = True
+            MaxLength = 0
+            SpinButtonWidth = 17
             TabOrder = 5
-            Text = '0'
+            NullValue = 0
+            Value = 0
           end
           object btnExportOptions: TBitBtn
-            AnchorSideTop.Control = editInsertSize
+            AnchorSideTop.Control = spinInsertSize
             AnchorSideTop.Side = asrCenter
             AnchorSideRight.Control = tabSQLexport
             AnchorSideRight.Side = asrBottom
@@ -849,7 +851,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 130
           object lblGenerateDataNumRows: TLabel
             AnchorSideLeft.Control = tabGenerateData
-            AnchorSideTop.Control = editGenerateDataNumRows
+            AnchorSideTop.Control = spinGenerateDataNumRows
             AnchorSideTop.Side = asrCenter
             Left = 5
             Height = 15
@@ -860,7 +862,7 @@ object frmTableTools: TfrmTableTools
           end
           object lblGenerateDataNullAmount: TLabel
             AnchorSideLeft.Control = tabGenerateData
-            AnchorSideTop.Control = editGenerateDataNullAmount
+            AnchorSideTop.Control = spinGenerateDataNullAmount
             AnchorSideTop.Side = asrCenter
             Left = 5
             Height = 15
@@ -869,7 +871,7 @@ object frmTableTools: TfrmTableTools
             BorderSpacing.Around = 5
             Caption = 'Amount of NULLs [percent]:'
           end
-          object editGenerateDataNumRows: TEdit
+          object spinGenerateDataNumRows: TSpinEditEx
             AnchorSideLeft.Control = tabGenerateData
             Left = 205
             Height = 23
@@ -877,13 +879,15 @@ object frmTableTools: TfrmTableTools
             Width = 121
             BorderSpacing.Left = 200
             BorderSpacing.Around = 5
-            NumbersOnly = True
+            MaxLength = 0
+            SpinButtonWidth = 17
             TabOrder = 0
-            Text = '1.000'
+            NullValue = 0
+            Value = 1000
           end
-          object editGenerateDataNullAmount: TEdit
+          object spinGenerateDataNullAmount: TSpinEditEx
             AnchorSideLeft.Control = tabGenerateData
-            AnchorSideTop.Control = editGenerateDataNumRows
+            AnchorSideTop.Control = spinGenerateDataNumRows
             AnchorSideTop.Side = asrBottom
             Left = 205
             Height = 23
@@ -891,9 +895,11 @@ object frmTableTools: TfrmTableTools
             Width = 121
             BorderSpacing.Left = 200
             BorderSpacing.Around = 5
-            NumbersOnly = True
+            MaxLength = 0
+            SpinButtonWidth = 17
             TabOrder = 1
-            Text = '10'
+            NullValue = 0
+            Value = 10
           end
         end
       end

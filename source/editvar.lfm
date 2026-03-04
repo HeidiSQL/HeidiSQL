@@ -133,7 +133,7 @@ object frmEditVariable: TfrmEditVariable
     end
     object lblEnum: TLabel
       AnchorSideLeft.Control = gbValue
-      AnchorSideTop.Control = editNumber
+      AnchorSideTop.Control = spinNumber
       AnchorSideTop.Side = asrBottom
       Left = 5
       Height = 15
@@ -179,7 +179,7 @@ object frmEditVariable: TfrmEditVariable
       TabOrder = 1
     end
     object comboEnum: TComboBox
-      AnchorSideTop.Control = editNumber
+      AnchorSideTop.Control = spinNumber
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = gbValue
       AnchorSideRight.Side = asrBottom
@@ -193,7 +193,7 @@ object frmEditVariable: TfrmEditVariable
       Style = csDropDownList
       TabOrder = 2
     end
-    object editNumber: TEdit
+    object spinNumber: TSpinEditEx
       AnchorSideTop.Control = editString
       AnchorSideTop.Side = asrBottom
       AnchorSideRight.Control = gbValue
@@ -204,9 +204,11 @@ object frmEditVariable: TfrmEditVariable
       Width = 187
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 5
-      NumbersOnly = True
+      MaxLength = 0
+      SpinButtonWidth = 17
       TabOrder = 3
-      Text = '0'
+      NullValue = 0
+      Value = 0
     end
     object editString: TEdit
       AnchorSideTop.Control = gbValue

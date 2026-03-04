@@ -104,7 +104,7 @@ object connform: Tconnform
         Width = 25
         BorderSpacing.Around = 5
         Caption = 'Port:'
-        FocusControl = editPort
+        FocusControl = spinPort
       end
       object lblPassword: TLabel
         AnchorSideTop.Control = editUsername
@@ -180,7 +180,7 @@ object connform: Tconnform
         Caption = 'Library:'
       end
       object chkCompressed: TCheckBox
-        AnchorSideTop.Control = editPort
+        AnchorSideTop.Control = spinPort
         AnchorSideTop.Side = asrBottom
         Left = 194
         Height = 19
@@ -192,7 +192,7 @@ object connform: Tconnform
         TabOrder = 8
         OnClick = Modification
       end
-      object editPort: TEdit
+      object spinPort: TSpinEditEx
         AnchorSideTop.Control = editPassword
         AnchorSideTop.Side = asrBottom
         Left = 194
@@ -200,10 +200,12 @@ object connform: Tconnform
         Top = 192
         Width = 57
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 7
-        Text = '0'
         OnChange = Modification
+        NullValue = 0
+        Value = 0
       end
       object editPassword: TEdit
         AnchorSideTop.Control = editUsername
@@ -360,7 +362,7 @@ object connform: Tconnform
       ClientWidth = 513
       ImageIndex = 147
       object lblSSHLocalPort: TLabel
-        AnchorSideTop.Control = editSSHlocalport
+        AnchorSideTop.Control = spinSSHlocalport
         AnchorSideTop.Side = asrCenter
         Left = 3
         Height = 15
@@ -368,7 +370,7 @@ object connform: Tconnform
         Width = 56
         BorderSpacing.Around = 5
         Caption = 'Local port:'
-        FocusControl = editSSHlocalport
+        FocusControl = spinSSHlocalport
       end
       object lblSSHUser: TLabel
         AnchorSideTop.Control = editSSHUser
@@ -425,7 +427,7 @@ object connform: Tconnform
         FocusControl = editSSHPrivateKey
       end
       object lblSSHTimeout: TLabel
-        AnchorSideTop.Control = editSSHTimeout
+        AnchorSideTop.Control = spinSSHTimeout
         AnchorSideTop.Side = asrCenter
         Left = 3
         Height = 15
@@ -434,7 +436,7 @@ object connform: Tconnform
         BorderSpacing.Around = 5
         Caption = 'SSH timeout:'
       end
-      object editSSHlocalport: TEdit
+      object spinSSHlocalport: TSpinEditEx
         AnchorSideTop.Control = editSSHPrivateKey
         AnchorSideTop.Side = asrBottom
         Left = 194
@@ -443,10 +445,12 @@ object connform: Tconnform
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 8
-        Text = 'editSSHlocalport'
         OnChange = Modification
+        NullValue = 0
+        Value = 0
       end
       object editSSHUser: TEdit
         AnchorSideTop.Control = editSSHhost
@@ -493,7 +497,7 @@ object connform: Tconnform
         OnChange = Modification
         OnExit = editTrim
       end
-      object editSSHport: TEdit
+      object spinSSHport: TSpinEditEx
         AnchorSideTop.Control = comboSSHExe
         AnchorSideTop.Side = asrBottom
         Left = 434
@@ -502,13 +506,15 @@ object connform: Tconnform
         Width = 74
         Anchors = [akTop, akRight]
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 3
-        Text = 'editSSHport'
         OnChange = Modification
+        NullValue = 0
+        Value = 0
       end
       object editSSHPrivateKey: TEditButton
-        AnchorSideTop.Control = editSSHTimeout
+        AnchorSideTop.Control = spinSSHTimeout
         AnchorSideTop.Side = asrBottom
         Left = 194
         Height = 23
@@ -530,7 +536,7 @@ object connform: Tconnform
         OnDblClick = PickFile
         OnExit = editTrim
       end
-      object editSSHTimeout: TEdit
+      object spinSSHTimeout: TSpinEditEx
         AnchorSideTop.Control = lblSshPassHint
         AnchorSideTop.Side = asrBottom
         Left = 194
@@ -538,10 +544,12 @@ object connform: Tconnform
         Top = 161
         Width = 60
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 6
-        Text = '1'
         OnChange = Modification
+        NullValue = 0
+        Value = 0
       end
       object comboSSHExe: TComboBox
         AnchorSideTop.Control = chkSSHActive
@@ -608,7 +616,7 @@ object connform: Tconnform
         Caption = 'Query timeout:'
       end
       object lblKeepAlive: TLabel
-        AnchorSideTop.Control = editQueryTimeout
+        AnchorSideTop.Control = spinQueryTimeout
         AnchorSideTop.Side = asrBottom
         Left = 3
         Height = 15
@@ -648,7 +656,7 @@ object connform: Tconnform
         Caption = 'Log queries to file:'
       end
       object chkLocalTimeZone: TCheckBox
-        AnchorSideTop.Control = editKeepAlive
+        AnchorSideTop.Control = spinKeepAlive
         AnchorSideTop.Side = asrBottom
         Left = 194
         Height = 19
@@ -709,7 +717,7 @@ object connform: Tconnform
         TabOrder = 4
         OnClick = Modification
       end
-      object editQueryTimeout: TEdit
+      object spinQueryTimeout: TSpinEditEx
         AnchorSideTop.Control = editStartupScript
         AnchorSideTop.Side = asrBottom
         Left = 194
@@ -717,23 +725,27 @@ object connform: Tconnform
         Top = 33
         Width = 90
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 1
-        Text = '0'
         OnChange = Modification
+        NullValue = 0
+        Value = 0
       end
-      object editKeepAlive: TEdit
-        AnchorSideTop.Control = editQueryTimeout
+      object spinKeepAlive: TSpinEditEx
+        AnchorSideTop.Control = spinQueryTimeout
         AnchorSideTop.Side = asrBottom
         Left = 194
         Height = 23
         Top = 61
         Width = 90
         BorderSpacing.Around = 5
-        NumbersOnly = True
+        MaxLength = 0
+        SpinButtonWidth = 17
         TabOrder = 2
-        Text = '0'
         OnChange = Modification
+        NullValue = 0
+        Value = 0
       end
       object ColorBoxBackgroundColor: TColorBox
         AnchorSideTop.Control = chkCleartextPluginEnabled

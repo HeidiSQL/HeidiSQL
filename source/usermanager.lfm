@@ -356,7 +356,7 @@ object UserManagerForm: TUserManagerForm
         ClientWidth = 367
         ImageIndex = 1
         object lblMaxQueries: TLabel
-          AnchorSideTop.Control = editMaxQueries
+          AnchorSideTop.Control = spinMaxQueries
           Left = 5
           Height = 15
           Top = 10
@@ -365,7 +365,7 @@ object UserManagerForm: TUserManagerForm
           Caption = 'Queries per hour:'
         end
         object lblMaxUpdates: TLabel
-          AnchorSideTop.Control = editMaxQueries
+          AnchorSideTop.Control = spinMaxQueries
           AnchorSideTop.Side = asrBottom
           Left = 5
           Height = 15
@@ -375,7 +375,7 @@ object UserManagerForm: TUserManagerForm
           Caption = 'Updates per hour:'
         end
         object lblMaxConnections: TLabel
-          AnchorSideTop.Control = editMaxUpdates
+          AnchorSideTop.Control = spinMaxUpdates
           AnchorSideTop.Side = asrBottom
           Left = 5
           Height = 15
@@ -385,7 +385,7 @@ object UserManagerForm: TUserManagerForm
           Caption = 'Connections per hour:'
         end
         object lblMaxUserConnections: TLabel
-          AnchorSideTop.Control = editMaxConnections
+          AnchorSideTop.Control = spinMaxConnections
           AnchorSideTop.Side = asrBottom
           Left = 5
           Height = 15
@@ -394,20 +394,22 @@ object UserManagerForm: TUserManagerForm
           BorderSpacing.Around = 5
           Caption = 'Simultaneous connections:'
         end
-        object editMaxQueries: TEdit
+        object spinMaxQueries: TSpinEditEx
           Left = 178
           Height = 23
           Top = 5
           Width = 184
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
-          NumbersOnly = True
+          MaxLength = 0
+          SpinButtonWidth = 17
           TabOrder = 0
-          Text = '0'
           OnChange = Modification
+          NullValue = 0
+          Value = 0
         end
-        object editMaxUpdates: TEdit
-          AnchorSideTop.Control = editMaxQueries
+        object spinMaxUpdates: TSpinEditEx
+          AnchorSideTop.Control = spinMaxQueries
           AnchorSideTop.Side = asrBottom
           Left = 178
           Height = 23
@@ -415,13 +417,15 @@ object UserManagerForm: TUserManagerForm
           Width = 184
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
-          NumbersOnly = True
+          MaxLength = 0
+          SpinButtonWidth = 17
           TabOrder = 1
-          Text = '0'
           OnChange = Modification
+          NullValue = 0
+          Value = 0
         end
-        object editMaxConnections: TEdit
-          AnchorSideTop.Control = editMaxUpdates
+        object spinMaxConnections: TSpinEditEx
+          AnchorSideTop.Control = spinMaxUpdates
           AnchorSideTop.Side = asrBottom
           Left = 178
           Height = 23
@@ -429,13 +433,15 @@ object UserManagerForm: TUserManagerForm
           Width = 184
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
-          NumbersOnly = True
+          MaxLength = 0
+          SpinButtonWidth = 17
           TabOrder = 2
-          Text = '0'
           OnChange = Modification
+          NullValue = 0
+          Value = 0
         end
-        object editMaxUserConnections: TEdit
-          AnchorSideTop.Control = editMaxConnections
+        object spinMaxUserConnections: TSpinEditEx
+          AnchorSideTop.Control = spinMaxConnections
           AnchorSideTop.Side = asrBottom
           Left = 178
           Height = 23
@@ -443,10 +449,12 @@ object UserManagerForm: TUserManagerForm
           Width = 184
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
-          NumbersOnly = True
+          MaxLength = 0
+          SpinButtonWidth = 17
           TabOrder = 3
-          Text = '0'
           OnChange = Modification
+          NullValue = 0
+          Value = 0
         end
       end
       object tabSSL: TTabSheet
