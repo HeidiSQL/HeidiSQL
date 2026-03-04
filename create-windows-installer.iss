@@ -94,6 +94,7 @@ Name: "associatesqlfiles"; Description: "Associate .&SQL files with {#ProgName}"
 Source: "{#OutDir}{#ProgNameLower}.exe"; DestDir: "{app}"; DestName: "{#ProgExeName}"; Flags: ignoreversion
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "LICENSE-openssl"; DestDir: "{app}"; Flags: ignoreversion
 Source: "extra\dll\plugins\*.dll"; DestDir: "{app}\plugins"; Flags: ignoreversion
 Source: "extra\Snippets\*.sql"; DestDir: "{#SnippetsDir}"; Tasks: install_snippets
 ; Just everything from the dll folder, including plink and some others
