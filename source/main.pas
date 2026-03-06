@@ -5618,9 +5618,7 @@ begin
       snip := (MaxLineWidth > 0) and (Len > MaxLineWidth);
       IsSQL := LogItem.Category in [lcSQL, lcUserFiredSQL];
       if snip then begin
-        Msg :=
-          Copy(Msg, 0, MaxLineWidth) +
-          '/* '+f_('large SQL query (%s), snipped at %s characters', [FormatByteNumber(Len), FormatNumber(MaxLineWidth)]) + ' */';
+        Msg := Copy(Msg, 1, MaxLineWidth) + '...';
       end else if (not snip) and IsSQL then
         Msg := Msg + Delimiter;
       if not IsSQL then
@@ -6917,7 +6915,7 @@ var
     dbname := '';
     tblname := LeftToken;
     if Pos('.', tblname) > -1 then begin
-      dbname := Copy(tblname, 0, Pos('.', tblname)-1);
+      dbname := Copy(tblname, 1, Pos('.', tblname)-1);
       tblname := Copy(tblname, Pos('.', tblname)+1, Length(tblname));
     end;
     // db and table name may already be quoted

@@ -432,7 +432,7 @@ begin
     Screen.Cursor := crHourglass;
     MemoText.Text := ReadTextFile(d.FileName, MainForm.GetEncodingByName(d.Encodings[d.EncodingIndex]));
     if (FMaxLength > 0) and (Length(MemoText.Text) > FMaxLength) then
-      MemoText.Text := copy(MemoText.Text, 0, FMaxLength);
+      MemoText.Text := Copy(MemoText.Text, 1, FMaxLength);
     AppSettings.WriteInt(asFileDialogEncoding, d.EncodingIndex, Self.Name);
   finally
     Screen.Cursor := crDefault;
