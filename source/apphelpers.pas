@@ -3525,8 +3525,7 @@ begin
       and CanFocus then
       SetFocus;
   except
-    on E:EInvalidOperation do
-      SysUtils.Beep;
+    SysUtils.Beep;
   end;
 end;
 

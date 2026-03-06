@@ -8797,8 +8797,9 @@ begin
       end;
 
     end;
-  end else if not IgnoreErrors then
-    Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
+  end
+  else
+    Result := TextInvalidColumn;
 end;
 
 {$IFDEF HASMSSQL}
@@ -8827,8 +8828,9 @@ begin
       else
         Result := '0';
     end
-  end else if not IgnoreErrors then
-    Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
+  end
+  else
+    Result := TextInvalidColumn;
 end;
 {$ENDIF}
 
@@ -8849,8 +8851,9 @@ begin
       else
         Result := Connection.DecodeAPIString(AnsiStr);
     end;
-  end else if not IgnoreErrors then
-    Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
+  end
+  else
+    Result := TextInvalidColumn;
 end;
 
 
@@ -8863,8 +8866,9 @@ begin
     end else begin
       Result := FCurrentResults[FRecNoLocal][Column].OldText;
     end;
-  end else if not IgnoreErrors then
-    Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
+  end
+  else
+    Result := TextInvalidColumn;
 end;
 
 
@@ -8876,8 +8880,9 @@ begin
     end else begin
       Result := FCurrentResults.Fields[Column].AsString;
     end;
-  end else if not IgnoreErrors then
-    Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
+  end
+  else
+    Result := TextInvalidColumn;
 end;}
 
 
@@ -8887,12 +8892,11 @@ var
 begin
   // ColumnNames is case insensitive, so we can select wrong cased columns in MariaDB 10.4
   // See #599
-  Result := '';
   idx := ColumnNames.IndexOf(ColumnName);
   if idx > -1 then
     Result := Col(idx)
-  else if not IgnoreErrors then
-    Raise EDbError.CreateFmt(_('Column "%s" not available.'), [ColumnName]);
+  else
+    Result := TextInvalidColumn;
 end;
 
 
@@ -8982,8 +8986,9 @@ var
   i: Integer;
 begin
   Result := nil;
-  if (Column < 0) or (Column >= FColumnOrgNames.Count) then
-    raise EDbError.CreateFmt(_('Column #%s not available.'), [IntToStr(Column)]);
+  if (Column < 0) or (Column >= FColumnOrgNames.Count) then begin
+    // Just return nil
+  end;
   if FColumns <> nil then begin
     for i:=0 to FColumns.Count-1 do begin
       if FColumns[i].Name = FColumnOrgNames[Column] then begin
