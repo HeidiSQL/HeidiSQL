@@ -7567,24 +7567,26 @@ begin
     if ExecRegExpr('Prompt\d+$', Act.Name) then begin
       // Item needs prompt
       TableCol := SelectedTableFocusedColumn;
-      Col := Conn.QuoteIdent(TableCol.Name, False);
+      if Assigned(TableCol) then begin
+        Col := Conn.QuoteIdent(TableCol.Name, False);
 
-      if (TableCol.DataType.Index = dbdtJson)
-        and (Conn.Parameters.NetTypeGroup = ngPgSQL) then begin
-        Col := Col + '::text';
-      end;
-      Val := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
-      if InputQuery(_('Specify filter-value...'), Act.Caption, Val) then begin
-        if Act = actQuickFilterPrompt1 then
-          Filter := Col + ' = ' + Conn.EscapeString(Val, TableCol.DataType)
-        else if Act = actQuickFilterPrompt2 then
-          Filter := Col + ' != ' + Conn.EscapeString(Val, TableCol.DataType)
-        else if Act = actQuickFilterPrompt3 then
-          Filter := Col + ' > ' + Conn.EscapeString(Val, TableCol.DataType)
-        else if Act = actQuickFilterPrompt4 then
-          Filter := Col + ' < ' + Conn.EscapeString(Val, TableCol.DataType)
-        else if Act = actQuickFilterPrompt5 then
-          Filter := Conn.SqlProvider.GetSql(qLikeCompare, [Col, Conn.EscapeString('%'+Val+'%', TableCol.DataType)]);
+        if (TableCol.DataType.Index = dbdtJson)
+          and (Conn.Parameters.NetTypeGroup = ngPgSQL) then begin
+          Col := Col + '::text';
+        end;
+        Val := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
+        if InputQuery(_('Specify filter-value...'), Act.Caption, Val) then begin
+          if Act = actQuickFilterPrompt1 then
+            Filter := Col + ' = ' + Conn.EscapeString(Val, TableCol.DataType)
+          else if Act = actQuickFilterPrompt2 then
+            Filter := Col + ' != ' + Conn.EscapeString(Val, TableCol.DataType)
+          else if Act = actQuickFilterPrompt3 then
+            Filter := Col + ' > ' + Conn.EscapeString(Val, TableCol.DataType)
+          else if Act = actQuickFilterPrompt4 then
+            Filter := Col + ' < ' + Conn.EscapeString(Val, TableCol.DataType)
+          else if Act = actQuickFilterPrompt5 then
+            Filter := Conn.SqlProvider.GetSql(qLikeCompare, [Col, Conn.EscapeString('%'+Val+'%', TableCol.DataType)]);
+        end;
       end;
     end
     else begin
