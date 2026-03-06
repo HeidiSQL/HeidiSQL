@@ -3337,7 +3337,7 @@ begin
       );
     qGetRowCountApprox: Result := IfThen(
       FNetType <> ntMySQL_ProxySQLAdmin,
-      'SHOW TABLE STATUS LIKE :EscapedName',
+      'SHOW TABLE STATUS FROM :QuotedDatabase LIKE :EscapedName',
       ''
       );
     qGetReverseForeignKeys: Result := 'SELECT DISTINCT'+
