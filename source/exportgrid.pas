@@ -483,6 +483,10 @@ var
   CalculatedCount, SelectedCount, AllCount: Int64;
 begin
   GridData := Mainform.GridResult(Grid);
+  if not Assigned(GridData) then begin
+    MainForm.LogSQL('Failed to get current results');
+    Exit;
+  end;
   AllSize := 0;
   SelectedSize := 0;
   chkIncludeAutoIncrement.Enabled := GridData.AutoIncrementColumn > -1;
