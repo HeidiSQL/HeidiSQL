@@ -141,7 +141,7 @@ begin
   if VT.HasChildren[VT.FocusedNode] then
     Exit;
   FKeyword := VT.Text[VT.FocusedNode, VT.FocusedColumn];
-  lblKeyword.Caption := Copy(FKeyword, 0, 100);
+  lblKeyword.Caption := Copy(FKeyword, 1, 100);
   MemoDescription.Lines.Clear;
   MemoExample.Lines.Clear;
   Caption := DEFAULT_WINDOW_CAPTION;
