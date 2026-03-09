@@ -1,14 +1,19 @@
-Package: HeidiSQL
+Package: heidisql
 Version: %VERSION%
 Architecture: amd64
 Maintainer: Ansgar Becker <anse@heidisql.com>
 Homepage: https://www.heidisql.com
-License: GPLv2+
-Depends: libgtk2.0-0t64 (>= 2.6.0), libmariadb-dev | libmysqlclient-dev, libpq5, sqlite3, libsybdb5, openssl, openssh-client
-Description: A lightweight, fast and flexible interface to MySQL
- HeidiSQL is free software for people who work with databases, and aims to be
- intuitive to use. "Heidi" lets you connect to a variety of databases, like
- MariaDB, MySQL, Microsoft SQL, PostgreSQL, SQLite, Interbase and Firebird.
- Once you are connected, you can edit data and structures in these databases.
- Invented in 2002 by Ansgar, HeidiSQL is a popular tool for MariaDB and MySQL,
- and actively maintained.
+Section: database
+Priority: optional
+Depends: libqt6widgets6, libqt6gui6, libqt6core6,
+ libssl3 (>= 3.0.0),
+ libmariadb-dev | libmysqlclient-dev,
+ libpq5, libsqlite3-0, libsybdb5
+Recommends: openssh-client
+Description: Powerful SQL client for everyday database work
+ HeidiSQL is a popular desktop tool for developers and DBAs who live in SQL all
+ day. Connect to MariaDB, MySQL, PostgreSQL, Microsoft SQL Server, SQLite,
+ Interbase and Firebird from one clean, fast GUI. Browse and edit data, design
+ and refactor tables, run and save queries, and quickly fix issues on live
+ systems. Started in 2002 and still actively maintained, HeidiSQL focuses on
+ getting everyday database tasks done with as little friction as possible.

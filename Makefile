@@ -106,7 +106,7 @@ deb-package:
 	cp -vR extra/locale/*.mo deb/usr/share/heidisql/locale
 	cp -v extra/ini/*.ini  deb/usr/share/heidisql
 	cp -v res/deb-package-icon.png deb/usr/share/pixmaps/heidisql.png
-	cp -v $(BINGTK) deb/usr/share/heidisql/heidisql
+	cp -v $(BINQT6) deb/usr/share/heidisql/heidisql
 	chmod +x deb/usr/share/heidisql/heidisql
 	cp -v README.md LICENSE deb/usr/share/doc/heidisql
 	mkdir -p dist
