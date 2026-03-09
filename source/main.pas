@@ -3332,6 +3332,7 @@ begin
       Tab.tabsetQuery.OnChange(Tab.tabsetQuery);
     end;
   end;
+  Thread.Connection.ShowWarnings;
   ShowStatusMsg;
 end;
 

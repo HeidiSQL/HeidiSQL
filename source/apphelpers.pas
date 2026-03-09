@@ -3144,7 +3144,6 @@ begin
     end;
     FConnection.SetLockedByThread(nil);
     Synchronize(AfterQuery);
-    FConnection.ShowWarnings;
     // Check if FAborted is set by the main thread, to avoid proceeding the loop in case
     // FStopOnErrors is set to false
     if FAborted or ErrorAborted then
