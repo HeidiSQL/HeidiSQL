@@ -3353,7 +3353,6 @@ begin
     end;
     FConnection.SetLockedByThread(nil);
     Synchronize(procedure begin MainForm.AfterQueryExecution(Self); end);
-    FConnection.ShowWarnings;
     // Check if FAborted is set by the main thread, to avoid proceeding the loop in case
     // FStopOnErrors is set to false
     if FAborted or ErrorAborted then

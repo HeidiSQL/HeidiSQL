@@ -3438,6 +3438,7 @@ begin
     if Tab.tabsetQuery.TabIndex = -1 then
       Tab.tabsetQuery.TabIndex := 0;
   end;
+  Thread.Connection.ShowWarnings;
   ShowStatusMsg;
 end;
 
