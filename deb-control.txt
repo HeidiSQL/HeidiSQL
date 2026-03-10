@@ -5,7 +5,7 @@ Maintainer: Ansgar Becker <anse@heidisql.com>
 Homepage: https://www.heidisql.com
 Section: database
 Priority: optional
-Depends: libqt6widgets6, libqt6gui6, libqt6core6,
+Depends: libqt6widgets6, libqt6gui6, libqt6core6, libqt6pas6,
  libssl3 (>= 3.0.0),
  libmariadb-dev | libmysqlclient-dev,
  libpq5, libsqlite3-0, libsybdb5
