@@ -13797,6 +13797,7 @@ begin
       Tab.ExecutionThread.Aborted := True;
       Killer := ActiveConnection.Parameters.CreateConnection(Self);
       Killer.Parameters := ActiveConnection.Parameters;
+      Killer.OwnsParameters := False;
       Killer.LogPrefix := _('Helper connection');
       Killer.OnLog := LogSQL;
       try
