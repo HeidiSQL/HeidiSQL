@@ -3241,6 +3241,7 @@ end;
 procedure TMainForm.actExecuteQueryExecute(Sender: TObject);
 var
   ProfileNode: PVirtualNode;
+  Conn: TDBConnection;
   Batch: TSQLBatch;
   Tab: TQueryTab;
   BindParam: Integer;
@@ -3250,11 +3251,12 @@ var
   ContainsUnsafeQueries, DoExecute: Boolean;
 begin
   Tab := QueryTabs.ActiveTab;
+  Conn := ActiveConnection;
   OperationRunning(True);
   DoExecute := True;
 
   ShowStatusMsg(_('Splitting SQL queries ...'));
-  Batch := TSQLBatch.Create(ActiveConnection.Parameters.NetTypeGroup);
+  Batch := TSQLBatch.Create(Conn.Parameters.NetTypeGroup);
   if Sender = actExecuteSelection then begin
     Batch.SQL := Tab.Memo.SelText;
     Tab.LeftOffsetInMemo := Tab.Memo.SelStart;
@@ -3266,7 +3268,7 @@ begin
       ErrorDialog(_('Current query is empty'), _('Please move the cursor inside the query you want to use.'));
       DoExecute := False;
     end else begin
-      Batch.SQL := 'EXPLAIN ' + CurrentQuery;
+      Batch.SQL := Conn.SqlProvider.GetSql(qExplain, [CurrentQuery]);
     end;
   end else begin
     Batch.SQL := Tab.Memo.Text;
@@ -3322,7 +3324,7 @@ begin
     ProfileNode := FindNode(Tab.treeHelpers, TQueryTab.HelperNodeProfile, nil);
     Tab.DoProfile := Assigned(ProfileNode) and (Tab.treeHelpers.CheckState[ProfileNode] in CheckedStates);
     if Tab.DoProfile then try
-      ActiveConnection.Query('SET profiling=1');
+      Conn.Query('SET profiling=1');
     except
       on E:EDbError do begin
         ErrorDialog(f_('Query profiling requires %s or later, and the server must not be configured with %s.', ['MySQL 5.0.37', '--disable-profiling']), E.Message);
@@ -3332,9 +3334,9 @@ begin
 
     // Start the execution thread
     Screen.Cursor := crAppStart;
-    ActiveConnection.Ping(True); // Prevents SynEdit paint exceptions if connection was killed outside
+    Conn.Ping(True); // Prevents SynEdit paint exceptions if connection was killed outside
     Tab.QueryRunning := True;
-    Tab.ExecutionThread := TQueryThread.Create(ActiveConnection, Batch, Tab.Number);
+    Tab.ExecutionThread := TQueryThread.Create(Conn, Batch, Tab.Number);
   end;
 
   ValidateQueryControls(Sender);
@@ -13958,15 +13960,17 @@ procedure TMainForm.lblExplainProcessClick(Sender: TObject);
 var
   Tab: TQueryTab;
   UsedDatabase: String;
+  Conn: TDBConnection;
 begin
   // Click on "Explain" link label, in process viewer
+  Conn := ActiveConnection;
   actNewQueryTabExecute(Sender);
   Tab := QueryTabs[QueryTabs.Count-1];
   UsedDatabase := listProcesses.Text[listProcesses.FocusedNode, 3];
   if not UsedDatabase.IsEmpty then begin
-    Tab.Memo.Lines.Add('USE ' + ActiveConnection.QuoteIdent(UsedDatabase) + ';');
+    Tab.Memo.Lines.Add('USE ' + Conn.QuoteIdent(UsedDatabase) + ';');
   end;
-  Tab.Memo.Lines.Add('EXPLAIN' + sLineBreak + SynMemoProcessView.Text + ';');
+  Tab.Memo.Lines.Add(Conn.SqlProvider.GetSql(qExplain, [SynMemoProcessView.Text]) + ';');
   Tab.TabSheet.Show;
   actExecuteQueryExecute(Sender);
 end;
