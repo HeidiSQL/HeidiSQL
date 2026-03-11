@@ -3377,9 +3377,10 @@ var
       ErrorPos := Pos(ErroneousSQL, Copy(Tab.Memo.Text, SelStart, SIZE_MB));
       if ErrorPos > 0 then begin
         Inc(SelStart, ErrorPos-1);
-        Tab.Memo.ClearSelection;
-        Tab.Memo.SelStart := SelStart;
         ErrorCoord := Tab.Memo.CharIndexToRowCol(SelStart);
+        Tab.Memo.CaretXY := ErrorCoord;
+        Tab.Memo.BlockBegin := ErrorCoord;
+        Tab.Memo.BlockEnd := ErrorCoord;
         Tab.ErrorLine := ErrorCoord.Y;
       end;
     end;
