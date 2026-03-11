@@ -434,6 +434,7 @@ type
       FServerUptime: Integer;
       FServerDateTimeOnStartup: String;
       FParameters: TConnectionParameters;
+      FOwnsParameters: Boolean;
       FSecureShellCmd: TSecureShellCmd;
       FDatabase: String;
       FAllDatabases: TStringList;
@@ -560,6 +561,7 @@ type
       function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Int64): String;
       function LikeClauseTail: String;
       property Parameters: TConnectionParameters read FParameters write FParameters;
+      property OwnsParameters: Boolean read FOwnsParameters write FOwnsParameters;
       property ThreadId: Int64 read GetThreadId;
       property ConnectionUptime: Integer read GetConnectionUptime;
       property ServerUptime: Integer read GetServerUptime;
@@ -2099,6 +2101,7 @@ constructor TDBConnection.Create(AOwner: TComponent);
 begin
   inherited;
   FParameters := TConnectionParameters.Create;
+  FOwnsParameters := True;
   FRowsFound := 0;
   FRowsAffected := 0;
   FWarningCount := 0;
@@ -2218,7 +2221,8 @@ begin
   FKeepAliveTimer.Free;
   FFavorites.Free;
   FInformationSchemaObjects.Free;
-  FParameters.Free;
+  if FOwnsParameters then
+    FParameters.Free;
   inherited;
 end;
 
