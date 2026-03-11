@@ -735,15 +735,15 @@ begin
           CodeIndent(2) + '<title>' + TableName + '</title>' + sLineBreak +
           CodeIndent(2) + '<meta name="GENERATOR" content="'+ APPNAME+' '+Mainform.AppVersion + '">' + sLineBreak +
           CodeIndent(2) + '<meta http-equiv="Content-Type" content="text/html; charset='+GetHTMLCharsetByEncoding(Encoding)+'" />' + sLineBreak +
+          CodeIndent(2) + '<meta name="color-scheme" content="light dark">' + sLineBreak +
           CodeIndent(2) + '<style type="text/css">' + sLineBreak +
-          CodeIndent(3) + 'th, td {vertical-align: top;}' + sLineBreak +
-          CodeIndent(3) + 'table, td {border: 1px solid silver; padding: 2px;}' + sLineBreak +
-          CodeIndent(3) + 'table {border-collapse: collapse;}' + sLineBreak;
+          CodeIndent(3) + 'th, td { vertical-align:top; border:1px solid currentColor; padding:0.25rem 0.5rem; }' + sLineBreak +
+          CodeIndent(3) + 'table { border-collapse:collapse; }' + sLineBreak;
         Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
         while Col > NoColumn do begin
           // Right-justify all cells to match the grid on screen.
           if Grid.Header.Columns[Col].Alignment = taRightJustify then
-            Header := Header + CodeIndent(3) + '.col' + IntToStr(Col) + ' {text-align: right;}' + sLineBreak;
+            Header := Header + CodeIndent(3) + '.col' + IntToStr(Col) + ' { text-align:right; }' + sLineBreak;
           Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
         end;
         Header := Header +
@@ -751,7 +751,7 @@ begin
           CodeIndent + '</head>' + sLineBreak + sLineBreak +
           CodeIndent + '<body>' + sLineBreak + sLineBreak;
         if chkIncludeQuery.Checked then
-          Header := Header + '<p style="font-family: monospace; white-space: pre;">' + GridData.SQL + '</p>' + CRLF + CRLF;
+          Header := Header + '<p style="font-family:monospace; white-space:pre;">' + GridData.SQL + '</p>' + CRLF + CRLF;
         Header := Header + CodeIndent(2) + '<table caption="' + TableName + ' (' + inttostr(NodeCount) + ' rows)">' + sLineBreak;
         if chkIncludeColumnNames.Checked then begin
           Header := Header +
