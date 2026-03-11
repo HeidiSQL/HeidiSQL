@@ -1296,7 +1296,7 @@ begin
     // Try to connect and lookup database names
     Params := CurrentParams;
     Connection := Params.CreateConnection(Self);
-    Connection.Parameters.AllDatabasesStr := '';
+    Connection.Parameters.AllDatabasesStr := TPgConnection.DBNAME_EMPTY;
     Connection.LogPrefix := SelectedSessionPath;
     Connection.OnLog := Mainform.LogSQL;
     FPopupDatabases := TPopupMenu.Create(Self);
@@ -1304,16 +1304,29 @@ begin
     Screen.Cursor := crHourglass;
     try
       Connection.Active := True;
-      if Params.NetTypeGroup = ngPgSQL then
-        Databases := Connection.GetCol('SELECT datname FROM pg_database WHERE datistemplate=FALSE')
-      else
+      if Params.IsAnyPostgreSQL then begin
+        Databases := Connection.GetCol('SELECT datname FROM pg_database WHERE datistemplate=FALSE');
+        Item := TMenuItem.Create(FPopupDatabases);
+        Item.Caption := TPgConnection.DBNAME_EMPTY + ' (' + _('No database') + ')';
+        Item.Tag := TPgConnection.DBTAG_EMPTY;
+        Item.OnClick := MenuDatabasesClick;
+        Item.AutoCheck := True;
+        Item.RadioItem := True;
+        FPopupDatabases.Items.Add(Item);
+      end
+      else begin
         Databases := Connection.AllDatabases;
+      end;
       for DB in Databases do begin
         Item := TMenuItem.Create(FPopupDatabases);
         Item.Caption := DB;
+        if Params.IsAnyPostgreSQL and (DB = TPgConnection.DBNAME_DEFAULT) then begin
+          Item.Caption := Item.Caption + ' (' + _('Default') + ')';
+          Item.Tag := TPgConnection.DBTAG_DEFAULT;
+        end;
         Item.OnClick := MenuDatabasesClick;
         Item.AutoCheck := True;
-        Item.RadioItem := Params.NetTypeGroup = ngPgSQL;
+        Item.RadioItem := Params.IsAnyPostgreSQL;
         FPopupDatabases.Items.Add(Item);
       end;
       Databases.Free;
@@ -1326,7 +1339,14 @@ begin
   // Check/uncheck items, based on semicolon list
   Databases := Explode(';', editDatabases.Text);
   for Item in FPopupDatabases.Items do begin
-    Item.Checked := Databases.IndexOf(Item.Caption) > -1;
+    case Item.Tag of
+      TPgConnection.DBTAG_EMPTY:
+        Item.Checked := Databases.Contains(TPgConnection.DBNAME_EMPTY);
+      TPgConnection.DBTAG_DEFAULT:
+        Item.Checked := Databases.Contains(TPgConnection.DBNAME_DEFAULT) or Databases.IsEmpty;
+      else
+        Item.Checked := Databases.IndexOf(Item.Caption) > -1;
+    end;
   end;
   Databases.Free;
 
@@ -1344,8 +1364,12 @@ var
 begin
   Databases := TStringList.Create;
   for Item in FPopupDatabases.Items do begin
-    if Item.Checked then
-      Databases.Add(Item.Caption);
+    if Item.Checked then begin
+      if Item.Tag in [TPgConnection.DBTAG_EMPTY, TPgConnection.DBTAG_DEFAULT] then // Remove hint
+        Databases.Add(ReplaceRegExpr('\s\(.+$', Item.Caption, ''))
+      else
+        Databases.Add(Item.Caption);
+    end;
   end;
   SelStart := editDatabases.SelStart;
   editDatabases.Text := Implode(';', Databases);
