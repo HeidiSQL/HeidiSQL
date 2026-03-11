@@ -3346,6 +3346,11 @@ begin
       ' WHERE'+
       '   REFERENCED_TABLE_SCHEMA = :EscapedDatabase AND'+
       '   REFERENCED_TABLE_NAME = :EscapedName';
+    qExplain: Result := IfThen(
+      (FServerVersion >= 80400) and (FServerVersion < 100000), // Not MariaDB
+      'EXPLAIN FORMAT=TRADITIONAL %s',
+      'EXPLAIN %s'
+    );
     else Result := inherited;
   end;
 end;
