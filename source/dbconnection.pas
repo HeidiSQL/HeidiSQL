@@ -3130,10 +3130,15 @@ begin
     Dialog.lblPrompt.Caption := f_('Login to %s:', [FParameters.Hostname]);
     Dialog.editUsername.Text := FParameters.Username;
     Dialog.editPassword.Text := FParameters.Password;
-    Dialog.ShowModal;
-    FParameters.Username := Dialog.editUsername.Text;
-    FParameters.Password := Dialog.editPassword.Text;
-    Dialog.Free;
+    if Dialog.ShowModal = mrOk then begin
+      FParameters.Username := Dialog.editUsername.Text;
+      FParameters.Password := Dialog.editPassword.Text;
+      Dialog.Free;
+    end
+    else begin
+      Dialog.Free;
+      raise EDbError.Create(_('Login cancelled'));
+    end;
   end;
 
   // Prepare connection
