@@ -8,7 +8,7 @@ uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, ExtCtrls,
   Buttons, SynEdit, SynEditHighlighter, extra_controls, lazaruscompat,
   laz.VirtualTrees, Graphics, EditBtn,
-  dbconnection;
+  dbconnection, dbstructures;
 
 type
 
@@ -106,7 +106,7 @@ begin
   treeTopics.Clear;
   FreeAndNil(FRootTopics);
   FConnection := MainForm.ActiveConnection;
-  FRootTopics := FConnection.GetResults('HELP '+FConnection.EscapeString('CONTENTS'));
+  FRootTopics := FConnection.GetResults(FConnection.SqlProvider.GetSql(qHelpKeyword, [FConnection.EscapeString('CONTENTS')]));
   treeTopics.RootNodeCount := FRootTopics.RecordCount;
 end;
 
@@ -148,7 +148,7 @@ begin
 
   if FKeyword <> '' then try
     Screen.Cursor := crHourglass;
-    Results := FConnection.GetResults('HELP '+FConnection.EscapeString(FKeyword));
+    Results := FConnection.GetResults(FConnection.SqlProvider.GetSql(qHelpKeyword, [FConnection.EscapeString(FKeyword)]));
     Caption := Caption + ' - ' + FKeyword;
     MemoDescription.Text := fixNewlines(Results.Col('description', True));
     MemoExample.Text := fixNewlines(Results.Col('example', True));
@@ -235,7 +235,7 @@ begin
   // Return number of children for folder
   VT := Sender as TVirtualStringTree;
   Results := VT.GetNodeData(Node);
-  Results^ := FConnection.GetResults('HELP '+FConnection.EscapeString(VT.Text[Node, VT.Header.MainColumn]));
+  Results^ := FConnection.GetResults(FConnection.SqlProvider.GetSql(qHelpKeyword, [FConnection.EscapeString(VT.Text[Node, VT.Header.MainColumn])]));
   ChildCount := Results.RecordCount;
 end;
 
@@ -319,7 +319,7 @@ begin
   FKeyword := Value;
   if FKeyword = '' then
     Exit;
-  Results := FConnection.GetResults('HELP '+FConnection.EscapeString(FKeyword));
+  Results := FConnection.GetResults(FConnection.SqlProvider.GetSql(qHelpKeyword, [FConnection.EscapeString(FKeyword)]));
   while not Results.Eof do begin
     if Results.Col('is_it_category', true) = 'N' then begin
       FKeyword := Results.Col('name');
