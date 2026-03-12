@@ -3320,7 +3320,7 @@ begin
         ', ID AS `Id`'+
         ', IS_DEFAULT AS `Default`'+
         ', 0 AS `Sortlen`'+
-        ' FROM information_schema.COLLATION_CHARACTER_SET_APPLICABILITY'+
+        ' FROM INFORMATION_SCHEMA.COLLATION_CHARACTER_SET_APPLICABILITY'+
         ' ORDER BY `Collation`',
       ''
       );
@@ -3344,7 +3344,47 @@ begin
       (FServerVersion >= 80400) and (FServerVersion < 100000), // Not MariaDB
       'EXPLAIN FORMAT=TRADITIONAL %s',
       'EXPLAIN %s'
-    );
+      );
+    qSetTimezone: Result := IfThen(
+      FServerVersion >= 40103,
+      'SET time_zone=%s',
+      ''
+      );
+    qShowFunctionStatus: Result := IfThen(
+      (FServerVersion >= 50000) and (FNetType <> ntMySQL_ProxySQLAdmin),
+      'SHOW FUNCTION STATUS WHERE Db = %s',
+      ''
+      );
+    qShowProcedureStatus: Result := IfThen(
+      (FServerVersion >= 50000) and (FNetType <> ntMySQL_ProxySQLAdmin),
+      'SHOW PROCEDURE STATUS WHERE Db = %s',
+      ''
+      );
+    qShowTriggers: Result := IfThen(
+      (FServerVersion >= 50010) and (FNetType <> ntMySQL_ProxySQLAdmin),
+      'SHOW TRIGGERS FROM %s',
+      ''
+      );
+    qShowEvents: Result := IfThen(
+      (FServerVersion >= 50010) and (FNetType <> ntMySQL_ProxySQLAdmin),
+      'SELECT *, EVENT_SCHEMA AS `Db`, EVENT_NAME AS `Name` FROM INFORMATION_SCHEMA.`EVENTS` WHERE EVENT_SCHEMA=%s',
+      ''
+      );
+    qHelpKeyword: Result := IfThen(
+      (FServerVersion >= 40100) and (FNetType <> ntMySQL_ProxySQLAdmin),
+      'HELP %s',
+      ''
+      );
+    qShowCreateTrigger: Result := IfThen(
+      FServerVersion >= 50121,
+      'SHOW CREATE TRIGGER :QuotedDatabase.:QuotedName',
+      ''
+      );
+    qShowWarnings: Result := IfThen(
+      FServerVersion >= 40100,
+      'SHOW WARNINGS',
+      ''
+      );
     else Result := inherited;
   end;
 end;

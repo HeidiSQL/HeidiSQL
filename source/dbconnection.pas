@@ -420,12 +420,20 @@ type
   TDBLogEvent = procedure(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil) of object;
   TDBEvent = procedure(Connection: TDBConnection; Database: String) of object;
   TDBDataTypeArray = Array of TDBDataType;
-  TFeatureOrRequirement = (frSrid, frTimezoneVar, frTemporalTypesFraction,
-    frShowCreateTrigger, frShowWarnings,
-    frIntegerDisplayWidth, frShowFunctionStatus, frShowProcedureStatus,
-    frShowTriggers, frShowEvents, frColumnDefaultParentheses,
-    frHelpKeyword, frEditVariables, frCreateView, frCreateProcedure, frCreateFunction,
-    frCreateTrigger, frCreateEvent, frInvisibleColumns, frCompressedColumns);
+  TFeatureOrRequirement = (
+    frSrid,
+    frTemporalTypesFraction,
+    frIntegerDisplayWidth,
+    frColumnDefaultParentheses,
+    frEditVariables,
+    frCreateView,
+    frCreateProcedure,
+    frCreateFunction,
+    frCreateTrigger,
+    frCreateEvent,
+    frInvisibleColumns,
+    frCompressedColumns
+    );
 
   TDBConnection = class(TComponent)
     private
@@ -3388,6 +3396,9 @@ var
   StartupScript: String;
   StartupBatch: TSQLBatch;
   SqlQuery: TSQLSentence;
+  TZI: TTimeZoneInformation;
+  Minutes, Hours: Integer;
+  Offset: String;
 begin
   FSqlProvider.ServerVersion := ServerVersionInt;
   AppSettings.SessionPath := FParameters.SessionPath;
@@ -3422,6 +3433,25 @@ begin
     SQLFunctionsFileOrder := '';
   FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFileOrder);
 
+  // Set timezone offset to UTC
+  if FSqlProvider.Has(qSetTimezone) and Parameters.LocalTimeZone then begin
+    Minutes := 0;
+    case GetTimeZoneInformation(TZI) of
+      TIME_ZONE_ID_STANDARD: Minutes := (TZI.Bias + TZI.StandardBias);
+      TIME_ZONE_ID_DAYLIGHT: Minutes := (TZI.Bias + TZI.DaylightBias);
+      TIME_ZONE_ID_UNKNOWN: Minutes := TZI.Bias;
+      else RaiseLastOSError;
+    end;
+    Hours := Minutes div 60;
+    Minutes := Minutes mod 60;
+    if Hours < 0 then
+      Offset := '+'
+    else
+      Offset := '-';
+    Offset := Offset + Format('%.2d:%.2d', [Abs(Hours), Abs(Minutes)]);
+    Query(FSqlProvider.GetSql(qSetTimezone, [EscapeString(Offset)]));
+  end;
+
   // Process startup script
   StartupScript := Trim(FParameters.StartupScriptFilename);
   if StartupScript <> '' then begin
@@ -3444,31 +3474,10 @@ end;
 
 procedure TMySQLConnection.DoAfterConnect;
 var
-  TZI: TTimeZoneInformation;
-  Minutes, Hours, i: Integer;
-  Offset: String;
   ObjNames: TStringList;
+  i: Integer;
 begin
   inherited;
-
-  // Set timezone offset to UTC
-  if Has(frTimezoneVar) and Parameters.LocalTimeZone then begin
-    Minutes := 0;
-    case GetTimeZoneInformation(TZI) of
-      TIME_ZONE_ID_STANDARD: Minutes := (TZI.Bias + TZI.StandardBias);
-      TIME_ZONE_ID_DAYLIGHT: Minutes := (TZI.Bias + TZI.DaylightBias);
-      TIME_ZONE_ID_UNKNOWN: Minutes := TZI.Bias;
-      else RaiseLastOSError;
-    end;
-    Hours := Minutes div 60;
-    Minutes := Minutes mod 60;
-    if Hours < 0 then
-      Offset := '+'
-    else
-      Offset := '-';
-    Offset := Offset + Format('%.2d:%.2d', [Abs(Hours), Abs(Minutes)]);
-    Query('SET time_zone='+EscapeString(Offset));
-  end;
 
   // Support microseconds in some temporal datatypes of MariaDB 5.3+ and MySQL 5.6
   if Has(frTemporalTypesFraction) then begin
@@ -4345,7 +4354,7 @@ begin
         // SHOW CREATE TRIGGER was introduced in MySQL 5.1.21
         // See #111
         if Obj.NodeType = lntTrigger then
-          UseIt := UseIt and Has(frShowCreateTrigger);
+          UseIt := UseIt and FSqlProvider.Has(qShowCreateTrigger);
         if UseIt then
           Queries.Add('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name));
       end;
@@ -4782,8 +4791,8 @@ var
 begin
   // Log warnings
   // SHOW WARNINGS is implemented as of MySQL 4.1.0
-  if (WarningCount > 0) and Has(frShowWarnings) then begin
-    Warnings := GetResults('SHOW WARNINGS');
+  if (WarningCount > 0) and FSqlProvider.Has(qShowWarnings) then begin
+    Warnings := GetResults(FSqlProvider.GetSql(qShowWarnings));
     while not Warnings.Eof do begin
       Log(lcError, _(Warnings.Col('Level')) + ': ('+Warnings.Col('Code')+') ' + Warnings.Col('Message'));
       Warnings.Next;
@@ -6653,19 +6662,11 @@ begin
     ngMySQL:
       case Item of
         frSrid: Result := FParameters.IsMySQL(True) and (ServerVersionInt >= 80000);
-        frTimezoneVar: Result := ServerVersionInt >= 40103;
         frTemporalTypesFraction: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 50300)) or
           (FParameters.IsMySQL(True) and (ServerVersionInt >= 50604));
-        frShowCreateTrigger: Result := ServerVersionInt >= 50121;
-        frShowWarnings: Result := ServerVersionInt >= 40100;
         frIntegerDisplayWidth: Result := (FParameters.IsMySQL(True) and (ServerVersionInt < 80017)) or
           (not FParameters.IsMySQL(True));
-        frShowFunctionStatus: Result := (not Parameters.IsProxySQLAdmin) and (ServerVersionInt >= 50000);
-        frShowProcedureStatus: Result := (not FParameters.IsProxySQLAdmin) and (ServerVersionInt >= 50000);
-        frShowTriggers: Result := (not FParameters.IsProxySQLAdmin) and (ServerVersionInt >= 50010);
-        frShowEvents: Result := (not Parameters.IsProxySQLAdmin) and (ServerVersionInt >= 50100);
         frColumnDefaultParentheses: Result := FParameters.IsMySQL(True) and (ServerVersionInt >= 80013);
-        frHelpKeyword: Result := (not FParameters.IsProxySQLAdmin) and (ServerVersionInt >= 40100);
         frEditVariables: Result := ServerVersionInt >= 40003;
         frCreateView: Result := ServerVersionInt >= 50001;
         frCreateProcedure: Result := ServerVersionInt >= 50003;
@@ -7124,8 +7125,8 @@ begin
   end;
 
   // Stored functions
-  if Has(frShowFunctionStatus) then try
-    Results := GetResults('SHOW FUNCTION STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
+  if FSqlProvider.Has(qShowFunctionStatus) then try
+    Results := GetResults(FSqlProvider.GetSql(qShowFunctionStatus, [EscapeString(db)]));
   except
     on E:EDbError do;
   end;
@@ -7145,8 +7146,8 @@ begin
   end;
 
   // Stored procedures
-  if Has(frShowProcedureStatus) then try
-    Results := GetResults('SHOW PROCEDURE STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
+  if FSqlProvider.Has(qShowProcedureStatus) then try
+    Results := GetResults(FSqlProvider.GetSql(qShowProcedureStatus, [EscapeString(db)]));
   except
     on E:EDbError do;
   end;
@@ -7166,8 +7167,8 @@ begin
   end;
 
   // Triggers
-  if Has(frShowTriggers) then try
-    Results := GetResults('SHOW TRIGGERS FROM '+QuoteIdent(db));
+  if FSqlProvider.Has(qShowTriggers) then try
+    Results := GetResults(FSqlProvider.GetSql(qShowTriggers, [QuoteIdent(db)]));
   except
     on E:EDbError do;
   end;
@@ -7186,9 +7187,8 @@ begin
   end;
 
   // Events
-  if Has(frShowEvents) then try
-    Results := GetResults('SELECT *, EVENT_SCHEMA AS '+QuoteIdent('Db')+', EVENT_NAME AS '+QuoteIdent('Name')+
-      ' FROM '+InfSch+'.'+QuoteIdent('EVENTS')+' WHERE '+QuoteIdent('EVENT_SCHEMA')+'='+EscapeString(db))
+  if FSqlProvider.Has(qShowEvents) then try
+    Results := GetResults(FSqlProvider.GetSql(qShowEvents, [EscapeString(db)]));
   except
     on E:EDbError do begin
       try
@@ -10548,6 +10548,7 @@ begin
   FMap.Add('QuotedDatabase', QuotedDatabase);
   FMap.Add('QuotedName', QuotedName);
   FMap.Add('QuotedDbAndTableName', QuotedDbAndTableName);
+  FMap.Add('ObjType', UpperCase(ObjType));
   Result := FMap;
 end;
 

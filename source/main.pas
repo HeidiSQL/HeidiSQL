@@ -4953,7 +4953,7 @@ end;
 }
 procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
 begin
-  if FActiveDbObj.Connection.Has(frHelpKeyword) then begin
+  if FActiveDbObj.Connection.SqlProvider.Has(qHelpKeyword) then begin
     if not Assigned(SqlHelpDialog) then
       SqlHelpDialog := TfrmSQLhelp.Create(Self);
     SqlHelpDialog.Show;
@@ -13968,7 +13968,7 @@ begin
   Tab := QueryTabs[QueryTabs.Count-1];
   UsedDatabase := listProcesses.Text[listProcesses.FocusedNode, 3];
   if not UsedDatabase.IsEmpty then begin
-    Tab.Memo.Lines.Add('USE ' + Conn.QuoteIdent(UsedDatabase) + ';');
+    Tab.Memo.Lines.Add(Conn.SqlProvider.GetSql(qUSEQuery, [Conn.QuoteIdent(UsedDatabase)]) + ';');
   end;
   Tab.Memo.Lines.Add(Conn.SqlProvider.GetSql(qExplain, [SynMemoProcessView.Text]) + ';');
   Tab.TabSheet.Show;

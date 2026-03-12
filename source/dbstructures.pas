@@ -48,7 +48,9 @@ type
     qLockedTables, qDisableForeignKeyChecks, qEnableForeignKeyChecks,
     qOrderAsc, qOrderDesc, qGetRowCountExact, qGetRowCountApprox,
     qForeignKeyDrop, qGetTableColumns, qGetCollations, qGetCollationsExtended, qGetCharsets,
-    qGetReverseForeignKeys, qExplain);
+    qGetReverseForeignKeys, qExplain, qSetTimezone,
+    qShowFunctionStatus, qShowProcedureStatus, qShowTriggers, qShowEvents, qShowCreateTrigger,
+    qHelpKeyword, qShowWarnings);
   TSqlProvider = class
     strict protected
       FNetType: TNetType;
