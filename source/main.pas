@@ -8588,21 +8588,53 @@ end;
 procedure TMainForm.menuClearQueryHistoryClick(Sender: TObject);
 var
   Values: TStringList;
-  PathToDelete: String;
+  HistoryRootKey, ValueNameToDelete: String;
+  Tab: TQueryTab;
+  ClickNode: PVirtualNode;
+  History: TQueryHistory;
+  DialogResult: TModalResult;
 begin
   // Clear query history items in registry
-  // Take care of MessageDialog, probably changing the current SessionPath
-  PathToDelete := AppSettings.AppendDelimiter(ActiveConnection.Parameters.SessionPath) + REGKEY_QUERYHISTORY;
-  AppSettings.SessionPath := PathToDelete;
-  Values := AppSettings.GetValueNames;
-  if MessageDialog(_('Clear query history?'), f_('%s history items will be deleted.', [FormatNumber(Values.Count)]), mtConfirmation, [mbYes, mbNo]) = mrYes then begin
-    Screen.Cursor := crHourglass;
-    AppSettings.SessionPath := PathToDelete;
-    AppSettings.DeleteCurrentKey;
-    RefreshHelperNode(TQueryTab.HelperNodeHistory);
-    Screen.Cursor := crDefault;
+  HistoryRootKey := AppSettings.AppendDelimiter(ActiveConnection.Parameters.SessionPath) + REGKEY_QUERYHISTORY;
+  AppSettings.SessionPath := HistoryRootKey;
+
+  Tab := QueryTabs.ActiveTab;
+  ClickNode := Tab.treeHelpers.FocusedNode;
+
+  case Tab.treeHelpers.GetNodeLevel(ClickNode) of
+    1: begin
+      Values := AppSettings.GetValueNames;
+      //showmessage(Values.Text);
+      DialogResult := MessageDialog(
+        _('Clear query history?'),
+        f_('%s history items will be deleted.', [FormatNumber(Values.Count)]),
+        mtConfirmation,
+        [mbYes, mbNo]
+        );
+      if DialogResult = mrYes then begin
+        Screen.Cursor := crHourglass;
+        // MessageDialog may have changed the current SessionPath
+        AppSettings.SessionPath := HistoryRootKey;
+        AppSettings.DeleteCurrentKey;
+        RefreshHelperNode(TQueryTab.HelperNodeHistory);
+        Screen.Cursor := crDefault;
+      end;
+      Values.Free;
+    end;
+
+    2: begin
+      History := Tab.HistoryDays.Objects[ClickNode.Parent.Index] as TQueryHistory;
+      ValueNameToDelete := History[ClickNode.Index].RegValue.ToString;
+      //showmessage(ValueNameToDelete);
+      Screen.Cursor := crHourglass;
+      // MessageDialog may have changed the current SessionPath
+      AppSettings.SessionPath := HistoryRootKey;
+      AppSettings.DeleteValue(ValueNameToDelete);
+      RefreshHelperNode(TQueryTab.HelperNodeHistory);
+      Screen.Cursor := crDefault;
+    end;
   end;
-  Values.Free;
+
   AppSettings.ResetPath;
 end;
 
@@ -14441,6 +14473,7 @@ begin
   menuExplore.Enabled := False;
   menuHelp.Enabled := False;
   menuClearQueryHistory.Enabled := False;
+  menuClearQueryHistory.Caption := _('Clear query history ...');
 
   case Tree.GetNodeLevel(Tree.FocusedNode) of
     0: ;
@@ -14477,6 +14510,7 @@ begin
     2: case Tree.FocusedNode.Parent.Parent.Index of
       TQueryTab.HelperNodeHistory: begin
         menuClearQueryHistory.Enabled := True;
+        menuClearQueryHistory.Caption := _('Delete this query from history');
         menuInsertAtCursor.Enabled := True;
       end;
     end;

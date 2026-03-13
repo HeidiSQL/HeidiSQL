@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2026-03-12 20:54+0100\n"
+"PO-Revision-Date: 2026-03-13 16:14+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -2604,6 +2604,9 @@ msgstr "Explore folder"
 #: main.dfm:9213
 msgid "Clear query history ..."
 msgstr "Clear query history ..."
+
+msgid "Delete this query from history"
+msgstr "Delete this query from history"
 
 #. MainForm..popupQueryHelpers..menuQueryHelpersGenerateInsert..Caption
 #: main.dfm:9218
