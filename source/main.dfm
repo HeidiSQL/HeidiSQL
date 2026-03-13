@@ -4145,6 +4145,7 @@ object MainForm: TMainForm
     object menuClearQueryHistory: TMenuItem
       Caption = 'Clear query history ...'
       Enabled = False
+      ImageIndex = 26
       OnClick = menuClearQueryHistoryClick
     end
     object menuQueryHelpersGenerateSelect: TMenuItem
