@@ -2057,8 +2057,11 @@ begin
       // Calculate limit so we select ~100MB per loop
       // Take care of disabled "Get full table status" session setting, where AvgRowLen is 0
       Limit := Round(100 * SIZE_MB / IfThen(DBObj.AvgRowLen>0, DBObj.AvgRowLen, AssumedAvgRowLen));
-      if comboExportData.Text = DATA_REPLACE then
+      if comboExportData.Text = DATA_REPLACE then begin
         Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
+        if menuExportRemoveAutoIncrement.Checked then
+          Output('/*!50000 ALTER TABLE '+TargetDbAndObject+' AUTO_INCREMENT = 1 */', True, True, True, True, True);
+      end;
       while true do begin
         Data := DBObj.Connection.GetResults(
           DBObj.Connection.ApplyLimitClause(
