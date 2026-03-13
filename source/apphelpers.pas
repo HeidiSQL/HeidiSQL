@@ -713,10 +713,13 @@ end;
 }
 procedure StreamWrite(S: TStream; Text: String = '');
 var
-  utf8: AnsiString;
+  utf8: UTF8String;
+  L: Integer;
 begin
   utf8 := Utf8Encode(Text);
-  S.Write(utf8[1], Length(utf8));
+  L := Length(utf8);
+  if L > 0 then
+    S.WriteBuffer(utf8[1], L);
 end;
 
 
