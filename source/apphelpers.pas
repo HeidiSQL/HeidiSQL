@@ -77,12 +77,13 @@ type
     private
       FSQL: String;
       FQuotes: THashedStringList;
+      FEscape: Char;
       procedure SetSQL(Value: String);
       function GetSize: Integer;
       function GetSQLWithoutComments: String; overload;
     public
       constructor Create(NetTypeGroup: TNetTypeGroup);
-      destructor Destroy; overload;
+      destructor Destroy; override;
       class function GetSQLWithoutComments(FullSQL: String): String; overload;
       property Size: Integer read GetSize;
       property SQL: String read FSQL write SetSQL;
@@ -3411,9 +3412,11 @@ begin
   FQuotes.Sorted := True;
   FQuotes.Add('"');
   FQuotes.Add('''');
+  FEscape := '\';
   case NetTypeGroup of
     ngMySQL: FQuotes.Add('`'); // MySQL/MariaDB only
     ngPgSQL: FQuotes.Add('$$'); // PostgreSQL only ($abc$ unsupported)
+    ngSQLite: FEscape := '''';
   end;
 end;
 
@@ -3504,7 +3507,7 @@ begin
       end;
     end;
     if not InEscape then
-      InEscape := c = '\'
+      InEscape := c = FEscape
     else
       InEscape := False;
 
