@@ -1860,6 +1860,18 @@ begin
       EditLink := DataTypeEditor;
       end;
 
+    ColNumLengthSet: begin
+      if DBObject.Connection.Parameters.IsAnyPostgreSQL and (Col.DataType.Index = dbdtEnum) then begin
+        EnumEditor := TEnumEditorLink.Create(VT, True, Col^);
+        EnumEditor.AllowCustomText := True;
+        EnumEditor.ItemMustExist := False;
+        EnumEditor.ValueList := Explode('|', Col.DataType.Names);
+        EnumEditor.ValueList.Sort;
+        EnumEditor.ValueList.Insert(0, '');
+        EditLink := EnumEditor;
+      end;
+    end;
+
     ColNumCollation: begin // Collation pulldown
       EnumEditor := TEnumEditorLink.Create(VT, True, Col^);
       EnumEditor.AllowCustomText := True;
@@ -1890,12 +1902,13 @@ begin
       EditLink := EnumEditor;
     end
 
-    else begin
-      Edit := TInplaceEditorLink.Create(VT, True, Col^);
-      Edit.TitleText := VT.Header.Columns[Column].Text;
-      Edit.ButtonVisible := True;
-      EditLink := Edit;
-    end;
+  end;
+
+  if (not Assigned(EditLink)) then begin
+    Edit := TInplaceEditorLink.Create(VT, True, Col^);
+    Edit.TitleText := VT.Header.Columns[Column].Text;
+    Edit.ButtonVisible := True;
+    EditLink := Edit;
   end;
 end;
 

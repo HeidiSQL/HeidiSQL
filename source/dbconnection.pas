@@ -2350,25 +2350,16 @@ var
   i: Integer;
   rx: TRegExpr;
   TypeFound: Boolean;
-  TypeOid: String;
 begin
   rx := TRegExpr.Create;
   TypeFound := False;
+
   for i:=0 to High(Datatypes) do begin
-    if Datatypes[i].NativeTypes = '?' then begin
-      // PG oid is set to be populated via '?'
-      Datatypes[i].NativeTypes := '';
-      TypeOid := GetVar('SELECT oid FROM '+QuoteIdent('pg_type')+' WHERE '+QuoteIdent('typname')+' = '+EscapeString(Datatypes[i].Name.ToLower));
-      if IsNumeric(TypeOid) then begin
-        Datatypes[i].NativeTypes := TypeOid;
-        Log(lcInfo, 'Found oid/NativeTypes of '+Datatypes[i].Name+' data type: '+Datatypes[i].NativeTypes);
-      end
-      else begin
-        Log(lcInfo, 'No support for '+Datatypes[i].Name+' data type on this server.');
-      end;
-    end;
-    // Skip if native ids / oid's are (still) empty
+    // Skip if native ids / oid's are (yet) empty
     if Datatypes[i].NativeTypes.IsEmpty then
+      Continue;
+    // Skip ? and e which have a special meaning
+    if Datatypes[i].NativeTypes.Length = 1 then
       Continue;
     rx.Expression := '\b('+Datatypes[i].NativeTypes+')\b';
     if rx.Exec(IntToStr(NativeType)) then begin
@@ -3396,6 +3387,10 @@ end;
 
 procedure TDBConnection.DoAfterConnect;
 var
+  i: Integer;
+  TypeOid: String;
+  SubTypes: TDBQuery;
+  SubTypesList: TStringList;
   SQLFunctionsFileOrder: String;
   MajorMinorVer, MajorVer: String;
   StartupScript: String;
@@ -3406,6 +3401,39 @@ var
   Offset: String;
 begin
   FSqlProvider.ServerVersion := ServerVersionInt;
+
+  for i:=0 to High(Datatypes) do begin
+
+    if Datatypes[i].NativeTypes = '?' then begin
+      // PG oid is set to be populated via '?'
+      TypeOid := GetVar('SELECT oid FROM '+QuoteIdent('pg_type')+' WHERE '+QuoteIdent('typname')+' = '+EscapeString(Datatypes[i].Name.ToLower));
+      if IsNumeric(TypeOid) then begin
+        Datatypes[i].NativeTypes := TypeOid;
+        Log(lcInfo, 'Found oid/NativeTypes of '+Datatypes[i].Name+' data type: '+Datatypes[i].NativeTypes);
+      end
+      else begin
+        Log(lcInfo, 'No support for '+Datatypes[i].Name+' data type on this server.');
+      end;
+    end
+
+    else if ExecRegExprI('^[a-z]$', Datatypes[i].NativeTypes) then begin
+      // PG ENUM types populated via 'e'
+      if FSqlProvider.Has(qGetSubDataTypes) then begin
+        SubTypes := GetResults(FSqlProvider.GetSql(qGetSubDataTypes, [Datatypes[i].NativeTypes]));
+        SubTypesList := TStringList.Create;
+        while not SubTypes.Eof do begin
+          SubTypesList.Add(SubTypes.Col('enum_name'));
+          SubTypesList.Add(SubTypes.Col('enum_schema') + '.' + SubTypes.Col('enum_name'));
+          SubTypes.Next;
+        end;
+        SubTypes.Free;
+        Datatypes[i].Names := Implode('|', SubTypesList);
+      end;
+    end;
+
+  end;
+
+
   AppSettings.SessionPath := FParameters.SessionPath;
   AppSettings.WriteString(asServerVersionFull, FServerVersionUntouched);
   FParameters.ServerVersion := FServerVersionUntouched;
@@ -10835,7 +10863,9 @@ procedure TTableColumn.ParseDatatype(Source: String);
 var
   InLiteral: Boolean;
   ParenthLeft, i: Integer;
+  OrgSource: String;
 begin
+  OrgSource := Source;
   DataType := Connection.GetDatatypeByName(Source, True);
   // Length / Set
   // Various datatypes, e.g. BLOBs, don't have any length property
@@ -10853,6 +10883,8 @@ begin
       LengthSet := '';
   end else begin
     LengthSet := '';
+    if DataType.Index = dbdtEnum then
+      LengthSet := OrgSource;
   end;
   Unsigned :=  ExecRegExpr('\bunsigned\b', Source.ToLowerInvariant);
   ZeroFill := ExecRegExpr('\bzerofill\b', Source.ToLowerInvariant);
