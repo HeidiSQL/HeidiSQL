@@ -3223,7 +3223,7 @@ end;
 
 constructor TSQLBatch.Create(NetTypeGroup: TNetTypeGroup);
 begin
-  inherited;
+  inherited Create;
   FQuotes := THashedStringList.Create;
   FQuotes.CaseSensitive := True;
   FQuotes.Sorted := True;
