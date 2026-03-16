@@ -46,7 +46,7 @@ type
 const InvalidOid: POid = 0;
 
 var
-  PostgreSQLDatatypes: Array[0..38] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..39] of TDBDatatype =
   (
     (
       Index:           dbdtUnknown;
@@ -512,6 +512,19 @@ var
       Category:        dtcOther;
     ),
     (
+      Index:           dbdtEnum;
+      NativeTypes:     'e';
+      Name:            'ENUM';
+      Names:           '';
+      Description:     'A list of quoted labels, each of which must be less than NAMEDATALEN bytes long (64 bytes in a standard PostgreSQL build)';
+      HasLength:       True; // Enables the Length/set field in table editor
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcOther;
+    ),
+    (
       Index:           dbdtJson;
       NativeTypes:     '114';
       Name:            'JSON';
@@ -716,6 +729,22 @@ begin
       ' WHERE pg_class.relkind=''r'''+
       '   AND pg_namespace.nspname=:EscapedDatabase'+
       '   AND pg_class.relname=:EscapedName';
+    qGetEnumTypes: Result := IfThen(
+      FServerVersion >= 90000,
+      'SELECT ' +
+      '  n.nspname AS enum_schema, ' +
+      '  t.typname AS enum_name, ' +
+      '  string_agg(e.enumlabel, ''|'' ORDER BY e.enumsortorder) AS enum_labels ' +
+      'FROM pg_type AS t ' +
+      'JOIN pg_enum AS e ' +
+      '  ON t.oid = e.enumtypid ' +
+      'JOIN pg_namespace AS n ' +
+      '  ON n.oid = t.typnamespace ' +
+      'WHERE t.typtype = ''e'' ' +
+      'GROUP BY n.nspname, t.typname ' +
+      'ORDER BY UPPER(t.typname)',
+      '' // ServerVersion < 9
+      );
     else Result := inherited;
   end;
 end;

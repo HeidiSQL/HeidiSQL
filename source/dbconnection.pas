@@ -482,6 +482,7 @@ type
       FMaxRowsPerInsert: Int64;
       FCaseSensitivity: Integer;
       FSQLFunctions: TSQLFunctionList;
+      FNamedEnums: TStringList;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure StartSSHTunnel(var FinalHost: String; var FinalPort: Integer);
@@ -616,6 +617,7 @@ type
       function IsHex(Text: String): Boolean;
       function Has(Item: TFeatureOrRequirement): Boolean;
       property SqlProvider: TSqlProvider read FSqlProvider;
+      property NamedEnums: TStringList read FNamedEnums;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -2066,6 +2068,9 @@ begin
   FStringQuoteChar := '''';
   FCollationTable := nil;
   FCharsetTable := nil;
+  FQuoteChar := '"';
+  FQuoteChars := '"[]';
+  FNamedEnums := TStringList.Create;
 end;
 
 
@@ -2090,8 +2095,6 @@ var
   i: Integer;
 begin
   inherited;
-  FQuoteChar := '"';
-  FQuoteChars := '"[]';
   SetLength(FDatatypes, Length(MSSQLDatatypes));
   for i:=0 to High(MSSQLDatatypes) do
     FDatatypes[i] := MSSQLDatatypes[i];
@@ -2106,7 +2109,6 @@ var
   i: Integer;
 begin
   inherited;
-  FQuoteChar := '"';
   FQuoteChars := '"';
   SetLength(FDatatypes, Length(PostGreSQLDatatypes));
   for i:=0 to High(PostGreSQLDatatypes) do
@@ -2123,8 +2125,6 @@ var
   i: Integer;
 begin
   inherited;
-  FQuoteChar := '"';
-  FQuoteChars := '"[]';
   SetLength(FDatatypes, Length(SQLiteDatatypes));
   for i:=0 to High(SQLiteDatatypes) do
     FDatatypes[i] := SQLiteDatatypes[i];
@@ -2138,8 +2138,6 @@ var
   i: Integer;
 begin
   inherited;
-  FQuoteChar := '"';
-  FQuoteChars := '"[]';
   SetLength(FDatatypes, Length(InterbaseDatatypes));
   for i:=0 to High(InterbaseDatatypes) do
     FDatatypes[i] := InterbaseDatatypes[i];
@@ -2154,6 +2152,7 @@ begin
   FKeepAliveTimer.Free;
   FFavorites.Free;
   FInformationSchemaObjects.Free;
+  FNamedEnums.Free;
   if FOwnsParameters then
     FParameters.Free;
   inherited;
@@ -2230,7 +2229,7 @@ begin
       TypesSorted.Free;
     end;
 
-    rx.Expression := '^('+Types+')\b(\[\])?';
+    rx.Expression := '\b('+Types+')\b(\[\])?';
     Match := rx.Exec(DataType);
     // Prefer a later match which is longer than the one found before.
     // See http://www.heidisql.com/forum.php?t=17061
@@ -2271,26 +2270,17 @@ var
   i: Integer;
   rx: TRegExpr;
   TypeFound: Boolean;
-  TypeOid: String;
 begin
   Result := Default(TDBDatatype);
   rx := TRegExpr.Create;
   TypeFound := False;
+
   for i:=0 to High(Datatypes) do begin
-    if Datatypes[i].NativeTypes = '?' then begin
-      // PG oid is set to be populated via '?'
-      Datatypes[i].NativeTypes := '';
-      TypeOid := GetVar('SELECT oid FROM '+QuoteIdent('pg_type')+' WHERE '+QuoteIdent('typname')+' = '+EscapeString(Datatypes[i].Name.ToLower));
-      if IsNumeric(TypeOid) then begin
-        Datatypes[i].NativeTypes := TypeOid;
-        Log(lcInfo, 'Found oid/NativeTypes of '+Datatypes[i].Name+' data type: '+Datatypes[i].NativeTypes);
-      end
-      else begin
-        Log(lcInfo, 'No support for '+Datatypes[i].Name+' data type on this server.');
-      end;
-    end;
-    // Skip if native ids / oid's are (still) empty
+    // Skip if native ids / oid's are (yet) empty
     if Datatypes[i].NativeTypes.IsEmpty then
+      Continue;
+    // Skip ? and e which have a special meaning
+    if Datatypes[i].NativeTypes.Length = 1 then
       Continue;
     rx.Expression := '\b('+Datatypes[i].NativeTypes+')\b';
     if rx.Exec(IntToStr(NativeType)) then begin
@@ -3268,6 +3258,10 @@ end;
 
 procedure TDBConnection.DoAfterConnect;
 var
+  i: Integer;
+  TypeOid: String;
+  AllEnums: TDBQuery;
+  AllEnumsList: TStringList;
   SQLFunctionsFileOrder: String;
   MajorMinorVer, MajorVer: String;
   StartupScript: String;
@@ -3277,6 +3271,46 @@ var
   Offset: String;
 begin
   FSqlProvider.ServerVersion := ServerVersionInt;
+
+  for i:=0 to High(Datatypes) do begin
+
+    if Datatypes[i].NativeTypes = '?' then begin
+      // PG oid is set to be populated via '?'
+      TypeOid := GetVar('SELECT oid FROM '+QuoteIdent('pg_type')+' WHERE '+QuoteIdent('typname')+' = '+EscapeString(Datatypes[i].Name.ToLower));
+      if IsNumeric(TypeOid) then begin
+        Datatypes[i].NativeTypes := TypeOid;
+        Log(lcInfo, 'Found oid/NativeTypes of '+Datatypes[i].Name+' data type: '+Datatypes[i].NativeTypes);
+      end
+      else begin
+        Log(lcInfo, 'No support for '+Datatypes[i].Name+' data type on this server.');
+      end;
+    end
+
+    else if (Datatypes[i].NativeTypes = 'e') and FSqlProvider.Has(qGetEnumTypes) then begin
+      // PG ENUM types populated via 'e'
+      AllEnums := GetResults(FSqlProvider.GetSql(qGetEnumTypes));
+      AllEnumsList := TStringList.Create;
+      while not AllEnums.Eof do begin
+        AllEnumsList.Add(AllEnums.Col('enum_name'));
+        AllEnumsList.Add(AllEnums.Col('enum_schema') + '.' + AllEnums.Col('enum_name'));
+        FNamedEnums.AddPair(
+          AllEnums.Col('enum_name'),
+          AllEnums.Col('enum_labels')
+          );
+        FNamedEnums.AddPair(
+          AllEnums.Col('enum_schema') + '.' + AllEnums.Col('enum_name'),
+          AllEnums.Col('enum_labels')
+          );
+        AllEnums.Next;
+      end;
+      AllEnums.Free;
+      Datatypes[i].Names := Implode('|', AllEnumsList);
+      AllEnumsList.Free;
+    end;
+
+  end;
+
+
   AppSettings.SessionPath := FParameters.SessionPath;
   AppSettings.WriteString(asServerVersionFull, FServerVersionUntouched);
   FParameters.ServerVersion := FServerVersionUntouched;
@@ -8979,19 +9013,33 @@ var
   i: Integer;
 begin
   Result := TStringList.Create;
-  Result.QuoteChar := '''';
-  Result.Delimiter := ',';
   ColAttr := ColAttributes(Column);
   if Assigned(ColAttr) then case ColAttr.DataType.Index of
+
     dbdtEnum, dbdtSet: begin
-      Result.DelimitedText := ColAttr.LengthSet;
-      // Take care for escaped ENUM definitions, see issue #799
+      // Lool up PostgreSQL enum labels in prefetched list
+      i := FConnection.NamedEnums.IndexOfName(ColAttr.LengthSet);
+      if i > -1 then begin
+        Result.Delimiter := '|';
+        Result.DelimitedText := FConnection.NamedEnums.ValueFromIndex[i];
+      end
+      else begin
+        // .. or in MySQL Length/Set
+        Result.QuoteChar := '''';
+        Result.Delimiter := ',';
+        Result.DelimitedText := ColAttr.LengthSet;
+      end;
+      // In any case, take care for escaped ENUM definitions, see issue #799
       for i:=0 to Result.Count-1 do begin
         Result[i] := FConnection.UnescapeString(Result[i]);
       end;
     end;
-    dbdtBool:
+
+    dbdtBool: begin
+      Result.Delimiter := ',';
       Result.DelimitedText := 'true,false';
+    end;
+
   end;
 end;
 
@@ -10610,25 +10658,29 @@ begin
   end;
 
   if InParts(cpType) then begin
-    case FConnection.Parameters.NetTypeGroup of
-      ngPgSQL: begin
-        if DefaultType = cdtAutoInc then
-          Result := Result + 'SERIAL'
-        else
-          Result := Result + DataType.Name;
-      end;
-      else Result := Result + DataType.Name;
-    end;
 
-    if (LengthSet <> '') and DataType.HasLength then
-      Result := Result + '(' + LengthSet + ')';
-    if (DataType.Category in [dtcInteger, dtcReal]) and Unsigned then
-      Result := Result + ' UNSIGNED';
-    if (DataType.Category in [dtcInteger, dtcReal]) and ZeroFill then
-      Result := Result + ' ZEROFILL';
-    if Compressed and FConnection.Parameters.IsMariaDB then
-      Result := Result + ' /*!100301 COMPRESSED*/';
-    Result := Result + ' '; // Add space after each part
+    if FConnection.Parameters.IsAnyPostgreSQL and (DefaultType = cdtAutoInc) then begin
+      Result := Result + 'SERIAL';
+    end
+    else begin
+
+      if (DataType.Index = dbdtEnum) and (FConnection.NamedEnums.IndexOfName(LengthSet) > -1) then begin
+        Result := Result + LengthSet;
+      end
+      else begin
+        Result := Result + DataType.Name;
+        if (LengthSet <> '') and DataType.HasLength then
+          Result := Result + '(' + LengthSet + ')';
+      end;
+
+      if (DataType.Category in [dtcInteger, dtcReal]) and Unsigned then
+        Result := Result + ' UNSIGNED';
+      if (DataType.Category in [dtcInteger, dtcReal]) and ZeroFill then
+        Result := Result + ' ZEROFILL';
+      if Compressed and FConnection.Parameters.IsMariaDB then
+        Result := Result + ' /*!100301 COMPRESSED*/';
+      Result := Result + ' '; // Add space after each part
+    end;
   end;
 
   if InParts(cpAllowNull) and (not IsVirtual) and (not FConnection.Parameters.IsAnyMSSQL) then begin
@@ -10719,7 +10771,9 @@ procedure TTableColumn.ParseDatatype(Source: String);
 var
   InLiteral: Boolean;
   ParenthLeft, i: Integer;
+  OrgSource: String;
 begin
+  OrgSource := Source;
   DataType := Connection.GetDatatypeByName(Source, True);
   // Length / Set
   // Various datatypes, e.g. BLOBs, don't have any length property
@@ -10738,6 +10792,11 @@ begin
       LengthSet := '';
   end else begin
     LengthSet := '';
+    if DataType.Index = dbdtEnum then begin
+      // Assign PostgreSQL enum type to LengthSet, so we can provide it in table editor
+      // Some enum types are wrapped in double quotes
+      LengthSet := OrgSource.Trim([FConnection.QuoteChar]);
+    end;
   end;
   Unsigned :=  ExecRegExpr('\bunsigned\b', Source.ToLowerInvariant);
   ZeroFill := ExecRegExpr('\bzerofill\b', Source.ToLowerInvariant);
@@ -10780,8 +10839,12 @@ end;
 function TTableColumn.FullDataType: String;
 begin
   Result := DataType.Name;
-  if not LengthSet.IsEmpty then
-    Result := Result + '(' + LengthSet + ')';
+  if not LengthSet.IsEmpty then begin
+    if (DataType.Index = dbdtEnum) and (FConnection.NamedEnums.IndexOfName(LengthSet) > -1) then
+      Result := LengthSet
+    else
+      Result := Result + '(' + LengthSet + ')';
+  end;
 end;
 
 
