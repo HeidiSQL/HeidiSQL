@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2026-03-13 16:14+0100\n"
+"PO-Revision-Date: 2026-03-16 17:18+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -4930,6 +4930,9 @@ msgstr "Could not find node to focus."
 #: main.pas:7870
 msgid "Could not load full row data."
 msgstr "Could not load full row data."
+
+msgid "Column %s is defined as generated. You cannot edit its content."
+msgstr "Column %s is defined as generated. You cannot edit its content."
 
 #: main.pas:8462
 msgid "Not available on %s"

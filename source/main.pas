@@ -10753,6 +10753,8 @@ end;
 
 procedure TMainForm.AnyGridEditing(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+var
+  ColInfo: TTableColumn;
 begin
   Allowed := False;
   // Do not edit on right-click
@@ -10763,6 +10765,15 @@ begin
       ErrorDialog(_('Could not load full row data.'))
     else begin
       Allowed := True;
+      if Sender = DataGrid then begin
+        ColInfo := SelectedTableColumns.FindByName(DataGrid.Header.Columns[Column].Text);
+        if Assigned(ColInfo) then begin
+          Allowed := ColInfo.GenerationExpression.IsEmpty;
+          if not Allowed then
+            ErrorDialog(f_('Column %s is defined as generated. You cannot edit its content.', [IntToStr(Column)]));
+        end;
+      end;
+
       // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
       actDataCancelChanges.ShortCut := 0;
       actDataPostChanges.ShortCut := 0;
