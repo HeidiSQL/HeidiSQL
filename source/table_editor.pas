@@ -1866,7 +1866,6 @@ begin
         EnumEditor.AllowCustomText := True;
         EnumEditor.ItemMustExist := False;
         EnumEditor.ValueList := Explode('|', Col.DataType.Names);
-        EnumEditor.ValueList.Sort;
         EnumEditor.ValueList.Insert(0, '');
         EditLink := EnumEditor;
       end;

@@ -727,20 +727,20 @@ begin
       ' WHERE pg_class.relkind=''r'''+
       '   AND pg_namespace.nspname=:EscapedDatabase'+
       '   AND pg_class.relname=:EscapedName';
-    qGetSubDataTypes: Result := IfThen(
+    qGetEnumTypes: Result := IfThen(
       FServerVersion >= 90000,
       'SELECT ' +
       '  n.nspname AS enum_schema, ' +
       '  t.typname AS enum_name, ' +
-      '  string_agg(e.enumlabel, '','' ORDER BY e.enumsortorder) AS enum_labels ' +
+      '  string_agg(e.enumlabel, ''|'' ORDER BY e.enumsortorder) AS enum_labels ' +
       'FROM pg_type AS t ' +
       'JOIN pg_enum AS e ' +
       '  ON t.oid = e.enumtypid ' +
       'JOIN pg_namespace AS n ' +
       '  ON n.oid = t.typnamespace ' +
-      'WHERE t.typtype = ''%s'' ' +
+      'WHERE t.typtype = ''e'' ' +
       'GROUP BY n.nspname, t.typname ' +
-      'ORDER BY n.nspname, t.typname',
+      'ORDER BY UPPER(t.typname)',
       '' // ServerVersion < 9
       );
     else Result := inherited;
