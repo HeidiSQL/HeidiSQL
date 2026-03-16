@@ -7,7 +7,8 @@ interface
 uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls, EditBtn, Buttons,
   ExtCtrls, ClipBrd, Generics.Collections, Generics.Defaults, RegExpr, extra_controls,
-  dbconnection, dbstructures, dbstructures.mysql, apphelpers, laz.VirtualTrees, Menus, SpinEx;
+  dbconnection, dbstructures, dbstructures.mysql, apphelpers, laz.VirtualTrees, Menus, SpinEx,
+  StrUtils;
 
 {$I const.inc}
 
@@ -34,6 +35,7 @@ type
     Username, Host, Password, Cipher, Issuer, Subject: String;
     MaxQueries, MaxUpdates, MaxConnections, MaxUserConnections, SSL: Integer;
     Problem: TUserProblem;
+    IsRole: Boolean;
     public
       constructor Create;
       function HostRequiresNameResolve: Boolean;
@@ -268,10 +270,9 @@ var
   Version, i: Integer;
   Users: TDBQuery;
   U: TUser;
-  tmp, PasswordExpr: String;
+  tmp, PasswordExpr, IsRoleExpr: String;
   SkipNameResolve,
-  HasPassword,
-  HasAuthString,
+  HasPassword, HasAuthString, HasIsRole: Boolean;
   PasswordLengthMatters: Boolean;
   UserTableColumns: TStringList;
 
@@ -392,6 +393,7 @@ begin
     UserTableColumns := FConnection.GetCol('SHOW COLUMNS FROM '+FConnection.QuoteIdent('mysql')+'.'+FConnection.QuoteIdent('user'));
     HasPassword := UserTableColumns.IndexOf('password') > -1;
     HasAuthString := UserTableColumns.IndexOf('authentication_string') > -1;
+    HasIsRole := UserTableColumns.IndexOf('is_role') > -1;
     if HasPassword and (not HasAuthString) then
       PasswordExpr := 'password'
     else if (not HasPassword) and HasAuthString then
@@ -401,9 +403,14 @@ begin
     else
       Raise Exception.Create(_('No password hash column available'));
     PasswordExpr := PasswordExpr + ' AS ' + FConnection.QuoteIdent('password');
+    IsRoleExpr := IfThen(HasIsRole, 'is_role', FConnection.EscapeString('N')+' AS is_role');
 
     Users := FConnection.GetResults(
-      'SELECT '+FConnection.QuoteIdent('user')+', '+FConnection.QuoteIdent('host')+', '+PasswordExpr+' '+
+      'SELECT '+
+      FConnection.QuoteIdent('user') + ', ' +
+      FConnection.QuoteIdent('host') + ', ' +
+      PasswordExpr + ', ' +
+      IsRoleExpr + ' ' +
       'FROM '+FConnection.QuoteIdent('mysql')+'.'+FConnection.QuoteIdent('user')
       );
     FUsers := TUserList.Create(True);
@@ -412,13 +419,16 @@ begin
       U.Username := Users.Col('user');
       U.Host := Users.Col('host');
       U.Password := Users.Col('password');
+      U.IsRole := UpperCase(Users.Col('is_role')) = 'Y';
       U.Problem := upNone;
-      if Length(U.Password) = 0 then
-        U.Problem := upEmptyPassword;
-      if PasswordLengthMatters and (not (Length(U.Password) {%H-}in [0, 16, 41])) then
-        U.Problem := upInvalidPasswordLen
-      else if SkipNameResolve and U.HostRequiresNameResolve then
-        U.Problem := upSkipNameResolve;
+      if not U.IsRole then begin
+        if Length(U.Password) = 0 then
+          U.Problem := upEmptyPassword;
+        if PasswordLengthMatters and (not (Length(U.Password) in [0, 16, 41])) then
+          U.Problem := upInvalidPasswordLen
+        else if SkipNameResolve and U.HostRequiresNameResolve then
+          U.Problem := upSkipNameResolve;
+      end;
       FUsers.Add(U);
       Users.Next;
     end;
@@ -576,7 +586,10 @@ begin
 
   if UserSelected then begin
     User := Sender.GetNodeData(Node);
-    UserHost := FConnection.EscapeString(User.Username)+'@'+FConnection.EscapeString(User.Host);
+    if not User.IsRole then
+      UserHost := FConnection.EscapeString(User.Username)+'@'+FConnection.EscapeString(User.Host)
+    else
+      UserHost := FConnection.EscapeString(User.Username);
     editUsername.Text := User.Username;
     editFromHost.Text := User.Host;
     Caption := Caption + ' - ' + User.Username;
@@ -732,7 +745,7 @@ begin
 
 
     CreateUser := '';
-    try
+    if not User.IsRole then try
       CreateUser := FConnection.GetVar('SHOW CREATE USER '+UserHost);
       User.ParseSettings(CreateUser, nil);
     except
@@ -782,12 +795,12 @@ begin
   // Enable input boxes
   lblUsername.Enabled := UserSelected;
   editUsername.Enabled := UserSelected;
-  lblFromHost.Enabled := UserSelected;
-  editFromHost.Enabled := UserSelected;
-  lblPassword.Enabled := UserSelected;
-  editPassword.Enabled := UserSelected;
-  lblRepeatPassword.Enabled := UserSelected;
-  editRepeatPassword.Enabled := UserSelected;
+  lblFromHost.Enabled := UserSelected and (not User.IsRole);
+  editFromHost.Enabled := UserSelected and (not User.IsRole);
+  lblPassword.Enabled := UserSelected and (not User.IsRole);
+  editPassword.Enabled := UserSelected and (not User.IsRole);
+  lblRepeatPassword.Enabled := UserSelected and (not User.IsRole);
+  editRepeatPassword.Enabled := UserSelected and (not User.IsRole);
   tabCredentials.Enabled := UserSelected;
   lblMaxQueries.Enabled := UserSelected and (FConnection.ServerVersionInt >= 40002);
 
@@ -819,10 +832,15 @@ var
 begin
   if Column <> 0 then
     Exit;
+  User := Sender.GetNodeData(Node);
   case Kind of
-    ikNormal, ikSelected: ImageIndex := 43;
+    ikNormal, ikSelected: begin
+      if not User.IsRole then
+        ImageIndex := 43
+      else
+        ImageIndex := 95;
+    end;
     ikOverlay: begin
-      User := Sender.GetNodeData(Node);
       if User.Password = '' then
         ImageIndex := 161;
       if FModified and (Node = Sender.FocusedNode) then
@@ -1544,12 +1562,16 @@ begin
   MaxUserConnections := 0;
   SSL := 0;
   Problem := upNone;
+  IsRole := False;
 end;
 
 function TUser.HostRequiresNameResolve: Boolean;
 var
   rx: TRegExpr;
 begin
+  Result := False;
+  if IsRole then
+    Exit;
   rx := TRegExpr.Create;
   // Valid ips or wildcards which do not need name resolving:
   rx.Expression := '^(localhost|[\d\.\/\:_]+|.*%.*|[\w\d_]{4}\:.*)$';
