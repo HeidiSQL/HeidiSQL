@@ -311,6 +311,7 @@ begin
   editLogFilePath.Hint := FilenameHint;
 
   // Populate dropdown with supported SSH executables
+  {$IFDEF WINDOWS}
   ExeFiles := FindAllFiles(GetAppDir, '*.exe', False);
   for ExePath in ExeFiles do begin
     ExeFile := ExtractFileName(ExePath);
@@ -320,6 +321,10 @@ begin
   end;
   ExeFiles.Free;
   comboSSHExe.Items.Add('ssh.exe');
+  {$ELSE}
+  // Linux and macOS go here, no executable shipped
+  comboSSHExe.Items.Add('ssh');
+  {$ENDIF}
 
   // Translate combo items
   for i:=0 to comboSSLVerification.Items.Count-1 do begin
