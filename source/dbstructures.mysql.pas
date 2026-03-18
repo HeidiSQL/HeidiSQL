@@ -3391,6 +3391,14 @@ begin
       'SHOW WARNINGS',
       ''
       );
+    qDropUser: Result := IfThen(
+      FServerVersion < 40101,
+      'DELETE FROM mysql.user WHERE User=%s AND Host=%s',
+      'DROP USER %s@%s'
+      );
+    qCreateRole: Result := 'CREATE ROLE %s';
+    qDropRole: Result := 'DROP ROLE %s';
+    qReloadPrivileges: Result := 'FLUSH PRIVILEGES';
     else Result := inherited;
   end;
 end;

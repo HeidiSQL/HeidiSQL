@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2026-03-16 17:18+0100\n"
+"PO-Revision-Date: 2026-03-18 19:40+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -5442,8 +5442,8 @@ msgid "Unhandled privilege object: %s"
 msgstr "Unhandled privilege object: %s"
 
 #: usermanager.pas:1297
-msgid "Delete user %s@%s?"
-msgstr "Delete user %s@%s?"
+msgid "Delete user or role %s?"
+msgstr "Delete user or role %s?"
 
 #. dbconnection.pas
 msgid "Yes"

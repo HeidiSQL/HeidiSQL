@@ -2255,7 +2255,7 @@ begin
     Exit;
   Conn := MainForm.ActiveConnection;
   if Conn.SqlProvider.Has(qDisableForeignKeyChecks) then
-    Conn.Query(Conn.SqlProvider.GetSql(qDisableForeignKeyChecks));
+    Conn.Query(qDisableForeignKeyChecks);
 end;
 
 
@@ -2268,7 +2268,7 @@ begin
     Exit;
   Conn := MainForm.ActiveConnection;
   if Conn.SqlProvider.Has(qEnableForeignKeyChecks) then
-    Conn.Query(Conn.SqlProvider.GetSql(qEnableForeignKeyChecks));
+    Conn.Query(qEnableForeignKeyChecks);
 end;
 
 
