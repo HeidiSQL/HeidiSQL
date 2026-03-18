@@ -5946,6 +5946,8 @@ begin
   DBObj.Connection.Ping(True);
 
   if SelectedTableColumns.Count = 0 then begin
+    vt.Header.Columns.Clear;
+    vt.Clear;
     EnableDataTab(False);
   end else begin
     EnableDataTab(True);
