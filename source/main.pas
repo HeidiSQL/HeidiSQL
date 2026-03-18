@@ -7883,7 +7883,7 @@ begin
     actQueryTable.Enabled := Obj.NodeType in [lntTable, lntView];
     actRunRoutines.Enabled := Obj.NodeType in [lntProcedure, lntFunction];
     menuClearDataTabFilter.Enabled := Obj.NodeType in [lntTable, lntView];
-    menuEditObject.Enabled := IsDb or IsObject;
+    menuEditObject.Enabled := (IsDb and Obj.Connection.Parameters.IsAnyMySQL) or IsObject;
     // Enable certain items which are valid only here
     menuTreeExpandAll.Enabled := True;
     menuTreeCollapseAll.Enabled := True;
