@@ -10314,6 +10314,7 @@ begin
       if Assigned(DBNode) then
         DBtree.ResetNode(DBNode);
     end;
+    FTreeRefreshInProgress := False;
 
     // Reselect active or new database if present. Could have been deleted or renamed.
     try
@@ -10324,9 +10325,9 @@ begin
       if not Assigned(DBtree.FocusedNode) then
         SetActiveDatabase('', FocusNewObject.Connection);
     except
+      on E:Exception do
+        LogSQL('RefreshTree: '+E.Message, lcInfo);
     end;
-    if not Assigned(DBtree.FocusedNode) then
-      raise Exception.Create(_('Could not find node to focus.'));
 
   finally
     FTreeRefreshInProgress := False;
