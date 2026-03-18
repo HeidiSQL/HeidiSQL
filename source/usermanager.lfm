@@ -20,21 +20,22 @@ object UserManagerForm: TUserManagerForm
   OnShow = FormShow
   object Splitter1: TSplitter
     Cursor = crSizeWE
-    Left = 234
-    Height = 316
+    Left = 229
+    Height = 328
     Top = 0
     Width = 8
     OnMoved = FormResize
   end
   object pnlLeft: TPanel
     Left = 5
-    Height = 311
+    Height = 323
     Top = 5
     Width = 224
     Align = alLeft
-    BorderSpacing.Around = 5
+    BorderSpacing.Left = 5
+    BorderSpacing.Top = 5
     BevelOuter = bvNone
-    ClientHeight = 311
+    ClientHeight = 323
     ClientWidth = 224
     Constraints.MinWidth = 20
     ParentBackground = False
@@ -57,8 +58,8 @@ object UserManagerForm: TUserManagerForm
       AnchorSideBottom.Control = pnlLeft
       AnchorSideBottom.Side = asrBottom
       Left = 0
-      Height = 243
-      Top = 68
+      Height = 257
+      Top = 66
       Width = 224
       Anchors = [akTop, akLeft, akRight, akBottom]
       Header.AutoSizeIndex = 0
@@ -99,13 +100,14 @@ object UserManagerForm: TUserManagerForm
       AnchorSideTop.Control = lblUsers
       AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 30
+      Height = 28
       Top = 15
       Width = 224
       AutoSize = True
       ButtonHeight = 28
       ButtonWidth = 58
       Caption = 'ToolBar1'
+      EdgeBorders = []
       Images = MainForm.ImageListMain
       List = True
       ShowCaptions = True
@@ -113,7 +115,7 @@ object UserManagerForm: TUserManagerForm
       Wrapable = False
       object btnAddUser: TToolButton
         Left = 1
-        Top = 2
+        Top = 0
         Caption = 'Add'
         DropdownMenu = menuAdd
         ImageIndex = 45
@@ -121,15 +123,15 @@ object UserManagerForm: TUserManagerForm
         OnClick = btnAddUserClick
       end
       object btnCloneUser: TToolButton
-        Left = 59
-        Top = 2
+        Left = 71
+        Top = 0
         Caption = 'Clone'
         ImageIndex = 3
         OnClick = btnAddUserClick
       end
       object btnDeleteUser: TToolButton
-        Left = 119
-        Top = 2
+        Left = 131
+        Top = 0
         Caption = 'Delete'
         ImageIndex = 46
         OnClick = btnDeleteUserClick
@@ -143,7 +145,7 @@ object UserManagerForm: TUserManagerForm
       AnchorSideRight.Side = asrBottom
       Left = 0
       Height = 23
-      Top = 45
+      Top = 43
       Width = 224
       Anchors = [akTop, akLeft, akRight]
       ButtonWidth = 23
@@ -159,27 +161,29 @@ object UserManagerForm: TUserManagerForm
     end
   end
   object pnlRight: TPanel
-    Left = 247
-    Height = 311
+    Left = 237
+    Height = 323
     Top = 5
-    Width = 375
+    Width = 385
     Align = alClient
-    BorderSpacing.Around = 5
+    BorderSpacing.Top = 5
+    BorderSpacing.Right = 5
     BevelOuter = bvNone
-    ClientHeight = 311
-    ClientWidth = 375
+    ClientHeight = 323
+    ClientWidth = 385
     Constraints.MinWidth = 20
     ParentBackground = False
     TabOrder = 1
     object tlbObjects: TToolBar
       Left = 0
-      Height = 30
+      Height = 28
       Top = 145
-      Width = 375
+      Width = 385
       AutoSize = True
       ButtonHeight = 28
       ButtonWidth = 79
       Caption = 'tlbObjects'
+      EdgeBorders = []
       Images = MainForm.ImageListMain
       List = True
       ParentShowHint = False
@@ -190,7 +194,7 @@ object UserManagerForm: TUserManagerForm
       object lblAllowAccessTo: TLabel
         Left = 1
         Height = 28
-        Top = 2
+        Top = 0
         Width = 121
         AutoSize = False
         Caption = 'Allow access to:'
@@ -200,7 +204,7 @@ object UserManagerForm: TUserManagerForm
       object btnAddObject: TToolButton
         Left = 122
         Hint = 'Add object ...'
-        Top = 2
+        Top = 0
         Caption = 'Add object'
         ImageIndex = 45
         OnClick = btnAddObjectClick
@@ -210,9 +214,9 @@ object UserManagerForm: TUserManagerForm
       AnchorSideTop.Control = tlbObjects
       AnchorSideTop.Side = asrBottom
       Left = 0
-      Height = 136
-      Top = 175
-      Width = 375
+      Height = 150
+      Top = 173
+      Width = 385
       Align = alClient
       Header.AutoSizeIndex = 0
       Header.Columns = <>
@@ -235,7 +239,7 @@ object UserManagerForm: TUserManagerForm
       Left = 0
       Height = 145
       Top = 0
-      Width = 375
+      Width = 385
       ActivePage = tabCredentials
       Align = alTop
       AutoSize = True
@@ -245,43 +249,49 @@ object UserManagerForm: TUserManagerForm
         AutoSize = True
         Caption = 'Credentials'
         ClientHeight = 117
-        ClientWidth = 367
+        ClientWidth = 377
         object lblUsername: TLabel
+          AnchorSideLeft.Control = tabCredentials
+          AnchorSideTop.Control = editUsername
+          AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 7
+          Top = 9
           Width = 59
           BorderSpacing.Around = 5
           Caption = 'User &name:'
         end
         object lblFromHost: TLabel
-          AnchorSideTop.Control = editUsername
-          AnchorSideTop.Side = asrBottom
+          AnchorSideLeft.Control = tabCredentials
+          AnchorSideTop.Control = editFromHost
+          AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 33
+          Top = 37
           Width = 57
           BorderSpacing.Around = 5
           Caption = 'From &host:'
           FocusControl = editFromHost
         end
         object lblPassword: TLabel
-          AnchorSideTop.Control = editFromHost
-          AnchorSideTop.Side = asrBottom
+          AnchorSideLeft.Control = tabCredentials
+          AnchorSideTop.Control = editPassword
+          AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 61
+          Top = 65
           Width = 53
           BorderSpacing.Around = 5
           Caption = '&Password:'
           FocusControl = editPassword
         end
         object lblRepeatPassword: TLabel
-          AnchorSideTop.Control = editPassword
-          AnchorSideTop.Side = asrBottom
+          AnchorSideLeft.Control = tabCredentials
+          AnchorSideTop.Control = editRepeatPassword
+          AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 89
+          Top = 93
           Width = 92
           BorderSpacing.Around = 5
           Caption = 'Repeat password:'
@@ -293,7 +303,7 @@ object UserManagerForm: TUserManagerForm
           Left = 178
           Height = 23
           Top = 89
-          Width = 184
+          Width = 194
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
           EchoMode = emPassword
@@ -307,7 +317,7 @@ object UserManagerForm: TUserManagerForm
           Left = 178
           Height = 23
           Top = 61
-          Width = 184
+          Width = 194
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
           ButtonWidth = 23
@@ -327,7 +337,7 @@ object UserManagerForm: TUserManagerForm
           Left = 178
           Height = 23
           Top = 33
-          Width = 184
+          Width = 194
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
           ButtonWidth = 23
@@ -341,10 +351,11 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object editUsername: TEdit
+          AnchorSideTop.Control = tabCredentials
           Left = 178
           Height = 23
           Top = 5
-          Width = 184
+          Width = 194
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
           TabOrder = 0
@@ -355,52 +366,58 @@ object UserManagerForm: TUserManagerForm
         AutoSize = True
         Caption = 'Limitations'
         ClientHeight = 117
-        ClientWidth = 367
+        ClientWidth = 377
         ImageIndex = 1
         object lblMaxQueries: TLabel
+          AnchorSideLeft.Control = tabLimitations
           AnchorSideTop.Control = spinMaxQueries
+          AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 10
+          Top = 9
           Width = 91
           BorderSpacing.Around = 5
           Caption = 'Queries per hour:'
         end
         object lblMaxUpdates: TLabel
-          AnchorSideTop.Control = spinMaxQueries
-          AnchorSideTop.Side = asrBottom
+          AnchorSideLeft.Control = tabLimitations
+          AnchorSideTop.Control = spinMaxUpdates
+          AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 33
+          Top = 37
           Width = 94
           BorderSpacing.Around = 5
           Caption = 'Updates per hour:'
         end
         object lblMaxConnections: TLabel
-          AnchorSideTop.Control = spinMaxUpdates
-          AnchorSideTop.Side = asrBottom
+          AnchorSideLeft.Control = tabLimitations
+          AnchorSideTop.Control = spinMaxConnections
+          AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 61
+          Top = 65
           Width = 118
           BorderSpacing.Around = 5
           Caption = 'Connections per hour:'
         end
         object lblMaxUserConnections: TLabel
-          AnchorSideTop.Control = spinMaxConnections
-          AnchorSideTop.Side = asrBottom
+          AnchorSideLeft.Control = tabLimitations
+          AnchorSideTop.Control = spinMaxUserConnections
+          AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 89
+          Top = 93
           Width = 143
           BorderSpacing.Around = 5
           Caption = 'Simultaneous connections:'
         end
         object spinMaxQueries: TSpinEditEx
+          AnchorSideTop.Control = tabLimitations
           Left = 178
           Height = 23
           Top = 5
-          Width = 184
+          Width = 194
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
           MaxLength = 0
@@ -416,7 +433,7 @@ object UserManagerForm: TUserManagerForm
           Left = 178
           Height = 23
           Top = 33
-          Width = 184
+          Width = 194
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
           MaxLength = 0
@@ -432,7 +449,7 @@ object UserManagerForm: TUserManagerForm
           Left = 178
           Height = 23
           Top = 61
-          Width = 184
+          Width = 194
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
           MaxLength = 0
@@ -448,7 +465,7 @@ object UserManagerForm: TUserManagerForm
           Left = 178
           Height = 23
           Top = 89
-          Width = 184
+          Width = 194
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
           MaxLength = 0
@@ -463,45 +480,51 @@ object UserManagerForm: TUserManagerForm
         AutoSize = True
         Caption = 'SSL options'
         ClientHeight = 117
-        ClientWidth = 367
+        ClientWidth = 377
         ImageIndex = 2
         object lblCipher: TLabel
-          AnchorSideTop.Control = comboSSL
-          AnchorSideTop.Side = asrBottom
+          AnchorSideLeft.Control = tabSSL
+          AnchorSideTop.Control = editCipher
+          AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 33
+          Top = 37
           Width = 38
           BorderSpacing.Around = 5
           Caption = '&Cipher:'
           FocusControl = editCipher
         end
         object lblIssuer: TLabel
-          AnchorSideTop.Control = editCipher
-          AnchorSideTop.Side = asrBottom
+          AnchorSideLeft.Control = tabSSL
+          AnchorSideTop.Control = editIssuer
+          AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 61
+          Top = 65
           Width = 33
           BorderSpacing.Around = 5
           Caption = '&Issuer:'
           FocusControl = editIssuer
         end
         object lblSubject: TLabel
-          AnchorSideTop.Control = editIssuer
-          AnchorSideTop.Side = asrBottom
+          AnchorSideLeft.Control = tabSSL
+          AnchorSideTop.Control = editSubject
+          AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 89
+          Top = 93
           Width = 42
           BorderSpacing.Around = 5
           Caption = '&Subject:'
           FocusControl = editSubject
         end
         object lblSSL: TLabel
+          AnchorSideLeft.Control = tabSSL
+          AnchorSideTop.Control = comboSSL
+          AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 7
+          Top = 9
           Width = 64
           BorderSpacing.Around = 5
           Caption = '&Require SSL:'
@@ -512,7 +535,7 @@ object UserManagerForm: TUserManagerForm
           Left = 178
           Height = 23
           Top = 33
-          Width = 184
+          Width = 194
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
           TabOrder = 1
@@ -525,7 +548,7 @@ object UserManagerForm: TUserManagerForm
           Left = 178
           Height = 23
           Top = 61
-          Width = 184
+          Width = 194
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
           TabOrder = 2
@@ -538,7 +561,7 @@ object UserManagerForm: TUserManagerForm
           Left = 178
           Height = 23
           Top = 89
-          Width = 184
+          Width = 194
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
           TabOrder = 3
@@ -546,10 +569,11 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object comboSSL: TComboBox
+          AnchorSideTop.Control = tabSSL
           Left = 178
           Height = 23
           Top = 5
-          Width = 184
+          Width = 194
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
           ItemHeight = 15
@@ -567,56 +591,85 @@ object UserManagerForm: TUserManagerForm
     end
   end
   object pnlBottom: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
     Left = 5
-    Height = 38
-    Top = 321
+    Height = 26
+    Top = 333
     Width = 617
     Align = alBottom
+    AutoSize = True
     BorderSpacing.Around = 5
-    ClientHeight = 38
+    BevelOuter = bvNone
+    ClientHeight = 26
     ClientWidth = 617
     ParentBackground = False
     TabOrder = 3
     object btnDiscard: TSpeedButton
-      Left = 413
-      Height = 25
-      Top = 6
-      Width = 95
-      Anchors = [akTop, akRight]
+      AnchorSideRight.Control = btnCancel
+      AnchorSideBottom.Control = pnlBottom
+      AnchorSideBottom.Side = asrBottom
+      Left = 412
+      Height = 26
+      Top = 0
+      Width = 100
+      Anchors = [akRight, akBottom]
+      AutoSize = True
+      BorderSpacing.Left = 5
+      Constraints.MinWidth = 100
       Caption = 'Discard'
       Images = MainForm.ImageListMain
       ImageIndex = 40
       OnClick = btnDiscardClick
     end
     object btnSave: TSpeedButton
-      Left = 312
-      Height = 25
-      Top = 6
-      Width = 95
-      Anchors = [akTop, akRight]
+      AnchorSideRight.Control = btnDiscard
+      AnchorSideBottom.Control = pnlBottom
+      AnchorSideBottom.Side = asrBottom
+      Left = 307
+      Height = 26
+      Top = 0
+      Width = 100
+      Anchors = [akRight, akBottom]
+      AutoSize = True
+      Constraints.MinWidth = 100
       Caption = 'Save'
       Images = MainForm.ImageListMain
       ImageIndex = 10
       OnClick = btnSaveClick
     end
     object btnCancel: TSpeedButton
-      Left = 514
-      Height = 25
-      Top = 6
-      Width = 95
-      Anchors = [akTop, akRight]
+      AnchorSideRight.Control = pnlBottom
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = pnlBottom
+      AnchorSideBottom.Side = asrBottom
+      Left = 517
+      Height = 26
+      Top = 0
+      Width = 100
+      Anchors = [akRight, akBottom]
+      AutoSize = True
+      BorderSpacing.Left = 5
+      Constraints.MinWidth = 100
       Caption = 'Close'
       Images = MainForm.ImageListMain
       ImageIndex = 26
       OnClick = btnCancelClick
     end
     object lblWarning: TLabel
-      Left = 8
-      Height = 24
-      Top = 6
-      Width = 201
-      Anchors = [akTop, akLeft, akRight]
-      AutoSize = False
+      AnchorSideLeft.Control = pnlBottom
+      AnchorSideBottom.Control = pnlBottom
+      AnchorSideBottom.Side = asrBottom
+      Left = 0
+      Height = 15
+      Top = 11
+      Width = 58
+      Anchors = [akLeft, akBottom]
+      Caption = 'lblWarning'
+      Constraints.MaxWidth = 200
       Layout = tlCenter
       WordWrap = True
     end
