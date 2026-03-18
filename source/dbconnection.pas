@@ -527,7 +527,9 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual;
+      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); overload; virtual;
+      procedure Query(QueryId: TQueryId); overload;
+      procedure Query(QueryId: TQueryId; const Args: array of const); overload;
       procedure Log(Category: TDBLogCategory; Msg: String);
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: Boolean=True): String; overload;
       function EscapeString(Text: String; Datatype: TDBDatatype): String; overload;
@@ -3721,6 +3723,17 @@ begin
   FRowsFound := 0;
   FRowsAffected := 0;
   FWarningCount := 0;
+end;
+
+
+procedure TDBConnection.Query(QueryId: TQueryId);
+begin
+  Query(FSqlProvider.GetSql(QueryId));
+end;
+
+procedure TDBConnection.Query(QueryId: TQueryId; const Args: array of const);
+begin
+  Query(FSqlProvider.GetSql(QueryId, Args));
 end;
 
 

@@ -157,8 +157,10 @@ object UserManagerForm: TUserManagerForm
         Left = 0
         Top = 0
         Caption = 'Add'
+        DropdownMenu = menuAdd
         ImageIndex = 45
         ImageName = 'icons8-add'
+        Style = tbsDropDown
         OnClick = btnAddUserClick
       end
       object btnCloneUser: TToolButton
@@ -653,6 +655,19 @@ object UserManagerForm: TUserManagerForm
         Caption = 'dummy'
         OnClick = menuPasswordInsert
       end
+    end
+  end
+  object menuAdd: TPopupMenu
+    OnPopup = menuAddPopup
+    Left = 80
+    Top = 280
+    object menuItemUser: TMenuItem
+      Caption = 'User'
+      OnClick = btnAddUserClick
+    end
+    object menuItemRole: TMenuItem
+      Caption = 'Role'
+      OnClick = menuItemRoleClick
     end
   end
 end

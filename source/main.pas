@@ -3873,7 +3873,7 @@ begin
           db := DBObject.Database;
           Node := FindDBNode(DBtree, Conn, db);
           SetActiveDatabase('', Conn);
-          Conn.Query(Conn.SqlProvider.GetSql(qDatabaseDrop, [Conn.QuoteIdent(db)]));
+          Conn.Query(qDatabaseDrop, [Conn.QuoteIdent(db)]);
           DBtree.DeleteNode(Node);
           Conn.ClearDbObjects(db);
           Conn.RefreshAllDatabases;
@@ -3913,7 +3913,7 @@ begin
     try
       // Disable foreign key checks to avoid SQL errors
       if Conn.SqlProvider.Has(qDisableForeignKeyChecks) then
-        Conn.Query(Conn.SqlProvider.GetSql(qDisableForeignKeyChecks));
+        Conn.Query(qDisableForeignKeyChecks);
       // Compose and run DROP [TABLE|VIEW|...] queries
       Editor := ActiveObjectEditor;
       for DBObject in ObjectList do begin
@@ -3922,7 +3922,7 @@ begin
           Editor.Modified := False;
       end;
       if Conn.SqlProvider.Has(qEnableForeignKeyChecks) then
-        Conn.Query(Conn.SqlProvider.GetSql(qEnableForeignKeyChecks));
+        Conn.Query(qEnableForeignKeyChecks);
       // Refresh ListTables + dbtree so the dropped tables are gone:
       Conn.ClearDbObjects(ActiveDatabase);
       RefreshTree;
@@ -6764,7 +6764,7 @@ begin
       if pid = Conn.ThreadId then
         LogSQL(f_('Ignoring own process id #%d when trying to kill it.', [pid]))
       else try
-        Conn.Query(Conn.SqlProvider.GetSql(qKillQuery, [pid]));
+        Conn.Query(qKillQuery, [pid]);
       except
         on E:EDbError do begin
           if Conn.LastErrorCode <> ER_NO_SUCH_THREAD then
