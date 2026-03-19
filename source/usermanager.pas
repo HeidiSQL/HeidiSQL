@@ -368,7 +368,13 @@ begin
     tmp := FConnection.GetSessionVariable('skip_name_resolve');
     SkipNameResolve := LowerCase(tmp) = 'on';
 
-    FConnection.Query(qReloadPrivileges);
+    try
+      FConnection.Query(qReloadPrivileges);
+    except
+      // FLUSH PRIVILEGE may fail due to missing RELOAD privilege.
+      // Proceed anyway, it's still ok to read/see the users
+      on E:EDbError do;
+    end;
 
     // Peek into user table structure, and find out where the password hash is stored
     UserTableColumns := FConnection.GetCol('SHOW COLUMNS FROM '+FConnection.QuoteIdent('mysql')+'.'+FConnection.QuoteIdent('user'));
