@@ -12197,17 +12197,10 @@ begin
     end else if CurrentControl is TSynMemo then begin
       SynMemo := CurrentControl as TSynMemo;
       if SynMemo.SelAvail then begin
-        // Create both text and RTF clipboard format, so rich text applications can paste highlighted SQL
-        Clipboard.Open;
-        Clipboard.TryAsText := SynMemo.SelText;
-        Exporter := TSynExporterRTF.Create(Self);
-        Exporter.Highlighter := SynMemo.Highlighter;
-        Exporter.ExportAll(Explode(CRLF, SynMemo.SelText));
-        if DoCut then SynMemo.CutToClipboard
-        else SynMemo.CopyToClipboard;
-        Exporter.CopyToClipboard;
-        Clipboard.Close;
-        Exporter.Free;
+        if DoCut then
+          SynMemo.CutToClipboard
+        else
+          SynMemo.CopyToClipboard;
       end;
     end else begin
       raise Exception.Create('Unhandled control in clipboard action: '+IfThen(Assigned(CurrentControl), CurrentControl.Name, 'nil'));
