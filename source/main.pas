@@ -10773,7 +10773,7 @@ begin
         if Assigned(ColInfo) then begin
           Allowed := ColInfo.GenerationExpression.IsEmpty;
           if not Allowed then
-            ErrorDialog(f_('Column %s is defined as generated. You cannot edit its content.', [IntToStr(Column)]));
+            ErrorDialog(f_('Column %s is defined as generated per "%s". You cannot edit its content.', [IntToStr(Column), ColInfo.GenerationExpression]));
         end;
       end;
 

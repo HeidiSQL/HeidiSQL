@@ -99,7 +99,8 @@ const
   MsgUnhandledNetType: String = 'Unhandled connection type (%d)';
   MsgUnhandledControl: String = 'Unhandled control in %s';
   MsgDisconnect: String = 'Connection to %s closed at %s';
-  TextInvalidColumn: String = '?';
+  // This must be an empty string, otherwise TTableColumn's get GenerationExpression=XYZ on old servers
+  TextInvalidColumn: String = '';
   FILEFILTER_SQLITEDB = '*.sqlite3;*.sqlite;*.db;*.s3db';
   FILEEXT_SQLITEDB = 'sqlite3';
   PROPOSAL_ITEM_HEIGHT = 18;
