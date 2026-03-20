@@ -1019,6 +1019,8 @@ function mysql_authentication_dialog_ask(
 exports
   mysql_authentication_dialog_ask;
 
+var
+  WarningShownOldOleProvider: Boolean = False;
 
 {$I const.inc}
 
@@ -2716,13 +2718,14 @@ begin
     end;
 
     IsOldProvider := Parameters.LibraryOrProvider = 'SQLOLEDB';
-    if IsOldProvider then begin
+    if IsOldProvider and (not WarningShownOldOleProvider) then begin
       MessageDialog(
         f_('Security issue: Using %s %s with insecure %s.',
           [Parameters.LibraryOrProvider, 'ADO provider', 'TLS 1.0']) +
         f_('You should install %s from %s',
           ['Microsoft OLE DB Driver', 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=56730']),
         mtWarning, [mbOK]);
+      WarningShownOldOleProvider := True;
     end;
 
     NetLib := '';
