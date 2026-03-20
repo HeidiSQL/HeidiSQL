@@ -10314,7 +10314,6 @@ begin
       if Assigned(DBNode) then
         DBtree.ResetNode(DBNode);
     end;
-    FTreeRefreshInProgress := False;
 
     // Reselect active or new database if present. Could have been deleted or renamed.
     try
