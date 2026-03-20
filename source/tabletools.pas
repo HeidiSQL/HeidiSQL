@@ -1063,7 +1063,7 @@ var
   Node: PVirtualNode;
   Obj: PDBObject;
   rxdb, rxtable: TRegExpr;
-  NodeMatches: Boolean;
+  NodeMatches, SomeHidden: Boolean;
   Errors: TStringList;
 begin
   // Immediately apply database filter
@@ -1077,6 +1077,7 @@ begin
   rxtable.Expression := '('+StringReplace(editTableFilter.Text, ';', '|', [rfReplaceAll])+')';
 
   Errors := TStringList.Create;
+  SomeHidden := False;
 
   TreeObjects.BeginUpdate;
   Node := TreeObjects.GetFirst;
@@ -1110,6 +1111,8 @@ begin
       end;
     end;
     TreeObjects.IsVisible[Node] := NodeMatches;
+    if not NodeMatches then
+      SomeHidden := True;
 
     Node := TreeObjects.GetNextInitialized(Node);
   end;
@@ -1120,6 +1123,10 @@ begin
 
   //editDatabaseFilter.RightButton.Visible := editDatabaseFilter.Text <> '';
   //editTableFilter.RightButton.Visible := editTableFilter.Text <> '';
+  if SomeHidden then
+    menuCheckAll.Caption := _('Check all visible')
+  else
+    menuCheckAll.Caption := _('Check all');
   timerCalcSize.Enabled := False;
   timerCalcSize.Enabled := True;
 end;
@@ -2487,7 +2494,7 @@ var
   DBNode, ObjNode: PVirtualNode;
   WantedType: TListNodeType;
   DBObj: PDBObject;
-  CheckNone: Boolean;
+  CheckNone, DoCheck: Boolean;
   InvertCheck: Boolean;
   CheckedNodes: Int64;
 begin
@@ -2505,25 +2512,29 @@ begin
   CheckedNodes := 0;
   while Assigned(ObjNode) do begin
     DBObj := TreeObjects.GetNodeData(ObjNode);
+
     if CheckNone then
-      TreeObjects.CheckState[ObjNode] := csUncheckedNormal
-    else if InvertCheck then begin
-      if ObjNode.CheckState in CheckedStates then
-        TreeObjects.CheckState[ObjNode] := csUncheckedNormal
-      else
-        TreeObjects.CheckState[ObjNode] := csCheckedNormal;
+      DoCheck := False
+    else if not TreeObjects.IsVisible[ObjNode] then
+      DoCheck := False
+    else if InvertCheck then
+      DoCheck := not (ObjNode.CheckState in CheckedStates)
+    else
+      DoCheck := (WantedType = lntNone) or (DBObj.NodeType = WantedType) or (DBObj.GroupType = WantedType);
+
+    if DoCheck then begin
+      TreeObjects.CheckState[ObjNode] := csCheckedNormal;
+      Inc(CheckedNodes);
     end
     else begin
-      if (WantedType = lntNone) or (DBObj.NodeType = WantedType) or (DBObj.GroupType = WantedType) then
-        TreeObjects.CheckState[ObjNode] := csCheckedNormal
-      else
-        TreeObjects.CheckState[ObjNode] := csUncheckedNormal;
+      TreeObjects.CheckState[ObjNode] := csUncheckedNormal;
     end;
-    if ObjNode.CheckState = csCheckedNormal then
-      Inc(CheckedNodes);
+
     TreeObjects.RepaintNode(ObjNode);
     ObjNode := TreeObjects.GetNextSibling(ObjNode);
   end;
+
+  // Update parent node's checkbox
   if CheckedNodes = 0 then
     TreeObjects.CheckState[DBNode] := csUncheckedNormal
   else if CheckedNodes = TreeObjects.ChildCount[DBNode] then
