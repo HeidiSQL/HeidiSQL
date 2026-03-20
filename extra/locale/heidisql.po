@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2026-03-20 10:10+0100\n"
+"PO-Revision-Date: 2026-03-20 15:16+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -6809,3 +6809,9 @@ msgstr "Show reverse foreign keys"
 
 msgid "Login cancelled"
 msgstr "Login cancelled"
+
+msgid "Folder in path does not exist: %s"
+msgstr "Folder in path does not exist: %s"
+
+msgid "File does not yet exist, will be created now: %s"
+msgstr "File does not yet exist, will be created now: %s"

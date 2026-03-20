@@ -2856,6 +2856,7 @@ var
   ErrorHint: String;
   FileNames, EncryptionParams: TStringList;
   MainFile, DbAlias, Param, ParamName: String;
+  MainFileDir: String;
   i, SplitPos, ParamValue: Integer;
   CipherIndex, ConfigResult: Integer;
   ParamWasSet: Boolean;
@@ -2866,8 +2867,12 @@ begin
 
   if Value then begin
     // Fixes "out of memory" crash in sqlite3_open, see issue #1367
+    MainFileDir := ExtractFilePath(MainFile);
+    MainFileDir := IncludeTrailingPathDelimiter(MainFileDir);
+    if not DirectoryExists(MainFileDir) then
+      raise EDbError.Create(f_('Folder in path does not exist: %s', [MainFile]));
     if not FileExists(MainFile) then
-      raise EDbError.Create(f_('File does not exist: %s', [MainFile]));
+      Log(lcInfo, f_('File does not yet exist, will be created now: %s', [MainFile]));
 
     DoBeforeConnect;
 
