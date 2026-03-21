@@ -3393,6 +3393,8 @@ begin
     qCreateRole: Result := 'CREATE ROLE %s';
     qDropRole: Result := 'DROP ROLE %s';
     qReloadPrivileges: Result := 'FLUSH PRIVILEGES';
+    qGrantRole: Result := 'GRANT %s TO %s%s';
+    qRevokeRole: Result := 'REVOKE %s FROM %s';
     else Result := inherited;
   end;
 end;

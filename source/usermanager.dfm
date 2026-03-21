@@ -17,7 +17,6 @@ object UserManagerForm: TUserManagerForm
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
     484
@@ -35,7 +34,6 @@ object UserManagerForm: TUserManagerForm
     Margins.Right = 0
     Margins.Bottom = 40
     ResizeStyle = rsUpdate
-    OnMoved = FormResize
   end
   object lblWarning: TLabel
     Left = 8
@@ -94,16 +92,17 @@ object UserManagerForm: TUserManagerForm
       Left = 3
       Top = 3
       Width = 171
-      Height = 13
+      Height = 14
       Align = alTop
       Caption = '&Select user account:'
       FocusControl = listUsers
+      ExplicitWidth = 113
     end
     object listUsers: TVirtualStringTree
       Left = 0
-      Top = 64
+      Top = 72
       Width = 177
-      Height = 236
+      Height = 244
       Align = alClient
       Header.AutoSizeIndex = 0
       Header.Height = 18
@@ -144,9 +143,10 @@ object UserManagerForm: TUserManagerForm
       Left = 0
       Top = 20
       Width = 177
-      Height = 22
+      Height = 30
       AutoSize = True
-      ButtonWidth = 58
+      ButtonHeight = 30
+      ButtonWidth = 69
       Caption = 'ToolBar1'
       Images = MainForm.VirtualImageListMain
       List = True
@@ -164,7 +164,7 @@ object UserManagerForm: TUserManagerForm
         OnClick = btnAddUserClick
       end
       object btnCloneUser: TToolButton
-        Left = 58
+        Left = 84
         Top = 0
         Caption = 'Clone'
         ImageIndex = 3
@@ -172,7 +172,7 @@ object UserManagerForm: TUserManagerForm
         OnClick = btnAddUserClick
       end
       object btnDeleteUser: TToolButton
-        Left = 116
+        Left = 153
         Top = 0
         Caption = 'Delete'
         ImageIndex = 46
@@ -182,7 +182,7 @@ object UserManagerForm: TUserManagerForm
     end
     object editFilterUsers: TButtonedEdit
       Left = 0
-      Top = 42
+      Top = 50
       Width = 177
       Height = 22
       Align = alTop
@@ -210,66 +210,6 @@ object UserManagerForm: TUserManagerForm
     BevelOuter = bvNone
     Constraints.MinWidth = 20
     TabOrder = 1
-    object tlbObjects: TToolBar
-      Left = 0
-      Top = 145
-      Width = 283
-      Height = 22
-      AutoSize = True
-      ButtonWidth = 79
-      Caption = 'tlbObjects'
-      Images = MainForm.VirtualImageListMain
-      List = True
-      ParentShowHint = False
-      ShowCaptions = True
-      ShowHint = True
-      TabOrder = 1
-      Wrapable = False
-      object lblAllowAccessTo: TLabel
-        Left = 0
-        Top = 0
-        Width = 121
-        Height = 22
-        AutoSize = False
-        Caption = 'Allow access to:'
-        Transparent = False
-        Layout = tlCenter
-      end
-      object btnAddObject: TToolButton
-        Left = 121
-        Top = 0
-        Hint = 'Add object ...'
-        Caption = 'Add object'
-        ImageIndex = 45
-        ImageName = 'icons8-add'
-        OnClick = btnAddObjectClick
-      end
-    end
-    object treePrivs: TVirtualStringTree
-      Left = 0
-      Top = 167
-      Width = 283
-      Height = 149
-      Align = alClient
-      Header.AutoSizeIndex = 0
-      Header.MainColumn = -1
-      Images = MainForm.VirtualImageListMain
-      IncrementalSearch = isAll
-      TabOrder = 2
-      TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
-      TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-      TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
-      OnChecked = treePrivsChecked
-      OnExpanded = treePrivsExpanded
-      OnGetText = treePrivsGetText
-      OnPaintText = treePrivsPaintText
-      OnGetImageIndex = treePrivsGetImageIndex
-      OnInitChildren = treePrivsInitChildren
-      OnInitNode = treePrivsInitNode
-      Touch.InteractiveGestures = [igPan, igPressAndTap]
-      Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
-      Columns = <>
-    end
     object PageControlSettings: TPageControl
       Left = 0
       Top = 0
@@ -282,35 +222,35 @@ object UserManagerForm: TUserManagerForm
         Caption = 'Credentials'
         DesignSize = (
           275
-          117)
+          116)
         object lblUsername: TLabel
           Left = 3
           Top = 10
-          Width = 55
-          Height = 13
+          Width = 62
+          Height = 14
           Caption = 'User &name:'
         end
         object lblFromHost: TLabel
           Left = 3
           Top = 37
-          Width = 52
-          Height = 13
+          Width = 59
+          Height = 14
           Caption = 'From &host:'
           FocusControl = editFromHost
         end
         object lblPassword: TLabel
           Left = 3
           Top = 64
-          Width = 50
-          Height = 13
+          Width = 55
+          Height = 14
           Caption = '&Password:'
           FocusControl = editPassword
         end
         object lblRepeatPassword: TLabel
           Left = 3
           Top = 91
-          Width = 88
-          Height = 13
+          Width = 98
+          Height = 14
           Caption = 'Repeat password:'
           FocusControl = editRepeatPassword
         end
@@ -318,7 +258,7 @@ object UserManagerForm: TUserManagerForm
           Left = 176
           Top = 88
           Width = 96
-          Height = 21
+          Height = 22
           Anchors = [akLeft, akTop, akRight]
           PasswordChar = '*'
           TabOrder = 3
@@ -328,7 +268,7 @@ object UserManagerForm: TUserManagerForm
           Left = 176
           Top = 61
           Width = 96
-          Height = 21
+          Height = 22
           Anchors = [akLeft, akTop, akRight]
           Images = MainForm.VirtualImageListMain
           PasswordChar = '*'
@@ -343,7 +283,7 @@ object UserManagerForm: TUserManagerForm
           Left = 176
           Top = 34
           Width = 96
-          Height = 21
+          Height = 22
           Anchors = [akLeft, akTop, akRight]
           Images = MainForm.VirtualImageListMain
           RightButton.DropDownMenu = menuHost
@@ -356,7 +296,7 @@ object UserManagerForm: TUserManagerForm
           Left = 176
           Top = 7
           Width = 96
-          Height = 21
+          Height = 22
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 0
           OnChange = Modification
@@ -367,40 +307,40 @@ object UserManagerForm: TUserManagerForm
         ImageIndex = 1
         DesignSize = (
           275
-          117)
+          116)
         object lblMaxQueries: TLabel
           Left = 3
           Top = 10
-          Width = 85
-          Height = 13
+          Width = 96
+          Height = 14
           Caption = 'Queries per hour:'
         end
         object lblMaxUpdates: TLabel
           Left = 3
           Top = 37
-          Width = 88
-          Height = 13
+          Width = 100
+          Height = 14
           Caption = 'Updates per hour:'
         end
         object lblMaxConnections: TLabel
           Left = 3
           Top = 64
-          Width = 107
-          Height = 13
+          Width = 122
+          Height = 14
           Caption = 'Connections per hour:'
         end
         object lblMaxUserConnections: TLabel
           Left = 3
           Top = 91
-          Width = 127
-          Height = 13
+          Width = 146
+          Height = 14
           Caption = 'Simultaneous connections:'
         end
         object editMaxQueries: TEdit
           Left = 176
           Top = 7
           Width = 80
-          Height = 21
+          Height = 22
           Anchors = [akLeft, akTop, akRight]
           NumbersOnly = True
           TabOrder = 0
@@ -411,7 +351,7 @@ object UserManagerForm: TUserManagerForm
           Left = 176
           Top = 34
           Width = 80
-          Height = 21
+          Height = 22
           Anchors = [akLeft, akTop, akRight]
           NumbersOnly = True
           TabOrder = 2
@@ -422,7 +362,7 @@ object UserManagerForm: TUserManagerForm
           Left = 176
           Top = 61
           Width = 80
-          Height = 21
+          Height = 22
           Anchors = [akLeft, akTop, akRight]
           NumbersOnly = True
           TabOrder = 4
@@ -433,7 +373,7 @@ object UserManagerForm: TUserManagerForm
           Left = 176
           Top = 88
           Width = 80
-          Height = 21
+          Height = 22
           Anchors = [akLeft, akTop, akRight]
           NumbersOnly = True
           TabOrder = 6
@@ -444,7 +384,7 @@ object UserManagerForm: TUserManagerForm
           Left = 256
           Top = 7
           Width = 17
-          Height = 21
+          Height = 22
           Anchors = [akTop, akRight]
           Associate = editMaxQueries
           Max = 2147483647
@@ -456,7 +396,7 @@ object UserManagerForm: TUserManagerForm
           Left = 256
           Top = 34
           Width = 17
-          Height = 21
+          Height = 22
           Anchors = [akTop, akRight]
           Associate = editMaxUpdates
           Max = 2147483647
@@ -467,7 +407,7 @@ object UserManagerForm: TUserManagerForm
           Left = 256
           Top = 61
           Width = 17
-          Height = 21
+          Height = 22
           Anchors = [akTop, akRight]
           Associate = editMaxConnections
           Max = 2147483647
@@ -478,7 +418,7 @@ object UserManagerForm: TUserManagerForm
           Left = 256
           Top = 88
           Width = 17
-          Height = 21
+          Height = 22
           Anchors = [akTop, akRight]
           Associate = editMaxUserConnections
           Max = 2147483647
@@ -491,43 +431,43 @@ object UserManagerForm: TUserManagerForm
         ImageIndex = 2
         DesignSize = (
           275
-          117)
+          116)
         object lblCipher: TLabel
           Left = 3
           Top = 36
-          Width = 35
-          Height = 13
+          Width = 38
+          Height = 14
           Caption = '&Cipher:'
           FocusControl = editCipher
         end
         object lblIssuer: TLabel
           Left = 3
           Top = 62
-          Width = 34
-          Height = 13
+          Width = 36
+          Height = 14
           Caption = '&Issuer:'
           FocusControl = editIssuer
         end
         object lblSubject: TLabel
           Left = 3
           Top = 89
-          Width = 40
-          Height = 13
+          Width = 46
+          Height = 14
           Caption = '&Subject:'
           FocusControl = editSubject
         end
         object lblSSL: TLabel
           Left = 3
           Top = 9
-          Width = 61
-          Height = 13
+          Width = 69
+          Height = 14
           Caption = '&Require SSL:'
         end
         object editCipher: TEdit
           Left = 176
           Top = 33
           Width = 96
-          Height = 21
+          Height = 22
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 1
           Text = 'editCipher'
@@ -537,7 +477,7 @@ object UserManagerForm: TUserManagerForm
           Left = 176
           Top = 59
           Width = 96
-          Height = 21
+          Height = 22
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 2
           Text = 'editIssuer'
@@ -547,7 +487,7 @@ object UserManagerForm: TUserManagerForm
           Left = 176
           Top = 86
           Width = 96
-          Height = 21
+          Height = 22
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 3
           Text = 'editSubject'
@@ -557,7 +497,7 @@ object UserManagerForm: TUserManagerForm
           Left = 176
           Top = 6
           Width = 96
-          Height = 21
+          Height = 22
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 0
@@ -567,6 +507,94 @@ object UserManagerForm: TUserManagerForm
             'Only permit SSL-encrypted connections'
             'X509 (certificate, issuer and subject do not matter)'
             'Specify requirements...')
+        end
+      end
+    end
+    object PageControlAccess: TPageControl
+      Left = 0
+      Top = 145
+      Width = 283
+      Height = 171
+      ActivePage = tabPrivileges
+      Align = alClient
+      TabOrder = 1
+      object tabPrivileges: TTabSheet
+        Caption = 'Privileges'
+        object treePrivs: TVirtualStringTree
+          Left = 0
+          Top = 22
+          Width = 275
+          Height = 120
+          Align = alClient
+          Header.AutoSizeIndex = 0
+          Header.Height = 14
+          Header.MainColumn = -1
+          Images = MainForm.VirtualImageListMain
+          IncrementalSearch = isAll
+          TabOrder = 0
+          TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
+          TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+          TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+          OnChecked = treePrivsChecked
+          OnExpanded = treePrivsExpanded
+          OnGetText = treePrivsGetText
+          OnPaintText = treePrivsPaintText
+          OnGetImageIndex = treePrivsGetImageIndex
+          OnInitChildren = treePrivsInitChildren
+          OnInitNode = treePrivsInitNode
+          Touch.InteractiveGestures = [igPan, igPressAndTap]
+          Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
+          ExplicitTop = 64
+          ExplicitHeight = 78
+          Columns = <>
+        end
+        object tlbObjects: TToolBar
+          Left = 0
+          Top = 0
+          Width = 275
+          Height = 22
+          AutoSize = True
+          ButtonWidth = 88
+          Caption = 'tlbObjects'
+          Images = MainForm.VirtualImageListMain
+          List = True
+          ParentShowHint = False
+          ShowCaptions = True
+          ShowHint = True
+          TabOrder = 1
+          Wrapable = False
+          object btnAddObject: TToolButton
+            Left = 0
+            Top = 0
+            Hint = 'Add object ...'
+            Caption = 'Add object'
+            ImageIndex = 45
+            ImageName = 'icons8-add'
+            OnClick = btnAddObjectClick
+          end
+        end
+      end
+      object tabRoles: TTabSheet
+        Caption = 'Roles'
+        ImageIndex = 1
+        object ValueListEditorRoles: TValueListEditor
+          Left = 0
+          Top = 0
+          Width = 275
+          Height = 142
+          Align = alClient
+          Strings.Strings = (
+            'Roll=off')
+          TabOrder = 0
+          TitleCaptions.Strings = (
+            'Role'
+            'Assigned')
+          OnGetPickList = ValueListEditorRolesGetPickList
+          OnSelectCell = ValueListEditorRolesSelectCell
+          OnSetEditText = ValueListEditorRolesSetEditText
+          ColWidths = (
+            150
+            119)
         end
       end
     end
