@@ -587,7 +587,7 @@ object UserManagerForm: TUserManagerForm
             'Roll=off')
           TabOrder = 0
           TitleCaptions.Strings = (
-            'Role'
+            'Role name'
             'Assigned')
           OnGetPickList = ValueListEditorRolesGetPickList
           OnSelectCell = ValueListEditorRolesSelectCell

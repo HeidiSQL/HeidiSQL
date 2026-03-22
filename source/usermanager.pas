@@ -37,16 +37,16 @@ type
     Problem: TUserProblem;
     IsRole: Boolean;
     Roles: TStringList;
-    const
-      RoleNo: String = 'no';
-      RoleYes: String = 'yes';
-      RoleYesAdmin: String = 'yes, with admin';
     public
+      class var RoleNo: String;
+      class var RoleYes: String;
+      class var RoleYesAdmin: String;
       constructor Create;
-      destructor Destroy;
+      destructor Destroy; override;
       function HostRequiresNameResolve: Boolean;
       procedure ParseSettings(GrantOrCreate: String; Priv: TPrivObj);
       function IsUser: Boolean;
+      function AssignedRolesCount: Integer;
   end;
   PUser = ^TUser;
   TUserList = class(TObjectList<TUser>)
@@ -614,6 +614,8 @@ begin
   editCipher.Clear;
   editIssuer.Clear;
   editSubject.Clear;
+  tabPrivileges.Caption := _('Privileges');
+  tabRoles.Caption := _('Roles');
 
   if UserSelected then begin
     User := Sender.GetNodeData(Node);
@@ -819,6 +821,8 @@ begin
     editCipher.Text := User.Cipher;
     editIssuer.Text := User.Issuer;
     editSubject.Text := User.Subject;
+    tabPrivileges.Caption := _('Privileges') + ' (' + FPrivObjects.Count.ToString + ')';
+    tabRoles.Caption := _('Roles') + ' (' + User.AssignedRolesCount.ToString + ')';
 
 
     // Generate grant code for column privs by hand
@@ -1197,7 +1201,7 @@ begin
 
   // Add role
   RoleName := '';
-  if not InputQuery('Create role', 'Role name', RoleName) then
+  if not InputQuery(_('Create role'), _('Role name'), RoleName) then
     Exit;
 
   try
@@ -1726,6 +1730,7 @@ end;
 destructor TUser.Destroy;
 begin
   Roles.Free;
+  inherited;
 end;
 
 function TUser.HostRequiresNameResolve: Boolean;
@@ -1804,6 +1809,20 @@ begin
 end;
 
 
+function TUser.AssignedRolesCount: Integer;
+var
+  i: Integer;
+  Val: String;
+begin
+  Result := 0;
+  for i:=0 to Roles.Count-1 do begin
+    Val := Roles.ValueFromIndex[i];
+    if (Val = RoleYes) or (Val = RoleYesAdmin) then
+      Inc(Result);
+  end;
+end;
+
+
 { TUserList }
 
 function TUserList.GetRoleNames: TStringList;
@@ -1871,5 +1890,11 @@ begin
   end;
 end;
 
+
+initialization
+
+TUser.RoleNo := _('No');
+TUser.RoleYes := _('Yes');
+TUser.RoleYesAdmin := _('Yes, with admin option');
 
 end.
