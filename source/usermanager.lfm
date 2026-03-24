@@ -16,7 +16,6 @@ object UserManagerForm: TUserManagerForm
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnResize = FormResize
   OnShow = FormShow
   object Splitter1: TSplitter
     Cursor = crSizeWE
@@ -24,7 +23,6 @@ object UserManagerForm: TUserManagerForm
     Height = 328
     Top = 0
     Width = 8
-    OnMoved = FormResize
   end
   object pnlLeft: TPanel
     Left = 5
@@ -174,67 +172,6 @@ object UserManagerForm: TUserManagerForm
     Constraints.MinWidth = 20
     ParentBackground = False
     TabOrder = 1
-    object tlbObjects: TToolBar
-      Left = 0
-      Height = 28
-      Top = 145
-      Width = 385
-      AutoSize = True
-      ButtonHeight = 28
-      ButtonWidth = 79
-      Caption = 'tlbObjects'
-      EdgeBorders = []
-      Images = MainForm.ImageListMain
-      List = True
-      ParentShowHint = False
-      ShowCaptions = True
-      ShowHint = True
-      TabOrder = 1
-      Wrapable = False
-      object lblAllowAccessTo: TLabel
-        Left = 1
-        Height = 28
-        Top = 0
-        Width = 121
-        AutoSize = False
-        Caption = 'Allow access to:'
-        Layout = tlCenter
-        Transparent = False
-      end
-      object btnAddObject: TToolButton
-        Left = 122
-        Hint = 'Add object ...'
-        Top = 0
-        Caption = 'Add object'
-        ImageIndex = 45
-        OnClick = btnAddObjectClick
-      end
-    end
-    object treePrivs: TLazVirtualStringTree
-      AnchorSideTop.Control = tlbObjects
-      AnchorSideTop.Side = asrBottom
-      Left = 0
-      Height = 150
-      Top = 173
-      Width = 385
-      Align = alClient
-      Header.AutoSizeIndex = 0
-      Header.Columns = <>
-      Header.MainColumn = -1
-      Images = MainForm.ImageListMain
-      IncrementalSearch = isAll
-      TabOrder = 2
-      TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
-      TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-      TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
-      OnChecked = treePrivsChecked
-      OnExpanded = treePrivsExpanded
-      OnGetText = treePrivsGetText
-      OnPaintText = treePrivsPaintText
-      OnGetImageIndex = treePrivsGetImageIndex
-      OnInitChildren = treePrivsInitChildren
-      OnInitNode = treePrivsInitNode
-    end
     object PageControlSettings: TPageControl
       Left = 0
       Height = 145
@@ -586,6 +523,96 @@ object UserManagerForm: TUserManagerForm
           Style = csDropDownList
           TabOrder = 0
           OnChange = comboSSLChange
+        end
+      end
+    end
+    object PageControlAccess: TPageControl
+      Left = 0
+      Height = 178
+      Top = 145
+      Width = 385
+      ActivePage = tabPrivileges
+      Align = alClient
+      TabIndex = 0
+      TabOrder = 1
+      object tabPrivileges: TTabSheet
+        Caption = 'Privileges'
+        ClientHeight = 150
+        ClientWidth = 377
+        object treePrivs: TLazVirtualStringTree
+          Left = 0
+          Height = 122
+          Top = 28
+          Width = 377
+          Align = alClient
+          DefaultText = 'Node'
+          Header.AutoSizeIndex = 0
+          Header.Columns = <>
+          Header.MainColumn = -1
+          Images = MainForm.ImageListMain
+          IncrementalSearch = isAll
+          TabOrder = 0
+          TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
+          TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+          TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+          OnChecked = treePrivsChecked
+          OnExpanded = treePrivsExpanded
+          OnGetText = treePrivsGetText
+          OnPaintText = treePrivsPaintText
+          OnGetImageIndex = treePrivsGetImageIndex
+          OnInitChildren = treePrivsInitChildren
+          OnInitNode = treePrivsInitNode
+        end
+        object tlbObjects: TToolBar
+          Left = 0
+          Height = 28
+          Top = 0
+          Width = 377
+          AutoSize = True
+          ButtonHeight = 28
+          ButtonWidth = 79
+          Caption = 'tlbObjects'
+          EdgeBorders = []
+          Images = MainForm.ImageListMain
+          List = True
+          ParentShowHint = False
+          ShowCaptions = True
+          ShowHint = True
+          TabOrder = 1
+          Wrapable = False
+          object btnAddObject: TToolButton
+            Left = 1
+            Hint = 'Add object ...'
+            Top = 0
+            Caption = 'Add object'
+            ImageIndex = 45
+            OnClick = btnAddObjectClick
+          end
+        end
+      end
+      object tabRoles: TTabSheet
+        Caption = 'Roles'
+        ClientHeight = 150
+        ClientWidth = 377
+        object ValueListEditorRoles: TValueListEditor
+          Left = 0
+          Height = 150
+          Top = 0
+          Width = 377
+          Align = alClient
+          RowCount = 2
+          TabOrder = 0
+          OnSelectCell = ValueListEditorRolesSelectCell
+          OnSetEditText = ValueListEditorRolesSetEditText
+          TitleCaptions.Strings = (
+            'Role name'
+            'Assigned'
+          )
+          OnGetPickList = ValueListEditorRolesGetPickList
+          ColWidths = (
+            64
+            309
+          )
         end
       end
     end

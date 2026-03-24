@@ -48,7 +48,8 @@ type
     qForeignKeyDrop, qGetTableColumns, qGetCollations, qGetCollationsExtended, qGetCharsets,
     qGetReverseForeignKeys, qExplain, qSetTimezone,
     qShowFunctionStatus, qShowProcedureStatus, qShowTriggers, qShowEvents, qShowCreateTrigger,
-    qHelpKeyword, qShowWarnings, qGetEnumTypes, qDropUser, qCreateRole, qDropRole, qReloadPrivileges);
+    qHelpKeyword, qShowWarnings, qGetEnumTypes,
+    qDropUser, qCreateRole, qDropRole, qReloadPrivileges, qGrantRole, qRevokeRole);
   TSqlProvider = class
     strict protected
       FNetType: TNetType;

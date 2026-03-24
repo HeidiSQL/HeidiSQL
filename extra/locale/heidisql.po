@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2026-03-20 15:16+0100\n"
+"PO-Revision-Date: 2026-03-24 12:08+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -6815,3 +6815,21 @@ msgstr "Folder in path does not exist: %s"
 
 msgid "File does not yet exist, will be created now: %s"
 msgstr "File does not yet exist, will be created now: %s"
+
+msgid "Create role"
+msgstr "Create role"
+
+msgid "Role name"
+msgstr "Role name"
+
+msgid "Roles"
+msgstr "Roles"
+
+msgid "Assigned"
+msgstr "Assigned"
+
+msgid "Yes, with admin option"
+msgstr "Yes, with admin option"
+
+msgid "No password hash column available"
+msgstr "No password hash column available"
