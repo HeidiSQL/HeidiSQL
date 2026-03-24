@@ -214,7 +214,7 @@ object UserManagerForm: TUserManagerForm
       Left = 0
       Top = 0
       Width = 283
-      Height = 145
+      Height = 177
       ActivePage = tabCredentials
       Align = alTop
       TabOrder = 0
@@ -222,7 +222,7 @@ object UserManagerForm: TUserManagerForm
         Caption = 'Credentials'
         DesignSize = (
           275
-          116)
+          148)
         object lblUsername: TLabel
           Left = 3
           Top = 10
@@ -253,6 +253,13 @@ object UserManagerForm: TUserManagerForm
           Height = 14
           Caption = 'Repeat password:'
           FocusControl = editRepeatPassword
+        end
+        object lblDefaultRole: TLabel
+          Left = 3
+          Top = 120
+          Width = 67
+          Height = 14
+          Caption = 'Default role:'
         end
         object editRepeatPassword: TEdit
           Left = 176
@@ -301,13 +308,23 @@ object UserManagerForm: TUserManagerForm
           TabOrder = 0
           OnChange = Modification
         end
+        object comboDefaultRole: TComboBox
+          Left = 176
+          Top = 116
+          Width = 96
+          Height = 22
+          Style = csDropDownList
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 4
+          OnChange = Modification
+        end
       end
       object tabLimitations: TTabSheet
         Caption = 'Limitations'
         ImageIndex = 1
         DesignSize = (
           275
-          116)
+          148)
         object lblMaxQueries: TLabel
           Left = 3
           Top = 10
@@ -431,7 +448,7 @@ object UserManagerForm: TUserManagerForm
         ImageIndex = 2
         DesignSize = (
           275
-          116)
+          148)
         object lblCipher: TLabel
           Left = 3
           Top = 36
@@ -512,9 +529,9 @@ object UserManagerForm: TUserManagerForm
     end
     object PageControlAccess: TPageControl
       Left = 0
-      Top = 145
+      Top = 177
       Width = 283
-      Height = 171
+      Height = 139
       ActivePage = tabPrivileges
       Align = alClient
       TabOrder = 1
@@ -524,7 +541,7 @@ object UserManagerForm: TUserManagerForm
           Left = 0
           Top = 22
           Width = 275
-          Height = 120
+          Height = 88
           Align = alClient
           Header.AutoSizeIndex = 0
           Header.Height = 14
@@ -581,7 +598,7 @@ object UserManagerForm: TUserManagerForm
           Left = 0
           Top = 0
           Width = 275
-          Height = 142
+          Height = 110
           Align = alClient
           Strings.Strings = (
             'Roll=off')

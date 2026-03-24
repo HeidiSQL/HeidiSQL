@@ -3395,6 +3395,7 @@ begin
     qReloadPrivileges: Result := 'FLUSH PRIVILEGES';
     qGrantRole: Result := 'GRANT %s TO %s%s';
     qRevokeRole: Result := 'REVOKE %s FROM %s';
+    qSetDefaultRole: Result := 'SET DEFAULT ROLE %s FOR %s';
     else Result := inherited;
   end;
 end;

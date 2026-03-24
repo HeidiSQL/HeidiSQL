@@ -32,7 +32,7 @@ type
   TUserProblem = (upNone, upEmptyPassword, upInvalidPasswordLen, upSkipNameResolve, upUnknown);
 
   TUser = class(TObject)
-    Username, Host, Password, Cipher, Issuer, Subject: String;
+    Username, Host, Password, Cipher, Issuer, Subject, DefaultRole: String;
     MaxQueries, MaxUpdates, MaxConnections, MaxUserConnections, SSL: Integer;
     Problem: TUserProblem;
     IsRole: Boolean;
@@ -51,7 +51,8 @@ type
   PUser = ^TUser;
   TUserList = class(TObjectList<TUser>)
     public
-      function GetRoleNames: TStringList;
+      function GetRoleNames: TStringList; overload;
+      procedure GetRoleNames(Strings: TStrings); overload;
       function GetDefaultRoles: TStringList;
   end;
 
@@ -131,6 +132,8 @@ type
     tlbObjects: TToolBar;
     btnAddObject: TToolButton;
     ValueListEditorRoles: TValueListEditor;
+    lblDefaultRole: TLabel;
+    comboDefaultRole: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnAddUserClick(Sender: TObject);
@@ -190,7 +193,7 @@ type
     { Private declarations }
     FUsers: TUserList;
     FModified, FAdded: Boolean;
-    FHasIsRole: Boolean;
+    FHasIsRole, FHasDefaultRole: Boolean;
     FCloneGrants: TStringList;
     FPrivObjects: TPrivObjList;
     FPrivsGlobal, FPrivsDb, FPrivsTable, FPrivsRoutine, FPrivsColumn: TStringList;
@@ -261,7 +264,7 @@ var
   Version, i: Integer;
   Users: TDBQuery;
   U: TUser;
-  tmp, PasswordExpr, IsRoleExpr: String;
+  tmp, PasswordExpr, IsRoleExpr, DefaultRoleExpr: String;
   SkipNameResolve,
   HasPassword, HasAuthString: Boolean;
   PasswordLengthMatters: Boolean;
@@ -394,6 +397,7 @@ begin
     HasPassword := UserTableColumns.IndexOf('password') > -1;
     HasAuthString := UserTableColumns.IndexOf('authentication_string') > -1;
     FHasIsRole := UserTableColumns.IndexOf('is_role') > -1;
+    FHasDefaultRole := UserTableColumns.IndexOf('default_role') > -1;
     if HasPassword and (not HasAuthString) then
       PasswordExpr := 'password'
     else if (not HasPassword) and HasAuthString then
@@ -404,13 +408,15 @@ begin
       Raise Exception.Create(_('No password hash column available'));
     PasswordExpr := PasswordExpr + ' AS ' + FConnection.QuoteIdent('password');
     IsRoleExpr := IfThen(FHasIsRole, 'is_role', FConnection.EscapeString('N')+' AS is_role');
+    DefaultRoleExpr := IfThen(FHasDefaultRole, 'default_role', FConnection.EscapeString('')+' AS default_role');
 
     Users := FConnection.GetResults(
       'SELECT '+
       FConnection.QuoteIdent('user') + ', ' +
       FConnection.QuoteIdent('host') + ', ' +
       PasswordExpr + ', ' +
-      IsRoleExpr + ' ' +
+      IsRoleExpr + ', ' +
+      DefaultRoleExpr + ' ' +
       'FROM '+FConnection.QuoteIdent('mysql')+'.'+FConnection.QuoteIdent('user')
       );
     FUsers := TUserList.Create(True);
@@ -421,6 +427,7 @@ begin
       U.Host := Users.Col('host');
       U.Password := Users.Col('password');
       U.IsRole := UpperCase(Users.Col('is_role')) = 'Y';
+      U.DefaultRole := Users.Col('default_role');
       U.Problem := upNone;
       if U.IsUser then begin
         if Length(U.Password) = 0 then
@@ -605,6 +612,10 @@ begin
   editPassword.Clear;
   editPassword.TextHint := '';
   editRepeatPassword.Clear;
+  comboDefaultRole.Items.Clear;
+  comboDefaultRole.Items.Add(_('None'));
+  FUsers.GetRoleNames(comboDefaultRole.Items);
+  comboDefaultRole.ItemIndex := 0;
   udMaxQueries.Position := 0;
   udMaxUpdates.Position := 0;
   udMaxConnections.Position := 0;
@@ -625,6 +636,10 @@ begin
       UserHost := FConnection.EscapeString(User.Username);
     editUsername.Text := User.Username;
     editFromHost.Text := User.Host;
+    i := comboDefaultRole.Items.IndexOf(User.DefaultRole);
+    if i > -1 then
+      comboDefaultRole.ItemIndex := i;
+
     Caption := Caption + ' - ' + User.Username;
 
     AllPNames := TStringList.Create;
@@ -863,6 +878,8 @@ begin
   editPassword.Enabled := UserSelected and User.IsUser;
   lblRepeatPassword.Enabled := UserSelected and User.IsUser;
   editRepeatPassword.Enabled := UserSelected and User.IsUser;
+  comboDefaultRole.Enabled := UserSelected and User.IsUser and FHasDefaultRole;
+  lblDefaultRole.Enabled := comboDefaultRole.Enabled;
   tabCredentials.Enabled := UserSelected;
   lblMaxQueries.Enabled := UserSelected and User.IsUser and (FConnection.ServerVersionInt >= 40002);
 
@@ -1482,6 +1499,23 @@ begin
       end;
     end;
 
+    // Set default role
+    if comboDefaultRole.Enabled and (comboDefaultRole.ItemIndex > -1) then begin
+      if comboDefaultRole.ItemIndex = 0 then begin
+        FConnection.Query(qSetDefaultRole, ['NONE', OrgUserHost]);
+      end
+      else try
+        RoleName := comboDefaultRole.Text;
+        RoleAssigned := ValueListEditorRoles.Strings.Values[RoleName];
+        if (RoleAssigned = TUser.RoleYes) or (RoleAssigned = TUser.RoleYesAdmin) then
+          FConnection.Query(qSetDefaultRole, [FConnection.EscapeString(RoleName), OrgUserHost]);
+      except
+        on E:EDbError do; // Happens when this role was not granted before
+      end;
+      FConnection.ShowWarnings;
+    end;
+
+
     // Rename user
     if (FocusedUser.Username <> editUsername.Text) or (FocusedUser.Host <> editFromHost.Text) then begin
 
@@ -1514,6 +1548,7 @@ begin
     FocusedUser.Host := editFromHost.Text;
     if editPassword.Modified then
       FocusedUser.Password := editPassword.Text;
+    FocusedUser.DefaultRole := IfThen(comboDefaultRole.ItemIndex=0, '', comboDefaultRole.Text);
     FocusedUser.SSL := comboSSL.ItemIndex;
     FocusedUser.Cipher := editCipher.Text;
     FocusedUser.Issuer := editIssuer.Text;
@@ -1714,6 +1749,7 @@ begin
   Username := '';
   Host := '';
   Password := '';
+  DefaultRole := '';
   Cipher := '';
   Issuer := '';
   Subject := '';
@@ -1834,6 +1870,15 @@ begin
     if u.IsRole then
       Result.Add(u.Username);
   end;
+end;
+
+procedure TUserList.GetRoleNames(Strings: TStrings);
+var
+  RoleNames: TStringList;
+begin
+  RoleNames := GetRoleNames;
+  Strings.AddStrings(RoleNames);
+  RoleNames.Free;
 end;
 
 function TUserList.GetDefaultRoles: TStringList;
