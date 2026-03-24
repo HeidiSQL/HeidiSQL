@@ -120,6 +120,38 @@ deb-package:
 	  ./deb/=/
 	rm control.txt
 
+rpm-package:
+	@echo "=== Creating rpm package"
+	rm -vrf rpm
+	cp -R package-skeleton rpm
+	find rpm -iname ".gitkeep" -exec rm -v {} +
+	cp -vR extra/locale/*.mo rpm/usr/share/heidisql/locale
+	cp -v extra/ini/*.ini  rpm/usr/share/heidisql
+	cp -v res/deb-package-icon.png rpm/usr/share/pixmaps/heidisql.png
+	cp -v $(BINQT6) rpm/usr/share/heidisql/heidisql
+	chmod +x rpm/usr/share/heidisql/heidisql
+	cp -v README.md LICENSE rpm/usr/share/doc/heidisql
+	mkdir -p dist
+	rm -vf dist/*.rpm
+
+	fpm -s dir -t rpm -n heidisql -v $(VERSION) \
+	  -p dist \
+	  --verbose \
+	  --rpm-os linux \
+	  --description "HeidiSQL SQL client (Qt6)" \
+	  --url "https://www.heidisql.com" \
+	  --license "GPL-2.0-or-later" \
+	  --depends "libQt6Widgets.so.6" \
+	  --depends "libQt6Gui.so.6" \
+	  --depends "libQt6Core.so.6" \
+	  --depends "libQt6Pas.so.6" \
+	  --depends "libssl.so.3" \
+	  --depends "libmariadb.so.3" \
+	  --depends "libpq.so.5" \
+	  --depends "libsqlite3.so.0" \
+	  --depends "libsybdb.so.5" \
+	  ./rpm/=/
+
 tar-gtk2:
 	@echo "=== Creating GTK2 archive"
 	rm -vrf tar

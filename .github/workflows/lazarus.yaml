@@ -163,11 +163,17 @@ jobs:
             - name: Install FPM
               run: sudo gem install --no-document fpm
 
+            - name: Install rpm tooling for fpm
+              run: sudo apt-get update && sudo apt-get install -y rpm
+
             - name: Create release archives (Linux GTK)
               run: make tar-gtk2
 
             - name: Create debian package
               run: make deb-package
+
+            - name: Build rpm package
+              run: make rpm-package
 
             - name: Create release archives (Linux QT5)
               run: make tar-qt5
