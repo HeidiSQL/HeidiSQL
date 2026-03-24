@@ -49,7 +49,7 @@ type
     qGetReverseForeignKeys, qExplain, qSetTimezone,
     qShowFunctionStatus, qShowProcedureStatus, qShowTriggers, qShowEvents, qShowCreateTrigger,
     qHelpKeyword, qShowWarnings, qGetEnumTypes,
-    qDropUser, qCreateRole, qDropRole, qReloadPrivileges, qGrantRole, qRevokeRole);
+    qDropUser, qCreateRole, qDropRole, qReloadPrivileges, qGrantRole, qRevokeRole, qSetDefaultRole);
   TSqlProvider = class
     strict protected
       FNetType: TNetType;
