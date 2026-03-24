@@ -8362,7 +8362,7 @@ begin
   ShowStatusMsg(_('Fetching distinct values ...'));
   DbObj := ActiveDbObj;
   Conn := DbObj.Connection;
-  MaxSize := SIZE_GB;
+  MaxSize := SIZE_GB*2;
   ColumnHasIndex := DataGridResult.ColIsKeyPart(ResultCol)
     or DataGridResult.ColIsUniqueKeyPart(ResultCol)
     or DataGridResult.ColIsPrimaryKeyPart(ResultCol);
@@ -8376,7 +8376,7 @@ begin
     if SynMemoFilter.Text <> '' then
       Query := Query + ' WHERE ' + SynMemoFilter.Text + CRLF;
     Query := Query + ' GROUP BY '+Conn.QuoteIdent(ColName)+' ORDER BY c DESC, '+Conn.QuoteIdent(ColName);
-    Data := Conn.GetResults(Conn.ApplyLimitClause('SELECT', Query, 30, 0));
+    Data := Conn.GetResults(Conn.ApplyLimitClause('SELECT', Query, 50, 0));
     for i:=0 to Data.RecordCount-1 do begin
       if QFvalues.Count > i then
         Item := QFvalues[i]
