@@ -46,6 +46,8 @@ const
   ICONINDEX_FUNCTION = 13;
   ICONINDEX_EVENT = 80;
   ICONINDEX_KEYWORD = 25;
+  ICONINDEX_USER = 43;
+  ICONINDEX_ROLE = 95;
 
   // Size of byte units
   {Kibibyte} SIZE_KB = Int64(1024);

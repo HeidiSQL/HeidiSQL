@@ -100,9 +100,9 @@ object UserManagerForm: TUserManagerForm
     end
     object listUsers: TVirtualStringTree
       Left = 0
-      Top = 72
+      Top = 64
       Width = 177
-      Height = 244
+      Height = 252
       Align = alClient
       Header.AutoSizeIndex = 0
       Header.Height = 18
@@ -143,10 +143,9 @@ object UserManagerForm: TUserManagerForm
       Left = 0
       Top = 20
       Width = 177
-      Height = 30
+      Height = 22
       AutoSize = True
-      ButtonHeight = 30
-      ButtonWidth = 69
+      ButtonWidth = 63
       Caption = 'ToolBar1'
       Images = MainForm.VirtualImageListMain
       List = True
@@ -160,19 +159,18 @@ object UserManagerForm: TUserManagerForm
         DropdownMenu = menuAdd
         ImageIndex = 45
         ImageName = 'icons8-add'
-        Style = tbsDropDown
-        OnClick = btnAddUserClick
+        Style = tbsWholeDropDown
       end
       object btnCloneUser: TToolButton
-        Left = 84
+        Left = 72
         Top = 0
         Caption = 'Clone'
         ImageIndex = 3
         ImageName = 'icons8-copy-100'
-        OnClick = btnAddUserClick
+        OnClick = menuItemUserClick
       end
       object btnDeleteUser: TToolButton
-        Left = 153
+        Left = 135
         Top = 0
         Caption = 'Delete'
         ImageIndex = 46
@@ -182,7 +180,7 @@ object UserManagerForm: TUserManagerForm
     end
     object editFilterUsers: TButtonedEdit
       Left = 0
-      Top = 50
+      Top = 42
       Width = 177
       Height = 22
       Align = alTop
@@ -561,8 +559,6 @@ object UserManagerForm: TUserManagerForm
           OnInitNode = treePrivsInitNode
           Touch.InteractiveGestures = [igPan, igPressAndTap]
           Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
-          ExplicitTop = 64
-          ExplicitHeight = 78
           Columns = <>
         end
         object tlbObjects: TToolBar
@@ -703,12 +699,13 @@ object UserManagerForm: TUserManagerForm
     end
   end
   object menuAdd: TPopupMenu
+    Images = MainForm.VirtualImageListMain
     OnPopup = menuAddPopup
     Left = 80
     Top = 280
     object menuItemUser: TMenuItem
       Caption = 'User'
-      OnClick = btnAddUserClick
+      OnClick = menuItemUserClick
     end
     object menuItemRole: TMenuItem
       Caption = 'Role'
