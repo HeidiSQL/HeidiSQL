@@ -139,7 +139,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure btnAddUserClick(Sender: TObject);
+    procedure menuItemUserClick(Sender: TObject);
     procedure btnDeleteUserClick(Sender: TObject);
     procedure listUsersFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex);
@@ -262,6 +262,8 @@ begin
   FixVT(treePrivs);
   FHasIsRole := False;
   FHasDefaultRole := False;
+  menuItemUser.ImageIndex := ICONINDEX_USER;
+  menuItemRole.ImageIndex := ICONINDEX_ROLE;
 end;
 
 procedure TUserManagerForm.FormDestroy(Sender: TObject);
@@ -947,9 +949,9 @@ begin
   case Kind of
     ikNormal, ikSelected: begin
       if User.IsUser then
-        ImageIndex := 43
+        ImageIndex := ICONINDEX_USER
       else
-        ImageIndex := 95;
+        ImageIndex := ICONINDEX_ROLE;
     end;
     ikOverlay: begin
       if User.Password = '' then
@@ -1194,7 +1196,7 @@ begin
 end;
 
 
-procedure TUserManagerForm.btnAddUserClick(Sender: TObject);
+procedure TUserManagerForm.menuItemUserClick(Sender: TObject);
 var
   P: TPrivObj;
   User: TUser;

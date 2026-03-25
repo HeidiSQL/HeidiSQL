@@ -117,18 +117,17 @@ object UserManagerForm: TUserManagerForm
         Caption = 'Add'
         DropdownMenu = menuAdd
         ImageIndex = 45
-        Style = tbsDropDown
-        OnClick = btnAddUserClick
+        Style = tbsButtonDrop
       end
       object btnCloneUser: TToolButton
-        Left = 71
+        Left = 69
         Top = 0
         Caption = 'Clone'
         ImageIndex = 3
-        OnClick = btnAddUserClick
+        OnClick = menuItemUserClick
       end
       object btnDeleteUser: TToolButton
-        Left = 131
+        Left = 129
         Top = 0
         Caption = 'Delete'
         ImageIndex = 46
@@ -645,7 +644,7 @@ object UserManagerForm: TUserManagerForm
           OnGetPickList = ValueListEditorRolesGetPickList
           ColWidths = (
             64
-            309
+            292
           )
         end
       end
@@ -808,12 +807,13 @@ object UserManagerForm: TUserManagerForm
     end
   end
   object menuAdd: TPopupMenu
+    Images = MainForm.ImageListMain
     OnPopup = menuAddPopup
     Left = 80
     Top = 280
     object menuItemUser: TMenuItem
       Caption = 'User'
-      OnClick = btnAddUserClick
+      OnClick = menuItemUserClick
     end
     object menuItemRole: TMenuItem
       Caption = 'Role'
