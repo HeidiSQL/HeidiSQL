@@ -8911,8 +8911,8 @@ begin
       SetString(AnsiStr, FConnection.Lib.PQgetvalue(FCurrentResults, FRecNoLocal, Column), FColumnLengths[Column]);
       if Datatype(Column).Category in [dtcBinary, dtcSpatial] then
         Result := String(AnsiStr)
-      else if Datatype(Column).Index = dbdtBool then
-        if AnsiStr='t' then Result := 'true' else Result := 'false'
+      else if (Datatype(Column).Index = dbdtBool) and (Length(AnsiStr) > 0) then
+        Result := IfThen(AnsiStr='t', 'true', 'false')
       else
         Result := Connection.DecodeAPIString(AnsiStr);
     end;

@@ -10371,8 +10371,10 @@ begin
 
   RowNumber := Sender.GetNodeData(Node);
   Results.RecNo := RowNumber^;
-  if Results.IsNull(ResultCol) and (not EditingAndFocused) then
-    CellText := TEXT_NULL
+  if Results.IsNull(ResultCol) then begin
+    // Grid editors come here through Tree.GetTextInfo(), provide empty string then
+    CellText := IfThen(EditingAndFocused, '', TEXT_NULL);
+  end
   else begin
     case Results.DataType(ResultCol).Category of
       dtcInteger, dtcReal: begin
