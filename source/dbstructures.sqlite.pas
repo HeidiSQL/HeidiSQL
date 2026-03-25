@@ -399,7 +399,6 @@ function TSQLiteProvider.GetSql(AId: TQueryId): string;
 begin
   case AId of
     qDatabaseDrop: Result := 'DROP DATABASE %s';
-    qEmptyTable: Result := 'DELETE FROM ';
     qRenameTable: Result := 'ALTER TABLE %s RENAME TO %s';
     qRenameView: Result := 'ALTER TABLE %s RENAME TO %s';
     qCurrentUserHost: Result := ''; // unsupported

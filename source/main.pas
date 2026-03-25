@@ -4596,7 +4596,7 @@ begin
           Conn.Query(QueryDisableChecks);
         try
           for TableOrView in Objects do begin
-            Conn.Query(Conn.SqlProvider.GetSql(qEmptyTable) + TableOrView.QuotedName);
+            Conn.Query(qEmptyTable, [TableOrView.QuotedName]);
             ProgressStep;
           end;
           actRefresh.Execute;
