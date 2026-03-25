@@ -3247,7 +3247,7 @@ function TMySqlProvider.GetSql(AId: TQueryId): string;
 begin
   case AId of
     qDatabaseDrop: Result := 'DROP DATABASE %s';
-    qEmptyTable: Result := 'TRUNCATE ';
+    qEmptyTable: Result := 'TRUNCATE %s';
     qRenameTable: Result := 'RENAME TABLE %s TO %s';
     qRenameView: Result := 'RENAME TABLE %s TO %s';
     qCurrentUserHost: Result := 'SELECT CURRENT_USER()';

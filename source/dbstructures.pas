@@ -205,6 +205,7 @@ function TSqlProvider.GetSql(AId: TQueryId): string;
 begin
   // Basic default SQL snippets compatible to all or most servers
   case AId of
+    qEmptyTable: Result := 'DELETE FROM %s';
     qForeignKeyEventAction: Result := 'RESTRICT,CASCADE,SET NULL,NO ACTION';
     qOrderAsc: Result := 'ASC';
     qOrderDesc: Result := 'DESC';

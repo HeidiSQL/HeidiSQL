@@ -3360,7 +3360,7 @@ begin
     else
       Offset := '-';
     Offset := Offset + Format('%.2d:%.2d', [Abs(Hours), Abs(Minutes)]);
-    Query(FSqlProvider.GetSql(qSetTimezone, [EscapeString(Offset)]));
+    Query(qSetTimezone, [EscapeString(Offset)]);
   end;
 
   // Process startup script
@@ -4299,7 +4299,6 @@ end;
 procedure TDBConnection.SetDatabase(Value: String);
 var
   s: String;
-  UseQuery: String;
 begin
   Log(lcDebug, 'SetDatabase('+Value+'), FDatabase: '+FDatabase);
   if Value <> FDatabase then begin
@@ -4319,9 +4318,8 @@ begin
           s := s + ', ' + EscapeString('public');
       end else
         s := QuoteIdent(Value);
-      UseQuery := FSqlProvider.GetSql(qUSEQuery);
-      if not UseQuery.IsEmpty then begin
-        Query(FSqlProvider.GetSql(qUSEQuery, [s]), False);
+      if FSqlProvider.Has(qUSEQuery) then begin
+        Query(qUSEQuery, [s]);
       end;
       FDatabase := DeQuoteIdent(Value);
       if Assigned(FOnDatabaseChanged) then

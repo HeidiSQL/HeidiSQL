@@ -599,7 +599,6 @@ function TPostgreSQLProvider.GetSql(AId: TQueryId): string;
 begin
   case AId of
     qDatabaseDrop: Result := 'DROP SCHEMA %s';
-    qEmptyTable: Result := 'DELETE FROM ';
     qRenameTable: Result := 'ALTER TABLE %s RENAME TO %s';
     qRenameView: Result := 'ALTER VIEW %s RENAME TO %s';
     qCurrentUserHost: Result := 'SELECT CURRENT_USER';

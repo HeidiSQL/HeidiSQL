@@ -450,7 +450,6 @@ begin
       'xtype',
       'type'
       );
-    qEmptyTable: Result := 'DELETE FROM ';
     qRenameTable: Result := 'EXEC sp_rename %s, %s';
     qRenameView: Result := 'EXEC sp_rename %s, %s';
     qCurrentUserHost: Result := 'SELECT SYSTEM_USER';
