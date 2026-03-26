@@ -603,7 +603,6 @@ object UserManagerForm: TUserManagerForm
             'Role name'
             'Assigned')
           OnGetPickList = ValueListEditorRolesGetPickList
-          OnSelectCell = ValueListEditorRolesSelectCell
           OnSetEditText = ValueListEditorRolesSetEditText
           ColWidths = (
             150

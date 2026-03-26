@@ -53,7 +53,7 @@ type
     public
       function GetRoleNames: TStringList; overload;
       procedure GetRoleNames(Strings: TStrings); overload;
-      function GetDefaultRoles: TStringList;
+      function GetDefaultRoles(ExcludeRole: TUser): TStringList;
   end;
 
   EInputError = class(Exception);
@@ -187,8 +187,6 @@ type
       const KeyName: string; Values: TStrings);
     procedure ValueListEditorRolesSetEditText(Sender: TObject; ACol,
       ARow: LongInt; const Value: string);
-    procedure ValueListEditorRolesSelectCell(Sender: TObject; ACol,
-      ARow: LongInt; var CanSelect: Boolean);
   private
     { Private declarations }
     FUsers: TUserList;
@@ -529,14 +527,6 @@ begin
   Values.Add(TUser.RoleYesAdmin);
 end;
 
-procedure TUserManagerForm.ValueListEditorRolesSelectCell(Sender: TObject; ACol,
-  ARow: LongInt; var CanSelect: Boolean);
-begin
-  // Disallow assigning a role to itself
-  if SameText(ValueListEditorRoles.Strings.Names[ARow-1], editUsername.Text) then
-    CanSelect := False;
-end;
-
 procedure TUserManagerForm.ValueListEditorRolesSetEditText(Sender: TObject;
   ACol, ARow: LongInt; const Value: string);
 begin
@@ -584,6 +574,7 @@ begin
       end;
       mrNo: begin
         Allowed := True;
+        Modified := False;
         if FAdded then
           btnDeleteUser.Click;
       end;
@@ -598,7 +589,7 @@ procedure TUserManagerForm.listUsersFocusChanged(Sender: TBaseVirtualTree; Node:
 var
   P, Ptmp, PCol: TPrivObj;
   User: PUser;
-  UserHost, Msg, CreateUser: String;
+  UserHost, UserHostRx, Msg, CreateUser, RxQuotes: String;
   Grants, AllPNames, Cols, RoleNames, DefaultRoles: TStringList;
   rxTemp, rxGrant: TRegExpr;
   i, j: Integer;
@@ -606,6 +597,7 @@ var
   Obj: TDBObject;
 begin
   // Parse and display privileges of focused user
+  listUsers.TrySetFocus; // Steal focus from roles, prevents empty cell bug
   UserSelected := Assigned(Node);
   User := nil;
   FPrivObjects.Clear;
@@ -630,13 +622,17 @@ begin
   editSubject.Clear;
   tabPrivileges.Caption := _('Privileges');
   tabRoles.Caption := _('Roles');
+  // All possible quote chars, escaped for RegExpr. Todo: use in all relevant expressions.
+  RxQuotes := '['+QuoteRegExprMetaChars(FConnection.QuoteChars + FConnection.StringQuoteChar)+']';
 
   if UserSelected then begin
     User := Sender.GetNodeData(Node);
-    if User.IsUser then
-      UserHost := FConnection.EscapeString(User.Username)+'@'+FConnection.EscapeString(User.Host)
-    else
-      UserHost := FConnection.EscapeString(User.Username);
+    UserHost := FConnection.EscapeString(User.Username);
+    UserHostRx := RxQuotes + '?' + QuoteRegExprMetaChars(User.Username) + RxQuotes + '?';
+    if User.IsUser then begin
+      UserHost := UserHost + '@' + FConnection.EscapeString(User.Host);
+      UserHostRx := UserHostRx + '@' + RxQuotes + '?' + QuoteRegExprMetaChars(User.Host) + RxQuotes + '?';
+    end;
     editUsername.Text := User.Username;
     editFromHost.Text := User.Host;
     i := comboDefaultRole.Items.IndexOf(User.DefaultRole);
@@ -798,13 +794,14 @@ begin
     // GRANT role_admin TO 'root'@'127.0.0.1';
     // GRANT 'role space' TO 'root'@'127.0.0.1';
     // GRANT role_space to 'role_admin' WITH ADMIN OPTION;
-    DefaultRoles := FUsers.GetDefaultRoles;
+    DefaultRoles := FUsers.GetDefaultRoles(User^);
     User.Roles.Assign(DefaultRoles);
     RoleNames := FUsers.GetRoleNames;
     for i:=0 to RoleNames.Count-1 do begin
       RoleNames[i] := QuoteRegExprMetaChars(RoleNames[i]);
     end;
-    rxGrant.Expression := '^GRANT\s+''?('+Implode('|', RoleNames)+')''?\s+TO\s+'+QuoteRegExprMetaChars(UserHost)+'(\s+WITH ADMIN OPTION)?$';
+    rxGrant.Expression := '^GRANT\s+'+RxQuotes+'?('+Implode('|', RoleNames)+')'+RxQuotes+'?\s+'+
+      'TO\s+'+UserHostRx+'(\s+WITH ADMIN OPTION)?$';
     for i:=0 to Grants.Count-1 do begin
       // Find selected priv objects via regular expression
       if not rxGrant.Exec(Grants[i]) then begin
@@ -818,7 +815,9 @@ begin
           User.Roles.ValueFromIndex[j] := User.RoleYes;
       end;
     end;
+    ValueListEditorRoles.BeginUpdate;
     ValueListEditorRoles.Strings.Assign(User.Roles);
+    ValueListEditorRoles.EndUpdate;
     DefaultRoles.Free;
 
     // Parse general user options
@@ -1884,7 +1883,7 @@ begin
   RoleNames.Free;
 end;
 
-function TUserList.GetDefaultRoles: TStringList;
+function TUserList.GetDefaultRoles(ExcludeRole: TUser): TStringList;
 var
   RoleNames: TStringList;
   i: Integer;
@@ -1892,8 +1891,11 @@ begin
   // Default role assignments with "no" value for all roles
   Result := TStringList.Create;
   RoleNames := GetRoleNames;
-  for i:=0 to RoleNames.Count-1 do
+  for i:=0 to RoleNames.Count-1 do begin
+    if ExcludeRole.IsRole and SameText(RoleNames[i], ExcludeRole.Username) then
+      Continue;
     Result.AddPair(RoleNames[i], TUser.RoleNo);
+  end;
   RoleNames.Free;
 end;
 
