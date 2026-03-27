@@ -1537,7 +1537,7 @@ begin
         cdtText:         CellText := Col.Connection.EscapeString(Col.DefaultText);
         cdtNull:         CellText := 'NULL';
         cdtExpression:   CellText := Col.DefaultText;
-        cdtAutoInc:      CellText := Col.AutoIncName;
+        cdtAutoInc:      CellText := Col.Connection.SqlProvider.GetSql(qAutoInc);
       end;
       case Col.OnUpdateType of
         // cdtNothing: leave clause away

@@ -49,7 +49,8 @@ type
     qGetReverseForeignKeys, qExplain, qSetTimezone,
     qShowFunctionStatus, qShowProcedureStatus, qShowTriggers, qShowEvents, qShowCreateTrigger,
     qHelpKeyword, qShowWarnings, qGetEnumTypes,
-    qDropUser, qCreateRole, qDropRole, qReloadPrivileges, qGrantRole, qRevokeRole, qSetDefaultRole);
+    qDropUser, qCreateRole, qDropRole, qReloadPrivileges, qGrantRole, qRevokeRole, qSetDefaultRole,
+    qAutoInc);
   TSqlProvider = class
     strict protected
       FNetType: TNetType;
@@ -210,6 +211,7 @@ begin
     qOrderAsc: Result := 'ASC';
     qOrderDesc: Result := 'DESC';
     qGetRowCountExact: Result := 'SELECT COUNT(*) FROM :QuotedDbAndTableName';
+    qAutoInc: Result := 'AUTO_INCREMENT';
     else Result := '';
   end;
 end;

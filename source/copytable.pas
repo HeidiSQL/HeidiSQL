@@ -419,7 +419,7 @@ begin
   for Column in SelectedColumns do begin
     AutoIncGetsKey := False;
     AutoIncRemoved := False;
-    AutoIncName := Column.AutoIncName;
+    AutoIncName := FConnection.SqlProvider.GetSql(qAutoInc);
     if Column.DefaultType = cdtAutoInc then begin
       for Key in SelectedKeys do begin
         // Don't check index type, MySQL allows auto-increment columns on nearly all indexes

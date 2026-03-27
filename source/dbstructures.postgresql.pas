@@ -744,6 +744,7 @@ begin
       'ORDER BY UPPER(t.typname)',
       '' // ServerVersion < 9
       );
+    qAutoInc: Result := 'SERIAL';
     else Result := inherited;
   end;
 end;
