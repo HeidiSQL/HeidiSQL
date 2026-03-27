@@ -1855,6 +1855,7 @@ begin
   // Start cell editor
   VT := Sender as TLazVirtualStringTree;
   Col := Sender.GetNodeData(Node);
+  EditLink := nil;
   case Column of
     ColNumDatatype: begin // Datatype pulldown
       DatatypeEditor := TDatatypeEditorLink.Create(VT, True, Col^);

@@ -236,6 +236,7 @@ begin
       '   RDB$CHARACTER_SET_ID'+
       ' FROM RDB$COLLATIONS';
     qGetCharsets: Result := 'SELECT RDB$CHARACTER_SET_NAME AS "Charset", RDB$CHARACTER_SET_NAME AS "Description" FROM RDB$CHARACTER_SETS';
+    else Result := inherited;
   end;
 end;
 

@@ -188,7 +188,7 @@ type
 
       NodeType, GroupType: TListNodeType;
       constructor Create(OwnerConnection: TDBConnection);
-      destructor Destroy;
+      destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
       procedure UnloadDetails;
       procedure Drop;

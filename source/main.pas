@@ -7331,9 +7331,6 @@ var
   Obj: TDBObject;
   i, ColumnNameChars: Integer;
   Column: TTableColumn;
-  Parameters: TRoutineParamList;
-  Params: TStringList;
-  Param: TRoutineParam;
 begin
   // Activate hint for SQL function in query editors
   Edit := Sender as TSynEdit;
@@ -7797,8 +7794,6 @@ end;
 procedure TMainForm.FormDropFiles(Sender: TObject;
   const FileNames: array of string);
 var
-  i: Integer;
-  Tab: TQueryTab;
   Files: TStringList;
 begin
   // One or more files from explorer or somewhere else was dropped onto the
