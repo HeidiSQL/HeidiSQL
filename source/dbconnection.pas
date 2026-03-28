@@ -702,11 +702,6 @@ type
   TPGRawResults = Array of PPGresult;
   TPQerrorfields = (PG_DIAG_SEVERITY, PG_DIAG_SQLSTATE, PG_DIAG_MESSAGE_PRIMARY, PG_DIAG_MESSAGE_DETAIL, PG_DIAG_MESSAGE_HINT, PG_DIAG_STATEMENT_POSITION, PG_DIAG_INTERNAL_POSITION, PG_DIAG_INTERNAL_QUERY, PG_DIAG_CONTEXT, PG_DIAG_SOURCE_FILE, PG_DIAG_SOURCE_LINE, PG_DIAG_SOURCE_FUNCTION);
   TPgConnection = class(TDBConnection)
-    const
-      DBNAME_DEFAULT = 'postgres';
-      DBNAME_EMPTY = '!';
-      DBTAG_EMPTY = 1;
-      DBTAG_DEFAULT = 2;
     private
       FHandle: PPGconn;
       FLib: TPostgreSQLLib;
@@ -2734,18 +2729,13 @@ end;
 
 procedure TPgConnection.SetActive(Value: Boolean);
 var
-  dbname, ConnectionString, OptionValue, Error: String;
+  ConnectionString, OptionValue, Error: String;
   ConnectOptions: TStringList;
   FinalHost, ErrorHint: String;
   FinalPort, i: Integer;
 begin
   if Value then begin
     DoBeforeConnect;
-    // Simon Riggs:
-    // "You should connect as "postgres" database by default, with an option to change. Don't use template1"
-    dbname := FParameters.AllDatabasesStr;
-    if dbname = '' then
-      dbname := DBNAME_DEFAULT;
 
     // Prepare special stuff for SSH tunnel
     FinalHost := FParameters.Hostname;
@@ -2763,8 +2753,8 @@ begin
       .AddPair('password', FParameters.Password)
       .AddPair('application_name', APPNAME)
       .AddPair('sslmode', 'disable');
-    if dbname <> DBNAME_EMPTY then
-      ConnectOptions.AddPair('dbname', dbname);
+    if not FParameters.AllDatabasesStr.IsEmpty then
+      ConnectOptions.AddPair('dbname', FParameters.AllDatabasesStr);
     if FParameters.WantSSL then begin
       // Be aware .AddPair would add duplicates
       case FParameters.SSLVerification of
