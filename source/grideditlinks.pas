@@ -1383,7 +1383,7 @@ begin
   FRadioAutoInc.Width := FRadioAutoInc.Parent.Width - 2 * FRadioAutoInc.Left;
   FRadioAutoInc.OnClick := RadioClick;
   FRadioAutoInc.OnKeyDown := DoKeyDown;
-  FRadioAutoInc.Caption := Col.AutoIncName;
+  FRadioAutoInc.Caption := FTableColumn.Connection.SqlProvider.GetSql(qAutoInc);
 
   FBtnOk := TButton.Create(FPanel);
   FBtnOk.Parent := FPanel;
@@ -1547,7 +1547,7 @@ begin
       cdtText: Col.DefaultText := FTextEdit.Text;
       cdtNull: Col.DefaultText := 'NULL';
       cdtExpression: Col.DefaultText := FExpressionEdit.Text;
-      cdtAutoInc: Col.DefaultText := Col.AutoIncName;
+      cdtAutoInc: Col.DefaultText := Col.Connection.SqlProvider.GetSql(qAutoInc);
     end;
 
     if FOnUpdateEdit.Text <> '' then

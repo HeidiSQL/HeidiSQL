@@ -62,7 +62,6 @@ type
       function CastAsText: String;
       property Status: TEditingStatus read FStatus write SetStatus;
       property Connection: TDBConnection read FConnection;
-      function AutoIncName: String;
       function FullDataType: String;
   end;
   PTableColumn = ^TTableColumn;
@@ -5884,7 +5883,7 @@ begin
     else if ExecRegExpr('\bauto_increment\b', ExtraText.ToLowerInvariant) then begin
       // MySQL auto increment
       Col.DefaultType := cdtAutoInc;
-      Col.DefaultText := Col.AutoIncName;
+      Col.DefaultText := FSqlProvider.GetSql(qAutoInc);
     end
     else if DefText.ToLowerInvariant = 'null' then begin
       Col.DefaultType := cdtNull;
@@ -5972,7 +5971,7 @@ begin
       Col.OnUpdateType := cdtNothing;
       if ExecRegExpr('^auto_increment$', ExtraText.ToLowerInvariant) then begin
         Col.DefaultType := cdtAutoInc;
-        Col.DefaultText := Col.AutoIncName;
+        Col.DefaultText := FSqlProvider.GetSql(qAutoInc);
       end else if ColQuery.IsNull('Default') then begin
         Col.DefaultType := cdtNothing;
       end else if IsTextDefault(DefText, Col.DataType) then begin
@@ -10831,7 +10830,7 @@ begin
         cdtAutoInc: begin
           case FConnection.Parameters.NetTypeGroup of
             ngPgSQL:;
-            else Result := Result + AutoIncName;
+            else Result := Result + FConnection.SqlProvider.GetSql(qAutoInc);
           end;
         end;
         cdtExpression: begin
@@ -10948,15 +10947,6 @@ begin
       if (DataType.Index in [dbdtUnknown, dbdtJson]) or (DataType.Category = dtcBinary) then
         Result := Result + '::text';
     end;
-  end;
-end;
-
-
-function TTableColumn.AutoIncName: String;
-begin
-  case FConnection.Parameters.NetTypeGroup of
-    ngPgSQL: Result := 'SERIAL';
-    else Result := 'AUTO_INCREMENT';
   end;
 end;
 
