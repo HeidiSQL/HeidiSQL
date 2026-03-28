@@ -319,6 +319,7 @@ object UserManagerForm: TUserManagerForm
           ItemHeight = 15
           Style = csDropDownList
           TabOrder = 4
+          OnChange = Modification
         end
         object lblDefaultRole: TLabel
           AnchorSideLeft.Control = tabCredentials
