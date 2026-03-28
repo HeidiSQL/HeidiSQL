@@ -9434,65 +9434,72 @@ var
   Bytes: Int64;
   AllListsCached: Boolean;
 begin
-  DBObj := Sender.GetNodeData(Node);
-  case Column of
-    0: case DBObj.NodeType of
-        lntNone: CellText := DBObj.Connection.Parameters.SessionPath;
-        lntDb: CellText := DBObj.Database;
-        lntGroup: begin
-          CellText := DBObj.Name;
-          if Sender.ChildrenInitialized[Node] then
-            CellText := CellText + ' (' + FormatNumber(Sender.ChildCount[Node]) + ')';
-        end;
-        lntTable..lntEvent: try
-          if (DBObj.Schema <> '') and (DBObj.Connection.Parameters.NetTypeGroup = ngMSSQL) then
-            CellText := DBObj.Schema + '.' + DBObj.Name
-          else
+  try
+    DBObj := Sender.GetNodeData(Node);
+    case Column of
+      0: case DBObj.NodeType of
+          lntNone: CellText := DBObj.Connection.Parameters.SessionPath;
+          lntDb: CellText := DBObj.Database;
+          lntGroup: begin
             CellText := DBObj.Name;
-        except
-          CellText := DBObj.Name;
-        end;
-        lntColumn: CellText := DBObj.Column;
-      end;
-    1: if DBObj.Connection.Active then case DBObj.NodeType of
-        // Calculate and display the sum of all table sizes in ALL dbs if all table lists are cached
-        lntNone: begin
-            AllListsCached := true;
-            for i:=0 to DBObj.Connection.AllDatabases.Count-1 do begin
-              if not DBObj.Connection.DbObjectsCached(DBObj.Connection.AllDatabases[i]) then begin
-                AllListsCached := false;
-                break;
-              end;
-            end;
-            // Will be also set to a negative value by GetTableSize and results of SHOW TABLES
-            Bytes := -1;
-            if AllListsCached then begin
-              Bytes := 0;
-              for i:=0 to DBObj.Connection.AllDatabases.Count-1 do begin
-                DBObjects := DBObj.Connection.GetDBObjects(DBObj.Connection.AllDatabases[i]);
-                Inc(Bytes, DBObjects.DataSize);
-              end;
-            end;
-            if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
-            else CellText := '';
+            if Sender.ChildrenInitialized[Node] then
+              CellText := CellText + ' (' + FormatNumber(Sender.ChildCount[Node]) + ')';
           end;
-        // Calculate and display the sum of all table sizes in ONE db, if the list is already cached.
-        lntDb: begin
-            if not DBObj.Connection.DbObjectsCached(DBObj.Database) then
-              CellText := ''
-            else begin
-              DBObjects := DBObj.Connection.GetDBObjects(DBObj.Database);
-              CellText := FormatByteNumber(DBObjects.DataSize);
-            end;
-          end;
-        lntTable: begin
-            if DBObj.Size >= 0 then
-              CellText := FormatByteNumber(DBObj.Size)
+          lntTable..lntEvent: try
+            if (DBObj.Schema <> '') and (DBObj.Connection.Parameters.NetTypeGroup = ngMSSQL) then
+              CellText := DBObj.Schema + '.' + DBObj.Name
             else
-              CellText := '';
-          end
-        else CellText := ''; // Applies for views/procs/... which have no size
-      end;
+              CellText := DBObj.Name;
+          except
+            CellText := DBObj.Name;
+          end;
+          lntColumn: CellText := DBObj.Column;
+        end;
+      1: if DBObj.Connection.Active then case DBObj.NodeType of
+          // Calculate and display the sum of all table sizes in ALL dbs if all table lists are cached
+          lntNone: begin
+              AllListsCached := true;
+              for i:=0 to DBObj.Connection.AllDatabases.Count-1 do begin
+                if not DBObj.Connection.DbObjectsCached(DBObj.Connection.AllDatabases[i]) then begin
+                  AllListsCached := false;
+                  break;
+                end;
+              end;
+              // Will be also set to a negative value by GetTableSize and results of SHOW TABLES
+              Bytes := -1;
+              if AllListsCached then begin
+                Bytes := 0;
+                for i:=0 to DBObj.Connection.AllDatabases.Count-1 do begin
+                  DBObjects := DBObj.Connection.GetDBObjects(DBObj.Connection.AllDatabases[i]);
+                  Inc(Bytes, DBObjects.DataSize);
+                end;
+              end;
+              if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
+              else CellText := '';
+            end;
+          // Calculate and display the sum of all table sizes in ONE db, if the list is already cached.
+          lntDb: begin
+              if not DBObj.Connection.DbObjectsCached(DBObj.Database) then
+                CellText := ''
+              else begin
+                DBObjects := DBObj.Connection.GetDBObjects(DBObj.Database);
+                CellText := FormatByteNumber(DBObjects.DataSize);
+              end;
+            end;
+          lntTable: begin
+              if DBObj.Size >= 0 then
+                CellText := FormatByteNumber(DBObj.Size)
+              else
+                CellText := '';
+            end
+          else CellText := ''; // Applies for views/procs/... which have no size
+        end;
+    end;
+  except
+    // Uploaded crash reports show multiple different situations with an AV,
+    // some of them in conjunction with a killed query.
+    on E:EAccessViolation do
+      CellText := '';
   end;
 end;
 

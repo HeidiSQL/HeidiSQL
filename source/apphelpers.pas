@@ -2366,8 +2366,6 @@ begin
   end;
   if Title <> Dialog.Caption then
     Dialog.Title := Title;
-  if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
-    Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
   rx := TRegExpr.Create;
   rx.Expression := 'https?://[^\s"]+';
   if ThemeIsDark then
