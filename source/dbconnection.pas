@@ -577,6 +577,7 @@ type
       property KeyCache: TKeyCache read FKeyCache;
       property ForeignKeyCache: TForeignKeyCache read FForeignKeyCache;
       property CheckConstraintCache: TCheckConstraintCache read FCheckConstraintCache;
+      property StringQuoteChar: Char read FStringQuoteChar;
       property QuoteChar: Char read FQuoteChar;
       property QuoteChars: String read FQuoteChars;
       function ServerVersionStr: String;
