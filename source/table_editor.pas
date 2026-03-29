@@ -236,6 +236,13 @@ type
     const ColNumInvisible = 13;
     const ColNumCompressed = 14;
     const ColNumsCheckboxes = [ColNumUnsigned, ColNumAllownull, ColNumZerofill, ColNumInvisible, ColNumCompressed];
+    // Columns in index tree
+    const IndexColNumName = 0;
+    const IndexColNumType = 1;
+    const IndexColNumAlgorithm = 2;
+    const IndexColNumComment = 3;
+    const IndexColNumDirection = 4;
+    const IndexColNumVisibility = 5;
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
@@ -2079,8 +2086,10 @@ var
 begin
   // Icon image showing type of index
   VT := Sender as TVirtualStringTree;
-  if Column <> 0 then Exit;
-  if not (Kind in [ikNormal, ikSelected]) then Exit;
+  if Column <> IndexColNumName then
+    Exit;
+  if not (Kind in [ikNormal, ikSelected]) then
+    Exit;
   case VT.GetNodeLevel(Node) of
     0: ImageIndex := FKeys[Node.Index].ImageIndex;
     1: begin
@@ -2105,27 +2114,29 @@ begin
     0: begin
       TblKey := FKeys[Node.Index];
       case Column of
-        0: if TblKey.IsPrimary then
+        IndexColNumName: if TblKey.IsPrimary then
              CellText := TblKey.IndexType + ' KEY' // Fixed name "PRIMARY KEY", cannot be changed
            else
              CellText := TblKey.Name;
-        1: CellText := TblKey.IndexType;
-        2: CellText := TblKey.Algorithm;
-        3: CellText := TblKey.Comment;
-        4: CellText := ''; // Column collation
+        IndexColNumType: CellText := TblKey.IndexType;
+        IndexColNumAlgorithm: CellText := TblKey.Algorithm;
+        IndexColNumComment: CellText := TblKey.Comment;
+        IndexColNumDirection: CellText := ''; // Column collation
+        IndexColNumVisibility: CellText := IfThen(TblKey.Visible, 'Visible', 'Invisible');
       end;
     end;
     1: begin
       TblKey := FKeys[Node.Parent.Index];
       case Column of
-        0: CellText := TblKey.Columns[Node.Index];
-        1: CellText := TblKey.SubParts[Node.Index];
-        2: CellText := ''; // Index algorithm
-        3: CellText := ''; // Index comment
-        4: begin
+        IndexColNumName: CellText := TblKey.Columns[Node.Index];
+        IndexColNumType: CellText := TblKey.SubParts[Node.Index];
+        IndexColNumAlgorithm: CellText := ''; // Index algorithm
+        IndexColNumComment: CellText := ''; // Index comment
+        IndexColNumDirection: begin
           CellText := TblKey.Collations[Node.Index];
           CellText := IfThen(CellText.ToLower = 'a', 'ASC', 'DESC');
         end;
+        IndexColNumVisibility: CellText := '';
       end;
     end;
   end;
@@ -2344,13 +2355,17 @@ begin
   Allowed := False;
   if VT.GetNodeLevel(Node) = 0 then begin
     // Disallow renaming primary key, and direction/collation of key node level
-    if (Column = 0) and (VT.Text[Node, 1] <> TTableKey.PRIMARY) then
-      Allowed := True
-    else
-      Allowed := Column in [1,2,3];
-  end else case Column of
-    0: Allowed := True;
-    1: begin
+    case Column of
+      IndexColNumName: Allowed := (VT.Text[Node, 1] <> TTableKey.PRIMARY);
+      IndexColNumType: Allowed := True;
+      IndexColNumAlgorithm: Allowed := True;
+      IndexColNumComment: Allowed := True;
+      IndexColNumVisibility: Allowed := DBObject.Connection.Has(frInvisibleIndexes);
+    end;
+  end
+  else case Column of
+    IndexColNumName: Allowed := True;
+    IndexColNumType: begin
       // Column length is allowed for (var)char/text types only, even mandantory for text and blobs
       IndexedColName := VT.Text[Node, 0];
       for i:=0 to FColumns.Count-1 do begin
@@ -2360,7 +2375,7 @@ begin
         end;
       end;
     end;
-    4: Allowed := True; // Collation
+    IndexColNumDirection: Allowed := True; // Collation
   end;
 end;
 
@@ -2377,18 +2392,23 @@ begin
   // Start cell editor
   VT := Sender as TVirtualStringTree;
   Level := (Sender as TVirtualStringtree).GetNodeLevel(Node);
-  if (Level = 0) and (Column = 1) then begin
+  if (Level = 0) and (Column = IndexColNumType) then begin
     // Index type pulldown
     EnumEditor := TEnumEditorLink.Create(VT, True, nil);
     EnumEditor.ValueList := TStringList.Create;
     EnumEditor.ValueList.CommaText := TTableKey.PRIMARY +','+ TTableKey.KEY +','+ TTableKey.UNIQUE +','+ TTableKey.FULLTEXT +','+ TTableKey.SPATIAL;
     EditLink := EnumEditor;
-  end else if (Level = 0) and (Column = 2) then begin
+  end else if (Level = 0) and (Column = IndexColNumAlgorithm) then begin
     // Algorithm pulldown
     EnumEditor := TEnumEditorLink.Create(VT, True, nil);
     EnumEditor.ValueList := Explode(',', ',BTREE,HASH,RTREE');
     EditLink := EnumEditor;
-  end else if (Level = 1) and (Column = 0) then begin
+  end else if (Level = 0) and (Column = IndexColNumVisibility) then begin
+    // Visibility pulldown
+    EnumEditor := TEnumEditorLink.Create(VT, True, nil);
+    EnumEditor.ValueList := Explode(',', 'Visible,Invisible');
+    EditLink := EnumEditor;
+  end else if (Level = 1) and (Column = IndexColNumName) then begin
     // Column names pulldown
     EnumEditor := TEnumEditorLink.Create(VT, True, nil);
     ColNode := listColumns.GetFirst;
@@ -2399,7 +2419,7 @@ begin
     end;
     EnumEditor.AllowCustomText := True; // Allows adding a subpart in index parts: "TextCol(20)"
     EditLink := EnumEditor;
-  end else if (Level = 1) and (Column = 4) then begin
+  end else if (Level = 1) and (Column = IndexColNumDirection) then begin
     EnumEditor := TEnumEditorLink.Create(VT, True, nil);
     EnumEditor.ValueList := Explode(',', ',ASC,DESC');
     EditLink := EnumEditor;
@@ -2421,14 +2441,15 @@ begin
     0: begin
        TblKey := FKeys[Node.Index];
        case Column of
-         0: TblKey.Name := NewText;
-         1: begin
+         IndexColNumName: TblKey.Name := NewText;
+         IndexColNumType: begin
              TblKey.IndexType := NewText;
              if NewText = TTableKey.PRIMARY then
                TblKey.Name := TTableKey.PRIMARY;
            end;
-         2: TblKey.Algorithm := NewText;
-         3: TblKey.Comment := NewText;
+         IndexColNumAlgorithm: TblKey.Algorithm := NewText;
+         IndexColNumComment: TblKey.Comment := NewText;
+         IndexColNumVisibility: TblKey.Visible := SameText(NewText, 'Visible');
        end;
        // Needs to be called manually for Name and IndexType properties:
        TblKey.Modification(Sender);
@@ -2436,7 +2457,7 @@ begin
     1: begin
        TblKey := FKeys[Node.Parent.Index];
        case Column of
-         0: begin
+         IndexColNumName: begin
            // Detect input of "col(123)" and move "123" into subpart
            rx := TRegExpr.Create;
            rx.Expression := '.+\((\d+)\)';
@@ -2446,8 +2467,8 @@ begin
            end else
              TblKey.Columns[Node.Index] := NewText;
          end;
-         1: TblKey.SubParts[Node.Index] := NewText;
-         4: begin
+         IndexColNumType: TblKey.SubParts[Node.Index] := NewText;
+         IndexColNumDirection: begin
            if NewText.ToLower = 'asc' then
              TblKey.Collations[Node.Index] := 'A'
            else

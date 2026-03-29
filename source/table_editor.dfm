@@ -41,22 +41,22 @@ object frmTableEditor: TfrmTableEditor
       object lblName: TLabel
         Left = 4
         Top = 6
-        Width = 31
-        Height = 13
+        Width = 35
+        Height = 15
         Caption = 'Name:'
       end
       object lblComment: TLabel
         Left = 4
         Top = 33
-        Width = 49
-        Height = 13
+        Width = 57
+        Height = 15
         Caption = 'Comment:'
       end
       object editName: TEdit
         Left = 96
         Top = 3
         Width = 589
-        Height = 21
+        Height = 23
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
         Text = 'editName'
@@ -112,7 +112,7 @@ object frmTableEditor: TfrmTableEditor
       object lblMaxRows: TLabel
         Left = 4
         Top = 52
-        Width = 115
+        Width = 114
         Height = 15
         Caption = 'Maximum row count:'
       end
@@ -133,7 +133,7 @@ object frmTableEditor: TfrmTableEditor
       object lblInsertMethod: TLabel
         Left = 358
         Top = 98
-        Width = 84
+        Width = 85
         Height = 15
         Caption = 'INSERT method:'
       end
@@ -275,7 +275,7 @@ object frmTableEditor: TfrmTableEditor
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
             Text = 'Name'
-            Width = 226
+            Width = 176
           end
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
@@ -297,6 +297,10 @@ object frmTableEditor: TfrmTableEditor
             Position = 4
             Text = 'Direction'
             Width = 80
+          end
+          item
+            Position = 5
+            Text = 'Visibility'
           end>
       end
       object tlbIndexes: TToolBar
@@ -512,8 +516,10 @@ object frmTableEditor: TfrmTableEditor
             Caption = 'Table'
           end>
         ColumnClick = False
+        HotTrack = True
         ReadOnly = True
         RowSelect = True
+        SmallImages = MainForm.VirtualImageListMain
         TabOrder = 2
         ViewStyle = vsReport
         Visible = False
