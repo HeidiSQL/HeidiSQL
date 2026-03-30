@@ -914,10 +914,27 @@ begin
       Specs.Add('ADD ' + Constraint.SQLCode);
   end;
 
-
   FinishSpecs;
 
-  // Separate queries from here on
+  // Separate ALTER TABLE .. ALTER INDEX query for visible/invisible indexes features, which gets otherwise
+  // ignored in MySQL and MariaDB when done by a drop + add combined query. See issue #1388
+  if Conn.SqlProvider.Has(qIndexInvisible) then begin
+    for i:=0 to FKeys.Count-1 do begin
+      if FKeys[i].Modified then begin
+        Specs.Add('ALTER INDEX ' + Conn.QuoteIdent(FKeys[i].Name) + ' ' +
+          IfThen(
+            FKeys[i].Visible,
+            Conn.SqlProvider.GetSql(qIndexVisible),
+            Conn.SqlProvider.GetSql(qIndexInvisible)
+            )
+          );
+      end;
+    end;
+    FinishSpecs;
+  end;
+
+
+  // *** Separate queries from here on
 
   // Drop indexes, also changed indexes, which will be readded below
   for i:=0 to FDeletedKeys.Count-1 do begin
@@ -2091,7 +2108,10 @@ begin
   if not (Kind in [ikNormal, ikSelected]) then
     Exit;
   case VT.GetNodeLevel(Node) of
-    0: ImageIndex := FKeys[Node.Index].ImageIndex;
+    0: begin
+      ImageIndex := FKeys[Node.Index].ImageIndex;
+      Ghosted := not FKeys[Node.Index].Visible;
+    end;
     1: begin
       TblKey := FKeys[Node.Parent.Index];
       if TblKey.IsExpression(Node.Index) then
@@ -2122,7 +2142,11 @@ begin
         IndexColNumAlgorithm: CellText := TblKey.Algorithm;
         IndexColNumComment: CellText := TblKey.Comment;
         IndexColNumDirection: CellText := ''; // Column collation
-        IndexColNumVisibility: CellText := IfThen(TblKey.Visible, 'Visible', 'Invisible');
+        IndexColNumVisibility: CellText := IfThen(
+            TblKey.Visible,
+            DBObject.Connection.SqlProvider.GetSql(qIndexVisible),
+            DBObject.Connection.SqlProvider.GetSql(qIndexInvisible)
+          );
       end;
     end;
     1: begin
@@ -2360,7 +2384,7 @@ begin
       IndexColNumType: Allowed := True;
       IndexColNumAlgorithm: Allowed := True;
       IndexColNumComment: Allowed := True;
-      IndexColNumVisibility: Allowed := DBObject.Connection.Has(frInvisibleIndexes);
+      IndexColNumVisibility: Allowed := DBObject.Connection.SqlProvider.Has(qIndexInvisible);
     end;
   end
   else case Column of
@@ -2406,7 +2430,9 @@ begin
   end else if (Level = 0) and (Column = IndexColNumVisibility) then begin
     // Visibility pulldown
     EnumEditor := TEnumEditorLink.Create(VT, True, nil);
-    EnumEditor.ValueList := Explode(',', 'Visible,Invisible');
+    EnumEditor.ValueList.Add('');
+    EnumEditor.ValueList.Add(DBObject.Connection.SqlProvider.GetSql(qIndexVisible));
+    EnumEditor.ValueList.Add(DBObject.Connection.SqlProvider.GetSql(qIndexInvisible));
     EditLink := EnumEditor;
   end else if (Level = 1) and (Column = IndexColNumName) then begin
     // Column names pulldown
@@ -2449,7 +2475,7 @@ begin
            end;
          IndexColNumAlgorithm: TblKey.Algorithm := NewText;
          IndexColNumComment: TblKey.Comment := NewText;
-         IndexColNumVisibility: TblKey.Visible := SameText(NewText, 'Visible');
+         IndexColNumVisibility: TblKey.Visible := SameText(NewText, DBObject.Connection.SqlProvider.GetSql(qIndexVisible));
        end;
        // Needs to be called manually for Name and IndexType properties:
        TblKey.Modification(Sender);

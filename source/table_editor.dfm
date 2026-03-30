@@ -245,7 +245,7 @@ object frmTableEditor: TfrmTableEditor
         DefaultNodeHeight = 19
         DragMode = dmAutomatic
         EditDelay = 0
-        Header.AutoSizeIndex = 0
+        Header.AutoSizeIndex = -1
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
         Header.PopupMenu = MainForm.popupListHeader
         Images = MainForm.VirtualImageListMain
@@ -253,7 +253,7 @@ object frmTableEditor: TfrmTableEditor
         TabOrder = 1
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toFullVertGridLines, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toFullVertGridLines, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toExtendedFocus, toRightClickSelect]
         OnBeforePaint = treeIndexesBeforePaint
         OnClick = AnyTreeClick

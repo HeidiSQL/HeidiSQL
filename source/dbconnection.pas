@@ -431,8 +431,7 @@ type
     frCreateTrigger,
     frCreateEvent,
     frInvisibleColumns,
-    frCompressedColumns,
-    frInvisibleIndexes
+    frCompressedColumns
     );
 
   TDBConnection = class(TComponent)
@@ -6728,8 +6727,6 @@ begin
         frCreateEvent: Result := ServerVersionInt >= 50100;
         frInvisibleColumns: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100303)) or
           (FParameters.IsMySQL(True) and (ServerVersionInt >= 80023));
-        frInvisibleIndexes: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100600)) or
-          (FParameters.IsMySQL(True) and (ServerVersionInt >= 80000));
         frCompressedColumns: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100301));
       end;
     else Result := False;
@@ -11150,13 +11147,6 @@ begin
 
     if not Comment.IsEmpty then
       Result := Result + ' COMMENT ' + FConnection.EscapeString(Comment);
-
-    if FConnection.Has(frInvisibleIndexes) then begin
-      if FConnection.Parameters.IsMySQL(True) then
-        Result := Result + ' ' + IfThen(Visible, 'VISIBLE', 'INVISIBLE')
-      else
-        Result := Result + ' ' + IfThen(Visible, 'NOT IGNORED', 'IGNORED');
-    end;
 
   end
   else begin
