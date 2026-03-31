@@ -90,7 +90,7 @@ type
       Name, OldName: String;
       IndexType, OldIndexType, Algorithm, Comment: String;
       Columns, SubParts, Collations: TStringList;
-      Modified, Added: Boolean;
+      Modified, Added, Visible: Boolean;
       constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
@@ -6064,6 +6064,10 @@ begin
         if ExecRegExpr('(BTREE|HASH)', KeyQuery.Col('Index_type')) then
           NewKey.Algorithm := KeyQuery.Col('Index_type');
         NewKey.Comment := KeyQuery.Col('Index_comment', True);
+        if KeyQuery.ColumnExists('Visible') then // mysql 8
+          NewKey.Visible := SameText(KeyQuery.Col('Visible'), 'yes')
+        else if KeyQuery.ColumnExists('Ignored') then // mariadb 10.6
+          NewKey.Visible := SameText(KeyQuery.Col('Ignored'), 'NO');
       end;
       if KeyQuery.ColumnExists('Expression') and (not KeyQuery.IsNull('Expression')) then begin
         // Functional key part: enclose expression within parentheses to distinguish them from columns (issue #1777)
@@ -10884,6 +10888,7 @@ begin
   Columns.OnChange := Modification;
   Subparts.OnChange := Modification;
   Collations.OnChange := Modification;
+  Visible := True;
 end;
 
 destructor TTableKey.Destroy;
@@ -10906,6 +10911,7 @@ begin
     OldIndexType := s.OldIndexType;
     Algorithm := s.Algorithm;
     Comment := s.Comment;
+    Visible := s.Visible;
     Columns.Assign(s.Columns);
     SubParts.Assign(s.SubParts);
     Collations.Assign(s.Collations);
@@ -11023,6 +11029,7 @@ begin
 
     if not Comment.IsEmpty then
       Result := Result + ' COMMENT ' + FConnection.EscapeString(Comment);
+
   end
   else begin
     // SQLite syntax:

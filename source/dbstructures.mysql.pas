@@ -3402,6 +3402,24 @@ begin
     qGrantRole: Result := 'GRANT %s TO %s%s';
     qRevokeRole: Result := 'REVOKE %s FROM %s';
     qSetDefaultRole: Result := 'SET DEFAULT ROLE %s FOR %s';
+    qIndexVisible: Result := IfThen(
+      FServerVersion >= 100600, // mariadb
+      'NOT IGNORED',
+      IfThen(
+        FServerVersion >= 80000, // mysql
+        'VISIBLE',
+        ''
+        )
+      );
+    qIndexInvisible: Result := IfThen(
+      FServerVersion >= 100600, // mariadb
+      'IGNORED',
+      IfThen(
+        FServerVersion >= 80000, // mysql
+        'INVISIBLE',
+        ''
+        )
+      );
     else Result := inherited;
   end;
 end;

@@ -336,13 +336,13 @@ object frmTableEditor: TfrmTableEditor
         DragMode = dmAutomatic
         DragType = dtVCL
         EditDelay = 0
-        Header.AutoSizeIndex = 0
+        Header.AutoSizeIndex = -1
         Header.Columns = <        
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
             Text = 'Name'
-            Width = 241
+            Width = 191
           end        
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
@@ -364,6 +364,10 @@ object frmTableEditor: TfrmTableEditor
             Position = 4
             Text = 'Direction'
             Width = 80
+          end        
+          item
+            Position = 5
+            Text = 'Visibility'
           end>
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
@@ -372,7 +376,7 @@ object frmTableEditor: TfrmTableEditor
         TabOrder = 1
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toFullVertGridLines, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toFullVertGridLines, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toExtendedFocus, toRightClickSelect]
         OnBeforePaint = treeIndexesBeforePaint
         OnClick = AnyTreeClick
