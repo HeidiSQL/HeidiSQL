@@ -2369,10 +2369,7 @@ var
 begin
   // Try to open tabs.ini for writing or reading
   // Taking multiple application instances into account
-  if AppSettings.PortableMode then
-    TabsIniFilename := GetAppDir + 'tabs.ini'
-  else
-    TabsIniFilename := AppSettings.DirnameUserAppData + 'tabs.ini';
+  TabsIniFilename := AppSettings.DirnameUserAppData + 'tabs.ini';
   WaitingSince := GetTickCount64;
   Attempts := 0;
   while not FileIsWritable(TabsIniFilename) do begin

@@ -3780,7 +3780,6 @@ constructor TAppSettings.Create;
 var
   rx: TRegExpr;
   i: Integer;
-  DefaultSnippetsDirectory: String;
   PortableLockFile: String;
   NewFileHandle: THandle;
 begin
@@ -4058,14 +4057,7 @@ begin
   InitSetting(asDisplayReverseForeignKeys,        'DisplayReverseForeignKeys',             0, False);
   InitSetting(asGenerateDataNumRows,              'GenerateDataNumRows',                   1000);
   InitSetting(asGenerateDataNullAmount,           'GenerateDataNullAmount',                10);
-
-  // Default folder for snippets
-  if FPortableMode then
-    DefaultSnippetsDirectory := GetAppDir
-  else
-    DefaultSnippetsDirectory := DirnameUserDocuments;
-  DefaultSnippetsDirectory := DefaultSnippetsDirectory + 'Snippets\';
-  InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DefaultSnippetsDirectory);
+  InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DirnameUserDocuments + 'Snippets\');
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   // Restore tabs feature crashes often on old XP systems, see https://www.heidisql.com/forum.php?t=34044
   InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, Win32MajorVersion >= 6);
@@ -4723,19 +4715,29 @@ end;
 
 function TAppSettings.DirnameUserAppData: String;
 begin
-  // User folder for HeidiSQL's data (<user name>\Application Data)
-  Result := GetShellFolder(FOLDERID_RoamingAppData) + '\' + APPNAME + '\';
-  if not DirectoryExists(Result) then begin
-    ForceDirectories(Result);
+  // C:\Users\mike\AppData\Roaming\HeidiSQL\
+  if PortableMode then begin
+    Result := GetAppDir;
+  end
+  else begin
+    Result := GetShellFolder(FOLDERID_RoamingAppData) + '\' + APPNAME + '\';
+    if not DirectoryExists(Result) then begin
+      ForceDirectories(Result);
+    end;
   end;
 end;
 
 
 function TAppSettings.DirnameUserDocuments: String;
 begin
-  // "HeidiSQL" folder under user's documents folder, e.g. c:\Users\Mike\Documents\HeidiSQL\
-  Result := GetShellFolder(FOLDERID_Documents) + '\' + APPNAME + '\';
-  // Do not auto-create it, as we only use it for snippets which can also have a custom path.
+  // C:\Users\mike\Documents\HeidiSQL\
+  if PortableMode then begin
+    Result := GetAppDir;
+  end
+  else begin
+    Result := GetShellFolder(FOLDERID_Documents) + '\' + APPNAME + '\';
+    // Do not auto-create it, as we only use it for snippets which can also have a custom path.
+  end;
 end;
 
 
@@ -4755,11 +4757,7 @@ end;
 function TAppSettings.DirnameBackups: String;
 begin
   // Create backup folder if it does not exist and return it
-  if PortableMode then begin
-    Result := GetAppDir + 'Backups\'
-  end else begin
-    Result := DirnameUserAppData + 'Backups\';
-  end;
+  Result := DirnameUserAppData + 'Backups\';
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
@@ -4768,11 +4766,7 @@ end;
 
 function TAppSettings.DirnameHighlighters: string;
 begin
-  if PortableMode then begin
-    Result := GetAppDir + 'Highlighters\'
-  end else begin
-    Result := DirnameUserAppData + 'Highlighters\';
-  end;
+  Result := DirnameUserAppData + 'Highlighters\';
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
