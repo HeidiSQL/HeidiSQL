@@ -3535,7 +3535,6 @@ constructor TAppSettings.Create;
 var
   rx: TRegExpr;
   i: Integer;
-  DefaultSnippetsDirectory: String;
   PortableLockFile: String;
   NewFileHandle: THandle;
 begin
@@ -3784,10 +3783,7 @@ begin
   InitSetting(asDisplayReverseForeignKeys,        'DisplayReverseForeignKeys',             0, False);
   InitSetting(asGenerateDataNumRows,              'GenerateDataNumRows',                   1000);
   InitSetting(asGenerateDataNullAmount,           'GenerateDataNullAmount',                10);
-
-  // Default folder for snippets
-  DefaultSnippetsDirectory := DirnameUserDocuments + 'Snippets' + DirectorySeparator;
-  InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DefaultSnippetsDirectory);
+  InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DirnameUserDocuments + 'Snippets' + DirectorySeparator);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   // Restore tabs feature crashes often on old XP systems, see https://www.heidisql.com/forum.php?t=34044
   InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, True);
