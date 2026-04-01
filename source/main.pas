@@ -1008,8 +1008,7 @@ type
     procedure actCloseQueryTabExecute(Sender: TObject);
     procedure menuCloseQueryTabClick(Sender: TObject);
     procedure CloseQueryTab(PageIndex: Integer);
-    procedure CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure CloseButtonOnClick(Sender: TObject);
     function GetMainTabAt(X, Y: Integer): Integer;
     procedure FixQueryTabCloseButtons;
     function GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
@@ -12537,8 +12536,7 @@ begin
   QueryTab.CloseButton.Height := 16;
   QueryTab.CloseButton.Flat := True;
   VirtualImageListMain.GetBitmap(134, QueryTab.CloseButton.Glyph);
-  QueryTab.CloseButton.OnMouseDown := CloseButtonOnMouseDown;
-  QueryTab.CloseButton.OnMouseUp := CloseButtonOnMouseUp;
+  QueryTab.CloseButton.OnClick := CloseButtonOnClick;
   SetTabCaption(QueryTab.TabSheet.PageIndex, '');
 
   // Dumb code which replicates all controls from tabQuery
@@ -13083,22 +13081,9 @@ begin
 end;
 
 
-procedure TMainForm.CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TMainForm.CloseButtonOnClick(Sender: TObject);
 begin
   FLastMouseDownCloseButton := Sender;
-end;
-
-
-procedure TMainForm.CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  // Click on "Close" button of Query tab
-  if Button <> mbLeft then
-    Exit;
-  // Between MousDown and MouseUp it is possible that the focused tab has switched. As we simulate a mouse-click
-  // here, we must check if also the MouseDown event was fired on this particular button. See issue #1469.
-  if (Sender <> FLastMouseDownCloseButton) then
-    Exit;
-  // Prevent EAccessViolation in TControl.GetClientWidth, see issue #1640
   TimerCloseTabByButton.Enabled := True;
 end;
 
