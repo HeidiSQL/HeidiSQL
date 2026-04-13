@@ -504,8 +504,12 @@ begin
   InitLanguages;
   comboAppLanguage.Items.AddStrings(FLanguages);
 
-  comboGUIFont.Items.Assign(Screen.Fonts);
-  comboGUIFont.Items.Insert(0, '<'+_('Default system font')+'>');
+  comboGUIFont.Items.Clear;
+  comboGUIFont.Items.Add('<'+_('Default system font')+'>');
+  for i:=0 to Screen.Fonts.Count-1 do begin
+    if not Screen.Fonts[i].StartsWith('@') then
+      comboGUIFont.Items.Add(Screen.Fonts[i]);
+  end;
 
   {$IFDEF WINDOWS}
   comboTheme.Items.Add(_('Automatic, depending on system settings'));
@@ -669,7 +673,11 @@ begin
   comboSQLColElementChange(Sender);
 
   // Grid formatting:
-  comboDataFontName.Items := Screen.Fonts;
+  comboDataFontName.Items.Clear;
+  for i:=0 to Screen.Fonts.Count-1 do begin
+    if not Screen.Fonts[i].StartsWith('@') then
+      comboDataFontName.Items.Add(Screen.Fonts[i]);
+  end;
   comboDataFontName.ItemIndex := comboDataFontName.Items.IndexOf(AppSettings.ReadString(asDataFontName));
   spinDataFontSize.Value := AppSettings.ReadInt(asDataFontSize);
   spinMaxQueryResults.Value := AppSettings.ReadINt(asMaxQueryResults);
