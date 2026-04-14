@@ -11973,10 +11973,10 @@ procedure TMainForm.actFollowForeignKeyExecute(Sender: TObject);
 var
   Results: TDBQuery;
   RowNum: PInt64;
-  FocusedColumnName, ForeignColumnName, ReferenceTable: String;
+  FocusedColumnName, ForeignColumnName: String;
   ForeignKey: TForeignKey;
   i: Integer;
-  DBObj: TDBObject;
+  DBObj, ReferenceTable: TDBObject;
   Datatype: TDBDatatype;
   DbObjects: TDBObjectList;
   Filter: String;
@@ -11987,18 +11987,23 @@ begin
   Results.RecNo := RowNum^;
   FocusedColumnName := Results.ColumnOrgNames[DataGrid.FocusedColumn-1];
   Conn := Results.Connection;
+  ReferenceTable := nil;
 
   // find foreign key for current column
   for ForeignKey in ActiveDBObj.TableForeignKeys do begin
     i := ForeignKey.Columns.IndexOf(FocusedColumnName);
     if i > -1 then begin
       ForeignColumnName := ForeignKey.ForeignColumns[i];
-      ReferenceTable := ForeignKey.ReferenceTable;
+      ReferenceTable := ForeignKey.ReferenceTableObj;
       break;
     end;
   end;
   if ForeignColumnName = '' then begin
     LogSQL(f_('Foreign key not found for column "%s"', [FocusedColumnName]), lcInfo);
+    Exit;
+  end;
+  if ReferenceTable = nil then begin
+    LogSQL(_('Foreign key table not found'));
     Exit;
   end;
   Datatype := Results.DataType(DataGrid.FocusedColumn-1);
@@ -12009,13 +12014,7 @@ begin
     Filter := Conn.QuoteIdent(ForeignColumnName)+'='+Conn.EscapeString(Results.Col(DataGrid.FocusedColumn-1));
 
   // Jumping to ReferenceTable. Caution, this invalidates the above used Results
-  DbObjects := Conn.GetDBObjects(ActiveDatabase);
-  for DBObj in DbObjects do begin
-    if DBObj.Database + '.' + DBObj.Name = ReferenceTable then begin
-      ActiveDBObj := DBObj;
-      Break;
-    end;
-  end;
+  ActiveDBObj := ReferenceTable;
 
   SynMemoFilter.Text := Filter;
   ToggleFilterPanel(True);
