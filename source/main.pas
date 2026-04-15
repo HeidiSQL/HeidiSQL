@@ -7467,7 +7467,7 @@ begin
   // Tables and views can be renamed, routines cannot
   if Assigned(Node) then begin
     Obj := Sender.GetNodeData(Node);
-    Allowed := Obj.NodeType in [lntTable, lntView];
+    Allowed := (Obj.NodeType in [lntTable, lntView]) and (FLastMouseButtonUpOnGrid = mbLeft);
   end;
 end;
 
@@ -11333,6 +11333,9 @@ begin
   // Detect mouse hit in grid whitespace and apply changes.
   Grid := Sender as TVirtualStringTree;
   if not Assigned(Grid.FocusedNode) then
+    Exit;
+  // Exit early for non-result-grids like ListTables
+  if Grid <> ActiveGrid  then
     Exit;
   Grid.GetHitTestInfoAt(X, Y, False, {%H-}Hit);
   if (Hit.HitNode = nil) or (Hit.HitColumn = NoColumn) or (Hit.HitColumn = InvalidColumn) then begin
