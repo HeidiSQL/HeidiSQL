@@ -2296,6 +2296,8 @@ begin
   rx := TRegExpr.Create;
   rx.ModifierI := True;
   MatchLen := 0;
+  // Remove quotes around PG enums: "UserStatus"
+  DataType := DeQuoteIdent(DataType);
   for i:=0 to High(FDatatypes) do begin
     Types := FDatatypes[i].Name;
     if FDatatypes[i].Names <> '' then begin
@@ -2307,7 +2309,7 @@ begin
       TypesSorted.Free;
     end;
 
-    rx.Expression := '\b('+Types+')\b(\[\])?';
+    rx.Expression := '^('+Types+')\b(\[\])?';
     Match := rx.Exec(DataType);
     // Prefer a later match which is longer than the one found before.
     // See http://www.heidisql.com/forum.php?t=17061
