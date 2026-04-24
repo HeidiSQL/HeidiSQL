@@ -1767,7 +1767,7 @@ var
   KeyList: TTableKeyList;
   Column: TTableColumn;
   Quoter: TDBConnection;
-  TargetFileName, SetCharsetCode: String;
+  TargetFileName, SetCharsetCode, ColumnsForSelect: String;
   OrderBy: String;
 const
   TempDelim = '//';
@@ -2049,8 +2049,13 @@ begin
         TargetDbAndObject := Quoter.QuoteIdent(FinalDbName) + '.' + TargetDbAndObject;
       Offset := 0;
       RowCount := 0;
-      // Sort by primary key if one exists, see issue #2168
+      // Examine columns
       ColumnList := DBObj.TableColumns;
+      if not ColumnList.HasInvisibleColumns then
+        ColumnsForSelect := '*'
+      else
+        ColumnsForSelect := ColumnList.QuoteIdents;
+      // Sort by primary key if one exists, see issue #2168
       KeyList := DBObj.TableKeys;
       KeyColumns := DBObj.Connection.GetKeyColumns(ColumnList, KeyList);
       OrderBy := '';
@@ -2073,7 +2078,7 @@ begin
         Data := DBObj.Connection.GetResults(
           DBObj.Connection.ApplyLimitClause(
             'SELECT',
-            '/* '+APPNAME+' '+MainForm.AppVersion+' */ * FROM '+DBObj.QuotedDbAndTableName + OrderBy,
+            '/* '+APPNAME+' '+MainForm.AppVersion+' */ ' + ColumnsForSelect + ' FROM '+DBObj.QuotedDbAndTableName + OrderBy,
             Limit,
             Offset)
           );
