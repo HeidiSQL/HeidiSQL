@@ -69,6 +69,8 @@ type
     public
       procedure Assign(Source: TTableColumnList);
       function FindByName(const Value: String): TTableColumn;
+      function HasInvisibleColumns: Boolean;
+      function QuoteIdents: String;
   end;
   TColumnCache = TDictionary<String,TTableColumnList>;
 
@@ -10994,6 +10996,31 @@ begin
   end;
 end;
 
+function TTableColumnList.HasInvisibleColumns: Boolean;
+var
+  Col: TTableColumn;
+begin
+  Result := False;
+  for Col in Self do begin
+    if Col.Invisible then begin
+      Result := True;
+      Break;
+    end;
+  end;
+end;
+
+function TTableColumnList.QuoteIdents: String;
+var
+  Col: TTableColumn;
+  QuotedNames: TStringList;
+begin
+  QuotedNames := TStringList.Create;
+  for Col in Self do begin
+    QuotedNames.Add(Col.Connection.QuoteIdent(Col.Name));
+  end;
+  Result := Implode(', ', QuotedNames);
+  QuotedNames.Free;
+end;
 
 
 { *** TTableKey }
