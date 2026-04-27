@@ -9,10 +9,10 @@
         <Projects Include="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesD.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\..\components\synedit\Packages\Delphi11.2\SynEdit_R.dproj">
+        <Projects Include="..\..\components\synedit\Packages\Delphi12.3\SynEdit_R.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\..\components\synedit\Packages\Delphi11.2\SynEdit_D.dproj">
+        <Projects Include="..\..\components\synedit\Packages\Delphi12.3\SynEdit_D.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="heidisql.dproj">
@@ -48,22 +48,22 @@
         <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesD.dproj" Targets="Make"/>
     </Target>
     <Target Name="SynEdit_R">
-        <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.2\SynEdit_R.dproj"/>
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi12.3\SynEdit_R.dproj"/>
     </Target>
     <Target Name="SynEdit_R:Clean">
-        <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.2\SynEdit_R.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi12.3\SynEdit_R.dproj" Targets="Clean"/>
     </Target>
     <Target Name="SynEdit_R:Make">
-        <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.2\SynEdit_R.dproj" Targets="Make"/>
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi12.3\SynEdit_R.dproj" Targets="Make"/>
     </Target>
     <Target Name="SynEdit_D">
-        <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.2\SynEdit_D.dproj"/>
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi12.3\SynEdit_D.dproj"/>
     </Target>
     <Target Name="SynEdit_D:Clean">
-        <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.2\SynEdit_D.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi12.3\SynEdit_D.dproj" Targets="Clean"/>
     </Target>
     <Target Name="SynEdit_D:Make">
-        <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.2\SynEdit_D.dproj" Targets="Make"/>
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi12.3\SynEdit_D.dproj" Targets="Make"/>
     </Target>
     <Target Name="heidisql">
         <MSBuild Projects="heidisql.dproj"/>
