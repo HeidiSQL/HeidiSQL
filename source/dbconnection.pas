@@ -2935,6 +2935,7 @@ begin
       raise EDbError.Create(Error, LastErrorCode, ErrorHint);
     end;
     FActive := True;
+    CharacterSet := 'UTF8';
     FServerDateTimeOnStartup := GetVar('SELECT ' + FSqlProvider.GetSql(qFuncNow));
     FServerVersionUntouched := GetVar('SELECT VERSION()');
     FConnectionStarted := GetTickCount div 1000;
@@ -4610,7 +4611,7 @@ end;
 procedure TPGConnection.SetCharacterSet(CharsetName: String);
 begin
   // See issue #22
-  Query('SET CLIENT_ENCODING TO ' + EscapeString('UTF8'));
+  Query('SET CLIENT_ENCODING TO ' + EscapeString(CharsetName));
 end;
 
 
