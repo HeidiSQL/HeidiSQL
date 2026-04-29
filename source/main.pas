@@ -202,6 +202,7 @@ type
     FileNewItem: TMenuItem;
     MainMenuHelp: TMenuItem;
     FollowForeignKey: TMenuItem;
+    menuRenameSnippet: TMenuItem;
     N1: TMenuItem;
     FileExitItem: TMenuItem;
     menuAbout: TMenuItem;
@@ -920,6 +921,7 @@ type
         TColumnIndex; NewText: String);
     procedure AnyGridPaintText(Sender: TBaseVirtualTree; const TargetCanvas:
         TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+    procedure menuRenameSnippetClick(Sender: TObject);
     procedure menuDeleteSnippetClick(Sender: TObject);
     procedure menuExploreClick(Sender: TObject);
     procedure menuInsertAtCursorClick(Sender: TObject);
@@ -5284,7 +5286,7 @@ begin
   Filename := (Sender as TMenuItem).Caption;
   Filename := StripHotkey(Filename);
   if Pos('\', Filename) = 0 then // assuming we load a snippet
-    Filename := AppSettings.DirnameSnippets + Filename + '.sql'
+    Filename := AppSettings.DirnameSnippets + Filename + FILEEXT_SNIPPET
   else begin // assuming we load a file from the recent-list
     p := Pos(' ', Filename) + 1;
     filename := Copy(Filename, p, Length(Filename));
@@ -7687,7 +7689,7 @@ begin
       1:
         case Tree.FocusedNode.Parent.Index of
           TQueryTab.HelperNodeSnippets:
-            Text := ReadTextFile(AppSettings.DirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', nil);
+            Text := ReadTextFile(AppSettings.DirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + FILEEXT_SNIPPET, nil);
           TQueryTab.HelperNodeHistory:
             Text := '';
           else begin
@@ -8750,27 +8752,59 @@ begin
 end;
 
 
+procedure TMainForm.menuRenameSnippetClick(Sender: TObject);
+var
+  OldName, NewName: String;
+begin
+  if not Assigned(QueryTabs.ActiveHelpersTree.FocusedNode) then
+    Exit;
+
+  OldName := QueryTabs.ActiveHelpersTree.Text[QueryTabs.ActiveHelpersTree.FocusedNode, 0];
+  NewName := OldName;
+  if InputQuery(_('Rename'), 'Rename snippet "'+OldName+'"', NewName) then
+  begin
+    Screen.Cursor := crHourGlass;
+    if NewName.IsEmpty then begin
+      Screen.Cursor := crDefault;
+      ErrorDialog(f_('Failed renaming %s', ['"' + OldName + '" => "' + NewName + '"']));
+    end
+    else begin
+      OldName := ChangeFileExt(AppSettings.DirnameSnippets + OldName, FILEEXT_SNIPPET);
+      NewName := ChangeFileExt(AppSettings.DirnameSnippets + NewName, FILEEXT_SNIPPET);
+      LogSQL(Format('Rename snippet "%s" to "%s"', [OldName, NewName]), lcDebug);
+      if RenameFile(OldName, NewName) then begin
+        // Refresh list with snippets
+        SetSnippetFilenames;
+      end else begin
+        Screen.Cursor := crDefault;
+        ErrorDialog(f_('Failed renaming %s', ['"' + OldName + '" => "' + NewName + '"']));
+      end;
+    end;
+    Screen.Cursor := crDefault;
+  end;
+end;
+
 {**
   Delete a snippet file
 }
 procedure TMainForm.menuDeleteSnippetClick(Sender: TObject);
 var
-  snippetfile : String;
+  SnippetFile : String;
 begin
   // Don't do anything if no item was selected
   if not Assigned(QueryTabs.ActiveHelpersTree.FocusedNode) then
     Exit;
 
-  snippetfile := AppSettings.DirnameSnippets + QueryTabs.ActiveHelpersTree.Text[QueryTabs.ActiveHelpersTree.FocusedNode, 0] + '.sql';
-  if MessageDialog(_('Delete snippet file?'), snippetfile, mtConfirmation, [mbOk, mbCancel]) = mrOk then
+  SnippetFile := AppSettings.DirnameSnippets + QueryTabs.ActiveHelpersTree.Text[QueryTabs.ActiveHelpersTree.FocusedNode, 0] + FILEEXT_SNIPPET;
+  if MessageDialog(_('Delete snippet file?'), SnippetFile, mtConfirmation, [mbOk, mbCancel]) = mrOk then
   begin
     Screen.Cursor := crHourGlass;
-    if DeleteFileWithUndo(snippetfile) then begin
+    if DeleteFileWithUndo(SnippetFile) then begin
       // Refresh list with snippets
       SetSnippetFilenames;
     end else begin
       Screen.Cursor := crDefault;
-      ErrorDialog(f_('Failed deleting %s', [snippetfile]));
+      ErrorDialog(f_('Failed deleting %s', [SnippetFile]));
     end;
     Screen.Cursor := crDefault;
   end;
@@ -8807,7 +8841,7 @@ end;
 }
 procedure TMainForm.menuLoadSnippetClick(Sender: TObject);
 begin
-  QueryTabs.ActiveTab.LoadContents(AppSettings.DirnameSnippets + QueryTabs.ActiveHelpersTree.Text[QueryTabs.ActiveHelpersTree.FocusedNode, 0] + '.sql', True, nil);
+  QueryTabs.ActiveTab.LoadContents(AppSettings.DirnameSnippets + QueryTabs.ActiveHelpersTree.Text[QueryTabs.ActiveHelpersTree.FocusedNode, 0] + FILEEXT_SNIPPET, True, nil);
 end;
 
 
@@ -14707,6 +14741,7 @@ begin
   menuQueryHelpersGenerateDelete.Enabled := False;
   menuInsertAtCursor.Enabled := False;
   menuLoadSnippet.Enabled := False;
+  menuRenameSnippet.Enabled := False;
   menuDeleteSnippet.Enabled := False;
   menuExplore.Enabled := False;
   menuHelp.Enabled := False;
@@ -14734,6 +14769,7 @@ begin
         menuInsertAtCursor.Enabled := True;
       end;
       TQueryTab.HelperNodeSnippets: begin
+        menuRenameSnippet.Enabled := True;
         menuDeleteSnippet.Enabled := True;
         menuInsertAtCursor.Enabled := True;
         menuLoadSnippet.Enabled := True;

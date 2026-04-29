@@ -102,6 +102,7 @@ const
   TextInvalidColumn: String = '';
   FILEFILTER_SQLITEDB = '*.sqlite3;*.sqlite;*.db;*.s3db';
   FILEEXT_SQLITEDB = 'sqlite3';
+  FILEEXT_SNIPPET = '.sql';
   PROPOSAL_ITEM_HEIGHT = 18;
   // Note the following should be in sync to what MySQL returns from SHOW WARNINGS
   SLogPrefixWarning = 'Warning';

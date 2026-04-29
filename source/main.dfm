@@ -4126,6 +4126,12 @@ object MainForm: TMainForm
       ImageIndex = 52
       OnClick = menuLoadSnippetClick
     end
+    object menuRenameSnippet: TMenuItem
+      Caption = 'Rename'
+      Enabled = False
+      ImageIndex = 58
+      OnClick = menuRenameSnippetClick
+    end
     object menuDeleteSnippet: TMenuItem
       Caption = 'Delete ...'
       Enabled = False
