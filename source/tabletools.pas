@@ -1821,7 +1821,7 @@ begin
 
   if ToDir then begin
     FreeAndNil(ExportStream);
-    DbDir := IncludeTrailingPathDelimiter(GetOutputFilename(comboExportOutputTarget.Text, DBObj)) + DBObj.Database + '\';
+    DbDir := GetOutputFilename(comboExportOutputTarget.Text, DBObj) + DirectorySeparator + DBObj.Database + DirectorySeparator;
     if not DirectoryExists(DbDir) then
       ForceDirectories(DbDir);
     ExportStream := TFileStream.Create(DbDir + DBObj.ObjType.ToLower + '-' + DBObj.Name+'.sql', fmCreate or fmOpenWrite);

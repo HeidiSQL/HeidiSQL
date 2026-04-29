@@ -5233,7 +5233,7 @@ begin
   // Click on the popupQueryLoad
   Filename := (Sender as TMenuItem).Caption;
   Filename := StripHotkey(Filename);
-  if Pos('\', Filename) = 0 then // assuming we load a snippet
+  if Pos(DirectorySeparator, Filename) = 0 then // assuming we load a snippet
     Filename := AppSettings.DirnameSnippets + Filename + FILEEXT_SNIPPET
   else begin // assuming we load a file from the recent-list
     p := Pos(' ', Filename) + 1;
