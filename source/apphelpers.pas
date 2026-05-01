@@ -535,10 +535,10 @@ begin
     Exit;
   if FromLeft then begin
     SetLength(Result, MaxLen);
-    Result[MaxLen] := '…';
+    Result[MaxLen] := 'â€¦';
   end else begin
     Result := Copy(Result, Length(Result)-MaxLen, Length(Result));
-    Result := '…' + Result;
+    Result := 'â€¦' + Result;
   end;
 end;
 
@@ -848,7 +848,7 @@ end;
 
 function RoundCommercial(e: Extended): Int64;
 begin
-  // "Kaufmännisch runden"
+  // "KaufmÃ¤nnisch runden"
   // In contrast to Delphi's Round() which rounds *.5 to the next even number
   Result := Trunc(e);
   if Frac(e) >= 0.5 then
@@ -1528,7 +1528,7 @@ begin
   Bmp := Graphics.TBitmap.Create;
   Bmp.Canvas.Font.Name := Font.Name;
   Bmp.Canvas.Font.Size := Font.Size;
-  Result := Bmp.Canvas.TextHeight('Äy');
+  Result := Bmp.Canvas.TextHeight('Ã„y');
   Bmp.Free;
 end;
 
