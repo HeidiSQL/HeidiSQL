@@ -1069,7 +1069,7 @@ end;
 
 procedure TSecureShellCmd.Connect;
 var
-  SshCmd, SshCmdDisplay, DialogTitle: String;
+  SshCmd, SshCmdDisplay, DialogTitle, TargetHost: String;
   OutText, ErrorText, AllPipesText, UserInput: String;
   rx: TRegExpr;
   ExitCode: LongWord;
@@ -1077,7 +1077,7 @@ var
   CheckIntervalMs: Integer;
   TimeStartedMs, WaitedMs, TimeOutMs: Int64;
   EnvSshpass: String;
-  EnvList, ProcOutput: TStringList;
+  ProcOutput: TStringList;
 begin
   // Check if local port is open
   PortChecks := 0;
@@ -1091,38 +1091,43 @@ begin
 
   // Build SSH command line
   // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
-  SshCmd := FConnection.Parameters.SSHExe;
-  if FConnection.Parameters.SshIsPlink then
-    SshCmd := SshCmd + ' -ssh';
-  SshCmd := SshCmd + ' ';
+  TargetHost := '';
   if FConnection.Parameters.SSHUser.Trim <> '' then
-    SshCmd := SshCmd + FConnection.Parameters.SSHUser.Trim + '@';
+    TargetHost := FConnection.Parameters.SSHUser.Trim + '@';
   if FConnection.Parameters.SSHHost.Trim <> '' then
-    SshCmd := SshCmd + FConnection.Parameters.SSHHost.Trim
+    TargetHost := TargetHost + FConnection.Parameters.SSHHost.Trim
   else
-    SshCmd := SshCmd + FConnection.Parameters.Hostname;
+    TargetHost := TargetHost + FConnection.Parameters.Hostname;
+
+  SshCmd := FConnection.Parameters.SSHExe;
   EnvSshpass := '';
-  if FConnection.Parameters.SSHPassword <> '' then begin
-    if FConnection.Parameters.SshIsPlink then
-      SshCmd := SshCmd + ' -pw "' + StringReplace(FConnection.Parameters.SSHPassword, '"', '\"', [rfReplaceAll]) + '"'
-    else
+  if FConnection.Parameters.SshIsPlink then begin
+    SshCmd := SshCmd + ' -ssh ' + TargetHost;
+    if FConnection.Parameters.SSHPassword <> '' then
+      SshCmd := SshCmd + ' -pw "' + StringReplace(FConnection.Parameters.SSHPassword, '"', '\"', [rfReplaceAll]) + '"';
+    if FConnection.Parameters.SSHPort > 0 then
+      SshCmd := SshCmd + ' -P ' + IntToStr(FConnection.Parameters.SSHPort);
+    if FConnection.Parameters.SSHPrivateKey <> '' then
+      SshCmd := SshCmd + ' -i "' + FConnection.Parameters.SSHPrivateKey + '"';
+    SshCmd := SshCmd + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port);
+  end else begin
+    if FConnection.Parameters.SSHPassword <> '' then
       EnvSshpass := 'SSHPASS='+FConnection.Parameters.SSHPassword;
+    if FConnection.Parameters.SSHPort > 0 then
+      SshCmd := SshCmd + ' -p ' + IntToStr(FConnection.Parameters.SSHPort);
+    if FConnection.Parameters.SSHPrivateKey <> '' then
+      SshCmd := SshCmd + ' -i "' + FConnection.Parameters.SSHPrivateKey + '"';
+    // OpenSSH options must be placed before the destination host.
+    SshCmd := SshCmd + ' -o StrictHostKeyChecking=no -o IgnoreUnknown=WarnWeakCrypto -o WarnWeakCrypto=no-pq-kex -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3';
+    SshCmd := SshCmd + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port) + ' ' + TargetHost;
   end;
-  if FConnection.Parameters.SSHPort > 0 then
-    SshCmd := SshCmd + IfThen(FConnection.Parameters.SshIsPlink, ' -P ', ' -p ') + IntToStr(FConnection.Parameters.SSHPort);
-  if FConnection.Parameters.SSHPrivateKey <> '' then
-    SshCmd := SshCmd + ' -i "' + FConnection.Parameters.SSHPrivateKey + '"';
-  if not FConnection.Parameters.SshIsPlink then
-    SshCmd := SshCmd + ' -o StrictHostKeyChecking=no';
-  SshCmd := SshCmd + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port);
 
   if not EnvSshpass.IsEmpty then begin
     SshCmd := SshpassPath + ' -e ' + SshCmd;
-    EnvList := TStringList.Create;
+    FProcess.Environment.Clear;
     for i := 0 to GetEnvironmentVariableCount - 1 do
-      EnvList.Add(GetEnvironmentString(i));
-    EnvList.Add(EnvSshpass);
-    FProcess.Environment := EnvList;
+      FProcess.Environment.Add(GetEnvironmentString(i));
+    FProcess.Environment.Add(EnvSshpass);
   end;
 
   rx := TRegExpr.Create;
