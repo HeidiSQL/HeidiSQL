@@ -535,7 +535,7 @@ begin
     Exit;
   if FromLeft then begin
     SetLength(Result, MaxLen);
-    Result[MaxLen] := '…';
+    Result := Result + '…';
   end else begin
     Result := Copy(Result, Length(Result)-MaxLen, Length(Result));
     Result := '…' + Result;
