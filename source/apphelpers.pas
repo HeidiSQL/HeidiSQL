@@ -3553,13 +3553,11 @@ begin
   Result := '';
   InLineComment := False;
   InMultiLineComment := False;
-  Prev1 := #0;
-  Prev2 := #0;
   for i:=1 to Length(FullSQL) do begin
     Cur := FullSQL[i];
     AddCur := True;
-    if i > 1 then Prev1 := FullSQL[i-1];
-    if i > 2 then Prev2 := FullSQL[i-2];
+    if i > 1 then Prev1 := FullSQL[i-1] else Prev1 := #0;
+    if i > 2 then Prev2 := FullSQL[i-2] else Prev2 := #0;
 
     if (Cur = '*') and (Prev1 = '/') then begin
       InMultiLineComment := True;
@@ -3578,7 +3576,7 @@ begin
       else if Cur = '#' then begin
         InLineComment := True;
       end
-      else if (Cur = ' ') and (Prev1 = '-') and (Prev2 = '-') then begin
+      else if (not InLineComment) and (Cur = ' ') and (Prev1 = '-') and (Prev2 = '-') then begin
         InLineComment := True;
         System.Delete(Result, Length(Result)-1, 2); // Delete comment chars
       end;
