@@ -11608,7 +11608,10 @@ begin
   Grid := Sender as TVirtualStringTree;
   if not Assigned(Grid.FocusedNode) then
     Exit;
-  Grid.GetHitTestInfoAt(X, Y, False, Hit);
+  // Exit early for non-result-grids like ListTables
+  if Grid <> ActiveGrid  then
+    Exit;
+  Grid.GetHitTestInfoAt(X, Y, True, Hit);
   if (Hit.HitNode = nil) or (Hit.HitColumn = NoColumn) or (Hit.HitColumn = InvalidColumn) then begin
     Results := GridResult(Grid);
     if Results.Modified then begin
