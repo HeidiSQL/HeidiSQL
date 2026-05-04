@@ -1503,6 +1503,7 @@ begin
   VT.ShowHint := True;
 
   if IsResultGrid then begin
+    VT.Colors.GridLineColor := clGray; // 50% black grid lines, should fit on both light and dark theme
     VT.HintMode := hmHint; // Show cell contents with linebreakds in datagrid and querygrid's
     if AppSettings.ReadBool(asIncrementalSearch) then begin
       // Apply case insensitive incremental search event
