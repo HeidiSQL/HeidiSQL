@@ -11371,7 +11371,7 @@ begin
   // Exit early for non-result-grids like ListTables
   if Grid <> ActiveGrid  then
     Exit;
-  Grid.GetHitTestInfoAt(X, Y, False, {%H-}Hit);
+  Grid.GetHitTestInfoAt(X, Y, True, {%H-}Hit);
   if (Hit.HitNode = nil) or (Hit.HitColumn = NoColumn) or (Hit.HitColumn = InvalidColumn) then begin
     Results := GridResult(Grid);
     if Results.Modified then begin
