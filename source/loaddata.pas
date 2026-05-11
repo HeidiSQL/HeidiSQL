@@ -130,7 +130,9 @@ begin
   grpDuplicates.Width := HalfWidth;
   grpParseMethod.Width := HalfWidth;
   grpChars.Width := HalfWidth;
+  grpChars.Height := editLineTerminator.Top + editLineTerminator.Height + 20;
   grpDestination.Width := HalfWidth;
+  grpDestination.Top := grpChars.Top + grpChars.Height + 5;
   // Move right boxes to the right position
   grpChars.Left := RightBoxX;
   grpDestination.Left := RightBoxX;
