@@ -7655,7 +7655,7 @@ begin
       CheckOption := Trim(rx.Match[11]);
       SelectCode := rx.Match[9];
     end else
-      raise Exception.CreateFmt(_('Regular expression did not match the VIEW code in %s: %s'), ['ParseViewStructure()', CRLF+CRLF+CreateCode]);
+      Log(lcError, f_('Regular expression did not match the VIEW code in %s: %s', ['ParseViewStructure()', CRLF+CRLF+CreateCode]));
     rx.Free;
   end;
 
