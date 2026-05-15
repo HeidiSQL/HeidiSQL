@@ -50,17 +50,16 @@ jobs:
           if: ${{ matrix.operating-system == 'windows-latest' }}
           shell: pwsh
           run: |
-            .\extra\peflags\peflags.exe .\out\win64\heidisql.exe --check --policy
+            & .\extra\peflags\peflags.exe .\out\win64\heidisql.exe --check --policy
             $code = $LASTEXITCODE
             Write-Host "peflags policy exit code: $code"
-  
             if (($code -band 1) -ne 0) { throw 'DYNAMICBASE not set' }
             if (($code -band 4) -ne 0) { throw 'NXCOMPAT not set' }
             if (($code -band 8) -ne 0) { throw 'HIGH_ENTROPY_VA not set on PE32+' }
-  
             if (($code -band 2) -ne 0) {
               Write-Warning 'ASLR is not effective on the Lazarus Windows build due to missing/unusable relocation directory.'
             }
+            exit 0
 
         - name: Upload binaries Windows
           if: ${{ matrix.operating-system == 'windows-latest' && matrix.lazarus-versions == 'stable' }}
