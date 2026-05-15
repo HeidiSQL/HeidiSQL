@@ -82,17 +82,11 @@
             <OtherUnitFiles Value="source;source\metadarkstyle\src"/>
             <UnitOutputDirectory Value="bin\lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
-          <Conditionals Value="// example for adding linker options on Mac OS X
-//if TargetOS=&apos;darwin&apos; then
-//  LinkerOptions := &apos; -framework OpenGL&apos;;
-if TargetOS=&apos;darwin&apos; then
-  CustomOptions := &apos;-WM10.15&apos;;
+          <Conditionals Value="if TargetOS=&apos;darwin&apos; then
+  CustomOptions := CustomOptions + &apos; -WM10.15&apos;;
 
-// example for adding a unit and include path on Windows
-//if SrcOS=&apos;win&apos; then begin
-//  UnitPath += &apos;;win&apos;;
-//  IncPath += &apos;;win&apos;;
-//end;"/>
+if TargetOS=&apos;win64&apos; then
+  CustomOptions := CustomOptions + &apos; -WB -WR&apos;;"/>
           <CodeGeneration>
             <SmartLinkUnit Value="True"/>
             <Optimizations>
@@ -118,8 +112,6 @@ if TargetOS=&apos;darwin&apos; then
             <CompilerMessages>
               <IgnoredMessages idx6058="True" idx5071="True" idx5062="True" idx5024="True" idx4104="True" idx4046="True" idx3177="True" idx3175="True"/>
             </CompilerMessages>
-            <CustomOptions Value="-WB
--WR"/>
           </Other>
         </CompilerOptions>
       </Item>
@@ -476,17 +468,11 @@ if TargetOS=&apos;darwin&apos; then
       <OtherUnitFiles Value="source;source\metadarkstyle\src"/>
       <UnitOutputDirectory Value="bin\lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Conditionals Value="// example for adding linker options on Mac OS X
-//if TargetOS=&apos;darwin&apos; then
-//  LinkerOptions := &apos; -framework OpenGL&apos;;
-if TargetOS=&apos;darwin&apos; then
-  CustomOptions := &apos;-WM10.15&apos;;
+    <Conditionals Value="if TargetOS=&apos;darwin&apos; then
+  CustomOptions := CustomOptions + &apos; -WM10.15&apos;;
 
-// example for adding a unit and include path on Windows
-//if SrcOS=&apos;win&apos; then begin
-//  UnitPath += &apos;;win&apos;;
-//  IncPath += &apos;;win&apos;;
-//end;"/>
+if TargetOS=&apos;win64&apos; then
+  CustomOptions := CustomOptions + &apos; -WB -WR&apos;;"/>
     <Linking>
       <Debugging>
         <DebugInfoType Value="dsDwarf3"/>
@@ -503,8 +489,6 @@ if TargetOS=&apos;darwin&apos; then
       <CompilerMessages>
         <IgnoredMessages idx6058="True" idx5071="True" idx5062="True" idx5024="True" idx4104="True" idx4046="True" idx3177="True" idx3175="True"/>
       </CompilerMessages>
-      <CustomOptions Value="-WB
--WR"/>
     </Other>
   </CompilerOptions>
   <Debugging>
