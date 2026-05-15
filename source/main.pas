@@ -13210,51 +13210,53 @@ var
 begin
   Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
 
-  // Unhide tabsheet so the user sees the memo content.
-  // If the dialog is suppressed anyway, the user does not need to see the text, and we avoid
-  // storing this as the focused tab
-  if AppSettings.ReadBool(asPromptSaveFileOnTabClose) then begin
-    Tab.TabSheet.PageControl.ActivePage := Tab.TabSheet;
-  end;
-
-  // Prompt for saving unsaved contents
-  if Tab.MemoFilename <> '' then
-    msg := f_('Save changes to file %s ?', [Tab.MemoFilename])
-  else
-    msg := f_('Save content of tab "%s"?', [Trim(Tab.TabSheet.Caption)]);
   if AppSettings.RestoreTabsInitValue and AppIsClosing then begin
-    msg := msg + CRLF + CRLF + _('Your code is saved anyway, as auto-restoring is activated.');
-  end;
+    Result := True;
+  end
 
-  if FConnections.Count > 0 then
-    MsgButtons := [mbYes, mbNo, mbCancel]
-  else
-    MsgButtons := [mbYes, mbNo];
-
-  case MessageDialog(_('Modified query'), msg, mtConfirmation, MsgButtons, asPromptSaveFileOnTabClose) of
-    mrNo: Result := True;
-    mrYes: begin
-      if Tab.MemoFilename <> '' then begin
-        Tab.SaveContents(Tab.MemoFilename, False);
-        Result := True;
-      end
-      else begin
-        Dialog := TExtFileSaveDialog.Create(Self);
-        Dialog.Options := Dialog.Options + [ofOverwritePrompt];
-        Dialog.AddFileType('*.sql', _('SQL files'));
-        Dialog.AddFileType('*.*', _('All files'));
-        Dialog.DefaultExt := 'sql';
-        Dialog.LineBreakIndex := Tab.MemoLineBreaks;
-        if Dialog.Execute then begin
-          Tab.SaveContents(Dialog.FileName, False);
-          Tab.MemoLineBreaks := Dialog.LineBreakIndex;
-        end;
-        // The save dialog can be cancelled.
-        Result := not Tab.Memo.Modified;
-        Dialog.Free;
-      end;
+  else begin
+    // Unhide tabsheet so the user sees the memo content.
+    // If the dialog is suppressed anyway, the user does not need to see the text, and we avoid
+    // storing this as the focused tab
+    if AppSettings.ReadBool(asPromptSaveFileOnTabClose) then begin
+      Tab.TabSheet.PageControl.ActivePage := Tab.TabSheet;
     end;
-    else Result := False;
+    // Prompt for saving unsaved contents
+    if Tab.MemoFilename <> '' then
+      msg := f_('Save changes to file %s ?', [Tab.MemoFilename])
+    else
+      msg := f_('Save content of tab "%s"?', [Trim(Tab.TabSheet.Caption)]);
+
+    if FConnections.Count > 0 then
+      MsgButtons := [mbYes, mbNo, mbCancel]
+    else
+      MsgButtons := [mbYes, mbNo];
+
+    case MessageDialog(_('Modified query'), msg, mtConfirmation, MsgButtons, asPromptSaveFileOnTabClose) of
+      mrNo: Result := True;
+      mrYes: begin
+        if Tab.MemoFilename <> '' then begin
+          Tab.SaveContents(Tab.MemoFilename, False);
+          Result := True;
+        end
+        else begin
+          Dialog := TExtFileSaveDialog.Create(Self);
+          Dialog.Options := Dialog.Options + [ofOverwritePrompt];
+          Dialog.AddFileType('*.sql', _('SQL files'));
+          Dialog.AddFileType('*.*', _('All files'));
+          Dialog.DefaultExt := 'sql';
+          Dialog.LineBreakIndex := Tab.MemoLineBreaks;
+          if Dialog.Execute then begin
+            Tab.SaveContents(Dialog.FileName, False);
+            Tab.MemoLineBreaks := Dialog.LineBreakIndex;
+          end;
+          // The save dialog can be cancelled.
+          Result := not Tab.Memo.Modified;
+          Dialog.Free;
+        end;
+      end;
+      else Result := False;
+    end;
   end;
 
   // Auto-backup logic

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2026-04-14 19:01+0200\n"
+"PO-Revision-Date: 2026-05-15 12:41+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -6448,9 +6448,6 @@ msgstr "Hide database pattern:"
 
 msgid "Backup file could not be deleted: %s"
 msgstr "Backup file could not be deleted: %s"
-
-msgid "Your code is saved anyway, as auto-restoring is activated."
-msgstr "Your code is saved anyway, as auto-restoring is activated."
 
 #. Tab caption in preferences
 msgid "Files and tabs"
