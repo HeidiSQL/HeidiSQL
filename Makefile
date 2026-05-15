@@ -3,6 +3,7 @@ LAZBUILD := $(shell command -v lazbuild)
 OPTS := -B --bm=Release
 OPTSQT5 := --ws=qt5
 OPTSQT6 := --ws=qt6
+OPTSWIN64 := --widgetset=win32 --compiler-options="-WB -WR"
 LPI := heidisql.lpi
 
 BIN := ./out/heidisql
@@ -11,6 +12,7 @@ BINGTK := ./out/gtk2/heidisql
 BINQT5 := ./out/qt5/heidisql
 BINQT6 := ./out/qt6/heidisql
 BINMACOS := ./out/macos/heidisql
+PEFLAGS := ./extra/peflags/peflags.exe
 
 # Make shell magic to get version from somewhere
 #VERSION := shell magic
@@ -43,9 +45,11 @@ copy-locale:
 
 build-win64:
 	@echo "=== Building Win64"
-	lazbuild $(OPTS) $(LPI)
+	$(LAZBUILD) $(OPTS) $(OPTSWIN64) $(LPI)
 	@mkdir -p ./out/win64
 	@mv -v "$(BIN).exe" "$(BINWIN64)"
+	@"$(PEFLAGS)" "$(BINWIN64)" --set --all
+	@"$(PEFLAGS)" "$(BINWIN64)" --check
 
 run-win64:
 	@echo "Not implemented yet."

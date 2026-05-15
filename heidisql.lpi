@@ -118,6 +118,8 @@ if TargetOS=&apos;darwin&apos; then
             <CompilerMessages>
               <IgnoredMessages idx6058="True" idx5071="True" idx5062="True" idx5024="True" idx4104="True" idx4046="True" idx3177="True" idx3175="True"/>
             </CompilerMessages>
+            <CustomOptions Value="-WB
+-WR"/>
           </Other>
         </CompilerOptions>
       </Item>
@@ -501,6 +503,8 @@ if TargetOS=&apos;darwin&apos; then
       <CompilerMessages>
         <IgnoredMessages idx6058="True" idx5071="True" idx5062="True" idx5024="True" idx4104="True" idx4046="True" idx3177="True" idx3175="True"/>
       </CompilerMessages>
+      <CustomOptions Value="-WB
+-WR"/>
     </Other>
   </CompilerOptions>
   <Debugging>
