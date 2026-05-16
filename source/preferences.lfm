@@ -1675,6 +1675,7 @@ object frmPreferences: TfrmPreferences
         Height = 369
         Top = 33
         Width = 300
+        Anchors = [akTop, akLeft, akBottom]
         BorderSpacing.Around = 5
         Colors.BorderColor = 15987699
         Colors.DisabledColor = clGray
