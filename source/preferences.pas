@@ -33,6 +33,7 @@ type
   TGridColorsPresetList = TObjectList<TGridColorsPreset>;
 
   TfrmPreferences = class(TExtForm)
+    editShortcutsFilter: TButtonedEdit;
     pagecontrolMain: TPageControl;
     tabMisc: TTabSheet;
     btnCancel: TButton;
@@ -192,6 +193,8 @@ type
     Label5: TLabel;
     lblReformatter: TLabel;
     comboReformatter: TComboBox;
+    procedure editShortcutsFilterRightButtonClick(Sender: TObject);
+    procedure editShortcutsFilterChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -834,6 +837,16 @@ begin
   FRestartOptionTouched := False;
   btnApply.Enabled := False;
   screen.Cursor := crdefault;
+end;
+
+procedure TfrmPreferences.editShortcutsFilterRightButtonClick(Sender: TObject);
+begin
+  editShortcutsFilter.Clear;
+end;
+
+procedure TfrmPreferences.editShortcutsFilterChange(Sender: TObject);
+begin
+  FilterNodesByEdit(editShortcutsFilter, TreeShortcutItems);
 end;
 
 

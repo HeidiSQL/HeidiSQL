@@ -1330,10 +1330,10 @@ object frmPreferences: TfrmPreferences
       end
       object TreeShortcutItems: TVirtualStringTree
         Left = 0
-        Top = 0
+        Top = 32
         Width = 300
-        Height = 406
-        Align = alLeft
+        Height = 374
+        Anchors = [akLeft, akTop, akBottom]
         Colors.BorderColor = 15987699
         Colors.DisabledColor = clGray
         Colors.DropMarkColor = 15385233
@@ -1389,6 +1389,19 @@ object frmPreferences: TfrmPreferences
         Images = MainForm.VirtualImageListMain
         TabOrder = 2
         OnClick = btnRemoveHotKeyClick
+      end
+      object editShortcutsFilter: TButtonedEdit
+        Left = 0
+        Top = 4
+        Width = 300
+        Height = 22
+        Images = MainForm.VirtualImageListMain
+        RightButton.ImageIndex = 193
+        RightButton.Visible = True
+        TabOrder = 3
+        TextHint = 'Filter'
+        OnChange = editShortcutsFilterChange
+        OnRightButtonClick = editShortcutsFilterRightButtonClick
       end
     end
     object tabFiles: TTabSheet
