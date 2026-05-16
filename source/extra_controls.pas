@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Forms, Types, StdCtrls, Clipbrd, apphelpers,
   Graphics, Dialogs, ImgList, ComCtrls, Generics.Defaults,
   ExtCtrls, laz.VirtualTrees, RegExpr, Controls, EditBtn, Menus,
-  LCLIntf;
+  LCLIntf, Math;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -219,7 +219,7 @@ procedure TExtForm.FilterNodesByEdit(Edit: TEditButton; Tree: TLazVirtualStringT
 var
   rx: TRegExprUmlauts;
   Node: PVirtualNode;
-  i: Integer;
+  i, ColumnCount: Integer;
   match: Boolean;
   CellText: String;
 begin
@@ -244,8 +244,10 @@ begin
     if not Tree.HasChildren[Node] then begin
       // Don't filter anything if the filter text is empty
       match := rx.Expression = '';
+      // Suport trees with 0 defined columns, like the shortcut tree in preferences
+      ColumnCount := Max(Tree.Header.Columns.Count, 1);
       // Search for given text in node's captions
-      if not match then for i := 0 to Tree.Header.Columns.Count - 1 do begin
+      if not match then for i:=0 to ColumnCount - 1 do begin
         CellText := Tree.Text[Node, i];
         match := rx.Exec(CellText);
         if match then

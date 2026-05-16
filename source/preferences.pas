@@ -36,6 +36,7 @@ type
     chkShortcut1Control: TCheckBox;
     comboShortcut1Key: TComboBox;
     comboShortcut2Key: TComboBox;
+    editShortcutsFilter: TEditButton;
     editTerminal: TEditButton;
     lblTerminal: TLabel;
     pagecontrolMain: TPageControl;
@@ -178,6 +179,8 @@ type
     Label5: TLabel;
     lblReformatter: TLabel;
     comboReformatter: TComboBox;
+    procedure editShortcutsFilterButtonClick(Sender: TObject);
+    procedure editShortcutsFilterChange(Sender: TObject);
     procedure editTerminalButtonClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -749,6 +752,16 @@ begin
   if Dialog.Execute then
     editTerminal.Text := Dialog.FileName;
   Dialog.Free;
+end;
+
+procedure TfrmPreferences.editShortcutsFilterButtonClick(Sender: TObject);
+begin
+  editShortcutsFilter.Clear;
+end;
+
+procedure TfrmPreferences.editShortcutsFilterChange(Sender: TObject);
+begin
+  FilterNodesByEdit(editShortcutsFilter, TreeShortcutItems);
 end;
 
 

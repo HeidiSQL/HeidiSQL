@@ -1668,11 +1668,13 @@ object frmPreferences: TfrmPreferences
         Caption = 'Secondary shortcut:'
       end
       object TreeShortcutItems: TLazVirtualStringTree
+        AnchorSideLeft.Control = tabShortcuts
+        AnchorSideTop.Control = editShortcutsFilter
+        AnchorSideTop.Side = asrBottom
         Left = 5
-        Height = 404
-        Top = 5
+        Height = 369
+        Top = 33
         Width = 300
-        Align = alLeft
         BorderSpacing.Around = 5
         Colors.BorderColor = 15987699
         Colors.DisabledColor = clGray
@@ -1856,6 +1858,25 @@ object frmPreferences: TfrmPreferences
         Style = csDropDownList
         TabOrder = 8
         OnChange = Modified
+      end
+      object editShortcutsFilter: TEditButton
+        AnchorSideLeft.Control = tabShortcuts
+        AnchorSideTop.Control = tabShortcuts
+        Left = 5
+        Height = 23
+        Top = 5
+        Width = 299
+        BorderSpacing.Around = 5
+        ButtonWidth = 23
+        Images = MainForm.ImageListMain
+        ImageIndex = 193
+        MaxLength = 0
+        NumGlyphs = 1
+        PasswordChar = #0
+        TabOrder = 9
+        TextHint = 'Filter'
+        OnButtonClick = editShortcutsFilterButtonClick
+        OnChange = editShortcutsFilterChange
       end
     end
     object tabFiles: TTabSheet
