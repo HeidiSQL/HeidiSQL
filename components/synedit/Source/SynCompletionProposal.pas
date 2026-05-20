@@ -2722,9 +2722,14 @@ end;
 
 procedure TSynBaseCompletionProposal.SetDefaultKind(const Value: SynCompletionType);
 begin
-  Form.DefaultType := Value;
-  Form.DisplayType := Value;
-  Form.RecreateWnd;
+  if Form.DefaultType <> Value then begin
+    Form.DefaultType := Value;
+    Form.DisplayType := Value;
+    if Form.HandleAllocated then
+      Form.RecreateWnd;
+  end
+  else
+    Form.DisplayType := Value;
 end;
 
 procedure TSynBaseCompletionProposal.SetEndOfTokenChar(
