@@ -2158,7 +2158,7 @@ begin
   FInformationSchemaObjects.Free;
   FNamedEnums.Free;
   if FOwnsParameters then
-    FParameters.Free;
+    FreeAndNil(FParameters);
   inherited;
 end;
 
