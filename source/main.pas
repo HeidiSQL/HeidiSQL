@@ -810,6 +810,8 @@ type
     N27: TMenuItem;
     actCopyColumnNames: TAction;
     Copycolumnnames1: TMenuItem;
+    actCopyFormatted: TAction;
+    Copyformattedtext1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1217,6 +1219,7 @@ type
     procedure actQueryTableExecute(Sender: TObject);
     procedure actDisplayLogPanelExecute(Sender: TObject);
     procedure actDisplayTreeFiltersExecute(Sender: TObject);
+    procedure actCopyFormattedExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor, FAppVerMinor, FAppVerRelease, FAppVerRevision: Word;
@@ -12168,7 +12171,6 @@ var
   ClpFormat: Word;
   ClpData: THandle;
   APalette: HPalette;
-  Exporter: TSynExporterRTF;
   Results: TDBQuery;
   RowNum: PInt64;
   ExportDialog: TfrmExportGrid;
@@ -12254,6 +12256,40 @@ begin
   Screen.Cursor := crDefault;
 end;
 
+procedure TMainForm.actCopyFormattedExecute(Sender: TObject);
+var
+  Exporter: TSynExporterHTML;
+  SynMemo: TSynMemo;
+begin
+  // Copy formatted SQL text to clipboard
+  if not (Screen.ActiveControl is TSynMemo) then begin
+    MessageBeep(MB_ICONWARNING);
+    LogSQL('Active control is not a SynMemo');
+    Exit;
+  end;
+
+  SynMemo := TSynMemo(Screen.ActiveControl);
+  if SynMemo.Highlighter = nil then begin
+    MessageBeep(MB_ICONWARNING);
+    LogSQL('No highlighter assigned to active SynMemo');
+    Exit;
+  end;
+
+  Exporter := TSynExporterHTML.Create(nil);
+  try
+    Exporter.Title := APPNAME;
+    Exporter.UseBackground := True;
+    Exporter.Highlighter := SynMemo.Highlighter;
+    Exporter.ExportAsText := False;
+    Clipboard.Open;
+    Clipboard.TryAsText := SynMemo.SelText;
+    Exporter.ExportAll(Explode(SLineBreak, SynMemo.SelText));
+    Exporter.CopyToClipboard;
+    Clipboard.Close;
+  finally
+    Exporter.Free;
+  end;
+end;
 
 procedure TMainForm.actPasteExecute(Sender: TObject);
 var

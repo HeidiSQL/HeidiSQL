@@ -1871,11 +1871,14 @@ object MainForm: TMainForm
       object CopyItem: TMenuItem
         Action = actCopy
       end
-      object Copycolumnnames1: TMenuItem
-        Action = actCopyColumnNames
+      object Copyformattedtext1: TMenuItem
+        Action = actCopyFormatted
       end
       object Copywithtabstospaces1: TMenuItem
         Action = actCopyTabsToSpaces
+      end
+      object Copycolumnnames1: TMenuItem
+        Action = actCopyColumnNames
       end
       object actCopyGridNodes1: TMenuItem
         Action = actCopyGridNodes
@@ -3445,6 +3448,15 @@ object MainForm: TMainForm
       Caption = 'Copy column names'
       ImageIndex = 3
       OnExecute = menuCopyColumnNamesClick
+    end
+    object actCopyFormatted: TAction
+      Category = 'Various'
+      Caption = 'Copy formatted text'
+      Hint = 
+        'Copies selected text with formatting from current editor to clip' +
+        'board'
+      ImageIndex = 3
+      OnExecute = actCopyFormattedExecute
     end
   end
   object menuConnections: TPopupMenu
