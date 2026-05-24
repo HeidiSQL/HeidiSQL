@@ -12262,7 +12262,7 @@ end;
 
 procedure TMainForm.actCopyFormattedExecute(Sender: TObject);
 var
-  Exporter: TSynExporterHTML;
+  Exporter: TSynExporterRTF;
   SynMemo: TSynMemo;
 begin
   // Copy formatted SQL text to clipboard
@@ -12279,7 +12279,7 @@ begin
     Exit;
   end;
 
-  Exporter := TSynExporterHTML.Create(nil);
+  Exporter := TSynExporterRTF.Create(nil);
   try
     Exporter.Title := APPNAME;
     Exporter.UseBackground := True;
