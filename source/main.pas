@@ -7557,6 +7557,7 @@ var
   Item: TMenuItem;
   Conn: TDBConnection;
   ShiftKeyPressed: Boolean;
+  OldDataLocalNumberFormat: Boolean;
 begin
   // Set filter for "where..."-clause
   if (PageControlMain.ActivePage <> tabData) or (DataGrid.FocusedColumn = NoColumn) then
@@ -7579,7 +7580,10 @@ begin
           and (Conn.Parameters.NetTypeGroup = ngPgSQL) then begin
           Col := Col + '::text';
         end;
+        OldDataLocalNumberFormat := DataLocalNumberFormat;
+        DataLocalNumberFormat := False;
         Val := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
+        DataLocalNumberFormat := OldDataLocalNumberFormat;
         if InputQuery(_('Specify filter-value...'), Act.Caption, Val) then begin
           if Act = actQuickFilterPrompt1 then
             Filter := Col + ' = ' + Conn.EscapeString(Val, TableCol.DataType)
