@@ -3458,6 +3458,12 @@ object MainForm: TMainForm
       ImageIndex = 3
       OnExecute = actCopyFormattedExecute
     end
+    object actDataEditWithoutLookup: TAction
+      Category = 'Data'
+      Caption = 'Edit value without foreign key lookup'
+      ImageIndex = 58
+      OnExecute = actDataEditWithoutLookupExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -3702,6 +3708,9 @@ object MainForm: TMainForm
         Caption = 'default'
         ImageIndex = 28
         OnClick = InsertValue
+      end
+      object menuDataEditWithoutLookup: TMenuItem
+        Action = actDataEditWithoutLookup
       end
       object N11: TMenuItem
         Caption = '-'
