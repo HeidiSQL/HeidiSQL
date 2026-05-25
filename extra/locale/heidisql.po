@@ -6842,3 +6842,6 @@ msgstr "Copy formatted text"
 
 msgid "Copies selected text with formatting from current editor to clipboard"
 msgstr "Copies selected text with formatting from current editor to clipboard"
+
+msgid "Edit value without foreign key lookup"
+msgstr "Edit value without foreign key lookup"

@@ -216,6 +216,7 @@ type
 
   TMainForm = class(TExtForm)
     actCopyColumnNames: TAction;
+    actDataEditWithoutLookup: TAction;
     actPreferencesSQL: TAction;
     MainMenu1: TMainMenu;
     MainMenuFile: TMenuItem;
@@ -224,6 +225,7 @@ type
     FollowForeignKey: TMenuItem;
     menuColorScheme: TMenuItem;
     MenuItem3: TMenuItem;
+    menuDataEditWithoutLookup: TMenuItem;
     menuRenameSnippet: TMenuItem;
     menuSQLpreferences: TMenuItem;
     menuQFdummy: TMenuItem;
@@ -831,6 +833,7 @@ type
     actCopyFormatted: TAction;
     Copyformattedtext1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
+    procedure actDataEditWithoutLookupExecute(Sender: TObject);
     procedure actNextTabExecute(Sender: TObject);
     procedure actPreviousTabExecute(Sender: TObject);
     procedure DataGridContextPopup(Sender: TObject; MousePos: TPoint;
@@ -1281,6 +1284,7 @@ type
     FCreateDatabaseDialog: TCreateDatabaseForm;
     FTableToolsDialog: TfrmTableTools;
     FGridEditFunctionMode: Boolean;
+    FDataEditWithoutLookup: Boolean;
     FClipboardHasNull: Boolean;
     FTimeZoneOffset: Integer;
     FGridCopying: Boolean;
@@ -1705,6 +1709,11 @@ begin
   ActiveGrid.EditNode(ActiveGrid.FocusedNode, ActiveGrid.FocusedColumn);
 end;
 
+procedure TMainForm.actDataEditWithoutLookupExecute(Sender: TObject);
+begin
+  FDataEditWithoutLookup := True;
+  DataGrid.EditNode(DataGrid.FocusedNode, DataGrid.FocusedColumn);
+end;
 
 procedure TMainForm.StoreLastSessions;
 var
@@ -5918,7 +5927,7 @@ var
     col := vt.Header.Columns.Add;
     col.Text := TblCol.Name;
     col.Hint := TblCol.Comment;
-    col.Options := col.Options + [coSmartResize];
+    col.Options := col.Options + [coSmartResize, coEditable];
     if DatagridHiddenColumns.IndexOf(TblCol.Name) > -1 then
       col.Options := col.Options - [coVisible];
     // Column header icon
@@ -6602,6 +6611,7 @@ begin
   actDataCancelChanges.Enabled := HasConnection and GridHasChanges;
   actDataSaveBlobToFile.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actGridEditFunction.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
+  actDataEditWithoutLookup.Enabled := HasConnection and inDataTab;
   actDataPreview.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actDataOpenUrl.Enabled := (Length(CellText)<SIZE_MB) and ExecRegExpr('^(https?://[^\s]+|www\.\w\S+)$', CellText);
   actUnixTimestampColumn.Enabled := HasConnection and inDataTab and EnableTimestamp;
@@ -7982,6 +7992,7 @@ const
 begin
   // Manipulate quick filter menuitems
   Grid := ActiveGrid;
+  FLastMouseButtonUpOnGrid := mbLeft;
   // Make sure ValidateControls detects the grid as focused, which is not the case when
   // it has 0 nodes, even with TreeOptions.SelectionOptions.RightclickSelect enabled
   Grid.SetFocus;
@@ -10710,7 +10721,6 @@ begin
     on E:Exception do
       ErrorDialog(E.Message);
   end;
-  FGridEditFunctionMode := False;
   ValidateControls(Sender);
 end;
 
@@ -10757,6 +10767,9 @@ begin
   Sender.ScrollIntoView(Sender.FocusedNode, False, True);
   // Required for highlighting fields with same text
   Sender.Invalidate;
+  // Reset flags when moving focus
+  FGridEditFunctionMode := False;
+  FDataEditWithoutLookup := False;
 end;
 
 
@@ -10837,7 +10850,6 @@ begin
   if ([tsEditing, tsEditPending] * Sender.TreeStates) = [] then begin
     actDataCancelChanges.ShortCut := KeyToShortCut(VK_ESCAPE, []);
     actDataPostChanges.ShortCut := KeyToShortCut(VK_RETURN, [ssCtrl]);
-    FGridEditFunctionMode := False;
   end;
 end;
 
@@ -10875,6 +10887,7 @@ var
   ResultCol: Integer;
 begin
   VT := Sender as TVirtualStringTree;
+  EditLink := nil;
   Results := GridResult(VT);
   RowNum := VT.GetNodeData(Node);
   Results.RecNo := RowNum^;
@@ -10885,7 +10898,7 @@ begin
   TblColumn := Results.ColAttributes(ResultCol);
 
   // Find foreign key values
-  if AppSettings.ReadBool(asForeignDropDown) and (Sender = DataGrid) then begin
+  if AppSettings.ReadBool(asForeignDropDown) and (Sender = DataGrid) and (not FDataEditWithoutLookup) then begin
     for ForeignKey in SelectedTableForeignKeys do begin
       idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
       if idx > -1 then try
