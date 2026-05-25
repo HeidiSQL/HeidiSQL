@@ -10817,8 +10817,9 @@ begin
         Result := Result + ' ZEROFILL';
       if Compressed and FConnection.Parameters.IsMariaDB then
         Result := Result + ' /*!100301 COMPRESSED*/';
-      Result := Result + ' '; // Add space after each part
     end;
+
+    Result := Result + ' '; // Add space after each part
   end;
 
   if InParts(cpAllowNull) and (not IsVirtual) and (not FConnection.Parameters.IsAnyMSSQL) then begin
