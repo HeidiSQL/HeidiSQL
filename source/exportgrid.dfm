@@ -183,7 +183,7 @@ object frmExportGrid: TfrmExportGrid
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
-      TabOrder = 5
+      TabOrder = 6
       Text = ';'
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
@@ -198,7 +198,7 @@ object frmExportGrid: TfrmExportGrid
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
-      TabOrder = 6
+      TabOrder = 7
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
@@ -212,7 +212,7 @@ object frmExportGrid: TfrmExportGrid
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
-      TabOrder = 7
+      TabOrder = 8
       Text = '\r\n'
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
@@ -227,11 +227,11 @@ object frmExportGrid: TfrmExportGrid
     end
     object chkIncludeQuery: TCheckBox
       Left = 8
-      Top = 64
+      Top = 87
       Width = 257
       Height = 17
       Caption = 'Include SQL query'
-      TabOrder = 2
+      TabOrder = 3
     end
     object editNull: TButtonedEdit
       Left = 400
@@ -243,25 +243,33 @@ object frmExportGrid: TfrmExportGrid
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
-      TabOrder = 8
+      TabOrder = 9
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
     object chkRemoveLinebreaks: TCheckBox
       Left = 8
-      Top = 87
-      Width = 257
-      Height = 17
-      Caption = 'Remove linebreaks from contents'
-      TabOrder = 3
-    end
-    object chkOpenFile: TCheckBox
-      Left = 8
       Top = 110
       Width = 257
       Height = 17
-      Caption = 'Open file after creation'
+      Caption = 'Remove linebreaks from contents'
       TabOrder = 4
+    end
+    object chkOpenFile: TCheckBox
+      Left = 8
+      Top = 133
+      Width = 257
+      Height = 17
+      Caption = 'Open file after creation'
+      TabOrder = 5
+    end
+    object chkFocusedColumnOnly: TCheckBox
+      Left = 8
+      Top = 64
+      Width = 265
+      Height = 17
+      Caption = 'Only focused column (%s)'
+      TabOrder = 2
     end
   end
   object btnSetClipboardDefaults: TButton

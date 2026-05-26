@@ -30,6 +30,7 @@ type
   TfrmExportGrid = class(TExtForm)
     btnOK: TButton;
     btnCancel: TButton;
+    chkFocusedColumnOnly: TCheckBox;
     grpSelection: TRadioGroup;
     grpOutput: TGroupBox;
     radioOutputCopyToClipboard: TRadioButton;
@@ -201,6 +202,7 @@ begin
     grpSelection.ItemIndex := 0; // Always use selected cells in copy mode
     chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportClpColumnNames);
     chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportClpIncludeAutoInc);
+    chkFocusedColumnOnly.Checked := False;
     chkIncludeQuery.Checked := False; // Always off in copy mode
     chkRemoveLinebreaks.Checked := AppSettings.ReadBool(asGridExportClpRemoveLinebreaks);
     chkOpenFile.Checked := False; // Always off in copy mode
@@ -215,6 +217,7 @@ begin
     grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
     chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportColumnNames);
     chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportIncludeAutoInc);
+    chkFocusedColumnOnly.Checked := AppSettings.ReadBool(asGridExportFocusedColumnOnly);
     chkIncludeQuery.Checked := AppSettings.ReadBool(asGridExportIncludeQuery);
     chkRemoveLinebreaks.Checked := AppSettings.ReadBool(asGridExportRemoveLinebreaks);
     chkOpenFile.Checked := AppSettings.ReadBool(asGridExportOpenFile);
@@ -228,12 +231,19 @@ end;
 
 
 procedure TfrmExportGrid.FormShow(Sender: TObject);
+var
+  FocusedCol: String;
 begin
   // Show dialog. Expect "Grid" property to be set now by the caller.
   Width := AppSettings.ReadIntDpiAware(asGridExportWindowWidth, Self);
   Height := AppSettings.ReadIntDpiAware(asGridExportWindowHeight, Self);
   chkIncludeAutoIncrement.OnClick := CalcSize;
+  chkFocusedColumnOnly.OnClick := CalcSize;
   CalcSize(Sender);
+  // Show name of focused column
+  FocusedCol := IfThen(Grid.FocusedColumn > NoColumn, Grid.Header.Columns[Grid.FocusedColumn].Text, '');
+  chkFocusedColumnOnly.Caption := f_('Only focused column (%s)', [FocusedCol]);
+  chkFocusedColumnOnly.Enabled := not FocusedCol.IsEmpty;
 end;
 
 
@@ -252,6 +262,7 @@ begin
     AppSettings.WriteInt(asGridExportSelection, grpSelection.ItemIndex);
     AppSettings.WriteBool(asGridExportColumnNames, chkIncludeColumnNames.Checked);
     AppSettings.WriteBool(asGridExportIncludeAutoInc, chkIncludeAutoIncrement.Checked);
+    AppSettings.WriteBool(asGridExportFocusedColumnOnly, chkFocusedColumnOnly.Checked);
     AppSettings.WriteBool(asGridExportIncludeQuery, chkIncludeQuery.Checked);
     AppSettings.WriteBool(asGridExportRemoveLinebreaks, chkRemoveLinebreaks.Checked);
     AppSettings.WriteBool(asGridExportOpenFile, chkOpenFile.Checked);
@@ -476,11 +487,12 @@ procedure TfrmExportGrid.CalcSize(Sender: TObject);
 var
   GridData: TDBQuery;
   Node: PVirtualNode;
-  Col, ExcludeCol: TColumnIndex;
+  Col, ExcludeAutoIncCol, IncludeFocusedCol: TColumnIndex;
   ResultCol: Integer;
   RowNum: PInt64;
   SelectedSize, AllSize: Int64;
   CalculatedCount, SelectedCount, AllCount: Int64;
+  DoIncludeCol: Boolean;
 begin
   GridData := Mainform.GridResult(Grid);
   if not Assigned(GridData) then begin
@@ -489,10 +501,13 @@ begin
   end;
   AllSize := 0;
   SelectedSize := 0;
-  chkIncludeAutoIncrement.Enabled := GridData.AutoIncrementColumn > -1;
-  ExcludeCol := -1;
+  chkIncludeAutoIncrement.Enabled := (GridData.AutoIncrementColumn > -1) and (not chkFocusedColumnOnly.Checked);
+  ExcludeAutoIncCol := -1;
   if chkIncludeAutoIncrement.Enabled and (not chkIncludeAutoIncrement.Checked) then
-    ExcludeCol := GridData.AutoIncrementColumn;
+    ExcludeAutoIncCol := GridData.AutoIncrementColumn;
+  IncludeFocusedCol := -1;
+  if chkFocusedColumnOnly.Enabled and chkFocusedColumnOnly.Checked then
+    IncludeFocusedCol := Grid.FocusedColumn;
 
   Node := GetNextNode(Grid, nil, False);
   CalculatedCount := 0;
@@ -510,7 +525,9 @@ begin
       Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
       while Col > NoColumn do begin
         ResultCol := Col - 1;
-        if Col <> ExcludeCol then begin
+        DoIncludeCol := (Col <> ExcludeAutoIncCol) and
+          ((IncludeFocusedCol < 0) or (Col = IncludeFocusedCol));
+        if DoIncludeCol then begin
           Inc(AllSize, GridData.ColumnLengths(ResultCol));
           if vsSelected in Node.States then
             Inc(SelectedSize, GridData.ColumnLengths(ResultCol));
@@ -651,7 +668,7 @@ end;
 
 procedure TfrmExportGrid.btnOKClick(Sender: TObject);
 var
-  Col, ExcludeCol: TColumnIndex;
+  Col, ExcludeAutoIncCol, IncludeFocusedCol: TColumnIndex;
   ResultCol: Integer;
   Header, Data, tmp, Encloser, Separator, Terminator, TableName, Filename: String;
   Node: PVirtualNode;
@@ -666,6 +683,12 @@ var
   Encoding: TEncoding;
   Bom: TBytes;
   CurrentExportFormat: TGridExportFormat;
+
+  function DoIncludeCol: Boolean;
+  begin
+    Result := (Col <> ExcludeAutoIncCol) and
+      ((IncludeFocusedCol < 0) or (Col = IncludeFocusedCol))
+  end;
 begin
   Filename := GetOutputFilename(editFilename.Text, MainForm.ActiveDbObj);
 
@@ -694,9 +717,12 @@ begin
     except
       TableName := _('UnknownTable');
     end;
-    ExcludeCol := NoColumn;
-    if (not chkIncludeAutoIncrement.Checked) or (not chkIncludeAutoIncrement.Enabled) then
-      ExcludeCol := GridData.AutoIncrementColumn + 1;
+    ExcludeAutoIncCol := NoColumn;
+    if chkIncludeAutoIncrement.Enabled and (not chkIncludeAutoIncrement.Checked) then
+      ExcludeAutoIncCol := GridData.AutoIncrementColumn + 1;
+    IncludeFocusedCol := NoColumn;
+    if chkFocusedColumnOnly.Checked then
+      IncludeFocusedCol := Grid.FocusedColumn;
     // Calling (Get)ExportFormat is slow, so we store it in a local variable
     CurrentExportFormat := ExportFormat;
 
@@ -759,7 +785,7 @@ begin
             CodeIndent(4) + '<tr>' + sLineBreak;
           Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
           while Col > NoColumn do begin
-            if Col <> ExcludeCol then
+            if DoIncludeCol then
               Header := Header + CodeIndent(5) + '<th class="col' + IntToStr(Col) + '">' + Grid.Header.Columns[Col].Text + '</th>' + sLineBreak;
             Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
           end;
@@ -779,7 +805,7 @@ begin
           while Col > NoColumn do begin
             // Alter column name in header if data is not raw.
             ResultCol := Col - 1;
-            if Col <> ExcludeCol then begin
+            if DoIncludeCol then begin
               Data := Grid.Header.Columns[Col].Text;
               if (GridData.DataType(ResultCol).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
                 Data := 'HEX(' + Data + ')';
@@ -811,7 +837,7 @@ begin
         Header := Header + '{';
         Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
         while Col > NoColumn do begin
-          if Col <> ExcludeCol then
+          if DoIncludeCol then
             Header := Header + ' c ';
           Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
         end;
@@ -819,7 +845,7 @@ begin
         if chkIncludeColumnNames.Checked then begin
           Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
           while Col > NoColumn do begin
-            if Col <> ExcludeCol then
+            if DoIncludeCol then
               Header := Header + FormatLatex(Grid.Header.Columns[Col].Text) + Separator;
             Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
           end;
@@ -836,7 +862,7 @@ begin
           Header := TrimLeft(Separator);
           Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
           while Col > NoColumn do begin
-            if Col <> ExcludeCol then
+            if DoIncludeCol then
               Header := Header + Grid.Header.Columns[Col].Text  + Separator;
             Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
           end;
@@ -864,7 +890,7 @@ begin
         Header := Header + TrimLeft(Separator);
         Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
         while Col > NoColumn do begin
-          if Col <> ExcludeCol then begin
+          if DoIncludeCol then begin
             if chkIncludeColumnNames.Checked then
               Header := Header + Grid.Header.Columns[Col].Text + Separator
             else
@@ -878,7 +904,7 @@ begin
         Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
         while Col > NoColumn do begin
           ResultCol := Col - 1;
-          if Col <> ExcludeCol then begin
+          if DoIncludeCol then begin
             Header := Header + '---';
             if GridData.DataType(ResultCol).Category in [dtcInteger, dtcReal] then
               Header := Header + ':';
@@ -946,7 +972,7 @@ begin
             Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
             while Col > NoColumn do begin
               ResultCol := Col - 1;
-              if (Col <> ExcludeCol) and (not GridData.ColIsVirtual(ResultCol)) then
+              if DoIncludeCol and (not GridData.ColIsVirtual(ResultCol)) then
                 tmp := tmp + GridData.Connection.QuoteIdent(Grid.Header.Columns[Col].Text)+', ';
               Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
             end;
@@ -983,7 +1009,7 @@ begin
       Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
       while Col > NoColumn do begin
         ResultCol := Col - 1;
-        if Col <> ExcludeCol then begin
+        if DoIncludeCol then begin
           if (GridData.DataType(ResultCol).Category in [dtcBinary, dtcSpatial])
             and (not Mainform.actBlobAsText.Checked) then begin
             Data := GridData.HexValue(ResultCol);
