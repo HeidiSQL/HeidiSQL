@@ -245,7 +245,7 @@ object frmExportGrid: TfrmExportGrid
       MaxLength = 0
       NumGlyphs = 1
       PasswordChar = #0
-      TabOrder = 5
+      TabOrder = 6
       Text = ';'
       OnButtonClick = editCSVRightButtonClick
       OnChange = editCSVChange
@@ -265,7 +265,7 @@ object frmExportGrid: TfrmExportGrid
       MaxLength = 0
       NumGlyphs = 1
       PasswordChar = #0
-      TabOrder = 6
+      TabOrder = 7
       OnButtonClick = editCSVRightButtonClick
       OnChange = editCSVChange
     end
@@ -284,7 +284,7 @@ object frmExportGrid: TfrmExportGrid
       MaxLength = 0
       NumGlyphs = 1
       PasswordChar = #0
-      TabOrder = 7
+      TabOrder = 8
       Text = '\r\n'
       OnButtonClick = editCSVRightButtonClick
       OnChange = editCSVChange
@@ -313,7 +313,7 @@ object frmExportGrid: TfrmExportGrid
       BorderSpacing.Left = 5
       BorderSpacing.Top = 3
       Caption = 'Include SQL query'
-      TabOrder = 2
+      TabOrder = 3
     end
     object editNull: TEditButton
       AnchorSideTop.Control = editTerminator
@@ -330,7 +330,7 @@ object frmExportGrid: TfrmExportGrid
       MaxLength = 0
       NumGlyphs = 1
       PasswordChar = #0
-      TabOrder = 8
+      TabOrder = 9
       OnButtonClick = editCSVRightButtonClick
       OnChange = editCSVChange
     end
@@ -345,7 +345,7 @@ object frmExportGrid: TfrmExportGrid
       BorderSpacing.Left = 5
       BorderSpacing.Top = 3
       Caption = 'Remove linebreaks from contents'
-      TabOrder = 3
+      TabOrder = 4
     end
     object chkOpenFile: TCheckBox
       AnchorSideLeft.Control = grpOptions
@@ -358,7 +358,7 @@ object frmExportGrid: TfrmExportGrid
       BorderSpacing.Left = 5
       BorderSpacing.Top = 3
       Caption = 'Open file after creation'
-      TabOrder = 4
+      TabOrder = 5
     end
     object chkFocusedColumnOnly: TCheckBox
       AnchorSideLeft.Control = grpOptions
@@ -371,7 +371,7 @@ object frmExportGrid: TfrmExportGrid
       BorderSpacing.Left = 5
       BorderSpacing.Top = 3
       Caption = 'Only focused column (%s)'
-      TabOrder = 9
+      TabOrder = 2
     end
   end
   object btnSetClipboardDefaults: TSpeedButton
