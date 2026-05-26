@@ -6845,3 +6845,6 @@ msgstr "Copies selected text with formatting from current editor to clipboard"
 
 msgid "Edit value without foreign key lookup"
 msgstr "Edit value without foreign key lookup"
+
+msgid "Only focused column (%s)"
+msgstr "Only focused column (%s)"

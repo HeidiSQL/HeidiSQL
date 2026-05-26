@@ -219,12 +219,14 @@ object frmExportGrid: TfrmExportGrid
       Caption = 'NULL value:'
     end
     object chkIncludeColumnNames: TCheckBox
+      AnchorSideLeft.Control = grpOptions
       AnchorSideTop.Control = grpOptions
-      Left = 8
+      Left = 5
       Height = 19
-      Top = 5
+      Top = 3
       Width = 139
-      BorderSpacing.Around = 5
+      BorderSpacing.Left = 5
+      BorderSpacing.Top = 3
       Caption = 'Include column names'
       Checked = True
       State = cbChecked
@@ -288,24 +290,28 @@ object frmExportGrid: TfrmExportGrid
       OnChange = editCSVChange
     end
     object chkIncludeAutoIncrement: TCheckBox
+      AnchorSideLeft.Control = grpOptions
       AnchorSideTop.Control = chkIncludeColumnNames
       AnchorSideTop.Side = asrBottom
-      Left = 8
+      Left = 5
       Height = 19
-      Top = 29
+      Top = 25
       Width = 185
-      BorderSpacing.Around = 5
+      BorderSpacing.Left = 5
+      BorderSpacing.Top = 3
       Caption = 'Include auto increment column'
       TabOrder = 1
     end
     object chkIncludeQuery: TCheckBox
-      AnchorSideTop.Control = chkIncludeAutoIncrement
+      AnchorSideLeft.Control = grpOptions
+      AnchorSideTop.Control = chkFocusedColumnOnly
       AnchorSideTop.Side = asrBottom
-      Left = 8
+      Left = 5
       Height = 19
-      Top = 53
+      Top = 69
       Width = 114
-      BorderSpacing.Around = 5
+      BorderSpacing.Left = 5
+      BorderSpacing.Top = 3
       Caption = 'Include SQL query'
       TabOrder = 2
     end
@@ -329,26 +335,43 @@ object frmExportGrid: TfrmExportGrid
       OnChange = editCSVChange
     end
     object chkRemoveLinebreaks: TCheckBox
+      AnchorSideLeft.Control = grpOptions
       AnchorSideTop.Control = chkIncludeQuery
       AnchorSideTop.Side = asrBottom
-      Left = 8
+      Left = 5
       Height = 19
-      Top = 77
+      Top = 91
       Width = 195
-      BorderSpacing.Around = 5
+      BorderSpacing.Left = 5
+      BorderSpacing.Top = 3
       Caption = 'Remove linebreaks from contents'
       TabOrder = 3
     end
     object chkOpenFile: TCheckBox
+      AnchorSideLeft.Control = grpOptions
       AnchorSideTop.Control = chkRemoveLinebreaks
       AnchorSideTop.Side = asrBottom
-      Left = 8
+      Left = 5
       Height = 19
-      Top = 101
+      Top = 113
       Width = 139
-      BorderSpacing.Around = 5
+      BorderSpacing.Left = 5
+      BorderSpacing.Top = 3
       Caption = 'Open file after creation'
       TabOrder = 4
+    end
+    object chkFocusedColumnOnly: TCheckBox
+      AnchorSideLeft.Control = grpOptions
+      AnchorSideTop.Control = chkIncludeAutoIncrement
+      AnchorSideTop.Side = asrBottom
+      Left = 5
+      Height = 19
+      Top = 47
+      Width = 158
+      BorderSpacing.Left = 5
+      BorderSpacing.Top = 3
+      Caption = 'Only focused column (%s)'
+      TabOrder = 9
     end
   end
   object btnSetClipboardDefaults: TSpeedButton

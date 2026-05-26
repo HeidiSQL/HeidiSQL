@@ -195,7 +195,7 @@ type
     asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asExportSQLAddComments, asExportSQLTransactions, asExportSQLRemoveAutoIncrement, asExportSQLRemoveDefiner,
     asGridExportWindowWidth, asGridExportWindowHeight, asGridExportOutputCopy, asGridExportOutputFile,
     asGridExportFilename, asGridExportRecentFiles, asGridExportEncoding, asGridExportFormat, asGridExportSelection,
-    asGridExportColumnNames, asGridExportIncludeAutoInc, asGridExportIncludeQuery, asGridExportRemoveLinebreaks, asGridExportOpenFile,
+    asGridExportColumnNames, asGridExportIncludeAutoInc, asGridExportFocusedColumnOnly, asGridExportIncludeQuery, asGridExportRemoveLinebreaks, asGridExportOpenFile,
     asGridExportSeparator, asGridExportEncloser, asGridExportTerminator, asGridExportNull,
 
     asGridExportClpColumnNames, asGridExportClpIncludeAutoInc, asGridExportClpRemoveLinebreaks,
@@ -3695,6 +3695,7 @@ begin
   InitSetting(asGridExportSelection,              'GridExportSelection',                   1);
   InitSetting(asGridExportColumnNames,            'GridExportColumnNames',                 0, True);
   InitSetting(asGridExportIncludeAutoInc,         'GridExportAutoInc',                     0, True);
+  InitSetting(asGridExportFocusedColumnOnly,      'GridExportFocusedColumnOnly',           0, False);
   InitSetting(asGridExportIncludeQuery,           'GridExportIncludeQuery',                0, False);
   InitSetting(asGridExportRemoveLinebreaks,       'GridExportRemoveLinebreaks',            0, False);
   InitSetting(asGridExportOpenFile,               'GridExportOpenFile',                    0, False);
