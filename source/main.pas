@@ -3861,7 +3861,7 @@ end;
 procedure TMainForm.actDropObjectsExecute(Sender: TObject);
 var
   msg, db: String;
-  Node: PVirtualNode;
+  Node, SiblingDB: PVirtualNode;
   Obj: PDBObject;
   DBObject: TDBObject;
   ObjectList: TDBObjectList;
@@ -3882,7 +3882,15 @@ begin
         try
           db := DBObject.Database;
           Node := FindDBNode(DBtree, Conn, db);
-          SetActiveDatabase('', Conn);
+          // Set focus on previous or next database, to prevent "Cannot drop database xyz, because it is currently in use"
+          // MS SQL on top cannot "un-use" the current database
+          SiblingDB := DBtree.GetNextSibling(Node);
+          if not Assigned(SiblingDB) then
+            SiblingDB := DBtree.GetPreviousSibling(Node);
+          if Assigned(SiblingDB) then
+            SetActiveDatabase(DBtree.Text[SiblingDB, 0], Conn)
+          else
+            SetActiveDatabase('', Conn); // Fallback if there is no sibling. Works on MySQL only.
           Conn.Query(qDatabaseDrop, [Conn.QuoteIdent(db)]);
           DBtree.DeleteNode(Node);
           Conn.ClearDbObjects(db);
