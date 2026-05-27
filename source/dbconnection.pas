@@ -10845,8 +10845,8 @@ begin
         Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+'))';
     end;
     ngPgSQL: begin
-      if (DataType.Index in [dbdtUnknown, dbdtJson]) or (DataType.Category = dtcBinary) then
-        Result := Result + '::text';
+      // Cast *any* datatype, including VARCHAR and TEXT, which may have an [] array attribute
+      Result := Result + '::text';
     end;
   end;
 end;
