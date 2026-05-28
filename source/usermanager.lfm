@@ -173,7 +173,7 @@ object UserManagerForm: TUserManagerForm
     TabOrder = 1
     object PageControlSettings: TPageControl
       Left = 0
-      Height = 173
+      Height = 201
       Top = 0
       Width = 385
       ActivePage = tabCredentials
@@ -184,7 +184,7 @@ object UserManagerForm: TUserManagerForm
       object tabCredentials: TTabSheet
         AutoSize = True
         Caption = 'Credentials'
-        ClientHeight = 145
+        ClientHeight = 173
         ClientWidth = 377
         object lblUsername: TLabel
           AnchorSideLeft.Control = tabCredentials
@@ -306,13 +306,13 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object comboDefaultRole: TComboBox
-          AnchorSideTop.Control = editRepeatPassword
+          AnchorSideTop.Control = comboPlugins
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = tabCredentials
           AnchorSideRight.Side = asrBottom
           Left = 150
           Height = 23
-          Top = 117
+          Top = 145
           Width = 222
           Anchors = [akTop, akLeft, akRight]
           BorderSpacing.Around = 5
@@ -327,16 +327,43 @@ object UserManagerForm: TUserManagerForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 121
+          Top = 149
           Width = 64
           BorderSpacing.Around = 5
           Caption = 'Default role:'
+        end
+        object lblPlugin: TLabel
+          AnchorSideLeft.Control = tabCredentials
+          AnchorSideTop.Control = comboPlugins
+          AnchorSideTop.Side = asrCenter
+          Left = 5
+          Height = 15
+          Top = 121
+          Width = 37
+          BorderSpacing.Around = 5
+          Caption = 'Plugin:'
+        end
+        object comboPlugins: TComboBox
+          AnchorSideTop.Control = editRepeatPassword
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = tabCredentials
+          AnchorSideRight.Side = asrBottom
+          Left = 150
+          Height = 23
+          Top = 117
+          Width = 222
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 5
+          ItemHeight = 15
+          Style = csDropDownList
+          TabOrder = 5
+          OnChange = Modification
         end
       end
       object tabLimitations: TTabSheet
         AutoSize = True
         Caption = 'Limitations'
-        ClientHeight = 145
+        ClientHeight = 173
         ClientWidth = 377
         ImageIndex = 1
         object lblMaxQueries: TLabel
@@ -450,7 +477,7 @@ object UserManagerForm: TUserManagerForm
       object tabSSL: TTabSheet
         AutoSize = True
         Caption = 'SSL options'
-        ClientHeight = 145
+        ClientHeight = 173
         ClientWidth = 377
         ImageIndex = 2
         object lblCipher: TLabel
@@ -562,8 +589,8 @@ object UserManagerForm: TUserManagerForm
     end
     object PageControlAccess: TPageControl
       Left = 0
-      Height = 150
-      Top = 173
+      Height = 122
+      Top = 201
       Width = 385
       ActivePage = tabPrivileges
       Align = alClient
@@ -571,11 +598,11 @@ object UserManagerForm: TUserManagerForm
       TabOrder = 1
       object tabPrivileges: TTabSheet
         Caption = 'Privileges'
-        ClientHeight = 122
+        ClientHeight = 94
         ClientWidth = 377
         object treePrivs: TLazVirtualStringTree
           Left = 0
-          Height = 94
+          Height = 66
           Top = 28
           Width = 377
           Align = alClient
@@ -626,11 +653,11 @@ object UserManagerForm: TUserManagerForm
       end
       object tabRoles: TTabSheet
         Caption = 'Roles'
-        ClientHeight = 122
+        ClientHeight = 94
         ClientWidth = 377
         object ValueListEditorRoles: TValueListEditor
           Left = 0
-          Height = 122
+          Height = 94
           Top = 0
           Width = 377
           Align = alClient
@@ -645,7 +672,7 @@ object UserManagerForm: TUserManagerForm
           OnGetPickList = ValueListEditorRolesGetPickList
           ColWidths = (
             64
-            292
+            309
           )
         end
       end

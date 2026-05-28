@@ -6834,6 +6834,9 @@ msgstr "No password hash column available"
 msgid "Default role:"
 msgstr "Default role:"
 
+msgid "Plugin:"
+msgstr "Plugin:"
+
 msgid "Foreign key table not found"
 msgstr "Foreign key table not found"
 
