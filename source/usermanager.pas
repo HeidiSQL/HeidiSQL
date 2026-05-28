@@ -1005,6 +1005,7 @@ begin
   case Column of
     0: CellText := User.Username;
     1: CellText := User.Host;
+    2: CellText := User.Plugin;
   end;
 end;
 

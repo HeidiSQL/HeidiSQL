@@ -65,12 +65,16 @@ object UserManagerForm: TUserManagerForm
         item
           Position = 0
           Text = 'Username'
-          Width = 140
+          Width = 90
         end      
         item
           Position = 1
           Text = 'Host'
           Width = 80
+        end      
+        item
+          Position = 2
+          Text = 'Plugin'
         end>
       Header.Height = 26
       Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
