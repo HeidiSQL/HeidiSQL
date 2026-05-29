@@ -3238,7 +3238,10 @@ end;
 { TMySqlProvider }
 
 function TMySqlProvider.GetSql(AId: TQueryId): string;
+var
+  IsMariaDB: Boolean;
 begin
+  IsMariaDB := ServerVersion >= 100000;
   case AId of
     qDatabaseDrop: Result := 'DROP DATABASE %s';
     qEmptyTable: Result := 'TRUNCATE %s';
@@ -3413,6 +3416,11 @@ begin
         'INVISIBLE',
         ''
         )
+      );
+    qGetAuthPlugins: Result := IfThen(
+      (FServerVersion >= 50100) or IsMariaDB, // mysql 5.1+ and all mariadb versions
+      'SELECT PLUGIN_NAME FROM INFORMATION_SCHEMA.PLUGINS WHERE PLUGIN_TYPE=''AUTHENTICATION'' AND PLUGIN_STATUS=''ACTIVE''',
+      ''
       );
     else Result := inherited;
   end;

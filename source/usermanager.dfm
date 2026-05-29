@@ -131,12 +131,16 @@ object UserManagerForm: TUserManagerForm
         item
           Position = 0
           Text = 'Username'
-          Width = 93
+          Width = 43
         end
         item
           Position = 1
           Text = 'Host'
           Width = 80
+        end
+        item
+          Position = 2
+          Text = 'Plugin'
         end>
     end
     object ToolBar1: TToolBar
@@ -212,7 +216,7 @@ object UserManagerForm: TUserManagerForm
       Left = 0
       Top = 0
       Width = 283
-      Height = 177
+      Height = 205
       ActivePage = tabCredentials
       Align = alTop
       TabOrder = 0
@@ -220,7 +224,7 @@ object UserManagerForm: TUserManagerForm
         Caption = 'Credentials'
         DesignSize = (
           275
-          148)
+          176)
         object lblUsername: TLabel
           Left = 3
           Top = 10
@@ -254,10 +258,17 @@ object UserManagerForm: TUserManagerForm
         end
         object lblDefaultRole: TLabel
           Left = 3
-          Top = 120
+          Top = 147
           Width = 67
           Height = 14
           Caption = 'Default role:'
+        end
+        object lblPlugin: TLabel
+          Left = 3
+          Top = 120
+          Width = 36
+          Height = 14
+          Caption = 'Plugin:'
         end
         object editRepeatPassword: TEdit
           Left = 176
@@ -308,6 +319,16 @@ object UserManagerForm: TUserManagerForm
         end
         object comboDefaultRole: TComboBox
           Left = 176
+          Top = 144
+          Width = 96
+          Height = 22
+          Style = csDropDownList
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 5
+          OnChange = Modification
+        end
+        object comboPlugins: TComboBox
+          Left = 176
           Top = 116
           Width = 96
           Height = 22
@@ -322,7 +343,7 @@ object UserManagerForm: TUserManagerForm
         ImageIndex = 1
         DesignSize = (
           275
-          148)
+          176)
         object lblMaxQueries: TLabel
           Left = 3
           Top = 10
@@ -446,7 +467,7 @@ object UserManagerForm: TUserManagerForm
         ImageIndex = 2
         DesignSize = (
           275
-          148)
+          176)
         object lblCipher: TLabel
           Left = 3
           Top = 36
@@ -527,9 +548,9 @@ object UserManagerForm: TUserManagerForm
     end
     object PageControlAccess: TPageControl
       Left = 0
-      Top = 177
+      Top = 205
       Width = 283
-      Height = 139
+      Height = 111
       ActivePage = tabPrivileges
       Align = alClient
       TabOrder = 1
@@ -539,7 +560,7 @@ object UserManagerForm: TUserManagerForm
           Left = 0
           Top = 22
           Width = 275
-          Height = 88
+          Height = 60
           Align = alClient
           Header.AutoSizeIndex = 0
           Header.Height = 14
@@ -594,7 +615,7 @@ object UserManagerForm: TUserManagerForm
           Left = 0
           Top = 0
           Width = 275
-          Height = 110
+          Height = 82
           Align = alClient
           Strings.Strings = (
             'Roll=off')

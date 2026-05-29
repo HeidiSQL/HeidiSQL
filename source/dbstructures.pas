@@ -52,7 +52,7 @@ type
     qShowFunctionStatus, qShowProcedureStatus, qShowTriggers, qShowEvents, qShowCreateTrigger,
     qHelpKeyword, qShowWarnings, qGetEnumTypes,
     qDropUser, qCreateRole, qDropRole, qReloadPrivileges, qGrantRole, qRevokeRole, qSetDefaultRole,
-    qAutoInc, qIndexVisible, qIndexInvisible);
+    qAutoInc, qIndexVisible, qIndexInvisible, qGetAuthPlugins);
   TSqlProvider = class
     strict protected
       FNetType: TNetType;

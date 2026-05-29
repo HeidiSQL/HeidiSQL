@@ -32,7 +32,7 @@ type
   TUserProblem = (upNone, upEmptyPassword, upInvalidPasswordLen, upSkipNameResolve, upUnknown);
 
   TUser = class(TObject)
-    Username, Host, Password, Cipher, Issuer, Subject, DefaultRole: String;
+    Username, Host, Password, Cipher, Issuer, Subject, DefaultRole, Plugin: String;
     MaxQueries, MaxUpdates, MaxConnections, MaxUserConnections, SSL: Integer;
     Problem: TUserProblem;
     IsRole: Boolean;
@@ -61,6 +61,8 @@ type
   TUserManagerForm = class(TExtForm)
     btnCancel: TButton;
     btnSave: TButton;
+    comboPlugins: TComboBox;
+    lblPlugin: TLabel;
     pnlLeft: TPanel;
     listUsers: TVirtualStringTree;
     Splitter1: TSplitter;
@@ -192,11 +194,14 @@ type
     FUsers: TUserList;
     FModified, FAdded: Boolean;
     FHasIsRole, FHasDefaultRole: Boolean;
+    FHasPlugin: Boolean;
+    FPlugins: TStringList;
     FCloneGrants: TStringList;
     FPrivObjects: TPrivObjList;
     FPrivsGlobal, FPrivsDb, FPrivsTable, FPrivsRoutine, FPrivsColumn: TStringList;
     FConnection: TDBConnection;
     FColorReadPriv, FColorWritePriv, FColorAdminPriv: TColor;
+    FSQLPluginPrefix, FSQLPluginPassPrefix: String;
     procedure SetModified(Value: Boolean);
     property Modified: Boolean read FModified write SetModified;
     function GetPrivByNode(Node: PVirtualNode): TPrivObj;
@@ -265,10 +270,10 @@ var
   Version, i: Integer;
   Users: TDBQuery;
   U: TUser;
-  tmp, PasswordExpr, IsRoleExpr, DefaultRoleExpr: String;
+  tmp, PasswordExpr, IsRoleExpr, DefaultRoleExpr, PluginExpr: String;
   SkipNameResolve,
   HasPassword, HasAuthString: Boolean;
-  PasswordLengthMatters: Boolean;
+  PasswordLengthMatters, PasswordLengthValid: Boolean;
   UserTableColumns: TStringList;
 
   function InitPrivList(Values: String): TStringList;
@@ -299,7 +304,8 @@ begin
   FPrivsTable := InitPrivList('ALTER,CREATE,DELETE,DROP,GRANT,INDEX');
   FPrivsRoutine := InitPrivList('GRANT');
   FPrivsColumn := InitPrivList('INSERT,SELECT,UPDATE,REFERENCES');
-  PasswordLengthMatters := True;
+  FSQLPluginPrefix := IfThen(FConnection.Parameters.IsMariaDB, 'VIA', 'WITH');
+  FSQLPluginPassPrefix := IfThen(FConnection.Parameters.IsMariaDB, 'USING', 'BY');
 
   if Version >= 40002 then begin
     FPrivsGlobal.Add('REPLICATION CLIENT');
@@ -332,11 +338,6 @@ begin
     PrivsDb.Add('PROXY');
   end;
   }
-  if Version >= 80000 then begin
-    // MySQL 8 has predefined length of hashed passwords only with
-    // mysql_native_password plugin enabled users
-    PasswordLengthMatters := False;
-  end;
   // See https://mariadb.com/kb/en/changes-improvements-in-mariadb-105/#privileges-made-more-granular
   if FConnection.Parameters.IsMariaDB then begin
     if Version > 100502 then begin
@@ -391,6 +392,7 @@ begin
     HasAuthString := UserTableColumns.IndexOf('authentication_string') > -1;
     FHasIsRole := UserTableColumns.IndexOf('is_role') > -1;
     FHasDefaultRole := UserTableColumns.IndexOf('default_role') > -1;
+    FHasPlugin := UserTableColumns.IndexOf('plugin') > -1;
     if HasPassword and (not HasAuthString) then
       PasswordExpr := 'password'
     else if (not HasPassword) and HasAuthString then
@@ -402,6 +404,11 @@ begin
     PasswordExpr := PasswordExpr + ' AS ' + FConnection.QuoteIdent('password');
     IsRoleExpr := IfThen(FHasIsRole, 'is_role', FConnection.EscapeString('N')+' AS is_role');
     DefaultRoleExpr := IfThen(FHasDefaultRole, 'default_role', FConnection.EscapeString('')+' AS default_role');
+    PluginExpr := IfThen(FHasPlugin, 'plugin', FConnection.EscapeString('')+' AS plugin');
+    if FConnection.SqlProvider.Has(qGetAuthPlugins) then
+      FPlugins := FConnection.GetCol(FConnection.SqlProvider.GetSql(qGetAuthPlugins))
+    else
+      FPlugins := TStringList.Create;
 
     Users := FConnection.GetResults(
       'SELECT '+
@@ -409,7 +416,8 @@ begin
       FConnection.QuoteIdent('host') + ', ' +
       PasswordExpr + ', ' +
       IsRoleExpr + ', ' +
-      DefaultRoleExpr + ' ' +
+      DefaultRoleExpr + ', ' +
+      PluginExpr + ' ' +
       'FROM '+FConnection.QuoteIdent('mysql')+'.'+FConnection.QuoteIdent('user')
       );
     FUsers := TUserList.Create(True);
@@ -421,11 +429,14 @@ begin
       U.Password := Users.Col('password');
       U.IsRole := UpperCase(Users.Col('is_role')) = 'Y';
       U.DefaultRole := Users.Col('default_role');
+      U.Plugin := Users.Col('plugin');
       U.Problem := upNone;
       if U.IsUser then begin
         if Length(U.Password) = 0 then
           U.Problem := upEmptyPassword;
-        if PasswordLengthMatters and (not (Length(U.Password) in [0, 16, 41])) then
+        PasswordLengthMatters := ExecRegExpr('(mysql_native_password|mysql_old_password)', U.Plugin) or (not FHasPlugin);
+        PasswordLengthValid := Byte(Length(U.Password)) in [0, 16, 41];
+        if PasswordLengthMatters and (not PasswordLengthValid) then
           U.Problem := upInvalidPasswordLen
         else if SkipNameResolve and U.HostRequiresNameResolve then
           U.Problem := upSkipNameResolve;
@@ -594,26 +605,35 @@ begin
   User := nil;
   FPrivObjects.Clear;
   Caption := MainForm.actUserManager.Caption;
+  // Credentials tab
   editUsername.Clear;
   editFromHost.Clear;
   editPassword.Clear;
   editPassword.TextHint := '';
   editRepeatPassword.Clear;
+  comboPlugins.Items.Clear;
+  comboPlugins.Items.Add(_('None'));
+  comboPlugins.Items.AddStrings(FPlugins);
+  comboPlugins.ItemIndex := 0;
   comboDefaultRole.Items.Clear;
   comboDefaultRole.Items.Add(_('None'));
   FUsers.GetRoleNames(comboDefaultRole.Items);
   comboDefaultRole.ItemIndex := 0;
+  // Limitations tab
   udMaxQueries.Position := 0;
   udMaxUpdates.Position := 0;
   udMaxConnections.Position := 0;
   udMaxUserConnections.Position := 0;
+  // SSL tab
   comboSSL.ItemIndex := 0;
   comboSSL.OnChange(Sender);
   editCipher.Clear;
   editIssuer.Clear;
   editSubject.Clear;
+  // Page control
   tabPrivileges.Caption := _('Privileges');
   tabRoles.Caption := _('Roles');
+
   // All possible quote chars, escaped for RegExpr. Todo: use in all relevant expressions.
   RxQuotes := '['+QuoteRegExprMetaChars(FConnection.QuoteChars + FConnection.StringQuoteChar)+']';
 
@@ -627,6 +647,9 @@ begin
     end;
     editUsername.Text := User.Username;
     editFromHost.Text := User.Host;
+    i := comboPlugins.Items.IndexOf(User.Plugin);
+    if i > -1 then
+      comboPlugins.ItemIndex := i;
     i := comboDefaultRole.Items.IndexOf(User.DefaultRole);
     if i > -1 then
       comboDefaultRole.ItemIndex := i;
@@ -872,6 +895,8 @@ begin
   editPassword.Enabled := UserSelected and User.IsUser;
   lblRepeatPassword.Enabled := UserSelected and User.IsUser;
   editRepeatPassword.Enabled := UserSelected and User.IsUser;
+  comboPlugins.Enabled := UserSelected and User.IsUser and FHasPlugin;
+  lblPlugin.Enabled := comboPlugins.Enabled;
   comboDefaultRole.Enabled := UserSelected and User.IsUser and FHasDefaultRole;
   lblDefaultRole.Enabled := comboDefaultRole.Enabled;
   tabCredentials.Enabled := UserSelected;
@@ -945,6 +970,7 @@ begin
   case Column of
     0: CellText := User.Username;
     1: CellText := User.Host;
+    2: CellText := User.Plugin;
   end;
 end;
 
@@ -1371,13 +1397,18 @@ begin
     // Create added user
     PasswordSet := False;
     if FAdded and (FConnection.ServerVersionInt >= 50002) then begin
-      Create := 'CREATE USER '+UserHost;
+      Create := 'CREATE USER '+UserHost+' ';
       if editPassword.Modified then begin
+        // Insert authentication plugin with minor MariaDB/MySQL difference
+        if comboPlugins.ItemIndex > 0 then
+          Create := Create + 'IDENTIFIED ' + FSQLPluginPrefix + ' ' + comboPlugins.Text+' ' + FSQLPluginPassPrefix + ' '
+        else
+          Create := Create + 'IDENTIFIED BY ';
         // Add "PASSWORD" clause when it's a hash already
         if (Copy(editPassword.Text, 1, 1) = '*') and (Length(editPassword.Text) = 41) then
-          Create := Create + ' IDENTIFIED BY PASSWORD '+FConnection.EscapeString(editPassword.Text)
+          Create := Create + 'PASSWORD '+FConnection.EscapeString(editPassword.Text)
         else
-          Create := Create + ' IDENTIFIED BY '+FConnection.EscapeString(editPassword.Text);
+          Create := Create + FConnection.EscapeString(editPassword.Text);
       end;
       FConnection.Query(Create);
       FConnection.ShowWarnings;
@@ -1445,6 +1476,12 @@ begin
 
       // General user options
       if (P.DBObj.NodeType = lntNone) and FocusedUser.IsUser then begin
+        // Plugin
+        if comboPlugins.ItemIndex > 0 then begin
+          FConnection.Query('ALTER USER ' + UserHost + ' IDENTIFIED ' + FSQLPluginPrefix + ' ' + comboPlugins.Text);
+          FConnection.ShowWarnings;
+        end;
+
         // SSL
         case comboSSL.ItemIndex of
           1: RequireClause := 'SSL';
@@ -1542,6 +1579,7 @@ begin
     FocusedUser.Host := editFromHost.Text;
     if editPassword.Modified then
       FocusedUser.Password := editPassword.Text;
+    FocusedUser.Plugin := IfThen(comboPlugins.ItemIndex=0, '', comboPlugins.Text);
     FocusedUser.DefaultRole := IfThen(comboDefaultRole.ItemIndex=0, '', comboDefaultRole.Text);
     FocusedUser.SSL := comboSSL.ItemIndex;
     FocusedUser.Cipher := editCipher.Text;
@@ -1782,7 +1820,9 @@ var
   rx: TRegExpr;
   RequireClause, WithClause: String;
 begin
-  // REQUIRE SSL X509 ISSUER '456' SUBJECT '789' CIPHER '123' NONE
+  // CREATE USER ...
+  // mysql: IDENTIFIED WITH 'mysql_native_password' AS '*23AE809DDACAF96AF0FD78ED04B6A265E05AA257' REQUIRE SSL X509 ISSUER '456' SUBJECT '789' CIPHER '123' NONE
+  // mariadb: IDENTIFIED BY PASSWORD '23AE809DDACAF96A';
   rx := TRegExpr.Create;
   rx.ModifierI := True;
   rx.Expression := '\sREQUIRE\s+(.+)';
