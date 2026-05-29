@@ -304,7 +304,7 @@ var
   tmp, PasswordExpr, IsRoleExpr, DefaultRoleExpr, PluginExpr: String;
   SkipNameResolve,
   HasPassword, HasAuthString: Boolean;
-  PasswordLengthMatters: Boolean;
+  PasswordLengthMatters, PasswordLengthValid: Boolean;
   UserTableColumns: TStringList;
 
   function InitPrivList(Values: String): TStringList;
@@ -332,7 +332,6 @@ begin
   FPrivsTable := InitPrivList('ALTER,CREATE,DELETE,DROP,GRANT,INDEX');
   FPrivsRoutine := InitPrivList('GRANT');
   FPrivsColumn := InitPrivList('INSERT,SELECT,UPDATE,REFERENCES');
-  PasswordLengthMatters := True;
   FSQLPluginPrefix := IfThen(FConnection.Parameters.IsMariaDB, 'VIA', 'WITH');
   FSQLPluginPassPrefix := IfThen(FConnection.Parameters.IsMariaDB, 'USING', 'BY');
 
@@ -367,11 +366,6 @@ begin
     PrivsDb.Add('PROXY');
   end;
   }
-  if Version >= 80000 then begin
-    // MySQL 8 has predefined length of hashed passwords only with
-    // mysql_native_password plugin enabled users
-    PasswordLengthMatters := False;
-  end;
   // See https://mariadb.com/kb/en/changes-improvements-in-mariadb-105/#privileges-made-more-granular
   if FConnection.Parameters.IsMariaDB then begin
     if Version > 100502 then begin
@@ -469,7 +463,9 @@ begin
       if U.IsUser then begin
         if Length(U.Password) = 0 then
           U.Problem := upEmptyPassword;
-        if PasswordLengthMatters and (not (Length(U.Password) in [0, 16, 41])) then
+        PasswordLengthMatters := ExecRegExpr('(mysql_native_password|mysql_old_password)', U.Plugin) or (not FHasPlugin);
+        PasswordLengthValid := Byte(Length(U.Password)) in [0, 16, 41];
+        if PasswordLengthMatters and (not PasswordLengthValid) then
           U.Problem := upInvalidPasswordLen
         else if SkipNameResolve and U.HostRequiresNameResolve then
           U.Problem := upSkipNameResolve;
