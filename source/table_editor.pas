@@ -1143,8 +1143,8 @@ begin
       NewCol.DefaultType := cdtText;
       NewCol.DefaultText := '0';
     end else begin
-      NewCol.DefaultType := FocusedCol.DefaultType;
-      NewCol.DefaultText := FocusedCol.DefaultText;
+      NewCol.DefaultType := cdtNothing;
+      NewCol.DefaultText := '';
     end;
     NewCol.Collation := '';
   end else begin
@@ -1155,9 +1155,9 @@ begin
     NewCol.AllowNull := True;
     NewCol.DefaultType := cdtNothing;
     NewCol.DefaultText := '';
-    NewCol.Comment := '';
-    NewCol.Collation := '';
   end;
+  NewCol.Comment := '';
+  NewCol.Collation := '';
   NewCol.Name := _('Column')+' '+IntToStr(idx+1);
   FColumns.Insert(idx, NewCol);
   NewNode := listColumns.InsertNode(fn, amInsertAfter, @NewCol);
