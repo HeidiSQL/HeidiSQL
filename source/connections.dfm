@@ -992,29 +992,35 @@ object connform: Tconnform
           Text = 'Host'
         end
         item
-          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
           Position = 2
-          Text = 'User'
+          Text = 'Port'
+          Width = 10
         end
         item
           Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
           Position = 3
+          Text = 'User'
+        end
+        item
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+          Position = 4
           Text = 'Version'
         end
         item
           Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-          Position = 4
+          Position = 5
           Text = 'Last connect'
         end
         item
           Alignment = taRightJustify
           Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
-          Position = 5
+          Position = 6
           Text = 'Counter'
         end
         item
           Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-          Position = 6
+          Position = 7
           Text = 'Comment'
           Width = 10
         end>

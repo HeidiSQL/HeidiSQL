@@ -813,14 +813,15 @@ begin
           CellText := CellText + ' *';
       end;
       1: CellText := Sess.Hostname;
-      2: CellText := Sess.Username;
-      3: CellText := Sess.ServerVersion;
-      4: if Sess.LastConnect>0 then
+      2: CellText := Sess.Port.ToString;
+      3: CellText := Sess.Username;
+      4: CellText := Sess.ServerVersion;
+      5: if Sess.LastConnect>0 then
           CellText := DateTimeToStr(Sess.LastConnect)
         else
           CellText := '';
-      5: CellText := FormatNumber(Sess.Counter);
-      6: CellText := Sess.Comment;
+      6: CellText := FormatNumber(Sess.Counter);
+      7: CellText := Sess.Comment;
     end;
   end;
 end;
