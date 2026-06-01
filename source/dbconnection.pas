@@ -10968,8 +10968,9 @@ begin
         Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+'))';
     end;
     ngPgSQL: begin
-      // Cast *any* datatype, including VARCHAR and TEXT, which may have an [] array attribute
-      Result := Result + '::text';
+      // Cast most datatypes, including VARCHAR and TEXT, which may have an [] array attribute
+      if not (DataType.Category in [dtcInteger, dtcReal]) then
+        Result := Result + '::text';
     end;
   end;
 end;
