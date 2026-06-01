@@ -6050,7 +6050,7 @@ begin
 
   end else begin
 
-    KeyQuery := GetResults('SHOW INDEXES FROM '+QuoteIdent(Table.Name)+' FROM '+QuoteIdent(Table.Database));
+    KeyQuery := GetResults('SHOW KEYS FROM '+QuoteIdent(Table.Name)+' FROM '+QuoteIdent(Table.Database));
     NewKey := nil;
     while not KeyQuery.Eof do begin
       if (not Assigned(NewKey)) or (NewKey.Name <> KeyQuery.Col('Key_name')) then begin
