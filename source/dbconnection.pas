@@ -12,7 +12,7 @@ uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, Graphics, ExtCtrls, StrUtils,
   Controls, Forms, IniFiles, Variants, FileUtil,
-  RegExpr, process, Pipes, SQLDB,
+  RegExpr, process, Pipes, SQLDB, LConvEncoding,
   {$IFDEF HASMSSQL}MSSQLConn, SQLDBLib, DB, {$ENDIF}
   generic_types, lazaruscompat,
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase;
@@ -301,7 +301,7 @@ type
       FIgnoreDatabasePattern: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive, FSSLVerification: Integer;
       FSSHActive, FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus,
-      FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled: Boolean;
+      FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled, FForceUnicode: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
       FLogFileDdl: Boolean;
@@ -367,6 +367,7 @@ type
       property LoginPrompt: Boolean read FLoginPrompt write FLoginPrompt;
       property WindowsAuth: Boolean read FWindowsAuth write FWindowsAuth;
       property CleartextPluginEnabled: Boolean read FCleartextPluginEnabled write FCleartextPluginEnabled;
+      property ForceUnicode: Boolean read FForceUnicode write FForceUnicode;
       property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
       property AllDatabasesList: TStringList read GetAllDatabasesList;
       property LibraryOrProvider: String read FLibraryOrProvider write FLibraryOrProvider;
@@ -1293,6 +1294,7 @@ begin
   FLoginPrompt := AppSettings.GetDefaultBool(asLoginPrompt);
   FWindowsAuth := AppSettings.GetDefaultBool(asWindowsAuth);
   FCleartextPluginEnabled := AppSettings.GetDefaultBool(asCleartextPluginEnabled);
+  FForceUnicode := AppSettings.GetDefaultBool(asForceUnicode);
   FUsername := DefaultUsername;
   FPassword := AppSettings.GetDefaultString(asPassword);
   FPort := DefaultPort;
@@ -1367,6 +1369,7 @@ begin
     FLoginPrompt := AppSettings.ReadBool(asLoginPrompt);
     FWindowsAuth := AppSettings.ReadBool(asWindowsAuth);
     FCleartextPluginEnabled := AppSettings.ReadBool(asCleartextPluginEnabled);
+    FForceUnicode := AppSettings.ReadBool(asForceUnicode);
     FPort := MakeInt(AppSettings.ReadString(asPort));
     FCompressed := AppSettings.ReadBool(asCompressed);
     FAllDatabases := AppSettings.ReadString(asDatabases);
@@ -1443,6 +1446,7 @@ begin
     AppSettings.WriteString(asHost, FHostname);
     AppSettings.WriteBool(asWindowsAuth, FWindowsAuth);
     AppSettings.WriteBool(asCleartextPluginEnabled, FCleartextPluginEnabled);
+    AppSettings.WriteBool(asForceUnicode, FForceUnicode);
     AppSettings.WriteString(asUser, FUsername);
     AppSettings.WriteString(asPassword, encrypt(FPassword));
     AppSettings.WriteBool(asLoginPrompt, FLoginPrompt);
@@ -3619,7 +3623,7 @@ begin
   if IsUnicode then
     NativeSQL := UTF8Encode(SQL)
   else
-    NativeSQL := AnsiString(SQL);
+    NativeSQL := UTF8ToCP1252(SQL);
   TimerStart := GetTickCount64;
   SetLength(FLastRawResults, 0);
   FStatementNum := 1;
@@ -3732,7 +3736,7 @@ begin
   if IsUnicode then
     NativeSQL := UTF8Encode(SQL)
   else
-    NativeSQL := AnsiString(SQL);
+    NativeSQL := UTF8ToCP1252(SQL);
   TimerStart := GetTickCount64;
   SetLength(FLastRawResults, 0);
 
@@ -4459,10 +4463,14 @@ begin
   FStatementNum := 0;
   Log(lcInfo, 'Changing character set from '+CharacterSet+' to '+CharsetName);
   Return := FLib.mysql_set_character_set(FHandle, PAnsiChar(Utf8Encode(CharsetName)));
+  // Return value never seems to be <> 0, not even on v3.23 servers, we check it anyway:
   if Return <> 0 then
-    raise EDbError.Create(LastErrorMsg)
-  else
-    FIsUnicode := CharsetName.StartsWith('utf', True);
+    raise EDbError.Create(LastErrorMsg);
+  // Check opt-out setting: if disabled, align the internal IsUnicode flag to the connection charset
+  if not FParameters.ForceUnicode then begin
+    FIsUnicode := CharacterSet.StartsWith('utf', True);
+    Log(lcInfo, 'ForceUnicode disabled in settings. Internal IsUnicode flag is now: ' + FIsUnicode.ToInteger.ToString)
+  end;
 end;
 
 
@@ -7532,7 +7540,7 @@ begin
   if IsUnicode then
     Result := AnsiToUtf8(a)
   else
-    Result := String(a);
+    Result := CP1252ToUTF8(a);
 end;
 
 
