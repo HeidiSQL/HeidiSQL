@@ -22,6 +22,7 @@ type
     btnSave: TButton;
     btnNew: TButton;
     btnDelete: TButton;
+    chkForceUnicode: TCheckBox;
     popupSessions: TPopupMenu;
     menuSave: TMenuItem;
     menuDelete: TMenuItem;
@@ -496,6 +497,7 @@ begin
     Sess.LoginPrompt := chkLoginPrompt.Checked;
     Sess.WindowsAuth := chkWindowsAuth.Checked;
     Sess.CleartextPluginEnabled := chkCleartextPluginEnabled.Checked;
+    Sess.ForceUnicode := chkForceUnicode.Checked;
     Sess.Port := updownPort.Position;
     Sess.NetType := SelectedNetType;
     Sess.Compressed := chkCompressed.Checked;
@@ -725,6 +727,7 @@ begin
     Result.LoginPrompt := chkLoginPrompt.Checked;
     Result.WindowsAuth := chkWindowsAuth.Checked;
     Result.CleartextPluginEnabled := chkCleartextPluginEnabled.Checked;
+    Result.ForceUnicode := chkForceUnicode.Checked;
     if updownPort.Enabled then
       Result.Port := updownPort.Position
     else
@@ -1036,6 +1039,7 @@ begin
     chkLoginPrompt.Checked := Sess.LoginPrompt;
     chkWindowsAuth.Checked := Sess.WindowsAuth;
     chkCleartextPluginEnabled.Checked := Sess.CleartextPluginEnabled;
+    chkForceUnicode.Checked := Sess.ForceUnicode;
     updownPort.Position := Sess.Port;
     chkCompressed.Checked := Sess.Compressed;
     updownQueryTimeout.Position := Sess.QueryTimeout;
@@ -1462,6 +1466,7 @@ begin
       or (Sess.LoginPrompt <> chkLoginPrompt.Checked)
       or (Sess.WindowsAuth <> chkWindowsAuth.Checked)
       or (Sess.CleartextPluginEnabled <> chkCleartextPluginEnabled.Checked)
+      or (Sess.ForceUnicode <> chkForceUnicode.Checked)
       or (Sess.Port <> updownPort.Position)
       or (Sess.Compressed <> chkCompressed.Checked)
       or (Sess.QueryTimeout <> updownQueryTimeout.Position)
@@ -1499,7 +1504,8 @@ begin
     FSessionModified := FSessionModified or PasswordModified;
     if (Sender=editHost) or (Sender=editUsername) or (Sender=editPassword) or
       (Sender=comboNetType) or (Sender=chkWindowsAuth) or (Sender=editPort) or
-      (Sender=chkCleartextPluginEnabled) then begin
+      (Sender=chkCleartextPluginEnabled) or (Sender=chkForceUnicode)
+      then begin
       // Be sure to use the modified connection params next time the user clicks the "Databases" pulldown
       FreeAndNil(FPopupDatabases);
     end;
@@ -1616,6 +1622,15 @@ begin
       lblSSHLocalPort.Enabled := Params.SSHActive;
       editSSHlocalport.Enabled := Params.SSHActive;
       // Advanced tab:
+      lblQueryTimeout.Enabled := True;
+      editQueryTimeout.Enabled := lblQueryTimeout.Enabled;
+      updownQueryTimeout.Enabled := lblQueryTimeout.Enabled;
+      chkLocalTimeZone.Enabled := Params.NetTypeGroup = ngMySQL;
+      chkFullTableStatus.Enabled := (Params.NetTypeGroup in [ngMySQL, ngPgSQL, ngSQLite]) and (Params.NetType <> ntMySQL_ProxySQLAdmin);
+      chkCleartextPluginEnabled.Enabled := Params.NetTypeGroup = ngMySQL;
+      chkForceUnicode.Enabled := Params.NetTypeGroup = ngMySQL;
+      editLogFilePath.Enabled := Params.LogFileDdl or Params.LogFileDml;
+      // SSL tab:
       chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       lblSSLPrivateKey.Enabled := Params.WantSSL;
       editSSLPrivateKey.Enabled := Params.WantSSL;
@@ -1627,13 +1642,6 @@ begin
       editSSLcipher.Enabled := Params.WantSSL;
       lblSSLVerification.Enabled := Params.WantSSL;
       comboSSLVerification.Enabled := Params.WantSSL;
-      lblQueryTimeout.Enabled := True;
-      editQueryTimeout.Enabled := lblQueryTimeout.Enabled;
-      updownQueryTimeout.Enabled := lblQueryTimeout.Enabled;
-      chkLocalTimeZone.Enabled := Params.NetTypeGroup = ngMySQL;
-      chkFullTableStatus.Enabled := (Params.NetTypeGroup in [ngMySQL, ngPgSQL, ngSQLite]) and (Params.NetType <> ntMySQL_ProxySQLAdmin);
-      chkCleartextPluginEnabled.Enabled := Params.NetTypeGroup = ngMySQL;
-      editLogFilePath.Enabled := Params.LogFileDdl or Params.LogFileDml;
 
       Params.Free;
     end;

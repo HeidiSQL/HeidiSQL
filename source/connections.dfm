@@ -558,21 +558,21 @@ object connform: Tconnform
       end
       object lblBackgroundColor: TLabel
         Left = 3
-        Top = 162
+        Top = 185
         Width = 98
         Height = 14
         Caption = 'Background color:'
       end
       object lblIgnoreDatabasePattern: TLabel
         Left = 3
-        Top = 190
+        Top = 213
         Width = 126
         Height = 14
         Caption = 'Hide database pattern:'
       end
       object lblLogFile: TLabel
         Left = 3
-        Top = 229
+        Top = 252
         Width = 102
         Height = 14
         Caption = 'Log queries to file:'
@@ -669,7 +669,7 @@ object connform: Tconnform
       end
       object ColorBoxBackgroundColor: TColorBox
         Left = 190
-        Top = 159
+        Top = 182
         Width = 320
         Height = 22
         NoneColorColor = clNone
@@ -683,7 +683,7 @@ object connform: Tconnform
       end
       object editIgnoreDatabasePattern: TEdit
         Left = 190
-        Top = 187
+        Top = 210
         Width = 320
         Height = 22
         Anchors = [akLeft, akTop, akRight]
@@ -693,7 +693,7 @@ object connform: Tconnform
       end
       object chkLogFileDdl: TCheckBox
         Left = 190
-        Top = 253
+        Top = 276
         Width = 320
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -703,7 +703,7 @@ object connform: Tconnform
       end
       object editLogFilePath: TButtonedEdit
         Left = 190
-        Top = 226
+        Top = 249
         Width = 320
         Height = 22
         Anchors = [akLeft, akTop, akRight]
@@ -717,12 +717,22 @@ object connform: Tconnform
       end
       object chkLogFileDml: TCheckBox
         Left = 190
-        Top = 276
+        Top = 299
         Width = 320
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'DML queries (INSERT, UPDATE, ...)'
         TabOrder = 12
+        OnClick = Modification
+      end
+      object chkForceUnicode: TCheckBox
+        Left = 190
+        Top = 159
+        Width = 320
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Force Unicode (disable on old servers only)'
+        TabOrder = 13
         OnClick = Modification
       end
     end
@@ -766,7 +776,7 @@ object connform: Tconnform
       object lblSSLVerification: TLabel
         Left = 3
         Top = 148
-        Width = 131
+        Width = 121
         Height = 14
         Caption = 'Certificate verification:'
       end
