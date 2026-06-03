@@ -33,10 +33,10 @@ object connform: Tconnform
     Height = 455
     Top = 10
     Width = 521
-    ActivePage = tabSettings
+    ActivePage = tabStart
     Align = alClient
     Images = MainForm.ImageListMain
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 1
     OnChange = PageControlDetailsChange
     object tabStart: TTabSheet
@@ -626,11 +626,11 @@ object connform: Tconnform
         Caption = 'Ping every X seconds:'
       end
       object lblBackgroundColor: TLabel
-        AnchorSideTop.Control = chkCleartextPluginEnabled
+        AnchorSideTop.Control = chkForceUnicode
         AnchorSideTop.Side = asrBottom
         Left = 3
         Height = 15
-        Top = 161
+        Top = 185
         Width = 97
         BorderSpacing.Around = 5
         Caption = 'Background color:'
@@ -640,7 +640,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 3
         Height = 15
-        Top = 188
+        Top = 212
         Width = 119
         BorderSpacing.Around = 5
         Caption = 'Hide database pattern:'
@@ -650,7 +650,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 3
         Height = 15
-        Top = 216
+        Top = 240
         Width = 97
         BorderSpacing.Around = 5
         Caption = 'Log queries to file:'
@@ -748,11 +748,11 @@ object connform: Tconnform
         Value = 0
       end
       object ColorBoxBackgroundColor: TColorBox
-        AnchorSideTop.Control = chkCleartextPluginEnabled
+        AnchorSideTop.Control = chkForceUnicode
         AnchorSideTop.Side = asrBottom
         Left = 194
         Height = 22
-        Top = 161
+        Top = 185
         Width = 314
         NoneColorColor = clNone
         Selected = clNone
@@ -770,7 +770,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 194
         Height = 23
-        Top = 188
+        Top = 212
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -783,7 +783,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 194
         Height = 19
-        Top = 244
+        Top = 268
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -796,7 +796,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 194
         Height = 23
-        Top = 216
+        Top = 240
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -816,12 +816,25 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 194
         Height = 19
-        Top = 268
+        Top = 292
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
         Caption = 'DML queries (INSERT, UPDATE, ...)'
         TabOrder = 10
+        OnClick = Modification
+      end
+      object chkForceUnicode: TCheckBox
+        AnchorSideTop.Control = chkCleartextPluginEnabled
+        AnchorSideTop.Side = asrBottom
+        Left = 194
+        Height = 19
+        Top = 161
+        Width = 314
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 5
+        Caption = 'Force Unicode (disable on old servers only)'
+        TabOrder = 11
         OnClick = Modification
       end
     end

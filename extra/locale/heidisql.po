@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2026-05-24 13:19+0200\n"
+"PO-Revision-Date: 2026-06-03 17:02+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -351,6 +351,9 @@ msgstr "Use Windows authentication"
 #: connections.dfm:737
 msgid "Enable cleartext authentication"
 msgstr "Enable cleartext authentication"
+
+msgid "Force Unicode (disable on old servers only)"
+msgstr "Force Unicode (disable on old servers only)"
 
 #. connform..PageControlDetails..tabSettings..chkLocalTimeZone....Hint
 #: connections.dfm:406
