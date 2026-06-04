@@ -99,10 +99,11 @@ var
   Item: TMenuItem;
   Tree: TVirtualStringTree;
 begin
-  if Mainform.DBtree.Focused then
-    Tree := Mainform.DBtree
+  // On macOS the tree does not have Focused=True even when it is. See issue #2502
+  if Mainform.ListTables.Focused then
+    Tree := Mainform.ListTables
   else
-    Tree := Mainform.ListTables;
+    Tree := Mainform.DBtree;
   Obj := Tree.GetNodeData(Tree.FocusedNode);
   FDBObj := Obj^;
   FConnection := FDBObj.Connection;
