@@ -437,7 +437,6 @@ begin
       FPlugins := FConnection.GetCol(FConnection.SqlProvider.GetSql(qGetAuthPlugins))
     else
       FPlugins := TStringList.Create;
-    comboPlugins.Enabled := FHasPlugin;
 
     Users := FConnection.GetResults(
       'SELECT '+
@@ -932,6 +931,8 @@ begin
   editPassword.Enabled := UserSelected and User.IsUser;
   lblRepeatPassword.Enabled := UserSelected and User.IsUser;
   editRepeatPassword.Enabled := UserSelected and User.IsUser;
+  comboPlugins.Enabled := UserSelected and User.IsUser and FHasPlugin;
+  lblPlugin.Enabled := comboPlugins.Enabled;
   comboDefaultRole.Enabled := UserSelected and User.IsUser and FHasDefaultRole;
   lblDefaultRole.Enabled := comboDefaultRole.Enabled;
   tabCredentials.Enabled := UserSelected;
