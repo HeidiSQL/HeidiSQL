@@ -193,19 +193,20 @@ procedure TfrmColumnSelection.PopulateList(Sender: TObject);
 var
   i: Integer;
   Col: String;
+  TempList: TStringList;
 begin
   // Setting Sorted to false doesn't resort anything in the list.
   // So we have to add all items again in original order
-  chklistColumns.Sorted := chkSort.Checked;
-  // Add all fieldnames again
-  chklistColumns.Items.BeginUpdate;
-  chklistColumns.Clear;
+  TempList := TStringList.Create;
+  TempList.Sorted := chkSort.Checked;
   for i:=0 to Mainform.SelectedTableColumns.Count-1 do begin
     Col := Mainform.SelectedTableColumns[i].Name;
     if IsEmpty(editFilter.Text) or (Pos(LowerCase(editFilter.Text), LowerCase(Col)) > 0) then
-      chklistColumns.Items.Add(Col);
+      TempList.Add(Col);
   end;
-  chklistColumns.Items.EndUpdate;
+  chklistColumns.Clear;
+  chklistColumns.Items.AddStrings(TempList);
+  TempList.Free;
 
   // check those which remembered as checked
   for i:=0 to chklistColumns.Items.Count-1 do begin
