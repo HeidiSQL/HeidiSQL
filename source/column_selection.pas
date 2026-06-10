@@ -118,16 +118,16 @@ var
   cb: TCheckBox;
   i: Integer;
 begin
-  // Avoid executing when checkbox was toggled by code (see proc below)
+  // Avoid executing when Checked or State property was modified by code. Happens in OnClickCheck handler of TCheckListBox.
   cb := Sender as TCheckBox;
-  if cb.Focused then begin
-    chklistColumns.CheckAll(cb.State);
-    for i:=0 to chklistColumns.Items.Count-1 do begin
-      if (FCheckedColumns.IndexOf(chklistColumns.Items[i]) = -1) and (cb.State = cbChecked) then
-        FCheckedColumns.Add(chklistColumns.Items[i]);
-      if (FCheckedColumns.IndexOf(chklistColumns.Items[i]) > -1) and (cb.State = cbUnchecked) then
-        FCheckedColumns.Delete(FCheckedColumns.IndexOf(chklistColumns.Items[i]));
-    end;
+  if cb.Tag = SUSPEND_ONCLICK then
+    Exit;
+  chklistColumns.CheckAll(cb.State);
+  for i:=0 to chklistColumns.Items.Count-1 do begin
+    if (FCheckedColumns.IndexOf(chklistColumns.Items[i]) = -1) and (cb.State = cbChecked) then
+      FCheckedColumns.Add(chklistColumns.Items[i]);
+    if (FCheckedColumns.IndexOf(chklistColumns.Items[i]) > -1) and (cb.State = cbUnchecked) then
+      FCheckedColumns.Delete(FCheckedColumns.IndexOf(chklistColumns.Items[i]));
   end;
 end;
 
@@ -175,12 +175,14 @@ begin
     else
       AllSelected := False;
   end;
+  chkSelectAll.Tag := SUSPEND_ONCLICK;
   if NoneSelected then
     chkSelectAll.State := cbUnchecked
   else if AllSelected then
     chkSelectAll.State := cbChecked
   else
     chkSelectAll.State := cbGrayed;
+  chkSelectAll.Tag := 0;
 end;
 
 
