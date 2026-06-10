@@ -86,6 +86,8 @@ const
 
   // Modification indicator for TControl.Tag
   MODIFIEDFLAG = 10;
+  // Suspend click event handling tag for checkboxes
+  SUSPEND_ONCLICK = 20;
 
   SUnhandledNodeIndex = 'Unhandled tree node index';
   MSG_NOGRIDEDITING = 'Selected columns don''t contain a sufficient set of key columns to allow editing. Please select primary or unique key columns, or just all columns.';
