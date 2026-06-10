@@ -6332,6 +6332,10 @@ begin
     Exit;
 
   tab := PageControlMain.ActivePage;
+  // ActivePage can be nil while tabs are being hidden during session teardown (disconnect),
+  // which would raise an access violation below on tab.PageIndex.
+  if tab = nil then
+    Exit;
   // Query helpers need a hit here, since RefreshHelperNode now only does its update on the active tab
   // See https://www.heidisql.com/forum.php?t=37961
   RefreshHelperNode(TQueryTab.HelperNodeColumns);
