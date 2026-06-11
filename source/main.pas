@@ -11629,14 +11629,16 @@ begin
         Variables.Next;
       end;
       Variables.Free;
-      Variables := Conn.GetResults(Conn.SqlProvider.GetSql(qGlobalVariables));
-      while not Variables.Eof do begin
-        FVariableNames.Add(Variables.Col(0));
-        FGlobalVars.Values[Variables.Col(0)] := Variables.Col(1);
-        FGlobalVars.Values[Variables.Col(0)] := IfThen(Variables.IsNull(1), TEXT_NULL, Variables.Col(1));
-        Variables.Next;
+      if Conn.SqlProvider.Has(qGlobalVariables) then begin
+        Variables := Conn.GetResults(Conn.SqlProvider.GetSql(qGlobalVariables));
+        while not Variables.Eof do begin
+          FVariableNames.Add(Variables.Col(0));
+          FGlobalVars.Values[Variables.Col(0)] := Variables.Col(1);
+          FGlobalVars.Values[Variables.Col(0)] := IfThen(Variables.IsNull(1), TEXT_NULL, Variables.Col(1));
+          Variables.Next;
+        end;
+        Variables.Free;
       end;
-      Variables.Free;
       vt.RootNodeCount := FVariableNames.Count;
     end else if vt = ListStatus then begin
       Results := Conn.GetResults(Conn.SqlProvider.GetSql(qGlobalStatus));
