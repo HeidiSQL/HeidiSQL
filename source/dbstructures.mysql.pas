@@ -3262,7 +3262,11 @@ begin
       'SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%'''
       );
     qSessionVariables: Result := 'SHOW VARIABLES';
-    qGlobalVariables: Result := 'SHOW GLOBAL VARIABLES';
+    qGlobalVariables: Result := IfThen(
+      FServerVersion >= 40000,
+      'SHOW GLOBAL VARIABLES',
+      ''
+      );
     qISSchemaCol: Result := '%s_SCHEMA';
     qUSEQuery: Result := 'USE %s';
     qKillQuery: Result := IfThen(
