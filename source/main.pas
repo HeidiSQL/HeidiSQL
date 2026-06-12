@@ -9576,6 +9576,7 @@ procedure TMainForm.DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node:
     Boolean; var ImageIndex: Integer);
 var
   DBObj: PDBObject;
+  CountOriginals: Integer;
 begin
   if Column > 0 then
     Exit;
@@ -9583,8 +9584,27 @@ begin
   if not Assigned(DBObj) then
     Exit;
   case Kind of
-    ikNormal, ikSelected:
-      ImageIndex := DBObj.ImageIndex;
+    ikNormal, ikSelected: begin
+        ImageIndex := DBObj.ImageIndex;
+        Ghosted := (DBObj.NodeType = lntNone) and (not DBObj.Connection.Active);
+        Ghosted := Ghosted or ((DBObj.NodeType = lntDB)
+          and (not DBObj.Connection.DbObjectsCached(DBObj.Database))
+          );
+        Ghosted := Ghosted or ((DBObj.NodeType = lntGroup)
+          and Sender.ChildrenInitialized[Node]
+          and (Sender.ChildCount[Node] = 0)
+          );
+        Ghosted := Ghosted or ((DBObj.NodeType in [lntTable..lntEvent])
+          and (not DBObj.WasSelected)
+          );
+        // Unlike in the Delphi version, imagelists have painting issues with Ghosted marker enabled.
+        // So instead we use the self-created "disabled" version of the same icon in the top of the imagelist.
+        if Ghosted then begin
+          CountOriginals := DBtree.Images.Count div 2;
+          Inc(ImageIndex, CountOriginals);
+          Ghosted := False;
+        end;
+      end;
     ikOverlay:
       ImageIndex := DBObj.OverlayImageIndex;
   end;
@@ -10057,49 +10077,34 @@ procedure TMainForm.DBtreePaintText(Sender: TBaseVirtualTree; const
 var
   DBObj: PDBObject;
   WalkNode: PVirtualNode;
-  Ghosted: Boolean;
 begin
   // Grey out non-current connection nodes, and rather unimportant "Size" column
   DBObj := Sender.GetNodeData(Node);
-  if DBObj.Connection <> ActiveConnection then begin
+  if DBObj.Connection <> ActiveConnection then
+    TargetCanvas.Font.Color := clGrayText
+  else if (Column = 1) and (DBObj.NodeType in [lntTable..lntEvent]) then
     TargetCanvas.Font.Color := clGrayText;
-    Exit;
-  end;
 
   // Set bold text if painted node is in focused path
-  WalkNode := Sender.FocusedNode;
-  while Assigned(WalkNode) do begin
-    if WalkNode = Node then begin
-      TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
-      Break;
-    end;
-    try
-      // This crashes in some situations, which I could never reproduce.
-      // See uploaded crash reports and issue #1270.
-      WalkNode := Sender.NodeParent[WalkNode];
-    except
-      on E:EAccessViolation do begin
-        LogSQL('DBtreePaintText, NodeParent: '+E.Message, lcError);
+  if (Column = DBtree.Header.MainColumn) then begin
+    WalkNode := Sender.FocusedNode;
+    while Assigned(WalkNode) do begin
+      if WalkNode = Node then begin
+        TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
         Break;
+      end;
+      try
+        // This crashes in some situations, which I could never reproduce.
+        // See uploaded crash reports and issue #1270.
+        WalkNode := Sender.NodeParent[WalkNode];
+      except
+        on E:EAccessViolation do begin
+          LogSQL('DBtreePaintText, NodeParent: '+E.Message, lcError);
+          Break;
+        end;
       end;
     end;
   end;
-
-  // Moved from OnGetImageIndex, where the icon used to be painted lighter if the node was yet unseen
-  Ghosted := (DBObj.NodeType = lntNone) and (not DBObj.Connection.Active);
-  Ghosted := Ghosted or ((DBObj.NodeType = lntDB)
-    and (not DBObj.Connection.DbObjectsCached(DBObj.Database))
-    );
-  Ghosted := Ghosted or ((DBObj.NodeType = lntGroup)
-    and Sender.ChildrenInitialized[Node]
-    and (Sender.ChildCount[Node] = 0)
-    );
-  Ghosted := Ghosted or ((DBObj.NodeType in [lntTable..lntEvent])
-    and (not DBObj.WasSelected)
-    );
-  if Ghosted then
-    TargetCanvas.Font.Color := clGrayText;
-
 end;
 
 

@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
-  Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient,
+  Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient, IntfGraphics, FPImage,
   {$IFDEF WINDOWS} Windows, Registry, uDarkStyleParams, {$ENDIF} DelphiCompat,
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
   IniFiles, GraphType, Sockets, Contnrs
@@ -435,6 +435,7 @@ type
   // This returns a stable, lowercase name "heidisql", used for configuration files and translations
   function GetApplicationName: String;
   procedure CopyImageList(SourceList, TargetList: TImageList; AppendDisabled: Boolean);
+  procedure LightenBitmap(Bmp: Graphics.TBitmap; Amount: Byte);
 
 var
   AppSettings: TAppSettings;
@@ -3040,11 +3041,44 @@ begin
       for ResIdx:=Low(Resolutions) to High(Resolutions) do begin
         ResWidth := Resolutions[ResIdx];
         TempBitmap := Graphics.TBitmap.Create;
-        SourceList.Resolution[ResWidth].GetBitmap(i, TempBitmap, gdeDisabled);
+        SourceList.Resolution[ResWidth].GetBitmap(i, TempBitmap, gdeNormal);
+        LightenBitmap(TempBitmap, 140);
         TempBitmapList[ResIdx] := TempBitmap;
       end;
       TargetList.AddMultipleResolutions(TempBitmapList);
     end;
+  end;
+end;
+
+procedure LightenBitmap(Bmp: Graphics.TBitmap; Amount: Byte);
+var
+  x, y: Integer;
+  Img: TLazIntfImage;
+  C: TFPColor;
+begin
+  // This is used for creating "disabled" looking images.
+  // Was grayscaled before (ImageList.Draw with gdeDisabled effect). But now this is
+  // also used for unseen database tree objects, this mechanism looks better.
+  // https://www.heidisql.com/forum.php?t=45161
+  Img := TLazIntfImage.Create(0, 0);
+  try
+    Img.LoadFromBitmap(Bmp.Handle, Bmp.MaskHandle);
+
+    for y := 0 to Img.Height - 1 do
+      for x := 0 to Img.Width - 1 do
+      begin
+        C := Img.Colors[x, y];
+
+        C.red   := C.red   + ((65535 - C.red)   * Amount) div 255;
+        C.green := C.green + ((65535 - C.green) * Amount) div 255;
+        C.blue  := C.blue  + ((65535 - C.blue)  * Amount) div 255;
+
+        Img.Colors[x, y] := C;
+      end;
+
+    Bmp.LoadFromIntfImage(Img);
+  finally
+    Img.Free;
   end;
 end;
 

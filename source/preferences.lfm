@@ -1892,9 +1892,9 @@ object frmPreferences: TfrmPreferences
         Left = 5
         Height = 15
         Top = 104
-        Width = 145
+        Width = 92
         BorderSpacing.Around = 5
-        Caption = 'Grayscale inactive tab icons'
+        Caption = 'Inactive tab icons'
       end
       object lblReformatter: TLabel
         AnchorSideLeft.Control = tabFiles
@@ -1968,9 +1968,9 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 5
         ItemHeight = 15
         Items.Strings = (
-          'Color icons on all tabs'
-          'Grayscale icons on inactive query tabs only'
-          'Grayscale icons on every inactive tab'
+          'Normal icons on all tabs'
+          'Disabled icons on inactive query tabs only'
+          'Disabled icons on every inactive tab'
         )
         Style = csDropDownList
         TabOrder = 4
