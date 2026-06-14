@@ -279,6 +279,8 @@ object UserManagerForm: TUserManagerForm
             'You changed the authentication plugin. This will reset the passw' +
             'ord, so please specify a new one.'
           Caption = 'Empty password after plugin change!'
+          ParentShowHint = False
+          ShowHint = True
           Visible = False
         end
         object editRepeatPassword: TEdit
