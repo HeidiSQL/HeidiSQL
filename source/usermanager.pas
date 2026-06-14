@@ -64,6 +64,7 @@ type
     btnCancel: TSpeedButton;
     btnSave: TSpeedButton;
     comboPlugins: TComboBox;
+    lblPasswordHint: TLabel;
     lblPlugin: TLabel;
     pnlBottom: TPanel;
     pnlLeft: TPanel;
@@ -136,6 +137,7 @@ type
     lblDefaultRole: TLabel;
     comboDefaultRole: TComboBox;
     procedure btnCancelClick(Sender: TObject);
+    procedure comboPluginsChange(Sender: TObject);
     procedure editFromHostButtonClick(Sender: TObject);
     procedure editPasswordButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -197,7 +199,7 @@ type
   private
     { Private declarations }
     FUsers: TUserList;
-    FModified, FAdded: Boolean;
+    FModified, FAdded, FPluginModified: Boolean;
     FHasIsRole, FHasDefaultRole: Boolean;
     FHasPlugin: Boolean;
     FPlugins: TStringList;
@@ -208,7 +210,9 @@ type
     FColorReadPriv, FColorWritePriv, FColorAdminPriv: TColor;
     FSQLPluginPrefix, FSQLPluginPassPrefix: String;
     procedure SetModified(Value: Boolean);
+    procedure SetPluginModified(Value: Boolean);
     property Modified: Boolean read FModified write SetModified;
+    property PluginModified: Boolean read FPluginModified write SetPluginModified;
     function GetPrivByNode(Node: PVirtualNode): TPrivObj;
     function SelectUserNode(User: TUser): Boolean;
   public
@@ -283,6 +287,12 @@ end;
 procedure TUserManagerForm.btnCancelClick(Sender: TObject);
 begin
   ModalResult := mrCancel;
+end;
+
+procedure TUserManagerForm.comboPluginsChange(Sender: TObject);
+begin
+  PluginModified := True;
+  Modification(Sender);
 end;
 
 procedure TUserManagerForm.editFromHostButtonClick(Sender: TObject);
@@ -477,6 +487,7 @@ begin
     InvalidateVT(listUsers, VTREE_NOTLOADED, False);
     FPrivObjects := TPrivObjList.Create(TPrivComparer.Create, True);
     Modified := False;
+    PluginModified := False;
     FAdded := False;
     tabRoles.TabVisible := FHasIsRole;
     listUsers.OnFocusChanged(listUsers, listUsers.FocusedNode, listUsers.FocusedColumn);
@@ -516,6 +527,23 @@ begin
   btnSave.Enabled := FModified;
   btnDiscard.Enabled := FModified and (not FAdded);
   listUsers.Invalidate;
+end;
+
+procedure TUserManagerForm.SetPluginModified(Value: Boolean);
+var
+  User: PUser;
+begin
+  if not Assigned(listUsers.FocusedNode) then
+    Exit;
+  FPluginModified := Value;
+  if not FAdded then begin
+    lblPasswordHint.Visible := FPluginModified;
+    if Value then begin
+      User := listUsers.GetNodeData(listUsers.FocusedNode);
+      User.Password := '';
+      editPassword.TextHint := '';
+    end;
+  end;
 end;
 
 
@@ -614,6 +642,7 @@ begin
       mrNo: begin
         Allowed := True;
         Modified := False;
+        PluginModified := False;
         if FAdded then
           btnDeleteUser.Click;
       end;
@@ -721,6 +750,7 @@ begin
         end;
         MessageDialog(Msg, mtError, [mbOK]);
         FModified := False;
+        FPluginModified := False;
         SelectNode(listUsers, nil);
         Exit;
       end;
@@ -916,6 +946,7 @@ begin
 
   // Populate privilege tree
   Modified := False;
+  PluginModified := False;
   treePrivs.FocusedNode := nil;
   treePrivs.Clear;
   treePrivs.RootNodeCount := FPrivObjects.Count;
@@ -1509,7 +1540,7 @@ begin
       // General user options
       if (P.DBObj.NodeType = lntNone) and FocusedUser.IsUser then begin
         // Plugin
-        if comboPlugins.ItemIndex > 0 then begin
+        if FPluginModified and (comboPlugins.ItemIndex > 0) then begin
           FConnection.Query('ALTER USER ' + UserHost + ' IDENTIFIED ' + FSQLPluginPrefix + ' ' + comboPlugins.Text);
           FConnection.ShowWarnings;
         end;
@@ -1606,6 +1637,7 @@ begin
 
     FConnection.Query(qReloadPrivileges);
     Modified := False;
+    PluginModified := False;
     FAdded := False;
     FocusedUser.Username := editUsername.Text;
     FocusedUser.Host := editFromHost.Text;
@@ -1696,6 +1728,7 @@ procedure TUserManagerForm.btnDiscardClick(Sender: TObject);
 begin
   // Reset modifications
   Modified := False;
+  PluginModified := False;
   listUsers.OnFocusChanged(listUsers, listUsers.FocusedNode, listUsers.FocusedColumn);
 end;
 

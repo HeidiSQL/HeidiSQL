@@ -177,7 +177,7 @@ object UserManagerForm: TUserManagerForm
     TabOrder = 1
     object PageControlSettings: TPageControl
       Left = 0
-      Height = 201
+      Height = 221
       Top = 0
       Width = 385
       ActivePage = tabCredentials
@@ -188,7 +188,7 @@ object UserManagerForm: TUserManagerForm
       object tabCredentials: TTabSheet
         AutoSize = True
         Caption = 'Credentials'
-        ClientHeight = 173
+        ClientHeight = 193
         ClientWidth = 377
         object lblUsername: TLabel
           AnchorSideLeft.Control = tabCredentials
@@ -231,22 +231,24 @@ object UserManagerForm: TUserManagerForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 93
+          Top = 113
           Width = 92
           BorderSpacing.Around = 5
           Caption = 'Repeat password:'
           FocusControl = editRepeatPassword
         end
         object editRepeatPassword: TEdit
-          AnchorSideTop.Control = editPassword
+          AnchorSideLeft.Control = tabCredentials
+          AnchorSideTop.Control = lblPasswordHint
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = tabCredentials
           AnchorSideRight.Side = asrBottom
           Left = 150
           Height = 23
-          Top = 89
+          Top = 109
           Width = 222
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Left = 145
           BorderSpacing.Around = 5
           EchoMode = emPassword
           PasswordChar = '*'
@@ -254,6 +256,7 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object editPassword: TEditButton
+          AnchorSideLeft.Control = tabCredentials
           AnchorSideTop.Control = editFromHost
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = tabCredentials
@@ -263,6 +266,7 @@ object UserManagerForm: TUserManagerForm
           Top = 61
           Width = 222
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Left = 145
           BorderSpacing.Around = 5
           ButtonWidth = 23
           EchoMode = emPassword
@@ -276,6 +280,7 @@ object UserManagerForm: TUserManagerForm
           OnChange = editPasswordChange
         end
         object editFromHost: TEditButton
+          AnchorSideLeft.Control = tabCredentials
           AnchorSideTop.Control = editUsername
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = tabCredentials
@@ -285,6 +290,7 @@ object UserManagerForm: TUserManagerForm
           Top = 33
           Width = 222
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Left = 145
           BorderSpacing.Around = 5
           ButtonWidth = 23
           Images = MainForm.ImageListMain
@@ -297,6 +303,7 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object editUsername: TEdit
+          AnchorSideLeft.Control = tabCredentials
           AnchorSideTop.Control = tabCredentials
           AnchorSideRight.Control = tabCredentials
           AnchorSideRight.Side = asrBottom
@@ -305,20 +312,23 @@ object UserManagerForm: TUserManagerForm
           Top = 5
           Width = 222
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Left = 145
           BorderSpacing.Around = 5
           TabOrder = 0
           OnChange = Modification
         end
         object comboDefaultRole: TComboBox
+          AnchorSideLeft.Control = tabCredentials
           AnchorSideTop.Control = comboPlugins
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = tabCredentials
           AnchorSideRight.Side = asrBottom
           Left = 150
           Height = 23
-          Top = 145
+          Top = 165
           Width = 222
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Left = 145
           BorderSpacing.Around = 5
           ItemHeight = 15
           Style = csDropDownList
@@ -331,7 +341,7 @@ object UserManagerForm: TUserManagerForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 149
+          Top = 169
           Width = 64
           BorderSpacing.Around = 5
           Caption = 'Default role:'
@@ -342,32 +352,47 @@ object UserManagerForm: TUserManagerForm
           AnchorSideTop.Side = asrCenter
           Left = 5
           Height = 15
-          Top = 121
+          Top = 141
           Width = 37
           BorderSpacing.Around = 5
           Caption = 'Plugin:'
         end
         object comboPlugins: TComboBox
+          AnchorSideLeft.Control = tabCredentials
           AnchorSideTop.Control = editRepeatPassword
           AnchorSideTop.Side = asrBottom
           AnchorSideRight.Control = tabCredentials
           AnchorSideRight.Side = asrBottom
           Left = 150
           Height = 23
-          Top = 117
+          Top = 137
           Width = 222
           Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Left = 145
           BorderSpacing.Around = 5
           ItemHeight = 15
           Style = csDropDownList
           TabOrder = 5
-          OnChange = Modification
+          OnChange = comboPluginsChange
+        end
+        object lblPasswordHint: TLabel
+          AnchorSideLeft.Control = tabCredentials
+          AnchorSideTop.Control = editPassword
+          AnchorSideTop.Side = asrBottom
+          Left = 150
+          Height = 15
+          Hint = 'You changed the authentication plugin. This will reset the password, so please specify a new one.'
+          Top = 89
+          Width = 196
+          BorderSpacing.Left = 145
+          BorderSpacing.Around = 5
+          Caption = 'Empty password after plugin change!'
         end
       end
       object tabLimitations: TTabSheet
         AutoSize = True
         Caption = 'Limitations'
-        ClientHeight = 173
+        ClientHeight = 193
         ClientWidth = 377
         ImageIndex = 1
         object lblMaxQueries: TLabel
@@ -481,7 +506,7 @@ object UserManagerForm: TUserManagerForm
       object tabSSL: TTabSheet
         AutoSize = True
         Caption = 'SSL options'
-        ClientHeight = 173
+        ClientHeight = 193
         ClientWidth = 377
         ImageIndex = 2
         object lblCipher: TLabel
@@ -593,8 +618,8 @@ object UserManagerForm: TUserManagerForm
     end
     object PageControlAccess: TPageControl
       Left = 0
-      Height = 122
-      Top = 201
+      Height = 102
+      Top = 221
       Width = 385
       ActivePage = tabPrivileges
       Align = alClient
@@ -602,11 +627,11 @@ object UserManagerForm: TUserManagerForm
       TabOrder = 1
       object tabPrivileges: TTabSheet
         Caption = 'Privileges'
-        ClientHeight = 94
+        ClientHeight = 74
         ClientWidth = 377
         object treePrivs: TLazVirtualStringTree
           Left = 0
-          Height = 66
+          Height = 46
           Top = 28
           Width = 377
           Align = alClient
@@ -657,11 +682,11 @@ object UserManagerForm: TUserManagerForm
       end
       object tabRoles: TTabSheet
         Caption = 'Roles'
-        ClientHeight = 94
+        ClientHeight = 74
         ClientWidth = 377
         object ValueListEditorRoles: TValueListEditor
           Left = 0
-          Height = 94
+          Height = 74
           Top = 0
           Width = 377
           Align = alClient
