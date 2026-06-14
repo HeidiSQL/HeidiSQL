@@ -216,7 +216,7 @@ object UserManagerForm: TUserManagerForm
       Left = 0
       Top = 0
       Width = 283
-      Height = 205
+      Height = 219
       ActivePage = tabCredentials
       Align = alTop
       TabOrder = 0
@@ -224,7 +224,7 @@ object UserManagerForm: TUserManagerForm
         Caption = 'Credentials'
         DesignSize = (
           275
-          176)
+          190)
         object lblUsername: TLabel
           Left = 3
           Top = 10
@@ -250,7 +250,7 @@ object UserManagerForm: TUserManagerForm
         end
         object lblRepeatPassword: TLabel
           Left = 3
-          Top = 91
+          Top = 110
           Width = 98
           Height = 14
           Caption = 'Repeat password:'
@@ -258,21 +258,32 @@ object UserManagerForm: TUserManagerForm
         end
         object lblDefaultRole: TLabel
           Left = 3
-          Top = 147
+          Top = 166
           Width = 67
           Height = 14
           Caption = 'Default role:'
         end
         object lblPlugin: TLabel
           Left = 3
-          Top = 120
+          Top = 139
           Width = 36
           Height = 14
           Caption = 'Plugin:'
         end
-        object editRepeatPassword: TEdit
+        object lblPasswordHint: TLabel
           Left = 176
           Top = 88
+          Width = 204
+          Height = 14
+          Hint = 
+            'You changed the authentication plugin. This will reset the passw' +
+            'ord, so please specify a new one.'
+          Caption = 'Empty password after plugin change!'
+          Visible = False
+        end
+        object editRepeatPassword: TEdit
+          Left = 176
+          Top = 107
           Width = 96
           Height = 22
           Anchors = [akLeft, akTop, akRight]
@@ -319,7 +330,7 @@ object UserManagerForm: TUserManagerForm
         end
         object comboDefaultRole: TComboBox
           Left = 176
-          Top = 144
+          Top = 163
           Width = 96
           Height = 22
           Style = csDropDownList
@@ -329,13 +340,13 @@ object UserManagerForm: TUserManagerForm
         end
         object comboPlugins: TComboBox
           Left = 176
-          Top = 116
+          Top = 135
           Width = 96
           Height = 22
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 4
-          OnChange = Modification
+          OnChange = comboPluginsChange
         end
       end
       object tabLimitations: TTabSheet
@@ -343,7 +354,7 @@ object UserManagerForm: TUserManagerForm
         ImageIndex = 1
         DesignSize = (
           275
-          176)
+          190)
         object lblMaxQueries: TLabel
           Left = 3
           Top = 10
@@ -467,7 +478,7 @@ object UserManagerForm: TUserManagerForm
         ImageIndex = 2
         DesignSize = (
           275
-          176)
+          190)
         object lblCipher: TLabel
           Left = 3
           Top = 36
@@ -548,9 +559,9 @@ object UserManagerForm: TUserManagerForm
     end
     object PageControlAccess: TPageControl
       Left = 0
-      Top = 205
+      Top = 219
       Width = 283
-      Height = 111
+      Height = 97
       ActivePage = tabPrivileges
       Align = alClient
       TabOrder = 1
@@ -560,7 +571,7 @@ object UserManagerForm: TUserManagerForm
           Left = 0
           Top = 22
           Width = 275
-          Height = 60
+          Height = 46
           Align = alClient
           Header.AutoSizeIndex = 0
           Header.Height = 14
@@ -615,7 +626,7 @@ object UserManagerForm: TUserManagerForm
           Left = 0
           Top = 0
           Width = 275
-          Height = 82
+          Height = 68
           Align = alClient
           Strings.Strings = (
             'Roll=off')
