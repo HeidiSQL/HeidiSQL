@@ -387,6 +387,8 @@ object UserManagerForm: TUserManagerForm
           BorderSpacing.Left = 145
           BorderSpacing.Around = 5
           Caption = 'Empty password after plugin change!'
+          ParentShowHint = False
+          ShowHint = True
           Visible = False
         end
       end
