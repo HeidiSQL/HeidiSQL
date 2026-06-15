@@ -1875,16 +1875,10 @@ end;
 procedure TDataTypeEditorLink.DoTreeSelectPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
-var
-  Styles: TFontStyles;
 begin
   // Give datatype column specific color, as set in preferences
   case Sender.GetNodeLevel(Node) of
-    0: begin
-      Styles := TargetCanvas.Font.Style;
-      Include(Styles, fsBold);
-      TargetCanvas.Font.Style := Styles;
-    end;
+    0: TargetCanvas.Font.Bold := True;
     1: if not (vsSelected in Node.States) then
       TargetCanvas.Font.Color := AppColorSchemes.First.GridTextColors[TDBDatatypeCategoryIndex(Node.Parent.Index)];
   end;
