@@ -130,7 +130,7 @@ jobs:
             name: ${{ matrix.operating-system }}
             path: out/macos/heidisql
 
-    build-arm64-qt6:
+    build-qt6arm:
       name: Linux ARM64 QT6
       runs-on: ubuntu-24.04-arm
       env:
@@ -147,7 +147,7 @@ jobs:
             wget -q https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.4/fpc-laz_3.2.3-240813_arm64.deb -O /tmp/fpc-laz.deb
             wget -q https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.4/fpc-src_3.2.3-240813_arm64.deb -O /tmp/fpc-src.deb
             wget -q https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.4/lazarus-project_4.4.0-0_arm64.deb -O /tmp/lazarus.deb
-            sudo apt-get install -y ./tmp/fpc-laz.deb ./tmp/fpc-src.deb ./tmp/lazarus.deb
+            sudo apt-get install -y /tmp/fpc-laz.deb /tmp/fpc-src.deb /tmp/lazarus.deb
             # ensure Lazarus bin dir is on PATH, or export in this job:
             echo "/usr/lib/lazarus/4.4" >> $GITHUB_PATH
 
@@ -180,7 +180,7 @@ jobs:
 
         name: Create GitHub Release
         runs-on: [ubuntu-latest]
-        needs: [build]
+        needs: [build, build-qt6arm]
 
         steps:
             - name: Checkout source code
