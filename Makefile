@@ -10,6 +10,7 @@ BINWIN64 := ./out/win64/heidisql.exe
 BINGTK := ./out/gtk2/heidisql
 BINQT5 := ./out/qt5/heidisql
 BINQT6 := ./out/qt6/heidisql
+BINQT6ARM := ./out/qt6arm/heidisql
 BINMACOS := ./out/macos/heidisql
 PEFLAGS := ./extra/peflags/peflags.exe
 
@@ -86,6 +87,12 @@ build-qt6:
 	$(LAZBUILD) $(OPTS) $(OPTSQT6) $(LPI)
 	@mkdir -p ./out/qt6
 	@mv -v $(BIN) $(BINQT6)
+
+build-qt6arm:
+	@echo "=== Building QT6 ARM64"
+	$(LAZBUILD) $(OPTS) $(OPTSQT6) $(LPI)
+	@mkdir -p ./out/qt6arm
+	@mv -v $(BIN) $(BINQT6ARM)
 
 run-qt6: build-qt6
 	@echo "=== Running QT6"
@@ -190,3 +197,15 @@ tar-qt6:
 	cp -v out/qt6/heidisql tar
 	chmod +x tar/heidisql
 	cd tar && tar -zcvf ../dist/build-qt6-$(tag).tgz *
+
+tar-qt6arm:
+	@echo "=== Creating QT6 ARM64 archive"
+	rm -vrf tar
+	mkdir -p tar/locale dist
+	cp -v README.md LICENSE tar
+	cp -v res/deb-package-icon.png tar/heidisql.png
+	cp -v extra/locale/*.mo tar/locale
+	cp -v extra/ini/*.ini tar
+	cp -v out/qt6arm/heidisql tar
+	chmod +x tar/heidisql
+	cd tar && tar -zcvf ../dist/build-qt6-arm64-$(tag).tgz *

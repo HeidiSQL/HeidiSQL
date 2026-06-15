@@ -130,6 +130,49 @@ jobs:
             name: ${{ matrix.operating-system }}
             path: out/macos/heidisql
 
+    build-arm64-qt6:
+      name: Linux ARM64 QT6
+      runs-on: ubuntu-24.04-arm
+      env:
+        GITHUB: 1
+
+      steps:
+        - name: Checkout source code
+          uses: actions/checkout@v4
+
+        # Install FPC + Lazarus 4.4 (example: your own tarball or official DEBs)
+        - name: Install Lazarus 4.4 (ARM64)
+          run: |
+            sudo apt-get update
+            wget -q https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.4/fpc-laz_3.2.3-240813_arm64.deb -O /tmp/fpc-laz.deb
+            wget -q https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.4/fpc-src_3.2.3-240813_arm64.deb -O /tmp/fpc-src.deb
+            wget -q https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.4/lazarus-project_4.4.0-0_arm64.deb -O /tmp/lazarus.deb
+            sudo apt-get install -y ./tmp/fpc-laz.deb ./tmp/fpc-src.deb ./tmp/lazarus.deb
+            # ensure Lazarus bin dir is on PATH, or export in this job:
+            echo "/usr/lib/lazarus/4.4" >> $GITHUB_PATH
+
+        - name: Install Qt6 for ARM64
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y wget qt6-base-dev
+            LIBQT6PAS_VERSION="6.2.10"
+            wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6_${LIBQT6PAS_VERSION}-1_arm64.deb" -O /tmp/libqt6pas6.deb
+            sudo dpkg -i /tmp/libqt6pas6.deb || sudo apt-get install -f -y
+            wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_arm64.deb" -O /tmp/libqt6pas6-dev.deb
+            sudo dpkg -i /tmp/libqt6pas6-dev.deb || sudo apt-get install -f -y
+            rm -f /tmp/libqt6pas6.deb /tmp/libqt6pas6-dev.deb
+
+        - name: Build HeidiSQL (Linux ARM64 QT6)
+          run: |
+            echo Building with QT6 on ARM64 using Lazarus 4.4
+            make build-qt6arm
+
+        - name: Upload binaries QT6 ARM64
+          uses: actions/upload-artifact@v4
+          with:
+            name: ubuntu-24.04-arm-QT6
+            path: out/qt6arm/heidisql
+
     release:
         if: contains(github.ref_type, 'tag')
         env:
@@ -195,6 +238,9 @@ jobs:
 
             - name: Create release archives (Linux QT6)
               run: make tar-qt6
+
+            - name: Create release archives (Linux QT6 ARM64)
+              run: make tar-qt6arm
 
             - name: Generate Release Notes
               id: git-cliff
