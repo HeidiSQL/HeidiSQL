@@ -5138,6 +5138,7 @@ begin
   for Obj in Objects do begin
     Tab := GetOrCreateEmptyQueryTab(True);
     Tab.Memo.Text := Conn.ApplyLimitClause('SELECT', '* FROM '+Obj.QuotedName, AppSettings.ReadInt(asDatagridRowsPerStep), 0);
+    SetTabCaption(Tab.TabSheet.TabIndex, Obj.Name);
     actExecuteQueryExecute(Sender);
   end;
 end;
