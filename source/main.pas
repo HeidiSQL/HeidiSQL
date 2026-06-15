@@ -10090,7 +10090,7 @@ begin
     WalkNode := Sender.FocusedNode;
     while Assigned(WalkNode) do begin
       if WalkNode = Node then begin
-        TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
+        TargetCanvas.Font.Bold := True;
         Break;
       end;
       try
@@ -10547,7 +10547,7 @@ begin
 
   // Make primary key columns bold
   if r.ColIsPrimaryKeyPart(ResultCol) then
-    TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
+    TargetCanvas.Font.Bold := True;
 
   // Do not apply any color on a selected, highlighted cell to keep readability
   if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
@@ -14156,8 +14156,10 @@ begin
     and (Column=1)
     and (Node.Parent.Index=TQueryTab.HelperNodeBinding) then begin
       Tab := QueryTabs.TabByControl(Sender);
-      if StrLen(PChar(Tab.ListBindParams.Items[Node.Index].Value)) = 0 then
-        TargetCanvas.Font.Style := [fsItalic]+[fsUnderline];
+      if StrLen(PChar(Tab.ListBindParams.Items[Node.Index].Value)) = 0 then begin
+        TargetCanvas.Font.Italic := True;
+        TargetCanvas.Font.Underline := True;
+      end;
 
       TargetCanvas.Font.Color := GetThemeColor(clGrayText);
 

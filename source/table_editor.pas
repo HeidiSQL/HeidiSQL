@@ -1625,7 +1625,7 @@ begin
   // Bold font for primary key columns
   for i:=0 to FKeys.Count-1 do begin
     if FKeys[i].IsPrimary and (FKeys[i].Columns.IndexOf(Col.Name) > -1) then begin
-      TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
+      TargetCanvas.Font.Bold := True;
       break;
     end;
   end;
