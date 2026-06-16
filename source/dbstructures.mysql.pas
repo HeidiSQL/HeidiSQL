@@ -3239,9 +3239,10 @@ end;
 
 function TMySqlProvider.GetSql(AId: TQueryId): string;
 var
-  IsMariaDB: Boolean;
+  IsMariaDB, IsMySQL: Boolean;
 begin
   IsMariaDB := ServerVersion >= 100000;
+  IsMySQL := not IsMariaDB;
   case AId of
     qDatabaseDrop: Result := 'DROP DATABASE %s';
     qEmptyTable: Result := 'TRUNCATE %s';
@@ -3403,24 +3404,20 @@ begin
     qGrantRole: Result := 'GRANT %s TO %s%s';
     qRevokeRole: Result := 'REVOKE %s FROM %s';
     qSetDefaultRole: Result := 'SET DEFAULT ROLE %s FOR %s';
-    qIndexVisible: Result := IfThen(
-      FServerVersion >= 100600, // mariadb
-      'NOT IGNORED',
-      IfThen(
-        FServerVersion >= 80000, // mysql
-        'VISIBLE',
-        ''
-        )
-      );
-    qIndexInvisible: Result := IfThen(
-      FServerVersion >= 100600, // mariadb
-      'IGNORED',
-      IfThen(
-        FServerVersion >= 80000, // mysql
-        'INVISIBLE',
-        ''
-        )
-      );
+    qIndexVisible:
+      if IsMariaDB and (FServerVersion >= 100600) then
+        Result := 'NOT IGNORED'
+      else if IsMySQL and (FServerVersion >= 80000) then
+        Result := 'VISIBLE'
+      else
+        Result := '';
+    qIndexInvisible:
+      if IsMariaDB and (FServerVersion >= 100600) then
+        Result := 'IGNORED'
+      else if IsMySQL and (FServerVersion >= 80000) then
+        Result := 'INVISIBLE'
+      else
+        Result := '';
     qGetAuthPlugins: Result := IfThen(
       (FServerVersion >= 50100) or IsMariaDB, // mysql 5.1+ and all mariadb versions
       'SELECT PLUGIN_NAME FROM INFORMATION_SCHEMA.PLUGINS WHERE PLUGIN_TYPE=''AUTHENTICATION'' AND PLUGIN_STATUS=''ACTIVE''',
