@@ -5921,6 +5921,10 @@ begin
     Col.AllowNull := ColQuery.Col('notnull') <> '1';
     Col.DefaultType := cdtNothing;
     Col.DefaultText := '';
+    if not ColQuery.Col('dflt_value').IsEmpty then begin
+      Col.DefaultType := cdtText;
+      Col.DefaultText := ColQuery.Col('dflt_value').DeQuotedString(FStringQuoteChar);
+    end;
     Col.OnUpdateType := cdtNothing;
     Col.OnUpdateText := '';
     case StrToIntDef(ColQuery.Col('hidden'), 0) of
