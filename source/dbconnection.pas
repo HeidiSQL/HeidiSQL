@@ -1119,7 +1119,7 @@ begin
     if FConnection.Parameters.SSHPrivateKey <> '' then
       SshCmd := SshCmd + ' -i "' + FConnection.Parameters.SSHPrivateKey + '"';
     // OpenSSH options must be placed before the destination host.
-    SshCmd := SshCmd + ' -o StrictHostKeyChecking=no -o IgnoreUnknown=WarnWeakCrypto -o WarnWeakCrypto=no-pq-kex -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3';
+    SshCmd := SshCmd + ' -o StrictHostKeyChecking=no -o IgnoreUnknown=WarnWeakCrypto -o WarnWeakCrypto=no-pq-kex -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3 -o LogLevel=error';
     SshCmd := SshCmd + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port) + ' ' + TargetHost;
   end;
 
