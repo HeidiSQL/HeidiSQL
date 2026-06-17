@@ -228,7 +228,10 @@ begin
   chkFocusedColumnOnly.OnClick := CalcSize;
   CalcSize(Sender);
   // Show name of focused column
-  FocusedCol := IfThen(Grid.FocusedColumn > NoColumn, Grid.Header.Columns[Grid.FocusedColumn].Text, '');
+  if Grid.FocusedColumn > -1 then
+    FocusedCol := Grid.Header.Columns[Grid.FocusedColumn].Text
+  else
+    FocusedCol := '';
   chkFocusedColumnOnly.Caption := f_('Only focused column (%s)', [FocusedCol]);
   chkFocusedColumnOnly.Enabled := not FocusedCol.IsEmpty;
 end;
