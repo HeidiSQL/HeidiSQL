@@ -2,8 +2,8 @@
 host = https://www.transifex.com
 
 [o:heidisql:p:heidisql:r:ui]
-file_filter  = extra/locale/<lang>/LC_MESSAGES/default.po
-source_file  = extra/locale/en/LC_MESSAGES/default.po
+file_filter  = extra/locale/heidisql.<lang>.po
+source_file  = extra/locale/heidisql.po
 source_lang  = en
 type         = PO
 minimum_perc = 20
