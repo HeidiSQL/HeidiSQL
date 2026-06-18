@@ -1,5 +1,5 @@
 [main]
-host = https://www.transifex.com
+host = https://app.transifex.com
 
 [o:heidisql:p:heidisql:r:ui]
 file_filter  = extra/locale/heidisql.<lang>.po
