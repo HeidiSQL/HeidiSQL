@@ -209,11 +209,18 @@ jobs:
                 name: ubuntu-latest-QT6
                 path: out/qt6
 
+            - name: Download Ubuntu QT6 ARM64
+              uses: actions/download-artifact@v4
+              with:
+                name: ubuntu-24.04-arm-QT6
+                path: out/qt6arm
+
             - name: List files
               run: |
                 ls -alF out/gtk2
                 ls -alF out/qt5
                 ls -alF out/qt6
+                ls -alF out/qt6arm
 
             - name: Install gettext
               run: sudo apt install -y gettext
