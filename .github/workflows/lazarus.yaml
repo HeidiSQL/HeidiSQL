@@ -174,7 +174,7 @@ jobs:
             path: out/qt6arm/heidisql
 
     release:
-        if: contains(github.ref_type, 'tag')
+        if: github.ref_type == 'tag'
         env:
           GITHUB: 1
 
@@ -188,8 +188,12 @@ jobs:
               with:
                 fetch-depth: 0
 
-            - name: Set env
-              run: echo "tag=${{ github.ref_name }}" >> "$GITHUB_ENV"
+            - name: Get current and previous tag into env vars
+              run: |
+                echo "tag=${{ github.ref_name }}" >> "$GITHUB_ENV"
+                latest=$(git describe --abbrev=0 --tags)
+                prev_tag=$(git describe --abbrev=0 --tags "${latest}^")
+                echo "prev_tag=$prev_tag" >> "$GITHUB_ENV"
 
             - name: Download Ubuntu GTK
               uses: actions/download-artifact@v4
@@ -254,7 +258,7 @@ jobs:
               uses: orhun/git-cliff-action@v4
               with:
                 config: .github/cliff.toml
-                args: --latest --strip header
+                args: "${{ env.prev_tag }}..HEAD --strip header"
 
             - name: Create GitHub release
               uses: softprops/action-gh-release@v2

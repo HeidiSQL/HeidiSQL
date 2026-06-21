@@ -19,11 +19,12 @@ PEFLAGS := ./extra/peflags/peflags.exe
 
 # Check for environment variable GITHUB
 ifeq ($(origin GITHUB), undefined)
-    # GITHUB is not set
-	tag := $(shell git describe --tags $(shell git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
+    # GITHUB is not set, get the current tag per command line
+    tag := $(shell git describe --tags $(shell git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
 else
-    # GITHUB is set
+    # GITHUB is set, use the env.tag from the CI
     $(info GITHUB is set)
+    tag := $(or $(tag),v0.0.0)
 endif
 
 VERSION := $(shell echo $(tag) | sed "s/v//")
