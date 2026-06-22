@@ -631,6 +631,7 @@ type
       function Has(Item: TFeatureOrRequirement): Boolean;
       property SqlProvider: TSqlProvider read FSqlProvider;
       property NamedEnums: TStringList read FNamedEnums;
+      procedure GetColumnDefaultExpressions(Items: TStrings); virtual;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -772,6 +773,7 @@ type
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
+      procedure GetColumnDefaultExpressions(Items: TStrings); override;
   end;
 
   TInterbaseRawResults = Array of TFDQuery;
@@ -6655,6 +6657,14 @@ begin
   ForeignQuery.Free;
 end;
 
+procedure TSQLiteConnection.GetColumnDefaultExpressions(Items: TStrings);
+begin
+  // Add some extra default values allowed for SQLite
+  inherited;
+  Items.Add('CURRENT_TIME');
+  Items.Add('CURRENT_DATE');
+  Items.Add('CURRENT_TIMESTAMP');
+end;
 
 function TDBConnection.GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList;
 var
@@ -6759,8 +6769,19 @@ begin
         frInvisibleColumns: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100303)) or
           (FParameters.IsMySQL(True) and (ServerVersionInt >= 80023));
         frCompressedColumns: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100301));
+        else Result := False;
       end;
     else Result := False;
+  end;
+end;
+
+
+procedure TDBConnection.GetColumnDefaultExpressions(Items: TStrings);
+var
+  SQLFunc: TSQLFunction;
+begin
+  for SQLFunc in SQLFunctions do begin
+    Items.Add(SQLFunc.Name + SQLFunc.Declaration);
   end;
 end;
 

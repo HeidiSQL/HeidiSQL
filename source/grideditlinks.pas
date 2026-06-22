@@ -1354,9 +1354,7 @@ begin
   FExpressionEdit.Width := FExpressionEdit.Parent.Width - 2*FExpressionEdit.Left;
   FExpressionEdit.OnChange := EditChange;
   FExpressionEdit.DropDownCount := 20;
-  for SQLFunc in FTableColumn.Connection.SQLFunctions do begin
-    FExpressionEdit.Items.Add(SQLFunc.Name + SQLFunc.Declaration);
-  end;
+  FTableColumn.Connection.GetColumnDefaultExpressions(FExpressionEdit.Items);
 
   FlblOnUpdate := TLabel.Create(FPanel);
   FlblOnUpdate.Parent := FPanel;
@@ -1372,9 +1370,7 @@ begin
   FOnUpdateEdit.Width := FOnUpdateEdit.Parent.Width - 2*FOnUpdateEdit.Left;
   FOnUpdateEdit.OnChange := EditChange;
   FOnUpdateEdit.DropDownCount := 20;
-  for SQLFunc in FTableColumn.Connection.SQLFunctions do begin
-    FOnUpdateEdit.Items.Add(SQLFunc.Name + SQLFunc.Declaration);
-  end;
+  FTableColumn.Connection.GetColumnDefaultExpressions(FOnUpdateEdit.Items);
 
   FRadioAutoInc := TAllKeysRadioButton.Create(FPanel);
   FRadioAutoInc.Parent := FPanel;
