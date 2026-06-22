@@ -3366,12 +3366,12 @@ begin
       );
     qShowFunctionStatus: Result := IfThen(
       (FServerVersion >= 50000) and (FNetType <> ntMySQL_ProxySQLAdmin),
-      'SHOW FUNCTION STATUS WHERE Db = LOWER(%s)',
+      'SHOW FUNCTION STATUS WHERE LOWER(Db) = LOWER(%s)',
       ''
       );
     qShowProcedureStatus: Result := IfThen(
       (FServerVersion >= 50000) and (FNetType <> ntMySQL_ProxySQLAdmin),
-      'SHOW PROCEDURE STATUS WHERE Db = LOWER(%s)',
+      'SHOW PROCEDURE STATUS WHERE LOWER(Db) = LOWER(%s)',
       ''
       );
     qShowTriggers: Result := IfThen(
