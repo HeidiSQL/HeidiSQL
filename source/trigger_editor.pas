@@ -124,7 +124,7 @@ begin
     QuoteCharsRx := QuoteRegExprMetaChars(DBObject.Connection.QuoteChars);
     QuotedWordRx := '['+QuoteCharsRx+']?[^'+QuoteCharsRx+']+['+QuoteCharsRx+']?';
     rx.Expression := '(\sDEFINER=('+QuotedWordRx+'@'+QuotedWordRx+'))?' +
-      '\s+TRIGGER\s+'+QuotedWordRx +
+      '\s+TRIGGER\s+(IF\s+NOT\s+EXISTS\s+)?'+QuotedWordRx +
       '\s+('+Implode('|', comboTiming.Items)+')' +
       '\s+('+Implode('|', comboEvent.Items)+')' +
       '\s+ON\s+('+QuotedWordRx+')' +
@@ -133,10 +133,10 @@ begin
       Body := DBObject.Connection.GetCreateCode(DBObject);
       if rx.Exec(Body) then begin
         comboDefiner.Text := DBObject.Connection.DeQuoteIdent(rx.Match[2], '@');
-        comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(rx.Match[3]));
-        comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(rx.Match[4]));
-        comboTable.ItemIndex := comboTable.Items.IndexOf(DBObject.Connection.DeQuoteIdent(rx.Match[5]));
-        Body := rx.Match[6];
+        comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(rx.Match[4]));
+        comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(rx.Match[5]));
+        comboTable.ItemIndex := comboTable.Items.IndexOf(DBObject.Connection.DeQuoteIdent(Trim(rx.Match[6])));
+        Body := rx.Match[7];
       end
       else
         raise EDbError.CreateFmt(_('Result from previous query does not contain expected pattern: %s'), [rx.Expression]);
