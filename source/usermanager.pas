@@ -215,6 +215,7 @@ type
     property PluginModified: Boolean read FPluginModified write SetPluginModified;
     function GetPrivByNode(Node: PVirtualNode): TPrivObj;
     function SelectUserNode(User: TUser): Boolean;
+    procedure RefreshListUsers;
   public
     { Public declarations }
   end;
@@ -483,8 +484,7 @@ begin
       Users.Next;
     end;
 
-    listUsers.Clear;
-    InvalidateVT(listUsers, VTREE_NOTLOADED, False);
+    RefreshListUsers;
     FPrivObjects := TPrivObjList.Create(TPrivComparer.Create, True);
     Modified := False;
     PluginModified := False;
@@ -611,19 +611,19 @@ procedure TUserManagerForm.listUsersBeforePaint(Sender: TBaseVirtualTree; Target
 var
   VT: TLazVirtualStringTree;
 begin
-  // Users may have got new or removed ones - reinit nodes.
   // If Form.OnShow failed to get the list of users, close form from here.
   if not Assigned(FUsers) then
     Close
-  else begin
-    VT := Sender as TLazVirtualStringTree;
-    if VT.Tag = VTREE_NOTLOADED then begin
-      VT.RootNodeCount := FUsers.Count;
-      VT.FocusedNode := nil;
-      VT.ClearSelection;
-      VT.Tag := VTREE_LOADED;
-    end;
-  end;
+end;
+
+
+procedure TUserManagerForm.RefreshListUsers;
+begin
+  // Users may have got new or removed ones - reinit nodes.
+  listUsers.Clear;
+  listUsers.RootNodeCount := FUsers.Count;
+  listUsers.FocusedNode := nil;
+  listUsers.ClearSelection;
 end;
 
 
@@ -1280,7 +1280,7 @@ begin
   User.Password := NewPassword;
   FUsers.Add(User);
   FAdded := True;
-  InvalidateVT(listUsers, VTREE_NOTLOADED, True);
+  RefreshListUsers;
   SelectUserNode(User);
   Modified := True;
   // Focus the user name entry box.
@@ -1311,7 +1311,7 @@ begin
     User.Username := RoleName;
     User.IsRole := True;
     FUsers.Add(User);
-    InvalidateVT(listUsers, VTREE_NOTLOADED, True);
+    RefreshListUsers;
     SelectUserNode(User);
     Modified := True;
   except
