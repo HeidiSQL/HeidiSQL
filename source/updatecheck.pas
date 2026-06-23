@@ -6,7 +6,7 @@ interface
 
 uses
   SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
-  apphelpers, ExtCtrls, extra_controls, StrUtils, Dialogs,
+  apphelpers, ExtCtrls, extra_controls, Dialogs,
   Menus, Clipbrd, generic_types, DateUtils, Buttons;
 
 type
@@ -111,14 +111,12 @@ var
   CheckFilename, TaskXmlFile: String;
   Ini: TIniFile;
   ReleaseVersion, ReleasePackage: String;
-  ReleaseRevision: Integer;
   Note: String;
   Compiled: TDateTime;
 const
   INISECT_RELEASE = 'Release';
 begin
   // Init GUI controls
-  LinkLabelRelease.Enabled := False;
   memoRelease.Clear;
 
   // Prepare download
@@ -136,8 +134,10 @@ begin
   Ini := TIniFile.Create(CheckFilename);
   if Ini.SectionExists(INISECT_RELEASE) then begin
     ReleaseVersion := Ini.ReadString(INISECT_RELEASE, 'Version', 'unknown');
-    ReleaseRevision := Ini.ReadInteger(INISECT_RELEASE, 'Revision', 0);
-    ReleasePackage := IfThen(AppSettings.PortableMode, 'portable', 'installer');
+    if AppSettings.PortableMode then
+      ReleasePackage := 'portable'
+    else
+      ReleasePackage := {$IFDEF WINDOWS} 'installer' {$ELSE} 'package' {$ENDIF};
     memoRelease.Lines.Add(f_('Version %s (yours: %s)', [ReleaseVersion, Mainform.AppVersion]));
     memoRelease.Lines.Add(f_('Released: %s', [Ini.ReadString(INISECT_RELEASE, 'Date', '')]));
     Note := Ini.ReadString(INISECT_RELEASE, 'Note', '');
@@ -146,9 +146,6 @@ begin
 
     LinkLabelRelease.Caption := f_('Download version %s (%s)', [ReleaseVersion, ReleasePackage]);
 
-    // Enable the download button if the current version is outdated
-    groupRelease.Enabled := ReleaseRevision > Mainform.AppVerRevision;
-    LinkLabelRelease.Enabled := groupRelease.Enabled;
     LinkLabelRelease.Font.Style := LinkLabelRelease.Font.Style + [fsUnderline];
     memoRelease.Enabled := groupRelease.Enabled;
     if not memoRelease.Enabled then

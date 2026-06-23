@@ -63,7 +63,6 @@ object frmUpdateCheck: TfrmUpdateCheck
     Caption = 'Official release'
     ClientHeight = 101
     ClientWidth = 346
-    Enabled = False
     ParentBackground = False
     TabOrder = 1
     object memoRelease: TMemo
