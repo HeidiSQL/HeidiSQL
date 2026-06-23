@@ -5,7 +5,7 @@
 interface
 
 uses
-  dbstructures, StrUtils;
+  dbstructures, StrUtils, SysUtils;
 
 type
   TMsSqlProvider = class(TSqlProvider)
@@ -415,6 +415,7 @@ var
 
 implementation
 
+{$I const.inc}
 
 function TMsSqlProvider.GetSql(AId: TQueryId): string;
 begin
@@ -482,6 +483,7 @@ begin
       'SELECT SUM("rows") FROM "sys"."partitions" WHERE "index_id" IN (0, 1) AND "object_id" = object_id(:EscapedDbSchemaName)',
       ''
       );
+    qCastAsText: Result := 'CAST(%s AS NVARCHAR('+IntToStr(GRIDMAXDATA)+'))';
     else Result := inherited;
   end;
 end;

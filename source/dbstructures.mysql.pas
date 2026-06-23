@@ -3429,6 +3429,11 @@ begin
       'SELECT PLUGIN_NAME FROM INFORMATION_SCHEMA.PLUGINS WHERE PLUGIN_TYPE=''AUTHENTICATION'' AND PLUGIN_STATUS=''ACTIVE''',
       ''
       );
+    qCastAsText: Result := IfThen(
+      FServerVersion >= 40002,
+      'CAST(%s AS CHAR)',
+      ''
+      );
     else Result := inherited;
   end;
 end;

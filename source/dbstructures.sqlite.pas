@@ -429,6 +429,7 @@ begin
     qGetCharsets: Result := 'SELECT ''UTF-8'' AS "Charset", ''UTF-8'' AS "Description" '+
       'UNION SELECT ''UTF-16le'', ''UTF-16 Little Endian'' '+
       'UNION SELECT ''UTF-16be'', ''UTF-16 Big Endian''';
+    qCastAsText: Result := 'CAST(%s AS CHAR)';
     else Result := inherited;
   end;
 end;

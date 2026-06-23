@@ -745,6 +745,7 @@ begin
       '' // ServerVersion < 9
       );
     qAutoInc: Result := 'SERIAL';
+    qCastAsText: Result := '%s::text';
     else Result := inherited;
   end;
 end;
