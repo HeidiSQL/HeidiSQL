@@ -1983,8 +1983,15 @@ begin
           lntTrigger: begin
             StrucResult := DBObj.Connection.GetResults('SHOW TRIGGERS FROM '+DBObj.QuotedDatabase+' WHERE `Trigger`='+DBObj.Connection.EscapeString(DBObj.Name));
             Struc := DBObj.GetCreateCode(False, menuExportRemoveDefiner.Checked);
-            if ToDb then
-              Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
+            if ToDb then begin
+              // Prepend target database to trigger name
+              Struc := ReplaceRegExpr(
+                'TRIGGER(\s+IF\s+NOT\s+EXISTS)?\s+',
+                Struc,
+                '$0' + Quoter.QuoteIdent(FinalDbName)+'.',
+                [rroModifierI, rroUseSubstitution, rroModifierG] // Greedy is required to catch group 1
+                );
+            end;
             if ToFile or ToClipboard or ToDir then begin
               Struc := 'SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE=' + DBObj.Connection.EscapeString(StrucResult.Col('sql_mode')) + ';' + CRLF +
                 'DELIMITER ' + TempDelim + CRLF +
