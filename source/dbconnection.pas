@@ -10986,26 +10986,28 @@ end;
 
 
 function TTableColumn.CastAsText: String;
+var
+  ColTypeAllowsCast: Boolean;
 begin
   // Cast data types which are incompatible to string functions to text columns
   Result := FConnection.QuoteIdent(Name);
+  ColTypeAllowsCast := True;
   case FConnection.Parameters.NetTypeGroup of
     ngMySQL, ngSQLite: begin
-      if DataType.Index in [dbdtUnknown, dbdtDate, dbdtDatetime, dbdtTime, dbdtTimestamp, dbdtJson, dbdtJsonB] then
-        Result := 'CAST('+Result+' AS CHAR)';
+      ColTypeAllowsCast := DataType.Index in [dbdtUnknown, dbdtDate, dbdtDatetime, dbdtTime, dbdtTimestamp, dbdtJson, dbdtJsonB];
     end;
     ngMSSQL: begin
       // Be sure LEFT() and "col LIKE xyz" work with MSSQL
       // Also, prevent exceeding size limit of 8000 for NVARCHAR
-      if DataType.Index in [dbdtUnknown, dbdtNtext, dbdtText] then
-        Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+'))';
+      ColTypeAllowsCast := DataType.Index in [dbdtUnknown, dbdtNtext, dbdtText];
     end;
     ngPgSQL: begin
       // Cast most datatypes, including VARCHAR and TEXT, which may have an [] array attribute
-      if not (DataType.Category in [dtcInteger, dtcReal]) then
-        Result := Result + '::text';
+      ColTypeAllowsCast := not (DataType.Category in [dtcInteger, dtcReal]);
     end;
   end;
+  if ColTypeAllowsCast and FConnection.SqlProvider.Has(qCastAsText) then
+    Result := FConnection.SqlProvider.GetSql(qCastAsText, [Result]);
 end;
 
 
