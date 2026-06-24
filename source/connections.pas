@@ -180,7 +180,6 @@ type
       var NodeDataSize: Integer);
     procedure comboNetTypeChange(Sender: TObject);
     procedure splitterMainMoved(Sender: TObject);
-    procedure btnImportSettingsClick(Sender: TObject);
     procedure timerSettingsImportTimer(Sender: TObject);
     procedure ListSessionsStructureChange(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Reason: TChangeReason);
@@ -241,6 +240,8 @@ type
     { Public declarations }
   end;
 
+var
+  connform: Tconnform;
 
 implementation
 
@@ -285,6 +286,7 @@ begin
   btnImportSettings.Caption := MainForm.actImportSettings.Caption;
   FLoaded := False;
   menuFoldersAtTop.Checked := AppSettings.ReadBool(asSessionManagerListFoldersAtTop);
+  FSettingsImportWaitTime := 0;
 
   comboNetType.Clear;
   Params := TConnectionParameters.Create;
@@ -585,22 +587,17 @@ begin
 end;
 
 
-procedure Tconnform.btnImportSettingsClick(Sender: TObject);
-begin
-  MainForm.actImportSettings.Execute;
-  FSettingsImportWaitTime := 0;
-  timerSettingsImport.Enabled := MainForm.ImportSettingsDone;
-end;
-
-
 procedure Tconnform.timerSettingsImportTimer(Sender: TObject);
 begin
   Inc(FSettingsImportWaitTime, timerSettingsImport.Interval);
   RefreshSessions(nil);
-  if ListSessions.RootNodeCount > 0 then
+  if ListSessions.RootNodeCount > 0 then begin
     timerSettingsImport.Enabled := False;
+    FSettingsImportWaitTime := 0;
+  end;
   if FSettingsImportWaitTime >= 10000 then begin
     timerSettingsImport.Enabled := False;
+    FSettingsImportWaitTime := 0;
     MessageDialog(f_('Imported sessions could not be detected. Restarting %s may solve that.', [APPNAME]), mtWarning, [mbOK]);
   end;
 end;

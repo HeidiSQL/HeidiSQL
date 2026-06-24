@@ -65,13 +65,12 @@ object connform: Tconnform
         Left = 5
         Height = 26
         Top = 25
-        Width = 122
+        Width = 141
+        Action = MainForm.actImportSettings
         AutoSize = True
         BorderSpacing.Around = 5
-        Caption = 'Import settings ...'
         Images = MainForm.ImageListMain
         ImageIndex = 101
-        OnClick = btnImportSettingsClick
       end
       object lblHelpPortable: TLabel
         AnchorSideLeft.Control = tabStart

@@ -1352,7 +1352,6 @@ type
     QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
     FileEncodings: TStringList;
-    ImportSettingsDone: Boolean;
 
     // Data grid related stuff
     DataGridHiddenColumns: TStringList;
@@ -2532,12 +2531,10 @@ end;
 
 
 procedure TMainForm.actSessionManagerExecute(Sender: TObject);
-var
-  Dialog: TConnForm;
 begin
-  Dialog := TConnForm.Create(Self);
-  Dialog.ShowModal;
-  Dialog.Free;
+  connform := TConnForm.Create(Self);
+  connform.ShowModal;
+  FreeAndNil(connform);
 end;
 
 
@@ -2546,7 +2543,6 @@ var
   Connection: TDBConnection;
   Node: PVirtualNode;
   DlgResult: Integer;
-  Dialog: TConnForm;
 begin
   // Disconnect active connection. If it's the last, exit application
   Connection := ActiveConnection;
@@ -2557,9 +2553,9 @@ begin
   // TODO: focus last session?
   SelectNode(DBtree, GetNextNode(DBtree, nil));
   if FConnections.Count = 0 then begin
-    Dialog := TConnForm.Create(Self);
-    DlgResult := Dialog.ShowModal;
-    Dialog.Free;
+    connform := TConnForm.Create(Self);
+    DlgResult := connform.ShowModal;
+    FreeAndNil(connform);
     if DlgResult = mrCancel then
       actExitApplication.Execute;
   end;
@@ -2756,14 +2752,13 @@ end;
 procedure TMainForm.FormShow(Sender: TObject);
 var
   DlgResult: TModalResult;
-  SessionManager: TConnForm;
 begin
   // Display session manager
   if Connections.Count = 0 then begin
     // Cannot be done in OnCreate because we need ready forms here:
-    SessionManager := TConnForm.Create(Self);
-    DlgResult := SessionManager.ShowModal;
-    SessionManager.Free;
+    connform := TConnForm.Create(Self);
+    DlgResult := connform.ShowModal;
+    FreeAndNil(connform);
     if DlgResult = mrCancel then begin
       actExitApplicationExecute(nil);
       Visible := False;
@@ -3111,16 +3106,18 @@ begin
   Dialog.Title := f_('Import %s settings from file ...', [APPNAME]);
   Dialog.AddFileType('*.txt', _('Text files'));
   Dialog.AddFileType('*.*', _('All files'));
-  ImportSettingsDone := False;
   if Dialog.Execute then try
     if LowerCase(ExtractFileExt(Dialog.FileName)) = 'reg' then
       //ShellExec('regedit.exe', '', '"'+Dialog.FileName+'"')
       ErrorDialog('Registry dumps not supported. Please use a txt file exported by '+APPNAME)
     else begin
       AppSettings.ImportSettings(Dialog.FileName);
+      // Refresh in session manager per timer interval
+      if Assigned(connform) then begin
+        connform.timerSettingsImport.Enabled := True;
+      end;
       MessageDialog(f_('Settings successfully restored from %s', [Dialog.FileName]), mtInformation, [mbOK]);
     end;
-    ImportSettingsDone := True;
   except
     on E:Exception do
       ErrorDialog(E.Message);
