@@ -140,11 +140,9 @@ object connform: Tconnform
         Top = 184
         Width = 493
         Height = 25
+        Action = MainForm.actImportSettings
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Import settings ...'
-        ImageIndex = 101
         TabOrder = 0
-        OnClick = btnImportSettingsClick
       end
     end
     object tabSettings: TTabSheet
