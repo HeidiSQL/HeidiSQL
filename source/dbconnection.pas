@@ -1375,7 +1375,9 @@ begin
     FPort := MakeInt(AppSettings.ReadString(asPort));
     FCompressed := AppSettings.ReadBool(asCompressed);
     FAllDatabases := AppSettings.ReadString(asDatabases);
-    FLibraryOrProvider := AppSettings.ReadString(asLibrary, '', DefaultLibrary);
+    FLibraryOrProvider := AppSettings.ReadString(asLibrary);
+    if not FileExists(GetLibDir + FLibraryOrProvider) then
+      FLibraryOrProvider := DefaultLibrary; // Catches empty string and any non-existant file
     FComment := AppSettings.ReadString(asComment);
 
     // Auto-activate SSH for sessions created before asSSHtunnelActive was introduced
