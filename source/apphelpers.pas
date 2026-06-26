@@ -411,7 +411,7 @@ type
   function ErrorDialog(const Title, Msg: string): Integer; overload;
   function GetLocaleString(const ResourceId: Integer): String;
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
-  procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
+  procedure ParseCommandLine(var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
   procedure InitMoFile(LangCode: String);
   function _(const Pattern: string): string;
   function f_(const Pattern: string; const Args: array of const): string;
@@ -2502,63 +2502,30 @@ begin
 end;
 
 
-procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
+procedure ParseCommandLine(var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
+const
+  ShortOpts: String = 'd:n:h:l:u:p:S:P:';
+  LongOpts: array[0..24] of String = (
+    'description:',
+    'nettype:', 'host:', 'library:', 'user:', 'password:', 'cleartextenabled:', 'socket:', 'port:', 'databases:', 'winauth:',
+    'ssl:', 'sslprivatekey:', 'sslcacertificate:', 'sslcertificate:', 'sslcipher:', 'sslverification:',
+    'ssh-executable:', 'ssh-host:', 'ssh-port:', 'ssh-local-port:', 'ssh-user:', 'ssh-password:', 'ssh-key:', 'ssh-timeout:'
+  );
 var
-  rx: TRegExpr;
-  ExeName, SessName, Host, Lib, Port, User, Pass, Socket, AllDatabases,
+  i: Integer;
+  SessName, Host, Lib, Port, User, Pass, Socket, AllDatabases,
   SSLPrivateKey, SSLCACertificate, SSLCertificate, SSLCipher,
   SshExe, SshHost, SshPort, SshLocalPort, SshUser, SshPassword, SshKey, SshTimeout: String;
   NetType, WindowsAuth, WantSSL, CleartextPluginEnabled, SSLVerification: Integer;
   AbsentFiles: TStringList;
-
-  function GetParamValue(ShortName, LongName: String): String;
-  begin
-    // Return one command line switch. Doublequotes are not mandatory.
-    Result := '';
-    rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')[\s\=]\"([^\"]+)\"';
-    if rx.Exec(CommandLine) then
-      Result := rx.Match[2]
-    else begin
-      rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')[\s\=](\S+)';
-      if rx.Exec(CommandLine) then
-        Result := rx.Match[2];
-    end;
-  end;
-
-  procedure GetFileNames(Expression: String);
-  begin
-    rx.Expression := Expression;
-    if rx.Exec(CommandLine) then while true do begin
-      if FileExists(rx.Match[1]) then
-        FileNames.Add(rx.Match[1])
-      else
-        AbsentFiles.Add(rx.Match[1]);
-      // Remove match from input string, so the second call to GetFileNames without quotes
-      // does not detect filenames cut at whitespace
-      Delete(CommandLine, rx.MatchPos[1], rx.MatchLen[1]);
-      if not rx.ExecNext then
-        break;
-    end;
-  end;
-
 begin
-  // Parse command line, probably sent by blocked second application instance.
+  // Parse command line
   // Try to build connection parameters out of it.
   SessName := '';
   FileNames := TStringList.Create;
   AbsentFiles := TStringList.Create;
 
-  // Add leading (and trailing) space, so the regular expressions can request a mandantory space
-  // before (and after) each param (and filename) including the first one (and last one)
-  ExeName := ExtractFileName(ParamStr(0));
-  CommandLine := Copy(CommandLine, Pos(ExeName, CommandLine)+Length(ExeName), Length(CommandLine));
-  CommandLine := CommandLine + ' ';
-  rx := TRegExpr.Create;
-
-  // --runfrom=scheduler after build update
-  RunFrom := GetParamValue('rf', 'runfrom');
-
-  SessName := GetParamValue('d', 'description');
+  SessName := Application.GetOptionValue('d', 'description');
   if SessName <> '' then begin
     try
       ConnectionParams := TConnectionParameters.Create(SessName);
@@ -2572,31 +2539,31 @@ begin
 
   // Test if params were passed. If given, override previous values loaded from registry.
   // Enables the user to log into a session with a different, non-stored user: -dSession -uSomeOther
-  NetType := StrToIntDef(GetParamValue('n', 'nettype'), 0);
-  Host := GetParamValue('h', 'host');
-  Lib := GetParamValue('l', 'library');
-  User := GetParamValue('u', 'user');
-  Pass := GetParamValue('p', 'password');
-  CleartextPluginEnabled := StrToIntDef(GetParamValue('cte', 'cleartextenabled'), -1);
-  Socket := GetParamValue('S', 'socket');
-  Port := GetParamValue('P', 'port');
-  AllDatabases := GetParamValue('db', 'databases');
-  WindowsAuth := StrToIntDef(GetParamValue('W', 'winauth'), -1);
-  WantSSL := StrToIntDef(GetParamValue('ssl', 'ssl'), -1);
-  SSLPrivateKey := GetParamValue('sslpk', 'sslprivatekey');
-  SSLCACertificate := GetParamValue('sslca', 'sslcacertificate');
-  SSLCertificate := GetParamValue('sslcert', 'sslcertificate');
-  SSLCipher := GetParamValue('sslcip', 'sslcipher');
-  SSLVerification := StrToIntDef(GetParamValue('sslvrf', 'sslverification'), -1);
+  NetType := StrToIntDef(Application.GetOptionValue('n', 'nettype'), 0);
+  Host := Application.GetOptionValue('h', 'host');
+  Lib := Application.GetOptionValue('l', 'library');
+  User := Application.GetOptionValue('u', 'user');
+  Pass := Application.GetOptionValue('p', 'password');
+  CleartextPluginEnabled := StrToIntDef(Application.GetOptionValue('cleartextenabled'), -1);
+  Socket := Application.GetOptionValue('S', 'socket');
+  Port := Application.GetOptionValue('P', 'port');
+  AllDatabases := Application.GetOptionValue('databases');
+  WindowsAuth := StrToIntDef(Application.GetOptionValue('winauth'), -1);
+  WantSSL := StrToIntDef(Application.GetOptionValue('ssl'), -1);
+  SSLPrivateKey := Application.GetOptionValue('sslprivatekey');
+  SSLCACertificate := Application.GetOptionValue('sslcacertificate');
+  SSLCertificate := Application.GetOptionValue('sslcertificate');
+  SSLCipher := Application.GetOptionValue('sslcipher');
+  SSLVerification := StrToIntDef(Application.GetOptionValue('sslverification'), -1);
   // Leave out support for startup script, seems reasonable for command line connecting
-  SshExe := GetParamValue('se', 'ssh-executable');
-  SshHost := GetParamValue('sh', 'ssh-host');
-  SshPort := GetParamValue('sP', 'ssh-port');
-  SshLocalPort := GetParamValue('sLP', 'ssh-local-port');
-  SshUser := GetParamValue('su', 'ssh-user');
-  SshPassword := GetParamValue('sp', 'ssh-password');
-  SshKey := GetParamValue('sk', 'ssh-key');
-  SshTimeout := GetParamValue('st', 'ssh-timeout');
+  SshExe := Application.GetOptionValue('ssh-executable');
+  SshHost := Application.GetOptionValue('ssh-host');
+  SshPort := Application.GetOptionValue('ssh-port');
+  SshLocalPort := Application.GetOptionValue('ssh-local-port');
+  SshUser := Application.GetOptionValue('ssh-user');
+  SshPassword := Application.GetOptionValue('ssh-password');
+  SshKey := Application.GetOptionValue('ssh-key');
+  SshTimeout := Application.GetOptionValue('ssh-timeout');
 
   if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> '') or (Socket <> '') or (AllDatabases <> '') then begin
     if not Assigned(ConnectionParams) then begin
@@ -2668,14 +2635,21 @@ begin
   end;
 
   // Check for valid filename(s) in parameters.
-  // We support doublequoted and unquoted parameters.
-  GetFileNames('\"([^\"]+\.sql)\"');
-  GetFileNames('\s([^\s\"]+\.sql)\b');
+  try
+    Application.GetNonOptions(ShortOpts, LongOpts, FileNames);
+  except
+    on E:EListError do
+      ErrorDialog(E.Message);
+  end;
+  for i:=FileNames.Count-1 downto 0 do begin
+    if (not Filenames[i].EndsWith('.sql', True)) or (not FileExists(Filenames[i])) then begin
+      AbsentFiles.Add(Filenames[i]);
+      Filenames.Delete(i);
+    end;
+  end;
   if AbsentFiles.Count > 0 then
     ErrorDialog(_('Could not load file(s):'), AbsentFiles.Text);
   AbsentFiles.Free;
-
-  rx.Free;
 end;
 
 

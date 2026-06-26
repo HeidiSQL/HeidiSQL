@@ -2156,7 +2156,7 @@ var
   LoadedParams, ConnectionParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
-  LastActiveSession, Environment, RunFrom: String;
+  LastActiveSession, Environment: String;
   frm : TfrmUpdateCheck;
   StatsCall: THttpDownload;
   StatsURL: String;
@@ -2227,17 +2227,8 @@ begin
   end;
 
   ConnectionParams := nil;
-  RunFrom := '';
   FileNames := nil;
-  ParseCommandLine(GetCommandLine, ConnectionParams, FileNames, RunFrom);
-
-  // Delete scheduled task from previous
-  if RunFrom = 'scheduler' then begin
-    //DeleteRestartTask;
-    if HasDonated(False) <> nbTrue then begin
-      apphelpers.ShellExec(APPDOMAIN + 'after-updatecheck?rev=' + AppVerRevision.ToString);
-    end;
-  end;
+  ParseCommandLine(ConnectionParams, FileNames);
 
   if ConnectionParams <> nil then begin
     // Minimal parameter for command line mode is hostname
