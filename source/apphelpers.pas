@@ -360,7 +360,12 @@ type
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
   function GetTempDir: String;
+  // Return directory of running executable, including a trailing path delimiter
   function GetAppDir: String;
+  // Return directory with dlls or dylibs, or empty string for auto-detection
+  function GetLibDir: String;
+  // Return directory with MySQL plugin files. Empty on Linux inidicating auto-detection.
+  function GetPluginDir: String;
   procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
   function DetectEncoding(Stream: TStream): TEncoding;
@@ -1308,6 +1313,17 @@ end;
 function GetAppDir: String;
 begin
   Result := ExtractFilePath(Application.ExeName);
+end;
+
+function GetLibDir: String;
+begin
+  Result := GetAppDir;
+end;
+
+function GetPluginDir: String;
+begin
+  Result := GetLibDir;
+  Result := Result + 'plugins' + PathDelim;
 end;
 
 {**

@@ -1487,7 +1487,9 @@ begin
     FPort := MakeInt(AppSettings.ReadString(asPort));
     FCompressed := AppSettings.ReadBool(asCompressed);
     FAllDatabases := AppSettings.ReadString(asDatabases);
-    FLibraryOrProvider := AppSettings.ReadString(asLibrary, '', DefaultLibrary);
+    FLibraryOrProvider := AppSettings.ReadString(asLibrary);
+    if not FileExists(GetLibDir + FLibraryOrProvider) then
+      FLibraryOrProvider := DefaultLibrary; // Catches empty string and any non-existant file
     FComment := AppSettings.ReadString(asComment);
 
     // Auto-activate SSH for sessions created before asSSHtunnelActive was introduced
@@ -2049,7 +2051,7 @@ begin
     end;
     case NetTypeGroup of
       ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
-        Dlls := TDirectory.GetFiles(GetAppDir, '*.dll');
+        Dlls := TDirectory.GetFiles(GetLibDir, '*.dll');
         for DllPath in Dlls do begin
           DllFile := ExtractFileName(DllPath);
           if rx.Exec(DllFile) then begin
@@ -2540,9 +2542,11 @@ begin
     if Parameters.WantSSL and (not FLib.IsLibMariadb) then
       ClientFlags := ClientFlags or CLIENT_SSL;
 
-    // Point libmysql to the folder with client plugins
-    PluginDir := AnsiString(GetAppDir+'plugins');
-    SetOption(FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
+    if not GetPluginDir.IsEmpty then begin
+      // Point libmysql to the folder with client plugins
+      PluginDir := AnsiString(GetPluginDir);
+      SetOption(FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
+    end;
 
     // Enable cleartext plugin
     if Parameters.CleartextPluginEnabled then
@@ -3309,7 +3313,7 @@ var
   LibraryPath: String;
 begin
   // Init libmysql before actually connecting.
-  LibraryPath := GetAppDir + Parameters.LibraryOrProvider;
+  LibraryPath := GetLibDir + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
   FLib := TMySQLLib.Create(LibraryPath, Parameters.DefaultLibrary);
@@ -3324,7 +3328,7 @@ var
   msg: String;
 begin
   // Init lib before actually connecting.
-  LibraryPath := GetAppDir + Parameters.LibraryOrProvider;
+  LibraryPath := GetLibDir + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   try
     FLib := TPostgreSQLLib.Create(LibraryPath, Parameters.DefaultLibrary);
@@ -3355,7 +3359,7 @@ var
   LibraryPath: String;
 begin
   // Init lib before actually connecting.
-  LibraryPath := GetAppDir + Parameters.LibraryOrProvider;
+  LibraryPath := GetLibDir + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
   if Parameters.NetType = ntSQLite then
