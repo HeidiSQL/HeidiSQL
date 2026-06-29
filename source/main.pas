@@ -13724,6 +13724,9 @@ begin
   if Column <> 0 then
     Exit;
   Obj := Sender.GetNodeData(Node);
+  // Prevent crash during refresh on disconnected session, see issue #2472
+  if (Obj.Connection = nil) or (not Obj.Connection.Active) then
+    Exit;
   if Obj.NodeType in [lntTable..lntEvent] then begin
     if Obj.Connection.Favorites.IndexOf(Obj.Path) > -1 then
       ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 168)
