@@ -3861,7 +3861,7 @@ begin
   InitSetting(asIgnoreDatabasePattern,            'IgnoreDatabasePattern',                 0, False, '', True);
   InitSetting(asLogFileDdl,                       'LogFileDdl',                            0, False, '', True);
   InitSetting(asLogFileDml,                       'LogFileDml',                            0, False, '', True);
-  InitSetting(asLogFilePath,                      'LogFilePath',                           0, False, DirnameUserAppData + 'Logs\%session\%db\%y%m%d.sql', True);
+  InitSetting(asLogFilePath,                      'LogFilePath',                           0, False, DirnameUserAppData + 'Logs'+PathDelim+'%session'+PathDelim+'%db'+PathDelim+'%y%m%d.sql', True);
   if Screen.Fonts.IndexOf('Consolas') > -1 then
     InitSetting(asFontName,                       'FontName',                              0, False, 'Consolas')
   else
@@ -3877,7 +3877,7 @@ begin
   InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          GetThemeColor(clInfoBk));
   InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
   InitSetting(asLogsqlwidth,                      'logsqlwidth',                           2000);
-  InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs\');
+  InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs' + PathDelim);
   InitSetting(asLogHorizontalScrollbar,           'LogHorizontalScrollbar',                0, False);
   InitSetting(asSQLColActiveLine,                 'SQLColActiveLine',                      0, False, 'clNone');
   InitSetting(asSQLColMatchingBraceForeground,    'SQLColMatchingBraceForeground',         0, False, 'clBlack');
@@ -4075,7 +4075,7 @@ begin
   InitSetting(asDisplayReverseForeignKeys,        'DisplayReverseForeignKeys',             0, False);
   InitSetting(asGenerateDataNumRows,              'GenerateDataNumRows',                   1000);
   InitSetting(asGenerateDataNullAmount,           'GenerateDataNullAmount',                10);
-  InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DirnameUserDocuments + 'Snippets\');
+  InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DirnameUserDocuments + 'Snippets' + PathDelim);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   // Restore tabs feature crashes often on old XP systems, see https://www.heidisql.com/forum.php?t=34044
   InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, Win32MajorVersion >= 6);
@@ -4775,7 +4775,7 @@ end;
 function TAppSettings.DirnameBackups: String;
 begin
   // Create backup folder if it does not exist and return it
-  Result := DirnameUserAppData + 'Backups\';
+  Result := DirnameUserAppData + 'Backups' + PathDelim;
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
@@ -4784,7 +4784,7 @@ end;
 
 function TAppSettings.DirnameHighlighters: string;
 begin
-  Result := DirnameUserAppData + 'Highlighters\';
+  Result := DirnameUserAppData + 'Highlighters' + PathDelim;
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
