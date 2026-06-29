@@ -1284,7 +1284,7 @@ begin
   Result := GetAppDir;
   {$ENDIF}
   {$IFDEF DARWIN}
-  Result := GetAppDir + '..' + DirectorySeparator + 'Frameworks' + DirectorySeparator;
+  Result := GetAppDir + '..' + PathDelim + 'Frameworks' + PathDelim;
   {$ENDIF}
   {$IFDEF LINUX}
   Result := '';
@@ -1301,7 +1301,7 @@ begin
   // macOS: use the Frameworks directory, where all other libs reside
   Result := GetLibDir;
   {$IFDEF WINDOWS}
-  Result := Result + 'plugins' + DirectorySeparator;
+  Result := Result + 'plugins' + PathDelim;
   {$ENDIF}
 end;
 
@@ -1309,7 +1309,7 @@ function GetResourcesDir: String;
 begin
   Result := GetAppDir;
   {$IFDEF DARWIN}
-  Result := GetAppDir + '..' + DirectorySeparator + 'Resources' + DirectorySeparator;
+  Result := GetAppDir + '..' + PathDelim + 'Resources' + PathDelim;
   {$ENDIF}
   {$IFDEF FREEBSD}
   Result := '/usr/local/share/heidisql/';
@@ -3580,7 +3580,7 @@ begin
   InitSetting(asIgnoreDatabasePattern,            'IgnoreDatabasePattern',                 0, False, '', True);
   InitSetting(asLogFileDdl,                       'LogFileDdl',                            0, False, '', True);
   InitSetting(asLogFileDml,                       'LogFileDml',                            0, False, '', True);
-  InitSetting(asLogFilePath,                      'LogFilePath',                           0, False, DirnameUserAppData + 'Logs'+DirectorySeparator+'%session'+DirectorySeparator+'%db'+DirectorySeparator+'%y%m%d.sql', True);
+  InitSetting(asLogFilePath,                      'LogFilePath',                           0, False, DirnameUserAppData + 'Logs'+PathDelim+'%session'+PathDelim+'%db'+PathDelim+'%y%m%d.sql', True);
   if Screen.Fonts.IndexOf('Consolas') > -1 then
     InitSetting(asFontName,                       'FontName',                              0, False, 'Consolas')
   else
@@ -3596,7 +3596,7 @@ begin
   InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          GetThemeColor(NoteLineBackground));
   InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
   InitSetting(asLogsqlwidth,                      'logsqlwidth',                           2000);
-  InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs' + DirectorySeparator);
+  InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs' + PathDelim);
   InitSetting(asLogHorizontalScrollbar,           'LogHorizontalScrollbar',                0, False);
   InitSetting(asSQLColActiveLine,                 'SQLColActiveLine',                      0, False, 'clNone');
   InitSetting(asSQLColMatchingBraceForeground,    'SQLColMatchingBraceForeground',         0, False, 'clBlack');
@@ -3795,7 +3795,7 @@ begin
   InitSetting(asDisplayReverseForeignKeys,        'DisplayReverseForeignKeys',             0, False);
   InitSetting(asGenerateDataNumRows,              'GenerateDataNumRows',                   1000);
   InitSetting(asGenerateDataNullAmount,           'GenerateDataNullAmount',                10);
-  InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DirnameUserDocuments + 'Snippets' + DirectorySeparator);
+  InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DirnameUserDocuments + 'Snippets' + PathDelim);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   // Restore tabs feature crashes often on old XP systems, see https://www.heidisql.com/forum.php?t=34044
   InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, True);
@@ -4448,7 +4448,7 @@ end;
 function TAppSettings.DirnameBackups: String;
 begin
   // Create backup folder if it does not exist and return it
-  Result := DirnameUserAppData + 'Backups' + DirectorySeparator;
+  Result := DirnameUserAppData + 'Backups' + PathDelim;
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
@@ -4457,7 +4457,7 @@ end;
 
 function TAppSettings.DirnameHighlighters: string;
 begin
-  Result := DirnameUserAppData + 'Highlighters' + DirectorySeparator;
+  Result := DirnameUserAppData + 'Highlighters' + PathDelim;
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
