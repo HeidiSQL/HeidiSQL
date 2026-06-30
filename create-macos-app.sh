@@ -15,6 +15,7 @@ done
 APP_NAME="heidisql"
 BUNDLE_NAME="${APP_NAME}.app"
 APP_DIR="$(pwd)/${BUNDLE_NAME}"
+LPI_FILE="$(pwd)/heidisql.lpi"
 
 # Path to the already built Lazarus executable
 EXECUTABLE_SRC="$(pwd)/out/heidisql"
@@ -31,6 +32,33 @@ CODESIGN_IDENTITY="Developer ID Application: Ansgar Becker (${TEAM_ID})"
 NOTARY_PROFILE="notarytool-profile"
 
 LOCALES_ZIP_URL="https://www.heidisql.com/downloads/locale/HeidiSQL-locale.zip"
+
+
+### FUNCTION: get release version string from Lazarus project file
+
+get_version_from_lpi() {
+  local lpi="$1"
+  [[ -f "$lpi" ]] || return 1
+
+  local major minor release build
+  major=$(xmllint --xpath 'string(//CONFIG/ProjectOptions/VersionInfo/MajorVersionNr/@Value)' "$lpi" 2>/dev/null || true)
+  minor=$(xmllint --xpath 'string(//CONFIG/ProjectOptions/VersionInfo/MinorVersionNr/@Value)' "$lpi" 2>/dev/null || true)
+  release=$(xmllint --xpath 'string(//CONFIG/ProjectOptions/VersionInfo/RevisionNr/@Value)' "$lpi" 2>/dev/null || true)
+  build=$(xmllint --xpath 'string(//CONFIG/ProjectOptions/VersionInfo/BuildNr/@Value)' "$lpi" 2>/dev/null || true)
+
+  if [[ -n "$major" && -n "$minor" ]]; then
+    if [[ -n "$release" && -n "$build" ]]; then
+      echo "${major}.${minor}.${release}.${build}"
+    else
+      echo "${major}.${minor}"
+    fi
+    return 0
+  fi
+  return 1
+}
+
+APP_VERSION="$(get_version_from_lpi "$LPI_FILE" || echo "1.0")"
+
 
 ### INSTALL REQUIRED LIBRARIES VIA HOMEBREW
 
@@ -80,11 +108,11 @@ cat > "${APP_DIR}/Contents/Info.plist" <<EOF
   <key>CFBundleDisplayName</key>
   <string>${APP_NAME}</string>
   <key>CFBundleIdentifier</key>
-  <string>com.example.${APP_NAME}</string>
+  <string>com.${APP_NAME}.${APP_NAME}</string>
   <key>CFBundleVersion</key>
-  <string>1.0</string>
+  <string>${APP_VERSION}</string>
   <key>CFBundleShortVersionString</key>
-  <string>1.0</string>
+  <string>${APP_VERSION}</string>
   <key>CFBundleExecutable</key>
   <string>${APP_NAME}</string>
   <key>CFBundlePackageType</key>
