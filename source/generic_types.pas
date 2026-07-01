@@ -53,6 +53,18 @@ type
       procedure ApplyDark;
   end;
 
+  TProposalItem = class(TObject)
+    public
+      InsertText: string;
+      LeftText, CenterText, RightText: String;
+      ImageIndex: Integer;
+      LeftColor, CenterColor, RightColor: TColor;
+  end;
+  TProposalItemList = class(TObjectList<TProposalItem>)
+    public
+      function AddNew(InsertText: String; ImageIndex: Integer; LeftText, CenterText: String; RightText: String=''; LeftColor: TColor=-1): TProposalItem;
+  end;
+
   TFileExtImageIndex = record
     Ext: String;
     ImageIndex: Integer;
@@ -79,6 +91,7 @@ const FileExtImageIndex: array[0..16] of TFileExtImageIndex = (
   (Ext: 'pdf';           ImageIndex: 44),
   (Ext: 'sqlite3';       ImageIndex: 196)
   );
+
 
 var
   AppColorSchemes: TAppColorSchemes;
@@ -343,6 +356,26 @@ begin
     end;
   end;
 end;
+
+
+function TProposalItemList.AddNew(InsertText: String; ImageIndex: Integer;
+  LeftText, CenterText: String; RightText: String=''; LeftColor: TColor=-1): TProposalItem;
+begin
+  Result := TProposalItem.Create;
+  Result.InsertText := InsertText;
+  Result.ImageIndex := ImageIndex;
+  Result.LeftText := LeftText;
+  Result.CenterText := CenterText;
+  Result.RightText := RightText;
+  if LeftColor = -1 then
+    Result.LeftColor := clGrayText
+  else
+    Result.LeftColor := LeftColor;
+  Result.CenterColor := clWindowText;
+  Result.RightColor := clGrayText;
+  Add(Result);
+end;
+
 
 initialization
 

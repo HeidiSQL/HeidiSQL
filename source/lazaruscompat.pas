@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, SynEdit, SynEditKeyCmds, SynEditHighlighter, laz.VirtualTrees,
-  Graphics;
+  Graphics, SynCompletion;
 
 type
 
@@ -26,6 +26,10 @@ type
   TSynHighlighterAttributesHelper = class helper for TSynHighlighterAttributes
     public
       procedure AssignColorAndStyle(Source: TSynHighlighterAttributes);
+  end;
+  TSynCompletionHelper = class helper for TSynCompletion
+    public
+      function IndexFromVisibleIndex(AIndex: Integer): Integer;
   end;
 
   TVTHeaderHelper = class helper for TVTHeader
@@ -225,6 +229,12 @@ begin
   if bChanged then
     Changed;
 end;
+
+function TSynCompletionHelper.IndexFromVisibleIndex(AIndex: Integer): Integer;
+begin
+  Result := PtrInt(ItemList.Objects[AIndex]);
+end;
+
 
 procedure TVTHeaderHelper.AutoFitColumnsWithHeaderMin;
 var

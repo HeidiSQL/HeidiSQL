@@ -866,6 +866,11 @@ type
     procedure actDataCancelChangesExecute(Sender: TObject);
     procedure actExportDataExecute(Sender: TObject);
     procedure actDataPreviewExecute(Sender: TObject);
+    function SynCompletionProposalMeasureItem(const AKey: string;
+      ACanvas: TCanvas; Selected: boolean; Index: integer): TPoint;
+    function SynCompletionProposalPaintItem(const AKey: string;
+      ACanvas: TCanvas; X, Y: integer; Selected: boolean; Index: integer
+      ): boolean;
     procedure UpdatePreviewPanel;
     procedure actInsertFilesExecute(Sender: TObject);
     procedure actDataDeleteExecute(Sender: TObject);
@@ -1309,7 +1314,10 @@ type
     FCommandStatsQueryCount: Int64;
     FCommandStatsServerUptime: Integer;
     FVariableNames, FSessionVars, FGlobalVars: TStringList;
-    FProposalItems: TStringList;
+    FProposalItems: TProposalItemList;
+    FProposalCol1Width: Integer;
+    FProposalCol2Width: Integer;
+    FProposalCol3Width: Integer;
     FProposalTriggeredByDot: Boolean;
 
     procedure SetDelimiter(Value: String);
@@ -1794,6 +1802,7 @@ begin
   AppSettings.WriteString(asDelimiter, FDelimiter);
   AppSettings.WriteInt(asQuerymemoheight, ScaleFormToDesign(pnlQueryMemo.Height));
   AppSettings.WriteInt(asQueryhelperswidth, ScaleFormToDesign(pnlQueryHelpers.Width));
+  // This saves a too small width (mostly 15), probably because the proposal is not visible now:
   AppSettings.WriteInt(asCompletionProposalWidth, ScaleFormToDesign(SynCompletionProposal.Width));
   AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.LinesInWindow);
   AppSettings.WriteInt(asDbtreewidth, ScaleFormToDesign(pnlLeft.width));
@@ -2071,9 +2080,9 @@ begin
   // We already store and restore the dimensions DPI aware.
   {SynCompletionProposal.Form.Scaled := False;
   SynCompletionProposal.TimerInterval := AppSettings.ReadInt(asCompletionProposalInterval);}
-  SynCompletionProposal.Width := Min(AppSettings.ReadInt(asCompletionProposalWidth), 1000);
+  //SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
   SynCompletionProposal.LinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
-  FProposalItems := TStringList.Create;
+  FProposalItems := TProposalItemList.Create;
   FProposalTriggeredByDot := False;
 
   // Place progressbar on the statusbar
@@ -3584,6 +3593,85 @@ begin
   spltPreview.Visible := MakeVisible;
   if MakeVisible then
     UpdatePreviewPanel;
+end;
+
+function TMainForm.SynCompletionProposalMeasureItem(const AKey: string;
+  ACanvas: TCanvas; Selected: boolean; Index: integer): TPoint;
+var
+  i, X, Y: Integer;
+  It: TProposalItem;
+begin
+  FProposalCol1Width := 0;
+  FProposalCol2Width := 0;
+
+  ACanvas.Font.Style := [fsBold];
+  for i := 0 to SynCompletionProposal.ItemList.Count - 1 do
+  begin
+    It := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(i)];
+    FProposalCol1Width := Max(FProposalCol1Width, ACanvas.TextWidth(It.LeftText));
+  end;
+
+  ACanvas.Font.Style := [fsItalic];
+  for i := 0 to SynCompletionProposal.ItemList.Count - 1 do
+  begin
+    It := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(i)];
+    FProposalCol2Width := Max(FProposalCol2Width, ACanvas.TextWidth(It.CenterText));
+  end;
+
+  //if SynCompletionProposal.Width < 100 then begin
+  //  SynCompletionProposal.Width := ImageListMain.Width + FProposalCol1Width + FProposalCol2Width + 100;
+  //end;
+
+  ACanvas.Font.Style := [];
+  It := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(Index)];
+  X := ImageListMain.Width + 5 + FProposalCol1Width + 10;
+  if It.RightText.IsEmpty then
+    Inc(X, ACanvas.TextWidth(It.CenterText))
+  else
+    Inc(X, FProposalCol2Width + 10 + ACanvas.TextWidth(It.RightText));
+  Y := Max(ImageListMain.Height, ACanvas.TextHeight('Wy')) + 4;
+  Result := Point(X, Y);
+end;
+
+function TMainForm.SynCompletionProposalPaintItem(const AKey: string;
+  ACanvas: TCanvas; X, Y: integer; Selected: boolean; Index: integer): boolean;
+var
+  It: TProposalItem;
+  X1, X2, X3: Integer;
+begin
+  It := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(Index)];
+
+  if (It.ImageIndex >= 0) and (It.ImageIndex < ImageListMain.Count) then
+    ImageListMain.Draw(ACanvas, X + 4, Y + 2, It.ImageIndex, True);
+
+  X1 := X + ImageListMain.Width + 5;
+  X2 := X1 + FProposalCol1Width + 10;
+  X3 := X2 + FProposalCol2Width + 10;
+
+  ACanvas.Brush.Style := bsClear;
+
+  ACanvas.Font.Style := [];
+  if Selected then
+    ACanvas.Font.Color := clWhite
+  else
+    ACanvas.Font.Color := It.LeftColor;
+  ACanvas.TextOut(X1, Y + 1, It.LeftText);
+
+  ACanvas.Font.Style := [];
+  if Selected then
+    ACanvas.Font.Color := clWhite
+  else
+    ACanvas.Font.Color := It.CenterColor;
+  ACanvas.TextOut(X2, Y + 1, It.CenterText);
+
+  ACanvas.Font.Style := [fsItalic];
+  if Selected then
+    ACanvas.Font.Color := clWhite
+  else
+    ACanvas.Font.Color := It.RightColor;
+  ACanvas.TextOut(X3, Y + 1, It.RightText);
+
+  Result := True;
 end;
 
 
@@ -6832,7 +6920,6 @@ var
   Conn: TDBConnection;
   RoutineEditor: TfrmRoutineEditor;
   Param: TRoutineParam;
-  DisplayText: String;
   SQLFunc: TSQLFunction;
   DummyPos: Integer=0;
 
@@ -6857,8 +6944,7 @@ var
       FuncParams.Free;
     end;
 
-    DisplayText := SynCompletionProposalPrettyText(Obj.ImageIndex, _(LowerCase(Obj.ObjType)), Obj.Name, FunctionDeclaration);
-    FProposalItems.Add(Obj.Name+FunctionDeclaration);
+    FProposalItems.AddNew(Obj.Name+FunctionDeclaration, Obj.ImageIndex, _(LowerCase(Obj.ObjType)), Obj.Name, FunctionDeclaration);
   end;
 
   procedure AddColumns(const LeftToken: String);
@@ -6897,11 +6983,10 @@ var
             end;
           end;
           // Put formatted text and icon into proposal
-          DisplayText := SynCompletionProposalPrettyText(ColumnIcon, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, AppColorSchemes.First.GridNullColors[Col.DataType.Category]);
           //if CurrentInput.StartsWith(Conn.QuoteChar) then
           //  Proposal.ItemList.Add(Conn.QuoteChar + Col.Name)
           //else
-            FProposalItems.Add(Col.Name);
+            FProposalItems.AddNew(Col.Name, ColumnIcon, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, AppColorSchemes.First.GridNullColors[Col.DataType.Category]);
           Inc(ColumnsInList);
         end;
         Columns.Free;
@@ -6942,8 +7027,7 @@ begin
     try
       Results := Conn.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
-        DisplayText := SynCompletionProposalPrettyText(ICONINDEX_PRIMARYKEY, _('Variable'), Results.Col(0), StringReplace(Results.Col(1), '\', '\\', [rfReplaceAll]));
-        FProposalItems.Add(Results.Col(1));
+        FProposalItems.AddNew(Results.Col(1), ICONINDEX_PRIMARYKEY, _('Variable'), Results.Col(0), StringReplace(Results.Col(1), '\', '\\', [rfReplaceAll]));
         Results.Next;
       end;
     except
@@ -7039,8 +7123,7 @@ begin
 
       // All databases
       for i:=0 to Conn.AllDatabases.Count-1 do begin
-        DisplayText := SynCompletionProposalPrettyText(ICONINDEX_DB, _('database'), Conn.AllDatabases[i], '');
-        FProposalItems.Add(Conn.AllDatabases[i]);
+        FProposalItems.AddNew(Conn.AllDatabases[i], ICONINDEX_DB, _('database'), Conn.AllDatabases[i]);
       end;
 
       // Tables from current db
@@ -7056,15 +7139,13 @@ begin
 
       // Functions
       for SQLFunc in Conn.SQLFunctions do begin
-        DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FUNCTION, _('function'), SQLFunc.Name, SQLFunc.Declaration);
-        FProposalItems.Add(SQLFunc.Name + SQLFunc.Declaration);
+        FProposalItems.AddNew(SQLFunc.Name + SQLFunc.Declaration, ICONINDEX_FUNCTION, _('function'), SQLFunc.Name, SQLFunc.Declaration);
       end;
 
 
       // Keywords
       for i:=0 to MySQLKeywords.Count-1 do begin
-        DisplayText := SynCompletionProposalPrettyText(ICONINDEX_KEYWORD, _('keyword'), MySQLKeywords[i], '');
-        FProposalItems.Add(MySQLKeywords[i]);
+        FProposalItems.AddNew(MySQLKeywords[i], ICONINDEX_KEYWORD, _('keyword'), MySQLKeywords[i]);
       end;
 
       // Procedure params
@@ -7075,8 +7156,7 @@ begin
           else if Param.Context = 'OUT' then ImageIndex := 121
           else if Param.Context = 'INOUT' then ImageIndex := 122
           else ImageIndex := -1;
-          DisplayText := SynCompletionProposalPrettyText(ImageIndex, Param.Datatype, Param.Name, '');
-          FProposalItems.Add(Param.Name);
+          FProposalItems.AddNew(Param.Name, ImageIndex, Param.Datatype, Param.Name);
         end;
       end;
 
@@ -7105,10 +7185,10 @@ begin
   //logsql('SynCompletionProposalSearchPosition CurrentString:'+CurrentStr+' StartsText:');
   for i:=0 to FProposalItems.Count-1 do begin
     if CurrentStr.IsEmpty
-      or (SearchOnMid and LowerCase(FProposalItems[i]).Contains(LowerCase(CurrentStr)))
-      or ((not SearchOnMid) and LazStartsText(CurrentStr, FProposalItems[i]))
+      or (SearchOnMid and LowerCase(FProposalItems[i].InsertText).Contains(LowerCase(CurrentStr)))
+      or ((not SearchOnMid) and LazStartsText(CurrentStr, FProposalItems[i].InsertText))
       then
-      Proposal.ItemList.Add(FProposalItems[i]);
+      Proposal.ItemList.AddObject(FProposalItems[i].InsertText, TObject(PtrInt(i)));
   end;
   Proposal.ItemList.EndUpdate;
 end;

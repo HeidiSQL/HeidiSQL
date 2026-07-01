@@ -423,7 +423,6 @@ type
   function GetThemeColor(Color: TColor): TColor;
   function ThemeIsDark: Boolean;
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
-  function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
   function PopupComponent(Sender: TObject): TComponent;
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TComponentList);
   function GetOS: String;
@@ -2871,19 +2870,6 @@ begin
     ContinueLoop := Process32Next(SnapShot, Proc);
   end;
   CloseHandle(Snapshot);}
-end;
-
-
-function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String;
-  LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
-const
-  LineFormat = '\image{%d}\hspace{5}\color{%s}%s\column{}\color{%s}%s\hspace{10}\color{%s}\style{+i}%s';
-begin
-  // Return formatted item string for a TSynCompletionProposal
-  if LeftColor = -1 then LeftColor := clGrayText;
-  if CenterColor = -1 then CenterColor := clWindowText;
-  if RightColor = -1 then RightColor := clGrayText;
-  Result := Format(LineFormat, [ImageIndex, ColorToString(LeftColor), LeftText, ColorToString(CenterColor), CenterText, ColorToString(RightColor), RightText]);
 end;
 
 
