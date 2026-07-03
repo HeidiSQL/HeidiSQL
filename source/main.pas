@@ -1315,9 +1315,7 @@ type
     FCommandStatsServerUptime: Integer;
     FVariableNames, FSessionVars, FGlobalVars: TStringList;
     FProposalItems: TProposalItemList;
-    FProposalCol1Width: Integer;
-    FProposalCol2Width: Integer;
-    FProposalCol3Width: Integer;
+    FProposalLeftWidth: Integer;
     FProposalTriggeredByDot: Boolean;
 
     procedure SetDelimiter(Value: String);
@@ -1802,8 +1800,7 @@ begin
   AppSettings.WriteString(asDelimiter, FDelimiter);
   AppSettings.WriteInt(asQuerymemoheight, ScaleFormToDesign(pnlQueryMemo.Height));
   AppSettings.WriteInt(asQueryhelperswidth, ScaleFormToDesign(pnlQueryHelpers.Width));
-  // This saves a too small width (mostly 15), probably because the proposal is not visible now:
-  AppSettings.WriteInt(asCompletionProposalWidth, ScaleFormToDesign(SynCompletionProposal.Width));
+  AppSettings.WriteInt(asCompletionProposalWidth, ScaleFormToDesign(SynCompletionProposal.TheForm.Width));
   AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.LinesInWindow);
   AppSettings.WriteInt(asDbtreewidth, ScaleFormToDesign(pnlLeft.width));
   AppSettings.WriteBool(asGroupTreeObjects, actGroupObjects.Checked);
@@ -2080,7 +2077,7 @@ begin
   // We already store and restore the dimensions DPI aware.
   {SynCompletionProposal.Form.Scaled := False;
   SynCompletionProposal.TimerInterval := AppSettings.ReadInt(asCompletionProposalInterval);}
-  //SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
+  SynCompletionProposal.TheForm.Width := Max(AppSettings.ReadInt(asCompletionProposalWidth), 50);
   SynCompletionProposal.LinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
   FProposalItems := TProposalItemList.Create;
   FProposalTriggeredByDot := False;
@@ -3599,37 +3596,23 @@ function TMainForm.SynCompletionProposalMeasureItem(const AKey: string;
   ACanvas: TCanvas; Selected: boolean; Index: integer): TPoint;
 var
   i, X, Y: Integer;
-  It: TProposalItem;
+  Item: TProposalItem;
 begin
-  FProposalCol1Width := 0;
-  FProposalCol2Width := 0;
-
-  ACanvas.Font.Style := [fsBold];
-  for i := 0 to SynCompletionProposal.ItemList.Count - 1 do
-  begin
-    It := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(i)];
-    FProposalCol1Width := Max(FProposalCol1Width, ACanvas.TextWidth(It.LeftText));
-  end;
-
-  ACanvas.Font.Style := [fsItalic];
-  for i := 0 to SynCompletionProposal.ItemList.Count - 1 do
-  begin
-    It := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(i)];
-    FProposalCol2Width := Max(FProposalCol2Width, ACanvas.TextWidth(It.CenterText));
-  end;
-
-  //if SynCompletionProposal.Width < 100 then begin
-  //  SynCompletionProposal.Width := ImageListMain.Width + FProposalCol1Width + FProposalCol2Width + 100;
-  //end;
+  // Calculate how much vertical and horizontal space the control reserves for this row
+  FProposalLeftWidth := 0;
 
   ACanvas.Font.Style := [];
-  It := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(Index)];
-  X := ImageListMain.Width + 5 + FProposalCol1Width + 10;
-  if It.RightText.IsEmpty then
-    Inc(X, ACanvas.TextWidth(It.CenterText))
-  else
-    Inc(X, FProposalCol2Width + 10 + ACanvas.TextWidth(It.RightText));
-  Y := Max(ImageListMain.Height, ACanvas.TextHeight('Wy')) + 4;
+  for i := 0 to SynCompletionProposal.ItemList.Count - 1 do begin
+    Item := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(i)];
+    FProposalLeftWidth := Max(FProposalLeftWidth, ACanvas.TextWidth(Item.LeftText));
+  end;
+
+  Item := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(Index)];
+  X := Space + ImageListMain.WidthForPPI[16, PixelsPerInch]
+    + Space + FProposalLeftWidth
+    + Space(2) + ACanvas.TextWidth(Item.CenterText)
+    + IfThen(Item.RightText.IsEmpty, 0, Space(2) + ACanvas.TextWidth(Item.RightText));
+  Y := Max(ImageListMain.HeightForPPI[16, PixelsPerInch] + 2, ACanvas.TextHeight('Wy')) + Space;
   Result := Point(X, Y);
 end;
 
@@ -3642,34 +3625,25 @@ begin
   It := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(Index)];
 
   if (It.ImageIndex >= 0) and (It.ImageIndex < ImageListMain.Count) then
-    ImageListMain.Draw(ACanvas, X + 4, Y + 2, It.ImageIndex, True);
-
-  X1 := X + ImageListMain.Width + 5;
-  X2 := X1 + FProposalCol1Width + 10;
-  X3 := X2 + FProposalCol2Width + 10;
+    ImageListMain.Draw(ACanvas, X + Space, Y + 1, It.ImageIndex, True);
 
   ACanvas.Brush.Style := bsClear;
 
+  X1 := X + Space + ImageListMain.WidthForPPI[16, PixelsPerInch] + Space;
   ACanvas.Font.Style := [];
-  if Selected then
-    ACanvas.Font.Color := clWhite
-  else
-    ACanvas.Font.Color := It.LeftColor;
+  ACanvas.Font.Color := IfThen(Selected, clWhite, It.LeftColor);
   ACanvas.TextOut(X1, Y + 1, It.LeftText);
 
-  ACanvas.Font.Style := [];
-  if Selected then
-    ACanvas.Font.Color := clWhite
-  else
-    ACanvas.Font.Color := It.CenterColor;
+  X2 := X1 + FProposalLeftWidth + Space(2);
+  ACanvas.Font.Color := IfThen(Selected, clWhite, It.CenterColor);
   ACanvas.TextOut(X2, Y + 1, It.CenterText);
 
-  ACanvas.Font.Style := [fsItalic];
-  if Selected then
-    ACanvas.Font.Color := clWhite
-  else
-    ACanvas.Font.Color := It.RightColor;
-  ACanvas.TextOut(X3, Y + 1, It.RightText);
+  if not It.CenterText.IsEmpty then begin
+    X3 := X2 + ACanvas.TextWidth(It.CenterText) + Space(2);
+    ACanvas.Font.Style := [fsItalic];
+    ACanvas.Font.Color := IfThen(Selected, clWhite, It.RightColor);
+    ACanvas.TextOut(X3, Y + 1, It.RightText);
+  end;
 
   Result := True;
 end;
@@ -12750,7 +12724,7 @@ begin
   end;
   AppSettings.DeleteValue(asCompletionProposalWidth);
   AppSettings.DeleteValue(asCompletionProposalNbLinesInWindow);
-  SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
+  SynCompletionProposal.TheForm.Width := Max(AppSettings.ReadInt(asCompletionProposalWidth), 50);
   SynCompletionProposal.LinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
 end;
 

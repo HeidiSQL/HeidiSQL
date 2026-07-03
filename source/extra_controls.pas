@@ -25,6 +25,8 @@ type
       class procedure RestoreListSetup(List: TLazVirtualStringTree);
       function ScaleSize(x: Extended): Integer; overload;
       class function ScaleSize(x: Extended; Control: TControl): Integer; overload;
+      // Returns a PPI-aware width of a space character
+      function Space(Multiply: Integer=1): Integer;
       class procedure PageControlTabHighlight(PageControl: TPageControl);
       class procedure ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
   end;
@@ -278,6 +280,11 @@ class function TExtForm.ScaleSize(x: Extended; Control: TControl): Integer;
 begin
   // Same as above for callers without a form
   Result := Control.Scale96ToForm(Round(x));
+end;
+
+function TExtForm.Space(Multiply: Integer=1): Integer;
+begin
+  Result := Canvas.TextWidth(' ') * Multiply;
 end;
 
 
