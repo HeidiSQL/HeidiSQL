@@ -8192,15 +8192,17 @@ begin
   menuSQLHelpData.Enabled := InDataGrid;
   Refresh3.Enabled := InDataGrid;
   actGridEditFunction.Enabled := CellFocused;
+  actFollowForeignKey.Enabled := False;
 
   if not CellFocused then
+    Exit;
+  if not InDataGrid then
     Exit;
   Results := GridResult(Grid);
 
   Datatype := Results.DataType(Grid.FocusedColumn-1);
   Col := Results.Connection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn-1], False);
-  if InDataGrid
-    and (Datatype.Index = dbdtJson)
+  if (Datatype.Index = dbdtJson)
     and Results.Connection.Parameters.IsAnyPostgreSQL then begin
     Col := Col + '::text';
   end;
@@ -8218,7 +8220,7 @@ begin
   HasNotNullValue := False;
   OldDataLocalNumberFormat := DataLocalNumberFormat;
   DataLocalNumberFormat := False;
-  IncludedValues := TStringList.Create;
+  IncludedValues := TStringList.Create; // Used to skip duplicates
   while Assigned(Node) do begin
     AnyGridEnsureFullRow(Grid, Node);
     RowNumber := Grid.GetNodeData(Node);
@@ -8246,7 +8248,7 @@ begin
       end;
     end;
     Node := Grid.GetNextSelected(Node);
-    if Length(actQuickFilterFocused1.Hint) > SIZE_MB then
+    if Length(actQuickFilterFocused1.Hint) > SIZE_KB then
       Break;
   end;
   DataLocalNumberFormat := OldDataLocalNumberFormat;
@@ -8333,20 +8335,17 @@ begin
     // Stop here
     if Act = actRemoveFilter then
       Break;
-    if not Act.Hint.IsEmpty then
+    if not IsEmpty(Act.Hint) then
       Act.Caption := StrEllipsis(Act.Hint, 100);
   end;
 
-  actFollowForeignKey.Enabled := False;
-  if (InDataGrid) then begin
-    FocusedColumnName := Results.ColumnOrgNames[Grid.FocusedColumn-1];
-    //find foreign key for current column
-    for ForeignKey in ActiveDBObj.TableForeignKeys do begin
-      i := ForeignKey.Columns.IndexOf(FocusedColumnName);
-      if i > -1 then begin
-        actFollowForeignKey.Enabled := True;
-        break;
-      end;
+  FocusedColumnName := Results.ColumnOrgNames[Grid.FocusedColumn-1];
+  //find foreign key for current column
+  for ForeignKey in ActiveDBObj.TableForeignKeys do begin
+    i := ForeignKey.Columns.IndexOf(FocusedColumnName);
+    if i > -1 then begin
+      actFollowForeignKey.Enabled := True;
+      break;
     end;
   end;
 end;
