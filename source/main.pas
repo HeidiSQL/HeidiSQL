@@ -6766,7 +6766,7 @@ begin
   actExecuteQuery.Enabled := HasConnection and InQueryTab and NotEmpty and (not Tab.QueryRunning);
   actExecuteSelection.Enabled := HasConnection and InQueryTab and HasSelection and (not Tab.QueryRunning);
   actExecuteCurrentQuery.Enabled := actExecuteQuery.Enabled;
-  actExplainCurrentQuery.Enabled := actExecuteQuery.Enabled and (Conn.Parameters.NetTypeGroup in [ngMySQL, ngPgSQL, ngSQLite]);
+  actExplainCurrentQuery.Enabled := actExecuteQuery.Enabled and Conn.SqlProvider.Has(qExplain);
   actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
   actSaveSQL.Enabled := (actSaveSQLAs.Enabled and Tab.Memo.Modified) or InEditorTab;
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;
@@ -9140,7 +9140,7 @@ begin
 
   SynMemoProcessView.Enabled := EnableControls;
   pnlProcessView.Enabled := EnableControls;
-  lblExplainProcess.Enabled := EnableControls and ActiveConnection.Parameters.IsAnyMySQL;
+  lblExplainProcess.Enabled := EnableControls and ActiveConnection.SqlProvider.Has(qExplain);
   menuExplainProcess.Enabled := lblExplainProcess.Enabled;
 end;
 

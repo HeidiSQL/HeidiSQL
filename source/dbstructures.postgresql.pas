@@ -728,6 +728,7 @@ begin
       ' WHERE pg_class.relkind=''r'''+
       '   AND pg_namespace.nspname=:EscapedDatabase'+
       '   AND pg_class.relname=:EscapedName';
+    qExplain: Result := 'EXPLAIN %s';
     qGetEnumTypes: Result := IfThen(
       FServerVersion >= 90000,
       'SELECT ' +
