@@ -3632,17 +3632,17 @@ begin
 
   X1 := X + Space + ImageListMain.WidthForPPI[16, PixelsPerInch] + Space;
   ACanvas.Font.Style := [];
-  ACanvas.Font.Color := IfThen(Selected, clWhite, It.LeftColor);
+  ACanvas.Font.Color := IfThen(Selected, clHighlightText, It.LeftColor);
   ACanvas.TextOut(X1, Y + 1, It.LeftText);
 
   X2 := X1 + FProposalLeftWidth + Space(2);
-  ACanvas.Font.Color := IfThen(Selected, clWhite, It.CenterColor);
+  ACanvas.Font.Color := IfThen(Selected, clHighlightText, It.CenterColor);
   ACanvas.TextOut(X2, Y + 1, It.CenterText);
 
   if not It.CenterText.IsEmpty then begin
     X3 := X2 + ACanvas.TextWidth(It.CenterText) + Space(2);
     ACanvas.Font.Style := [fsItalic];
-    ACanvas.Font.Color := IfThen(Selected, clWhite, It.RightColor);
+    ACanvas.Font.Color := IfThen(Selected, clHighlightText, It.RightColor);
     ACanvas.TextOut(X3, Y + 1, It.RightText);
   end;
 
