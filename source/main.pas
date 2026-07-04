@@ -6838,32 +6838,32 @@ procedure TMainForm.SynCompletionProposalCodeCompletion(var Value: string;
 var
   Proposal: TSynCompletion;
   rx: TRegExpr;
-  ImageIndex, f: Integer;
+  ImageIndex, f, PropIndex: Integer;
+  PropItem: TProposalItem;
   FunctionDeclaration: String;
 begin
   Proposal := SynCompletionProposal;
   // Surround identifiers with backticks if it is a column, table, routine, db
   rx := TRegExpr.Create;
-  rx.Expression := '\\image\{(\d+)\}';
-  if rx.Exec(Proposal.ItemList[{Proposal.Index}0]) then begin
-    ImageIndex := MakeInt(rx.Match[1]);
-    if not (ImageIndex in [ICONINDEX_KEYWORD, ICONINDEX_FUNCTION, 113]) then begin
-      FunctionDeclaration := '';
-      f := Pos('(', Value);
-      if f > 0 then begin
-        FunctionDeclaration := Copy(Value, f, Length(Value));
-        Delete(Value, f, Length(Value));
-      end;
+  PropIndex := Proposal.IndexFromVisibleIndex(Proposal.Position);
+  PropItem := FProposalItems[PropIndex];
+  if not (PropItem.ImageIndex in [ICONINDEX_KEYWORD, ICONINDEX_FUNCTION, 113]) then begin
+    FunctionDeclaration := '';
+    f := Pos('(', Value);
+    if f > 0 then begin
+      FunctionDeclaration := Copy(Value, f, Length(Value));
+      Delete(Value, f, Length(Value));
+    end;
 
-      rx.Expression := '^(['+QuoteRegExprMetaChars(ActiveConnection.QuoteChars)+'])(.*)$';
-      if rx.Exec(Value) then begin
-        // Left character of identifier is already a quote: user wants to force quoting.
-        // Seperate that left quote character away from what gets now quoted automatically, and force quoting
-        Value := ActiveConnection.QuoteIdent(rx.Match[2], True) + FunctionDeclaration;
-      end else begin
-        // Identifier without left quote - quote when required
-        Value := ActiveConnection.QuoteIdent(Value, False) + FunctionDeclaration;
-      end;
+    rx.Expression := '^(['+QuoteRegExprMetaChars(ActiveConnection.QuoteChars)+'])(.*)$';
+    if rx.Exec(Value) then begin
+      // Left character of identifier is already a quote: user wants to force quoting.
+      // Seperate that left quote character away from what gets now quoted automatically, and force quoting
+      Value := ActiveConnection.QuoteIdent(rx.Match[2], True) + FunctionDeclaration;
+      Value := Copy(Value, 2, MaxInt); // Editor already contains leading quote
+    end else begin
+      // Identifier without left quote - quote when required
+      Value := ActiveConnection.QuoteIdent(Value, False) + FunctionDeclaration;
     end;
   end;
   rx.Free;
@@ -6937,6 +6937,7 @@ var
     Key: TTableKey;
     Obj: TDBObject;
     ColumnIcon: Integer;
+    PropItem: TProposalItem;
   begin
     dbname := '';
     tblname := LeftToken;
@@ -6964,10 +6965,9 @@ var
             end;
           end;
           // Put formatted text and icon into proposal
-          //if CurrentInput.StartsWith(Conn.QuoteChar) then
-          //  Proposal.ItemList.Add(Conn.QuoteChar + Col.Name)
-          //else
-            FProposalItems.AddNew(Col.Name, ColumnIcon, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, AppColorSchemes.First.GridNullColors[Col.DataType.Category]);
+          PropItem := FProposalItems.AddNew(Col.Name, ColumnIcon, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, AppColorSchemes.First.GridNullColors[Col.DataType.Category]);
+          if Proposal.CurrentString.StartsWith(Conn.QuoteChar) then
+            PropItem.InsertText := Conn.QuoteChar + Col.Name;
           Inc(ColumnsInList);
         end;
         Columns.Free;
