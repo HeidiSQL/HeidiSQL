@@ -4916,14 +4916,21 @@ end;
 
 
 procedure TMainForm.actSynEditCompletionProposeExecute(Sender: TObject);
+var
+  P: TPoint;
+  Memo: TCustomSynEdit;
 begin
   // Show completion proposal explicitely, without the use of its own ShortCut property,
   // to support a customized shortcut, see
-  {SynCompletionProposal.Editor := ActiveSynMemo(False);
-  if Screen.ActiveControl is TCustomSynEdit then
-    SynCompletionProposal.ActivateCompletion
+  if Screen.ActiveControl is TCustomSynEdit then begin
+    Memo := ActiveSynMemo(False);
+    SynCompletionProposal.Editor := Memo;
+    P := Memo.RowColumnToPixels(Memo.CaretXY);
+    P := Memo.ClientToScreen(Point(P.X, P.Y + Memo.LineHeight));
+    SynCompletionProposal.Execute(SynCompletionProposal.CurrentString, P.X, P.Y);
+  end
   else
-    MessageBeep(MB_ICONEXCLAMATION);}
+    Beep;
 end;
 
 procedure TMainForm.actSynMoveDownExecute(Sender: TObject);
