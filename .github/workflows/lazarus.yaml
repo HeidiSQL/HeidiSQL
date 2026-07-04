@@ -27,7 +27,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                operating-system: [windows-latest, ubuntu-latest, macos-15-arm64]
+                operating-system: [windows-latest, ubuntu-latest, macos-15]
                 lazarus-versions: ["stable"]
 
         steps:
@@ -120,11 +120,11 @@ jobs:
             path: out/qt6/heidisql
 
         - name: Build HeidiSQL (macOS)
-          if: ${{ matrix.operating-system == 'macos-15-arm64' }}
+          if: ${{ matrix.operating-system == 'macos-15' }}
           run: make build-macos
 
         - name: Upload binaries macOS
-          if: ${{ matrix.operating-system == 'macos-15-arm64' && matrix.lazarus-versions == 'stable' }}
+          if: ${{ matrix.operating-system == 'macos-15' && matrix.lazarus-versions == 'stable' }}
           uses: actions/upload-artifact@v4
           with:
             name: ${{ matrix.operating-system }}
