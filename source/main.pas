@@ -262,6 +262,7 @@ type
     menuMaintenance: TMenuItem;
     actPrintList: TAction;
     actCopyTable: TAction;
+    TimerProposalPopup: TTimer;
     ToolButton9: TToolButton;
     tlbSep1: TToolButton;
     ToolButton5: TToolButton;
@@ -871,6 +872,7 @@ type
     function SynCompletionProposalPaintItem(const AKey: string;
       ACanvas: TCanvas; X, Y: integer; Selected: boolean; Index: integer
       ): boolean;
+    procedure TimerProposalPopupTimer(Sender: TObject);
     procedure UpdatePreviewPanel;
     procedure actInsertFilesExecute(Sender: TObject);
     procedure actDataDeleteExecute(Sender: TObject);
@@ -2075,8 +2077,7 @@ begin
   // Completion proposal window
   // The proposal form gets scaled a second time when it shows its form with Scaled=True.
   // We already store and restore the dimensions DPI aware.
-  {SynCompletionProposal.Form.Scaled := False;
-  SynCompletionProposal.TimerInterval := AppSettings.ReadInt(asCompletionProposalInterval);}
+  {SynCompletionProposal.Form.Scaled := False;}
   SynCompletionProposal.TheForm.Width := Max(AppSettings.ReadInt(asCompletionProposalWidth), 50);
   SynCompletionProposal.LinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
   FProposalItems := TProposalItemList.Create;
@@ -6838,7 +6839,7 @@ procedure TMainForm.SynCompletionProposalCodeCompletion(var Value: string;
 var
   Proposal: TSynCompletion;
   rx: TRegExpr;
-  ImageIndex, f, PropIndex: Integer;
+  f, PropIndex: Integer;
   PropItem: TProposalItem;
   FunctionDeclaration: String;
 begin
@@ -6992,7 +6993,7 @@ begin
   Ident := '[^\s,\(\)=\.\!<>]';
   rx.Expression := '(('+Ident+'+)\.)?('+Ident+'+)\.('+Ident+'*)$';
   LeftPart := Copy(Editor.LineText, 1, Editor.CaretX-1);
-  if FProposalTriggeredByDot then // LineText does not yet contain pressed dot key, see SynMemoQueryProcessCommand
+  if FProposalTriggeredByDot and (not EndsStr('.', LeftPart)) then // LineText does not yet contain pressed dot key, see SynMemoQueryProcessCommand
     LeftPart := LeftPart + '.';
   FProposalTriggeredByDot := False;
   if rx.Exec(LeftPart) then begin
@@ -7184,86 +7185,99 @@ var
   Token: String;
   CaretStart, CaretTokenTypeInt: Integer;
   Attri: TSynHighlighterAttributes;
-  Proposal: TSynCompletion;
-  p: TPoint;
   LineIdx, ColIdx, StartCol, EndCol: Integer;
   TableIndex: Integer;
   LineText, Word, Replacement: string;
   StartPt, EndPt: TPoint;
 begin
+  //logsql('SynMemoQueryProcessCommand Command:'+Integer(Command).ToString);
+  Editor := Sender as TSynEdit;
+
+  if (Command = ecChar) and (AChar = '.') and AppSettings.ReadBool(asCompletionProposal) then begin
+    Editor.GetHighlighterAttriAtRowColEx(Editor.CaretXY, Token, CaretTokenTypeInt, CaretStart, Attri);
+    if not (SynHighlighterSQL.TtkTokenKind(CaretTokenTypeInt) in [SynHighlighterSQL.tkString, SynHighlighterSQL.tkComment])
+    then begin
+      SynCompletionProposal.Editor := Editor;
+      FProposalTriggeredByDot := True;
+      TimerProposalPopup.Interval := Max(AppSettings.ReadInt(asCompletionProposalInterval), 1);
+      TimerProposalPopup.Enabled := True;
+    end;
+  end
+  else begin
+    FProposalTriggeredByDot := False;
+    TimerProposalPopup.Enabled := False;
+  end;
+
+  // Remaining code is for auto-UPPERcase feature.
   // Note: for the ecLineBreak command, we include #0 in TriggerChars. Not #10 or #13 as one might assume.
   if (Command <> ecChar) and (Command <> ecLineBreak) then
     Exit;
-  Editor := Sender as TSynEdit;
+  if Length(AChar) <= 0 then
+    Exit;
+  // Only act on word delimiters
+  if not (AChar[1] in TriggerChars) then
+    Exit;
+  if not AppSettings.ReadBool(asAutoUppercase) then
+    Exit;
 
-  if AChar = '.' then begin
-    if not AppSettings.ReadBool(asCompletionProposal) then
-      Exit;
-    Editor.GetHighlighterAttriAtRowColEx(Editor.CaretXY, Token, CaretTokenTypeInt, CaretStart, Attri);
-    if not (SynHighlighterSQL.TtkTokenKind(CaretTokenTypeInt) in [SynHighlighterSQL.tkString, SynHighlighterSQL.tkComment])
-      then begin
-        Proposal := SynCompletionProposal;
-        p := Editor.ClientToScreen(Point(Editor.CaretXPix, Editor.CaretYPix + Editor.LineHeight + 1));
-        Proposal.Editor := Editor;
-        FProposalTriggeredByDot := True;
-        Proposal.Execute('', p.x, p.y);
-      end;
-  end
+  LineIdx := Editor.CaretY;
+  ColIdx := Editor.CaretX;
+  EndCol := Editor.CaretX;
 
-  else begin
-    if not AppSettings.ReadBool(asAutoUppercase) then
-      Exit;
-    if Length(AChar) <= 0 then
-      Exit;
-    // Only act on word delimiters
-    if not (AChar[1] in TriggerChars) then
-      Exit;
+  if (LineIdx < 1) or (LineIdx > Editor.Lines.Count) then
+    Exit;
 
-    LineIdx := Editor.CaretY;
-    ColIdx := Editor.CaretX;
-    EndCol := Editor.CaretX;
+  LineText := Editor.Lines[LineIdx - 1];
 
-    if (LineIdx < 1) or (LineIdx > Editor.Lines.Count) then
-      Exit;
+  // Find start of the word before caret
+  StartCol := ColIdx - 1;
+  while (StartCol > 0) and (LineText[StartCol] in WordChars) do
+    Dec(StartCol);
+  Inc(StartCol);
 
-    LineText := Editor.Lines[LineIdx - 1];
+  if (StartCol >= ColIdx) then
+    Exit;
 
-    // Find start of the word before caret
-    StartCol := ColIdx - 1;
-    while (StartCol > 0) and (LineText[StartCol] in WordChars) do
-      Dec(StartCol);
-    Inc(StartCol);
+  // Query highlighter at the start of this word
+  StartPt := Point(StartCol, LineIdx);
 
-    if (StartCol >= ColIdx) then
-      Exit;
+  Editor.GetHighlighterAttriAtRowCol(StartPt, Token, Attri);
 
-    // Query highlighter at the start of this word
+  if (Attri = SynSQLSynUsed.KeyAttri) or
+     (Attri = SynSQLSynUsed.DataTypeAttri) or
+     (Attri = SynSQLSynUsed.FunctionAttri) then
+  begin
     StartPt := Point(StartCol, LineIdx);
+    EndPt := Point(ColIdx, LineIdx);
 
-    Editor.GetHighlighterAttriAtRowCol(StartPt, Token, Attri);
-
-    if (Attri = SynSQLSynUsed.KeyAttri) or
-       (Attri = SynSQLSynUsed.DataTypeAttri) or
-       (Attri = SynSQLSynUsed.FunctionAttri) then
-    begin
-      StartPt := Point(StartCol, LineIdx);
-      EndPt := Point(ColIdx, LineIdx);
-
-      Word := Copy(LineText, StartCol, EndCol - StartCol);
-      Replacement := UpperCase(Word);
-      TableIndex := SynSQLSynUsed.TableNames.IndexOf(Token);
-      if TableIndex > -1 then
-        Replacement := SynSQLSynUsed.TableNames[TableIndex];
-      if Token <> Replacement then begin
-        Editor.BlockBegin := StartPt;
-        Editor.BlockEnd := EndPt;
-        Editor.SelText := Replacement;
-        Editor.CaretXY := Point(ColIdx, LineIdx);
-        Editor.SelText := AChar;
-        AChar := '';  // consume char so it is not inserted again
-      end;
+    Word := Copy(LineText, StartCol, EndCol - StartCol);
+    Replacement := UpperCase(Word);
+    TableIndex := SynSQLSynUsed.TableNames.IndexOf(Token);
+    if TableIndex > -1 then
+      Replacement := SynSQLSynUsed.TableNames[TableIndex];
+    if Token <> Replacement then begin
+      Editor.BlockBegin := StartPt;
+      Editor.BlockEnd := EndPt;
+      Editor.SelText := Replacement;
+      Editor.CaretXY := Point(ColIdx, LineIdx);
+      Editor.SelText := AChar;
+      AChar := '';  // consume char so it is not inserted again
     end;
   end;
+end;
+
+
+procedure TMainForm.TimerProposalPopupTimer(Sender: TObject);
+var
+  Proposal: TSynCompletion;
+  p: TPoint;
+begin
+  // Completion proposal triggered through typing a dot
+  // Here's the timer with the asCompletionProposalInterval
+  TimerProposalPopup.Enabled := False;
+  Proposal := SynCompletionProposal;
+  p := Proposal.Editor.ClientToScreen(Point(Proposal.Editor.CaretXPix, Proposal.Editor.CaretYPix + Proposal.Editor.LineHeight + 1));
+  Proposal.Execute('', p.x, p.y);
 end;
 
 
