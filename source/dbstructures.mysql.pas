@@ -3430,9 +3430,9 @@ begin
       );
     qIndexSize: Result := IfThen(
       (IsMySQL and (FServerVersion >= 50600)) or IsMariaDB,
-      'SELECT stat_value * @@innodb_page_size' +
+      'SELECT index_name, stat_value * @@innodb_page_size AS bytes' +
       ' FROM mysql.innodb_index_stats'+
-      ' WHERE database_name=%s AND table_name=%s AND index_name=%s AND stat_name=''size''',
+      ' WHERE database_name=%s AND table_name=%s AND stat_name=''size''',
       ''
       );
     else Result := inherited;

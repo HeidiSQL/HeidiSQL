@@ -548,7 +548,8 @@ type
       function UnescapeString(Text: String): String;
       function ExtractLiteral(var SQL: String; Prefix: String): String;
       function GetResults(SQL: String): TDBQuery;
-      function GetCol(SQL: String; Column: Integer=0): TStringList;
+      // Query one column and return as StringList. Creates Name/Value pairs if NameColumn is 0 or greater.
+      function GetCol(SQL: String; ValueColumn: Integer=0; NameColumn: Integer=-1): TStringList;
       function GetVar(SQL: String; Column: Integer=0): String; overload;
       function GetVar(SQL: String; Column: String): String; overload;
       function Ping(Reconnect: Boolean): Boolean; virtual; abstract;
@@ -5527,16 +5528,20 @@ begin
 end;
 
 
-function TDBConnection.GetCol(SQL: String; Column: Integer=0): TStringList;
+function TDBConnection.GetCol(SQL: String; ValueColumn: Integer=0; NameColumn: Integer=-1): TStringList;
 var
   Results: TDBQuery;
 begin
   Results := GetResults(SQL);
   Result := TStringList.Create;
-  if Results.RecordCount > 0 then while not Results.Eof do begin
-    Result.Add(Results.Col(Column));
-    Results.Next;
-  end;
+  if Results.RecordCount > 0 then
+    while not Results.Eof do begin
+      if NameColumn < 0 then
+        Result.Add(Results.Col(ValueColumn))
+      else
+        Result.AddPair(Results.Col(NameColumn), Results.Col(ValueColumn));
+      Results.Next;
+    end;
   FreeResults(Results);
 end;
 
@@ -6177,6 +6182,7 @@ var
   KeyQuery, ColQuery: TDBQuery;
   NewKey: TTableKey;
   SizeQuery: String;
+  SizeByIndex: TStringList;
 begin
   Result := TTableKeyList.Create(True);
 
@@ -6228,6 +6234,12 @@ begin
   end else begin
 
     KeyQuery := GetResults('SHOW KEYS FROM '+QuoteIdent(Table.Name)+' FROM '+QuoteIdent(Table.Database));
+    SizeByIndex := nil;
+    if FSqlProvider.Has(qIndexSize) then try
+      SizeQuery := FSqlProvider.GetSql(qIndexSize, [EscapeString(Table.Database), EscapeString(Table.Name)]);
+      SizeByIndex := GetCol(SizeQuery, 1, 0);
+    except
+    end;
     NewKey := nil;
     while not KeyQuery.Eof do begin
       if (not Assigned(NewKey)) or (NewKey.Name <> KeyQuery.Col('Key_name')) then begin
@@ -6256,17 +6268,9 @@ begin
         else if KeyQuery.ColumnExists('Ignored') then // mariadb 10.6
           NewKey.Visible := SameText(KeyQuery.Col('Ignored'), 'NO');
 
-        if FSqlProvider.Has(qIndexSize) then begin
-          try
-            SizeQuery := FSqlProvider.GetSql(qIndexSize, [
-              EscapeString(Table.Database),
-              EscapeString(Table.Name),
-              EscapeString(NewKey.Name)
-              ]);
-            NewKey.Size := StrToInt64Def(GetVar(SizeQuery), NewKey.Size);
-          except
-          end;
-        end;
+        if Assigned(SizeByIndex) then
+          NewKey.Size := StrToInt64Def(SizeByIndex.Values[NewKey.Name], NewKey.Size);
+
       end;
 
       if KeyQuery.ColumnExists('Expression') and (not KeyQuery.IsNull('Expression')) then begin
