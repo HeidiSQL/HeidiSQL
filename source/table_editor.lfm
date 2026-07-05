@@ -368,6 +368,12 @@ object frmTableEditor: TfrmTableEditor
           item
             Position = 5
             Text = 'Visibility'
+          end        
+          item
+            Alignment = taRightJustify
+            Position = 6
+            Text = 'Size'
+            Width = 10
           end>
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
         Header.PopupMenu = MainForm.popupListHeader
@@ -378,6 +384,7 @@ object frmTableEditor: TfrmTableEditor
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toFullVertGridLines, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toExtendedFocus, toRightClickSelect]
+        OnBeforeCellPaint = treeIndexesBeforeCellPaint
         OnBeforePaint = treeIndexesBeforePaint
         OnClick = AnyTreeClick
         OnCreateEditor = treeIndexesCreateEditor

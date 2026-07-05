@@ -123,6 +123,9 @@ type
     procedure listColumnsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
 		  Column: TColumnIndex; TextType: TVSTTextType);
     procedure listColumnsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+    procedure treeIndexesBeforeCellPaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure treeIndexesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure treeIndexesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
 		  var CellText: String);
@@ -249,6 +252,7 @@ type
     const IndexColNumComment = 3;
     const IndexColNumDirection = 4;
     const IndexColNumVisibility = 5;
+    const IndexColNumSize = 6;
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
@@ -1937,6 +1941,19 @@ begin
   end;
 end;
 
+procedure TfrmTableEditor.treeIndexesBeforeCellPaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+var
+  Key: TTableKey;
+begin
+  // Only paint bar in size column
+  if Column in [IndexColNumSize] then begin
+    Key := FKeys[Node.Index];
+    MainForm.PaintColorBar(Key.Size, FKeys.MaxSize, TargetCanvas, CellRect);
+  end;
+end;
+
 
 procedure TfrmTableEditor.editNumEditChange(Sender: TObject);
 var
@@ -2149,6 +2166,10 @@ begin
             DBObject.Connection.SqlProvider.GetSql(qIndexVisible),
             DBObject.Connection.SqlProvider.GetSql(qIndexInvisible)
           );
+        IndexColNumSize: if TblKey.Size >= 0 then
+            CellText := FormatByteNumber(TblKey.Size)
+          else
+            CellText := '';
       end;
     end;
     1: begin
