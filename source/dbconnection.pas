@@ -89,6 +89,7 @@ type
     public
       Name, OldName: String;
       IndexType, OldIndexType, Algorithm, Comment: String;
+      Size: Int64;
       Columns, SubParts, Collations: TStringList;
       Modified, Added, Visible: Boolean;
       constructor Create(AOwner: TDBConnection);
@@ -110,6 +111,7 @@ type
   TTableKeyList = class(TObjectList<TTableKey>)
     public
       procedure Assign(Source: TTableKeyList);
+      function MaxSize: Int64;
   end;
   TKeyCache = TDictionary<String,TTableKeyList>;
 
@@ -6174,6 +6176,7 @@ function TMySQLConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
 var
   KeyQuery, ColQuery: TDBQuery;
   NewKey: TTableKey;
+  SizeQuery: String;
 begin
   Result := TTableKeyList.Create(True);
 
@@ -6252,7 +6255,20 @@ begin
           NewKey.Visible := SameText(KeyQuery.Col('Visible'), 'yes')
         else if KeyQuery.ColumnExists('Ignored') then // mariadb 10.6
           NewKey.Visible := SameText(KeyQuery.Col('Ignored'), 'NO');
+
+        if FSqlProvider.Has(qIndexSize) then begin
+          try
+            SizeQuery := FSqlProvider.GetSql(qIndexSize, [
+              EscapeString(Table.Database),
+              EscapeString(Table.Name),
+              EscapeString(NewKey.Name)
+              ]);
+            NewKey.Size := StrToInt64Def(GetVar(SizeQuery), NewKey.Size);
+          except
+          end;
+        end;
       end;
+
       if KeyQuery.ColumnExists('Expression') and (not KeyQuery.IsNull('Expression')) then begin
         // Functional key part: enclose expression within parentheses to distinguish them from columns (issue #1777)
         NewKey.Columns.Add('('+KeyQuery.Col('Expression')+')');
@@ -11092,6 +11108,7 @@ begin
   Subparts.OnChange := Modification;
   Collations.OnChange := Modification;
   Visible := True;
+  Size := -1
 end;
 
 destructor TTableKey.Destroy;
@@ -11115,6 +11132,7 @@ begin
     Algorithm := s.Algorithm;
     Comment := s.Comment;
     Visible := s.Visible;
+    Size := s.Size;
     Columns.Assign(s.Columns);
     SubParts.Assign(s.SubParts);
     Collations.Assign(s.Collations);
@@ -11264,6 +11282,15 @@ begin
   end;
 end;
 
+function TTableKeyList.MaxSize: Int64;
+var
+  Item: TTableKey;
+begin
+  Result := -1;
+  for Item in Self do begin
+    Result := Max(Result, Item.Size);
+  end;
+end;
 
 
 

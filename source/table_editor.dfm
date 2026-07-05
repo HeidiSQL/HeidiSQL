@@ -242,6 +242,7 @@ object frmTableEditor: TfrmTableEditor
         Margins.Top = 0
         Margins.Bottom = 0
         Align = alClient
+        Alignment = taRightJustify
         DefaultNodeHeight = 19
         DragMode = dmAutomatic
         EditDelay = 0
@@ -255,6 +256,7 @@ object frmTableEditor: TfrmTableEditor
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toFullVertGridLines, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toExtendedFocus, toRightClickSelect]
+        OnBeforeCellPaint = treeIndexesBeforeCellPaint
         OnBeforePaint = treeIndexesBeforePaint
         OnClick = AnyTreeClick
         OnCreateEditor = treeIndexesCreateEditor
@@ -301,6 +303,12 @@ object frmTableEditor: TfrmTableEditor
           item
             Position = 5
             Text = 'Visibility'
+          end
+          item
+            Alignment = taRightJustify
+            Position = 6
+            Text = 'Size'
+            Width = 10
           end>
       end
       object tlbIndexes: TToolBar
