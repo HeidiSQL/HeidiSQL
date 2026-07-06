@@ -1947,10 +1947,14 @@ procedure TfrmTableEditor.treeIndexesBeforeCellPaint(Sender: TBaseVirtualTree;
 var
   Key: TTableKey;
 begin
-  // Only paint bar in size column
-  if Column in [IndexColNumSize] then begin
-    Key := FKeys[Node.Index];
-    MainForm.PaintColorBar(Key.Size, FKeys.MaxSize, TargetCanvas, CellRect);
+  if Sender.GetNodeLevel(Node) <> 0 then
+    Exit;
+  case Column of
+    IndexColNumSize: begin
+      // Paint "progress" bar in size column
+      Key := FKeys[Node.Index];
+      MainForm.PaintColorBar(Key.Size, FKeys.MaxSize, TargetCanvas, CellRect);
+    end;
   end;
 end;
 
@@ -2149,27 +2153,29 @@ var
   TblKey: TTableKey;
 begin
   // Index tree showing cell text
+  CellText := '';
   case Sender.GetNodeLevel(Node) of
     0: begin
       TblKey := FKeys[Node.Index];
       case Column of
-        IndexColNumName: if TblKey.IsPrimary then
-             CellText := TblKey.IndexType + ' KEY' // Fixed name "PRIMARY KEY", cannot be changed
-           else
-             CellText := TblKey.Name;
+        IndexColNumName: begin
+          if TblKey.IsPrimary then
+            CellText := TblKey.IndexType + ' KEY' // Fixed name "PRIMARY KEY", cannot be changed
+          else
+            CellText := TblKey.Name;
+        end;
         IndexColNumType: CellText := TblKey.IndexType;
         IndexColNumAlgorithm: CellText := TblKey.Algorithm;
         IndexColNumComment: CellText := TblKey.Comment;
-        IndexColNumDirection: CellText := ''; // Column collation
         IndexColNumVisibility: CellText := IfThen(
             TblKey.Visible,
             DBObject.Connection.SqlProvider.GetSql(qIndexVisible),
             DBObject.Connection.SqlProvider.GetSql(qIndexInvisible)
           );
-        IndexColNumSize: if TblKey.Size >= 0 then
-            CellText := FormatByteNumber(TblKey.Size)
-          else
-            CellText := '';
+        IndexColNumSize: begin
+          if TblKey.Size >= 0 then
+            CellText := FormatByteNumber(TblKey.Size);
+        end;
       end;
     end;
     1: begin
@@ -2177,13 +2183,10 @@ begin
       case Column of
         IndexColNumName: CellText := TblKey.Columns[Node.Index];
         IndexColNumType: CellText := TblKey.SubParts[Node.Index];
-        IndexColNumAlgorithm: CellText := ''; // Index algorithm
-        IndexColNumComment: CellText := ''; // Index comment
         IndexColNumDirection: begin
           CellText := TblKey.Collations[Node.Index];
           CellText := IfThen(CellText.ToLower = 'a', 'ASC', 'DESC');
         end;
-        IndexColNumVisibility: CellText := '';
       end;
     end;
   end;
