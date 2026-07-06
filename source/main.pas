@@ -1226,7 +1226,6 @@ type
     procedure menuCopyColumnNamesClick(Sender: TObject);
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
     procedure TimerRefreshTimer(Sender: TObject);
-    procedure SynCompletionProposalChange(Sender: TObject);
     procedure SynMemoQuerySpecialLineColors(Sender: TObject; Line: Integer;
       var Special: Boolean; var FG, BG: TColor);
     procedure SynMemoSQLLogSpecialLineColors(Sender: TObject; Line: Integer;
@@ -1802,8 +1801,8 @@ begin
   AppSettings.WriteString(asDelimiter, FDelimiter);
   AppSettings.WriteInt(asQuerymemoheight, ScaleFormToDesign(pnlQueryMemo.Height));
   AppSettings.WriteInt(asQueryhelperswidth, ScaleFormToDesign(pnlQueryHelpers.Width));
-  AppSettings.WriteInt(asCompletionProposalWidth, ScaleFormToDesign(SynCompletionProposal.TheForm.Width));
-  AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.LinesInWindow);
+  AppSettings.WriteInt(asCompletionProposalWidth, SynCompletionProposal.TheForm.ScaleFormToDesign(SynCompletionProposal.TheForm.Width));
+  AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.TheForm.ScaleFormToDesign(SynCompletionProposal.LinesInWindow));
   AppSettings.WriteInt(asDbtreewidth, ScaleFormToDesign(pnlLeft.width));
   AppSettings.WriteBool(asGroupTreeObjects, actGroupObjects.Checked);
   AppSettings.WriteInt(asDataPreviewHeight, ScaleFormToDesign(pnlPreview.Height));
@@ -2075,11 +2074,8 @@ begin
   end;
 
   // Completion proposal window
-  // The proposal form gets scaled a second time when it shows its form with Scaled=True.
-  // We already store and restore the dimensions DPI aware.
-  {SynCompletionProposal.Form.Scaled := False;}
-  SynCompletionProposal.TheForm.Width := Max(AppSettings.ReadInt(asCompletionProposalWidth), 50);
-  SynCompletionProposal.LinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
+  SynCompletionProposal.TheForm.Width := Min(Max(AppSettings.ReadInt(asCompletionProposalWidth), 50), 350);
+  SynCompletionProposal.LinesInWindow := Min(AppSettings.ReadInt(asCompletionProposalNbLinesInWindow), 10);
   FProposalItems := TProposalItemList.Create;
   FProposalTriggeredByDot := False;
 
@@ -3598,6 +3594,7 @@ function TMainForm.SynCompletionProposalMeasureItem(const AKey: string;
 var
   i, X, Y: Integer;
   Item: TProposalItem;
+  ItemWidth: Integer;
 begin
   // Calculate how much vertical and horizontal space the control reserves for this row
   FProposalLeftWidth := 0;
@@ -3605,15 +3602,18 @@ begin
   ACanvas.Font.Style := [];
   for i := 0 to SynCompletionProposal.ItemList.Count - 1 do begin
     Item := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(i)];
-    FProposalLeftWidth := Max(FProposalLeftWidth, ACanvas.TextWidth(Item.LeftText));
+    ItemWidth := ACanvas.TextWidth(Item.LeftText);
+    // Canvas is not yet scaled to the current PPI
+    ItemWidth := MulDiv(ItemWidth, Monitor.PixelsPerInch, ACanvas.Font.PixelsPerInch);
+    FProposalLeftWidth := Max(FProposalLeftWidth, ItemWidth);
   end;
 
   Item := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(Index)];
-  X := Space + ImageListMain.WidthForPPI[16, PixelsPerInch]
+  X := Space + ImageListMain.WidthForPPI[16, ACanvas.Font.PixelsPerInch]
     + Space + FProposalLeftWidth
     + Space(2) + ACanvas.TextWidth(Item.CenterText)
     + IfThen(Item.RightText.IsEmpty, 0, Space(2) + ACanvas.TextWidth(Item.RightText));
-  Y := Max(ImageListMain.HeightForPPI[16, PixelsPerInch] + 2, ACanvas.TextHeight('Wy')) + Space;
+  Y := Max(ImageListMain.HeightForPPI[16, ACanvas.Font.PixelsPerInch] + 2, ACanvas.TextHeight('Wy')) + Space;
   Result := Point(X, Y);
 end;
 
@@ -3626,11 +3626,11 @@ begin
   It := FProposalItems[SynCompletionProposal.IndexFromVisibleIndex(Index)];
 
   if (It.ImageIndex >= 0) and (It.ImageIndex < ImageListMain.Count) then
-    ImageListMain.Draw(ACanvas, X + Space, Y + 1, It.ImageIndex, True);
+    ImageListMain.DrawForControl(ACanvas, X + Space, Y + 1, It.ImageIndex, ImageListMain.Width, SynCompletionProposal.TheForm, True);
 
   ACanvas.Brush.Style := bsClear;
 
-  X1 := X + Space + ImageListMain.WidthForPPI[16, PixelsPerInch] + Space;
+  X1 := X + Space + ImageListMain.WidthForPPI[16, ACanvas.Font.PixelsPerInch] + Space;
   ACanvas.Font.Style := [];
   ACanvas.Font.Color := IfThen(Selected, clHighlightText, It.LeftColor);
   ACanvas.TextOut(X1, Y + 1, It.LeftText);
@@ -6805,30 +6805,6 @@ begin
     InvalidateVT(ListProcesses, VTREE_NOTLOADED, True);
   end;
   TimerRefresh.Enabled := t; // re-enable autorefresh timer
-end;
-
-
-procedure TMainForm.SynCompletionProposalChange(Sender: TObject);
-{var
-  Proposal: TSynCompletion;
-  SelectedFuncName: String;
-  SQLFunc: TSQLFunction;}
-begin
-  {Proposal := Sender as TSynCompletionProposal;
-  if (AIndex >= 0) and (AIndex < Proposal.ItemList.Count) then begin
-    Proposal.Title := Proposal.InsertItem(AIndex);
-    // Show function description in hint panel
-    ShowStatusMsg('', 0);
-    SelectedFuncName := RegExprGetMatch('...
-    if not SelectedFuncName.IsEmpty then begin
-      for SQLFunc in ActiveConnection.SQLFunctions do begin
-        if SQLFunc.Name.ToUpper = SelectedFuncName.ToUpper then begin
-          ShowStatusMsg(SQLFunc.Description.Replace(SLineBreak, ' '), 0);
-          Break;
-        end;
-      end;
-    end;
-  end;}
 end;
 
 

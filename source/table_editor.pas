@@ -342,7 +342,7 @@ begin
   FLoaded := False;
 
   // Fix control width and position, broken when opening a second table. See issue #1959
-  //comboCollation.Left := lblCollation.Left + TExtForm.ScaleSize(150, Self);
+  //comboCollation.Left := lblCollation.Left + TExtForm.ScaleFromDesign(150, Self);
   //comboCollation.Width := comboRowFormat.Width;
   comboCollation.Items := DBObject.Connection.CollationList;
   //chkCharsetConvert.Left := comboCollation.Left + comboCollation.Width + 10;

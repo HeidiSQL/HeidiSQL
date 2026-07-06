@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Forms, Types, StdCtrls, Clipbrd, apphelpers,
   Graphics, Dialogs, ImgList, ComCtrls, Generics.Defaults,
   ExtCtrls, laz.VirtualTrees, RegExpr, Controls, EditBtn, Menus,
-  LCLIntf, Math;
+  LCLIntf, Math, LCLType;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -23,8 +23,9 @@ type
       class procedure InheritFont(AFont: TFont);
       class procedure SaveListSetup(List: TLazVirtualStringTree);
       class procedure RestoreListSetup(List: TLazVirtualStringTree);
-      function ScaleSize(x: Extended): Integer; overload;
-      class function ScaleSize(x: Extended; Control: TControl): Integer; overload;
+      class function GetCurrentPPI(Control: TControl): Integer;
+      function ScaleFromDesign(x: Extended): Integer; overload;
+      class function ScaleFromDesign(x: Extended; Control: TControl): Integer; overload;
       // Returns a PPI-aware width of a space character
       function Space(Multiply: Integer=1): Integer;
       class procedure PageControlTabHighlight(PageControl: TPageControl);
@@ -270,21 +271,46 @@ begin
 end;
 
 
-function TExtForm.ScaleSize(x: Extended): Integer;
+class function TExtForm.GetCurrentPPI(Control: TControl): Integer;
+var
+  P: TPoint;
+  Mon: TMonitor;
 begin
-  // Shorthand for dpi scaling hardcoded width/height values of controls
-  Result := ScaleSize(x, Self);
+  P := Control.ClientToScreen(Point(0, 0));
+  Mon := Screen.MonitorFromPoint(P, mdNearest);
+  Result := Mon.PixelsPerInch;
 end;
 
-class function TExtForm.ScaleSize(x: Extended; Control: TControl): Integer;
+
+function TExtForm.ScaleFromDesign(x: Extended): Integer;
+begin
+  // Shorthand for DPI upscaling hardcoded width/height values of controls
+  Result := ScaleFromDesign(x, Self);
+end;
+
+class function TExtForm.ScaleFromDesign(x: Extended; Control: TControl): Integer;
+var
+  frm: TCustomForm;
 begin
   // Same as above for callers without a form
-  Result := Control.Scale96ToForm(Round(x));
+  if Control is TCustomForm then
+    frm := TCustomForm(Control)
+  else
+    frm := GetParentForm(Control);
+  if frm = nil then
+    Result := Round(x)
+  else
+    Result := Round(x * GetCurrentPPI(Control) / frm.DesignTimePPI);
 end;
 
 function TExtForm.Space(Multiply: Integer=1): Integer;
+var
+  CurPpi: Integer;
 begin
   Result := Canvas.TextWidth(' ') * Multiply;
+  CurPpi := GetCurrentPPI(Self);
+  if CurPpi <> Canvas.Font.PixelsPerInch then
+    Result := MulDiv(Result, CurPpi, Canvas.Font.PixelsPerInch);
 end;
 
 
@@ -344,7 +370,7 @@ begin
     HintText := Items[ItemIndex];
     HintWidth := Canvas.TextWidth(HintText);
     if HintWidth > Width then begin
-      Padding := TExtForm.ScaleSize(10, Self);
+      Padding := TExtForm.ScaleFromDesign(10, Self);
       HintRect := Rect(
         P.X + Padding,
         P.Y + Padding * 2,

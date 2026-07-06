@@ -1038,7 +1038,7 @@ begin
   FPanel.Hide;
   FPanel.Parent := FParentForm;
   FPanel.ParentBackground := False;
-  FPanel.Height := TExtForm.ScaleSize(150, FParentForm);
+  FPanel.Height := TExtForm.ScaleFromDesign(150, FParentForm);
   FPanel.OnExit := DoEndEdit;
 
   FCheckList := TCheckListBox.Create(FPanel);
@@ -1129,7 +1129,7 @@ begin
 
   FBtnOk.Width := (FPanel.Width - 3*margin) div 2;
   FBtnOk.Left := margin;
-  FBtnOk.Height := TExtForm.ScaleSize(24, FParentForm);
+  FBtnOk.Height := TExtForm.ScaleFromDesign(24, FParentForm);
   FBtnOk.Top := FPanel.Height - 2*margin - FBtnOk.Height;
   FBtnOk.Enabled := FAllowEdit;
 
@@ -1198,7 +1198,7 @@ begin
   FButton.AnchorSideBottom.Control := FPanel;
   FButton.AnchorSideBottom.Side := asrBottom;
   FButton.Anchors := [akTop, akRight, akBottom];
-  FButton.Constraints.MaxWidth := TExtForm.ScaleSize(20, FPanel);
+  FButton.Constraints.MaxWidth := TExtForm.ScaleFromDesign(20, FPanel);
   FButton.TabStop := False;
   FButton.Caption := '...';
   FButton.Hint := _('Edit text in popup editor ...');
@@ -1316,7 +1316,7 @@ begin
   inherited;
 
   // Margin between controls and to edge of panel
-  m := TExtForm.ScaleSize(5, FParentForm);
+  m := TExtForm.ScaleFromDesign(5, FParentForm);
 
   FPanel := TPanel.Create(FParentForm);
   FPanel.Hide;
@@ -1414,7 +1414,7 @@ begin
 
   FBtnOk := TButton.Create(FPanel);
   FBtnOk.Parent := FPanel;
-  FBtnOk.Width := TExtForm.ScaleSize(60, FParentForm);
+  FBtnOk.Width := TExtForm.ScaleFromDesign(60, FParentForm);
   FBtnOk.Top := FRadioAutoInc.Top + FRadioAutoInc.Height + m;
   FBtnOk.Left := FPanel.Width - 3*m - 2*FBtnOk.Width - 2*FPanel.BorderWidth;
   FBtnOk.OnClick := BtnOkClick;

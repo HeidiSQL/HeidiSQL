@@ -1685,8 +1685,8 @@ begin
   // Resize bottom right buttons
   HorizSpace := PageControlDetails.Width - 2 * BorderWidth;
   ButtonWidth := Round(HorizSpace / 3);
-  ButtonWidth := Max(ButtonWidth, ScaleSize(50));
-  ButtonWidth := Min(ButtonWidth, ScaleSize(100));
+  ButtonWidth := Max(ButtonWidth, ScaleFromDesign(50));
+  ButtonWidth := Min(ButtonWidth, ScaleFromDesign(100));
   btnMore.Width := ButtonWidth;
   btnCancel.Width := ButtonWidth;
   btnOpen.Width := ButtonWidth;

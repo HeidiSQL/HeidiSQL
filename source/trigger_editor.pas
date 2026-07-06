@@ -273,7 +273,7 @@ begin
   // Propose column names from referencing table
   {Proposal := Sender as TSynCompletion;
   Proposal.Font.Assign(Font);
-  Proposal.ItemHeight := TExtForm.ScaleSize(PROPOSAL_ITEM_HEIGHT, Self);
+  Proposal.ItemHeight := TExtForm.ScaleFromDesign(PROPOSAL_ITEM_HEIGHT, Self);
   Token := UpperCase(Proposal.PreviousToken);
   Proposal.InsertList.Clear;
   Proposal.ItemList.Clear;
