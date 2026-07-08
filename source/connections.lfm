@@ -194,10 +194,11 @@ object connform: Tconnform
       object spinPort: TSpinEditEx
         AnchorSideTop.Control = editPassword
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 192
-        Width = 57
+        Width = 80
         BorderSpacing.Around = 5
         MaxLength = 0
         SpinButtonWidth = 17
@@ -209,6 +210,8 @@ object connform: Tconnform
       object editPassword: TEdit
         AnchorSideTop.Control = editUsername
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSettings
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 164
@@ -223,6 +226,8 @@ object connform: Tconnform
       object editUsername: TEditButton
         AnchorSideTop.Control = chkWindowsAuth
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSettings
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 136
@@ -244,6 +249,8 @@ object connform: Tconnform
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboLibrary
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSettings
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 60
@@ -264,6 +271,7 @@ object connform: Tconnform
       object comboNetType: TComboBoxEx
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = tabSettings
+        AnchorSideRight.Control = tabSettings
         AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 22
@@ -309,6 +317,8 @@ object connform: Tconnform
       object memoComment: TMemo
         AnchorSideTop.Control = editDatabases
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSettings
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 143
         Top = 272
@@ -322,6 +332,8 @@ object connform: Tconnform
       object editDatabases: TEditButton
         AnchorSideTop.Control = chkCompressed
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSettings
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 244
@@ -343,6 +355,8 @@ object connform: Tconnform
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboNetType
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSettings
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 32
@@ -438,11 +452,11 @@ object connform: Tconnform
       object spinSSHlocalport: TSpinEditEx
         AnchorSideTop.Control = editSSHPrivateKey
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 217
-        Width = 314
-        Anchors = [akTop, akLeft, akRight]
+        Width = 80
         BorderSpacing.Around = 5
         MaxLength = 0
         SpinButtonWidth = 17
@@ -454,6 +468,8 @@ object connform: Tconnform
       object editSSHUser: TEdit
         AnchorSideTop.Control = editSSHhost
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSSHtunnel
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 85
@@ -469,6 +485,8 @@ object connform: Tconnform
       object editSSHPassword: TEdit
         AnchorSideTop.Control = editSSHUser
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSSHtunnel
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 113
@@ -485,10 +503,11 @@ object connform: Tconnform
       object editSSHhost: TEdit
         AnchorSideTop.Control = comboSSHExe
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = spinSSHport
         Left = 194
         Height = 23
         Top = 57
-        Width = 236
+        Width = 229
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
         TabOrder = 2
@@ -499,10 +518,12 @@ object connform: Tconnform
       object spinSSHport: TSpinEditEx
         AnchorSideTop.Control = comboSSHExe
         AnchorSideTop.Side = asrBottom
-        Left = 434
+        AnchorSideRight.Control = tabSSHtunnel
+        AnchorSideRight.Side = asrBottom
+        Left = 428
         Height = 23
         Top = 57
-        Width = 74
+        Width = 80
         Anchors = [akTop, akRight]
         BorderSpacing.Around = 5
         MaxLength = 0
@@ -515,6 +536,8 @@ object connform: Tconnform
       object editSSHPrivateKey: TEditButton
         AnchorSideTop.Control = spinSSHTimeout
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSSHtunnel
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 189
@@ -538,10 +561,11 @@ object connform: Tconnform
       object spinSSHTimeout: TSpinEditEx
         AnchorSideTop.Control = lblSshPassHint
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 161
-        Width = 60
+        Width = 80
         BorderSpacing.Around = 5
         MaxLength = 0
         SpinButtonWidth = 17
@@ -553,6 +577,8 @@ object connform: Tconnform
       object comboSSHExe: TComboBox
         AnchorSideTop.Control = chkSSHActive
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSSHtunnel
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 29
@@ -684,6 +710,8 @@ object connform: Tconnform
       end
       object editStartupScript: TEditButton
         AnchorSideTop.Control = tabAdvanced
+        AnchorSideRight.Control = tabAdvanced
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 5
@@ -722,7 +750,7 @@ object connform: Tconnform
         Left = 194
         Height = 23
         Top = 33
-        Width = 90
+        Width = 80
         BorderSpacing.Around = 5
         MaxLength = 0
         SpinButtonWidth = 17
@@ -737,7 +765,7 @@ object connform: Tconnform
         Left = 194
         Height = 23
         Top = 61
-        Width = 90
+        Width = 80
         BorderSpacing.Around = 5
         MaxLength = 0
         SpinButtonWidth = 17
@@ -749,6 +777,8 @@ object connform: Tconnform
       object ColorBoxBackgroundColor: TColorBox
         AnchorSideTop.Control = chkForceUnicode
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabAdvanced
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 22
         Top = 185
@@ -767,6 +797,8 @@ object connform: Tconnform
       object editIgnoreDatabasePattern: TEdit
         AnchorSideTop.Control = ColorBoxBackgroundColor
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabAdvanced
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 212
@@ -793,6 +825,8 @@ object connform: Tconnform
       object editLogFilePath: TEditButton
         AnchorSideTop.Control = editIgnoreDatabasePattern
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabAdvanced
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 240
@@ -910,6 +944,8 @@ object connform: Tconnform
       object editSSLcipher: TEdit
         AnchorSideTop.Control = editSSLCertificate
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSSL
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 113
@@ -924,6 +960,8 @@ object connform: Tconnform
       object editSSLCertificate: TEditButton
         AnchorSideTop.Control = editSSLCACertificate
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSSL
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 85
@@ -946,6 +984,8 @@ object connform: Tconnform
       object editSSLCACertificate: TEditButton
         AnchorSideTop.Control = editSSLPrivateKey
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSSL
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 57
@@ -968,6 +1008,8 @@ object connform: Tconnform
       object editSSLPrivateKey: TEditButton
         AnchorSideTop.Control = chkWantSSL
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSSL
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 29
@@ -990,6 +1032,8 @@ object connform: Tconnform
       object comboSSLVerification: TComboBox
         AnchorSideTop.Control = editSSLcipher
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSSL
+        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 141
