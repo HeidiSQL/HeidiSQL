@@ -837,6 +837,8 @@ type
     procedure actDataEditWithoutLookupExecute(Sender: TObject);
     procedure actNextTabExecute(Sender: TObject);
     procedure actPreviousTabExecute(Sender: TObject);
+    procedure AnyGridContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
     procedure DataGridContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure FormActivate(Sender: TObject);
@@ -4536,6 +4538,25 @@ end;
 procedure TMainForm.actPreviousTabExecute(Sender: TObject);
 begin
   PageControlMain.SelectNextPage(False);
+end;
+
+procedure TMainForm.AnyGridContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+var
+  Tree: TLazVirtualStringTree;
+  P: TPoint;
+begin
+  Tree := Sender as TLazVirtualStringTree;
+  if Tree.Header.PopupMenu = nil then
+    Exit;
+  if Tree.Header.InHeader(MousePos) then begin
+    // Issue #2271:
+    // We get here through a wrong event path, when mouse right-clicks the header area
+    Tree.Header.PopupMenu.PopupComponent := Tree;
+    P := Tree.ClientToScreen(MousePos);
+    Tree.Header.PopupMenu.Popup(P.X, P.Y); // This is the actually wanted header context menu
+    Handled := True;
+  end;
 end;
 
 procedure TMainForm.DataGridContextPopup(Sender: TObject; MousePos: TPoint;

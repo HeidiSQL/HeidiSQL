@@ -1520,6 +1520,7 @@ begin
   VT.OnStartOperation := Mainform.AnyGridStartOperation;
   VT.OnEndOperation := Mainform.AnyGridEndOperation;
   VT.BorderStyle := bsNone; // Cosmetic
+  VT.OnContextPopup := MainForm.AnyGridContextPopup;
 end;
 
 
