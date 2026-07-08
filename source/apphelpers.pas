@@ -1520,7 +1520,9 @@ begin
   VT.OnStartOperation := Mainform.AnyGridStartOperation;
   VT.OnEndOperation := Mainform.AnyGridEndOperation;
   VT.BorderStyle := bsNone; // Cosmetic
-  VT.OnContextPopup := MainForm.AnyGridContextPopup;
+  // Some trees have their own OnContextMenu logic set at design time:
+  if not Assigned(VT.OnContextPopup) then
+    VT.OnContextPopup := MainForm.AnyGridContextPopup;
 end;
 
 
