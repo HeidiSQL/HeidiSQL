@@ -375,7 +375,8 @@ type
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
   procedure FixVT(VT: TVirtualStringTree; IsResultGrid: Boolean=False);
-  function GetTextHeight(Font: TFont): Integer;
+  // Returns the maximum possible height of text on a canvas
+  function GetTextHeight(ACanvas: TCanvas): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   function FindNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
@@ -1473,7 +1474,7 @@ var
   Node: PVirtualNode;
 begin
   // This is called either in some early stage (and probably from preferences/apply button?)
-  SingleLineHeight := GetTextHeight(VT.Font) + 7;
+  SingleLineHeight := GetTextHeight(VT.Canvas) + 7;
   // Multiline nodes?
   if IsResultGrid then
     MultiLineCount := AppSettings.ReadInt(asGridRowLineCount)
@@ -1482,6 +1483,7 @@ begin
   // Issue #2344: TBaseVirtualTree.UpdateVerticalRange crashes with ERangeError on ArchLinux
   // Fixed through form files back at 96 PPI
   VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
+  VT.Header.Height := SingleLineHeight;
   if MultiLineCount > 1 then begin
     VT.BeginUpdate;
     Node := VT.GetFirstInitialized;
@@ -1526,15 +1528,9 @@ begin
 end;
 
 
-function GetTextHeight(Font: TFont): Integer;
-var
-  Bmp: Graphics.TBitmap;
+function GetTextHeight(ACanvas: TCanvas): Integer;
 begin
-  Bmp := Graphics.TBitmap.Create;
-  Bmp.Canvas.Font.Name := Font.Name;
-  Bmp.Canvas.Font.Size := Font.Size;
-  Result := Bmp.Canvas.TextHeight('Äy');
-  Bmp.Free;
+  Result := ACanvas.TextHeight('Äy');
 end;
 
 

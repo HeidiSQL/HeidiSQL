@@ -3308,7 +3308,7 @@ begin
     NewTab.Grid.Header.Columns.BeginUpdate;
     NewTab.Grid.Header.Columns.Clear;
     HeaderLineBreaks := 0;
-    HeaderPadding := NewTab.Grid.Header.Height - GetTextHeight(NewTab.Grid.Font);
+    HeaderPadding := NewTab.Grid.Header.Height - GetTextHeight(NewTab.Grid.Canvas);
     col := NewTab.Grid.Header.Columns.Add;
     col.CaptionAlignment := taRightJustify;
     col.Alignment := taRightJustify;
@@ -3331,7 +3331,7 @@ begin
       HeaderLineBreaks := Max(HeaderLineBreaks, col.text.CountChar(#10));
     end;
     NewTab.Grid.Header.Columns.EndUpdate;
-    NewTab.Grid.Header.Height := GetTextHeight(NewTab.Grid.Font) * (HeaderLineBreaks+1) + HeaderPadding;
+    NewTab.Grid.Header.Height := GetTextHeight(NewTab.Grid.Canvas) * (HeaderLineBreaks+1) + HeaderPadding;
     NewTab.Grid.RootNodeCount := NewTab.Results.RecordCount;
     NewTab.Grid.EndUpdate;
     for i:=0 to NewTab.Grid.Header.Columns.Count-1 do
