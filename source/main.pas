@@ -2077,6 +2077,7 @@ begin
 
   // Completion proposal window
   SynCompletionProposal.TheForm.Width := Min(Max(AppSettings.ReadInt(asCompletionProposalWidth), 50), 350);
+  SynCompletionProposal.TheForm.BackgroundColor := clBackground;
   SynCompletionProposal.LinesInWindow := Min(AppSettings.ReadInt(asCompletionProposalNbLinesInWindow), 10);
   FProposalItems := TProposalItemList.Create;
   FProposalTriggeredByDot := False;
