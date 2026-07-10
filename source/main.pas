@@ -14333,13 +14333,13 @@ begin
          TQueryTab.HelperNodeBinding: ImageIndex := 119;
        end;
     1: case Node.Parent.Index of
-         TQueryTab.HelperNodeColumns: ImageIndex := 42;
+         TQueryTab.HelperNodeColumns: ImageIndex := ICONINDEX_FIELD;
          TQueryTab.HelperNodeFunctions: ImageIndex := 13;
          TQueryTab.HelperNodeKeywords: ImageIndex := 25;
          TQueryTab.HelperNodeSnippets: ImageIndex := 68;
          TQueryTab.HelperNodeHistory: ImageIndex := 80;
          TQueryTab.HelperNodeProfile: ImageIndex := 145;
-         TQueryTab.HelperNodeBinding: ImageIndex := 42;
+         TQueryTab.HelperNodeBinding: ImageIndex := ICONINDEX_FIELD;
        end;
   end;
 end;

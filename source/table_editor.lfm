@@ -1051,7 +1051,7 @@ object frmTableEditor: TfrmTableEditor
         Hint = 'Add column'
         Top = 0
         Caption = 'Add'
-        ImageIndex = 45
+        ImageIndex = 91
         OnClick = btnAddColumnClick
       end
       object btnRemoveColumn: TToolButton
@@ -1059,7 +1059,7 @@ object frmTableEditor: TfrmTableEditor
         Hint = 'Remove column'
         Top = 0
         Caption = 'Remove'
-        ImageIndex = 46
+        ImageIndex = 92
         OnClick = btnRemoveColumnClick
       end
       object btnMoveUpColumn: TToolButton
@@ -1312,13 +1312,13 @@ object frmTableEditor: TfrmTableEditor
     end
     object menuAddColumn: TMenuItem
       Caption = 'Add column'
-      ImageIndex = 45
+      ImageIndex = 91
       ShortCut = 16429
       OnClick = btnAddColumnClick
     end
     object menuRemoveColumn: TMenuItem
       Caption = 'Remove column'
-      ImageIndex = 46
+      ImageIndex = 92
       ShortCut = 16430
       OnClick = btnRemoveColumnClick
     end
