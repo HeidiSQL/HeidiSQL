@@ -9716,8 +9716,7 @@ begin
         DBObjects := DBObj.Connection.GetDBObjects(DBObj.Database, False, DBObj.GroupType);
         ChildCount := DBObjects.Count;
       end;
-    lntTable:
-      if GetParentFormOrFrame(Sender) is TfrmSelectDBObject then begin
+    lntTable: begin
         Columns := DBObj.TableColumns;
         ChildCount := Columns.Count;
       end;
@@ -9767,14 +9766,14 @@ begin
         end else begin
           DBObjects := ParentObj.Connection.GetDBObjects(ParentObj.Database);
           Item^ := DBObjects[Node.Index];
-          if (GetParentFormOrFrame(Sender) is TfrmSelectDBObject) and (Item.NodeType = lntTable) then
+          if Item.NodeType = lntTable then
             Include(InitialStates, ivsHasChildren);
         end;
       end;
       lntGroup: begin
         DBObjects := ParentObj.Connection.GetDBObjects(ParentObj.Database, False, ParentObj.GroupType);
         Item^ := DBObjects[Node.Index];
-        if (GetParentFormOrFrame(Sender) is TfrmSelectDBObject) and (Item.NodeType = lntTable) then
+        if Item.NodeType = lntTable then
           Include(InitialStates, ivsHasChildren);
       end;
       lntTable: begin
@@ -9796,6 +9795,7 @@ end;
 procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
 var
   DBObj, PrevDBObj, ParentDBObj: PDBObject;
+  TableLevelObj: TDBObject;
   MainTabToActivate: TTabSheet;
   EnteringSession: Boolean;
 begin
@@ -9803,6 +9803,7 @@ begin
   MainTabToActivate := nil;
   PrevDBObj := nil;
   ParentDBObj := nil;
+  TableLevelObj := nil;
 
   if Assigned(Node) then begin
     LogSQL('DBtreeFocusChanged, Node level: '+IntToStr(Sender.GetNodeLevel(Node))+', FTreeRefreshInProgress: '+IntToStr(Integer(FTreeRefreshInProgress)), lcDebug);
@@ -9817,6 +9818,10 @@ begin
     FActiveDbObj.Assign(DBObj^);
     if Assigned(Node.Parent) and (DBtree.GetNodeLevel(Node) > 0) then
       ParentDBObj := Sender.GetNodeData(Node.Parent);
+    if FActiveDbObj.NodeType = lntColumn then
+      TableLevelObj := ParentDBObj^
+    else
+      TableLevelObj := FActiveDbObj;
 
     case FActiveDbObj.NodeType of
       lntNone: begin
@@ -9838,7 +9843,7 @@ begin
           MainTabToActivate := tabDatabase;
         FActiveObjectGroup := FActiveDbObj.GroupType;
       end;
-      lntTable..lntEvent: begin
+      lntTable..lntEvent, lntColumn: begin
         try
           FActiveDbObj.Connection.Database := FActiveDbObj.Database;
         except on E:EDbError do begin
@@ -9857,21 +9862,22 @@ begin
         menuQueryExactRowCount.Checked := False;
         InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
         try
-          if FActiveDbObj.NodeType in [lntTable, lntView] then begin
-            SelectedTableColumns := FActiveDbObj.TableColumns;
+          if TableLevelObj.NodeType in [lntTable, lntView] then begin
+            SelectedTableColumns := TableLevelObj.TableColumns;
             try
-              SelectedTableKeys := FActiveDbObj.TableKeys;
+              SelectedTableKeys := TableLevelObj.TableKeys;
             except // No show stopper, happening when a view references a renamed table column, see #1130
               on E:EDbError do
                 ErrorDialog(_('This view probably contains an error in its code.')+sLineBreak+sLineBreak+E.Message);
             end;
-            SelectedTableForeignKeys := FActiveDbObj.TableForeignKeys;
+            SelectedTableForeignKeys := TableLevelObj.TableForeignKeys;
           end;
-          PlaceObjectEditor(FActiveDbObj);
+          PlaceObjectEditor(TableLevelObj);
           // When a table is clicked in the tree, and the current
           // tab is a Host or Database tab, switch to showing table columns.
           if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
             MainTabToActivate := tabEditor;
+          // Todo: prevent reload when focus has changed within a table's children only
           if DataGrid.Tag = VTREE_LOADED then
             InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
           // Update the list of columns
@@ -9965,8 +9971,8 @@ begin
   if not FTreeRefreshInProgress then begin
     SetMainTab(MainTabToActivate);
     tabDatabase.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType <> lntNone);
-    tabEditor.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable..lntEvent]);
-    tabData.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable, lntView]);
+    tabEditor.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable..lntEvent, lntColumn]);
+    tabData.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable, lntView, lntColumn]);
   end;
 
   // Store click history item
@@ -10095,7 +10101,7 @@ begin
   // Paste DB or table name into query window on treeview double click.
   if AppSettings.ReadBool(asDoubleClickInsertsNodeText) and QueryTabs.HasActiveTab and Assigned(DBtree.FocusedNode) then begin
     DBObj := DBtree.GetNodeData(DBtree.FocusedNode);
-    if DBObj.NodeType in [lntDb, lntTable..lntEvent] then begin
+    if DBObj.NodeType in [lntDb, lntTable..lntEvent, lntColumn] then begin
       m := QueryTabs.ActiveMemo;
       m.DragDrop(Sender, m.CaretX, m.CaretY);
     end;
@@ -11447,10 +11453,13 @@ end;
 
 
 function TMainForm.GetRegKeyTable: String;
+var
+  o: TDBObject;
 begin
   // Return the slightly complex registry path to \Servers\CustomFolder\ActiveServer\curdb|curtable
-  Result := AppSettings.AppendDelimiter(ActiveDbObj.Connection.Parameters.SessionPath) +
-    ActiveDatabase + DELIM + ActiveDbObj.Name;
+  o := ActiveDbObj;
+  Result := AppSettings.AppendDelimiter(o.Connection.Parameters.SessionPath) +
+    ActiveDatabase + DELIM + o.Name;
 end;
 
 
@@ -13847,7 +13856,7 @@ begin
       TargetCanvas.Brush.Color := DbObj.Connection.Parameters.SessionColor;
       TargetCanvas.FillRect(CellRect);
     end;
-    if (Column=1) and DBObj.Connection.DbObjectsCached(DBObj.Database) then begin
+    if (Column=1) and (DBObj.NodeType in [lntTable..lntEvent]) and DBObj.Connection.DbObjectsCached(DBObj.Database) then begin
       AllObjects := DBObj.Connection.GetDBObjects(DBObj.Database);
       PaintColorBar(DBObj.Size, AllObjects.LargestObjectSize, TargetCanvas, CellRect);
     end;
