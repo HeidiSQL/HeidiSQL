@@ -289,18 +289,9 @@ begin
 end;
 
 class function TExtForm.ScaleFromDesign(x: Extended; Control: TControl): Integer;
-var
-  frm: TCustomForm;
 begin
   // Same as above for callers without a form
-  if Control is TCustomForm then
-    frm := TCustomForm(Control)
-  else
-    frm := GetParentForm(Control);
-  if frm = nil then
-    Result := Round(x)
-  else
-    Result := Round(x * GetCurrentPPI(Control) / frm.DesignTimePPI);
+  Result := Control.Scale96ToForm(Round(x));
 end;
 
 function TExtForm.Space(Multiply: Integer=1): Integer;

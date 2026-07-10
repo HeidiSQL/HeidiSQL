@@ -376,7 +376,7 @@ type
   function BinToWideHex(bin: AnsiString): String;
   procedure FixVT(VT: TVirtualStringTree; IsResultGrid: Boolean=False);
   // Returns the maximum possible height of text on a canvas
-  function GetTextHeight(ACanvas: TCanvas): Integer;
+  function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   function FindNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
@@ -1474,7 +1474,7 @@ var
   Node: PVirtualNode;
 begin
   // This is called either in some early stage (and probably from preferences/apply button?)
-  SingleLineHeight := GetTextHeight(VT.Canvas) + 7;
+  SingleLineHeight := GetTextHeight(VT.Font) + 7;
   // Multiline nodes?
   if IsResultGrid then
     MultiLineCount := AppSettings.ReadInt(asGridRowLineCount)
@@ -1528,9 +1528,17 @@ begin
 end;
 
 
-function GetTextHeight(ACanvas: TCanvas): Integer;
+function GetTextHeight(Font: TFont): Integer;
+var
+  Bmp: Graphics.TBitmap;
 begin
-  Result := ACanvas.TextHeight('Äy');
+  Bmp := Graphics.TBitmap.Create;
+  try
+    Bmp.Canvas.Font.Assign(Font);
+    Result := Bmp.Canvas.TextHeight('Äy');
+  finally
+    Bmp.Free;
+  end;
 end;
 
 
