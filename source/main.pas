@@ -4769,8 +4769,33 @@ end;
 
 
 procedure TMainForm.actNewWindowExecute(Sender: TObject);
+var
+  NewInstance: TProcess;
+  {$IFDEF DARWIN}
+  BundleDir: String;
+  {$ENDIF}
 begin
-  ShellExec( ExtractFileName(paramstr(0)), GetAppDir);
+  // Launch a second application instance, without waiting for it. The previous
+  // ShellExec() call blocked until the new instance was closed again.
+  // On macOS, we need to "run" the app bundle's directory instead of the app executable.
+  // See issue #2384.
+  NewInstance := TProcess.Create(nil);
+  try
+    NewInstance.Executable := Application.ExeName;
+    {$IFDEF DARWIN}
+    // In an app bundle the canonical way to start a second instance is "open -n"
+    BundleDir := ExcludeTrailingPathDelimiter(ExpandFileName(GetAppDir + '..' + PathDelim + '..'));
+    if ExtractFileExt(BundleDir) = '.app' then begin
+      NewInstance.Executable := '/usr/bin/open';
+      NewInstance.Parameters.Add('-n');
+      NewInstance.Parameters.Add('-a');
+      NewInstance.Parameters.Add(BundleDir);
+    end;
+    {$ENDIF}
+    NewInstance.Execute;
+  finally
+    NewInstance.Free;
+  end;
 end;
 
 
