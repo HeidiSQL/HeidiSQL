@@ -3528,7 +3528,11 @@ end;
 procedure TWinControlHelper.TrySetFocus;
 begin
   try
-    if Enabled and CanFocus then
+    // CanSetFocus - unlike CanFocus - also tests the parent form itself, so
+    // this avoids the "[TCustomForm.SetFocus] ... Can not focus" exception
+    // which SetFocus raises on a hidden or disabled form, e.g. while a modal
+    // form is closing. See issue 2433.
+    if CanSetFocus then
       SetFocus
     else
       MainForm.LogSQL(Self.Name + ': either disabled or cannot focus', lcDebug);

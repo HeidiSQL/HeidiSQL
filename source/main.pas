@@ -1776,10 +1776,28 @@ begin
     CanClose := not (ActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
 end;
 
+{$IFDEF DARWIN}
+type
+  // Grants access to the protected DestroyHandle, see workaround in FormDestroy
+  TWinControlAccess = class(TWinControl);
+{$ENDIF}
+
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   // Discard a possibly queued AsyncRepaintGrid call
   Application.RemoveAsyncCalls(Self);
+
+  {$IFDEF DARWIN}
+  // Work around a SynEdit bug which crashes the app on every shutdown on Cocoa:
+  // TSynBaseCompletionForm.Destroy first frees its SizeDrag panel and then
+  // destroys the window handle. The Cocoa widgetset queries Focused while
+  // destroying the handle, and the Focused override dereferences the already
+  // freed SizeDrag ("EObjectCheck: Object reference is Nil"). Destroying the
+  // handle here, while the form is still intact, makes the destructor skip
+  // that path. See issue 2433.
+  if SynCompletionProposal.TheForm.HandleAllocated then
+    TWinControlAccess(SynCompletionProposal.TheForm).DestroyHandle;
+  {$ENDIF}
 
   // Destroy dialogs
   FreeAndNil(FSearchReplaceDialog);
