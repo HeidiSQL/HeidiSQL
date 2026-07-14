@@ -279,6 +279,11 @@ var
   NewNode: PVirtualNode;
   DoPrev: Boolean;
 begin
+  // Drop end/cancel calls which are still queued via DoEndEdit/DoCancelEdit.
+  // They would fire after this link - and possibly the tree or its form - is
+  // already destroyed, e.g. when the session manager is cancelled while a
+  // session rename is active. See issue #2433.
+  Application.RemoveAsyncCalls(Self);
   ActiveGridEditor := nil;
   if Assigned(FMainControl) then begin
     FMainControl.WindowProc := FOldWindowProc;
