@@ -99,20 +99,22 @@ object frmTableEditor: TfrmTableEditor
       ImageIndex = 39
       object lblAutoinc: TLabel
         AnchorSideLeft.Control = tabOptions
-        AnchorSideTop.Control = tabOptions
+        AnchorSideTop.Control = editAutoInc
+        AnchorSideTop.Side = asrCenter
         Left = 5
         Height = 15
-        Top = 5
+        Top = 9
         Width = 86
         BorderSpacing.Around = 5
         Caption = 'Auto increment:'
       end
       object lblCollation: TLabel
         AnchorSideLeft.Control = tabOptions
-        AnchorSideTop.Control = tabOptions
+        AnchorSideTop.Control = comboCollation
+        AnchorSideTop.Side = asrCenter
         Left = 285
         Height = 15
-        Top = 5
+        Top = 9
         Width = 90
         BorderSpacing.Left = 280
         BorderSpacing.Around = 5
@@ -120,22 +122,22 @@ object frmTableEditor: TfrmTableEditor
       end
       object lblAvgRowLen: TLabel
         AnchorSideLeft.Control = tabOptions
-        AnchorSideTop.Control = editAutoInc
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = editAvgRowLen
+        AnchorSideTop.Side = asrCenter
         Left = 5
         Height = 15
-        Top = 33
+        Top = 37
         Width = 106
         BorderSpacing.Around = 5
         Caption = 'Average row length:'
       end
       object lblEngine: TLabel
         AnchorSideLeft.Control = tabOptions
-        AnchorSideTop.Control = comboCollation
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = comboEngine
+        AnchorSideTop.Side = asrCenter
         Left = 285
         Height = 15
-        Top = 33
+        Top = 37
         Width = 39
         BorderSpacing.Left = 280
         BorderSpacing.Around = 5
@@ -143,22 +145,22 @@ object frmTableEditor: TfrmTableEditor
       end
       object lblMaxRows: TLabel
         AnchorSideLeft.Control = tabOptions
-        AnchorSideTop.Control = editAvgRowLen
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = editMaxRows
+        AnchorSideTop.Side = asrCenter
         Left = 5
         Height = 15
-        Top = 61
+        Top = 65
         Width = 114
         BorderSpacing.Around = 5
         Caption = 'Maximum row count:'
       end
       object lblUnion: TLabel
         AnchorSideLeft.Control = tabOptions
-        AnchorSideTop.Control = comboEngine
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = memoUnionTables
+        AnchorSideTop.Side = asrCenter
         Left = 285
         Height = 15
-        Top = 61
+        Top = 76
         Width = 69
         BorderSpacing.Left = 280
         BorderSpacing.Around = 5
@@ -166,22 +168,22 @@ object frmTableEditor: TfrmTableEditor
       end
       object lblRowFormat: TLabel
         AnchorSideLeft.Control = tabOptions
-        AnchorSideTop.Control = chkChecksum
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = comboRowFormat
+        AnchorSideTop.Side = asrCenter
         Left = 5
         Height = 15
-        Top = 113
+        Top = 117
         Width = 65
         BorderSpacing.Around = 5
         Caption = 'Row format:'
       end
       object lblInsertMethod: TLabel
         AnchorSideLeft.Control = tabOptions
-        AnchorSideTop.Control = memoUnionTables
-        AnchorSideTop.Side = asrBottom
+        AnchorSideTop.Control = comboInsertMethod
+        AnchorSideTop.Side = asrCenter
         Left = 285
         Height = 15
-        Top = 110
+        Top = 114
         Width = 85
         BorderSpacing.Left = 280
         BorderSpacing.Around = 5
@@ -204,7 +206,7 @@ object frmTableEditor: TfrmTableEditor
         Left = 404
         Height = 23
         Top = 5
-        Width = 130
+        Width = 221
         BorderSpacing.Around = 5
         DropDownCount = 16
         ItemHeight = 15
@@ -216,10 +218,11 @@ object frmTableEditor: TfrmTableEditor
       object chkCharsetConvert: TCheckBox
         AnchorSideLeft.Control = comboCollation
         AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = tabOptions
-        Left = 539
+        AnchorSideTop.Control = comboCollation
+        AnchorSideTop.Side = asrCenter
+        Left = 630
         Height = 19
-        Top = 5
+        Top = 7
         Width = 86
         BorderSpacing.Around = 5
         Caption = 'Convert data'
