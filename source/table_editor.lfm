@@ -203,11 +203,13 @@ object frmTableEditor: TfrmTableEditor
       end
       object comboCollation: TComboBox
         AnchorSideTop.Control = tabOptions
+        AnchorSideRight.Control = chkCharsetConvert
         Left = 404
         Height = 23
         Top = 5
-        Width = 221
-        BorderSpacing.Around = 5
+        Width = 192
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 5
         DropDownCount = 16
         ItemHeight = 15
         Sorted = True
@@ -220,10 +222,13 @@ object frmTableEditor: TfrmTableEditor
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = comboCollation
         AnchorSideTop.Side = asrCenter
-        Left = 630
+        AnchorSideRight.Control = tabOptions
+        AnchorSideRight.Side = asrBottom
+        Left = 601
         Height = 19
         Top = 7
         Width = 86
+        Anchors = [akTop, akRight]
         BorderSpacing.Around = 5
         Caption = 'Convert data'
         TabOrder = 6
@@ -245,11 +250,14 @@ object frmTableEditor: TfrmTableEditor
       object comboEngine: TComboBox
         AnchorSideTop.Control = comboCollation
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = comboCollation
+        AnchorSideRight.Side = asrBottom
         Left = 404
         Height = 23
         Top = 33
-        Width = 221
-        BorderSpacing.Around = 5
+        Width = 192
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 5
         ItemHeight = 15
         Style = csDropDownList
         TabOrder = 7
@@ -271,11 +279,14 @@ object frmTableEditor: TfrmTableEditor
       object memoUnionTables: TMemo
         AnchorSideTop.Control = comboEngine
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = comboCollation
+        AnchorSideRight.Side = asrBottom
         Left = 404
         Height = 44
         Top = 61
-        Width = 221
-        BorderSpacing.Around = 5
+        Width = 192
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 5
         Lines.Strings = (
           'memoUnion'
         )
@@ -314,11 +325,14 @@ object frmTableEditor: TfrmTableEditor
       object comboInsertMethod: TComboBox
         AnchorSideTop.Control = memoUnionTables
         AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = comboCollation
+        AnchorSideRight.Side = asrBottom
         Left = 404
         Height = 23
         Top = 110
-        Width = 221
-        BorderSpacing.Around = 5
+        Width = 192
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Top = 5
         ItemHeight = 15
         Style = csDropDownList
         TabOrder = 9
