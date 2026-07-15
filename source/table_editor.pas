@@ -345,10 +345,12 @@ begin
   //comboCollation.Left := lblCollation.Left + TExtForm.ScaleFromDesign(150, Self);
   //comboCollation.Width := comboRowFormat.Width;
   comboCollation.Items := DBObject.Connection.CollationList;
+  comboCollation.AutoSizeItemWidth;
   //chkCharsetConvert.Left := comboCollation.Left + comboCollation.Width + 10;
   //comboEngine.Left := comboCollation.Left;
   //comboEngine.Width := comboCollation.Width;
   comboEngine.Items := DBObject.Connection.TableEngines;
+  comboEngine.AutoSizeItemWidth;
   comboEngine.Items.Insert(0, '<'+_('Server default')+'>');
   comboEngine.ItemIndex := 0;
   //memoUnionTables.Left := comboCollation.Left;

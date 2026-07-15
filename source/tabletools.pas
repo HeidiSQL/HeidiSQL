@@ -416,18 +416,22 @@ begin
   comboExportOutputType.OnChange(Sender);
 
   comboBulkTableEditDatabase.Items.Text := Mainform.ActiveConnection.AllDatabases.Text;
+  comboBulkTableEditDatabase.AutoSizeItemWidth;
   if comboBulkTableEditDatabase.Items.Count > 0 then
     comboBulkTableEditDatabase.ItemIndex := 0;
 
   comboBulkTableEditEngine.Items := MainForm.ActiveConnection.TableEngines;
+  comboBulkTableEditEngine.AutoSizeItemWidth;
   if comboBulkTableEditEngine.Items.Count > 0 then
     comboBulkTableEditEngine.ItemIndex := comboBulkTableEditEngine.Items.IndexOf(MainForm.ActiveConnection.TableEngineDefault);
 
   comboBulkTableEditCollation.Items := MainForm.ActiveConnection.CollationList;
+  comboBulkTableEditCollation.AutoSizeItemWidth;
   if comboBulkTableEditCollation.Items.Count > 0 then
     comboBulkTableEditCollation.ItemIndex := 0;
 
   comboBulkTableEditCharset.Items := MainForm.ActiveConnection.CharsetList;
+  comboBulkTableEditCharset.AutoSizeItemWidth;
   if comboBulkTableEditCharset.Items.Count > 0 then
     comboBulkTableEditCharset.ItemIndex := 0;
 
@@ -721,6 +725,7 @@ begin
       comboExportOutputTarget.Items.Add(TreeObjects.Text[DBNode, 0]);
     DBNode := TreeObjects.GetNextSibling(DBNode);
   end;
+  comboExportOutputTarget.AutoSizeItemWidth;
   comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(OldSelected);
   if comboExportOutputTarget.ItemIndex = -1 then
     comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(AppSettings.ReadString(asExportSQLDatabase));
@@ -1605,6 +1610,7 @@ begin
       FTargetConnection.Active := True;
       comboExportOutputTarget.Items := FTargetConnection.AllDatabases;
       comboExportOutputTarget.Items.Insert(0, '['+_('Same as on source server')+']');
+      comboExportOutputTarget.AutoSizeItemWidth;
       comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(AppSettings.ReadString(asExportSQLServerDatabase));
       if comboExportOutputTarget.ItemIndex = -1 then
         comboExportOutputTarget.ItemIndex := 0;

@@ -80,6 +80,7 @@ begin
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   comboEveryInterval.Items := Explode('|', 'YEAR|QUARTER|MONTH|DAY|HOUR|MINUTE|WEEK|SECOND|YEAR_MONTH|'+
     'DAY_HOUR|DAY_MINUTE|DAY_SECOND|HOUR_MINUTE|HOUR_SECOND|MINUTE_SECOND');
+  comboEveryInterval.AutoSizeItemWidth;
   grpState.Items := Explode('|', 'Enable|Disable|Disable on slave');
   FMainSynMemo := SynMemoBody;
   btnSave.Hint := ShortCutToText(MainForm.actSaveSQL.ShortCut);
@@ -365,9 +366,13 @@ end;
 
 
 procedure TfrmEventEditor.comboDefinerDropDown(Sender: TObject);
+var
+  combo: TCustomComboBox;
 begin
   // Populate definers from mysql.user
-  (Sender as TComboBox).Items.Assign(DBObject.Connection.AllUserHostCombinations);
+  combo := Sender as TComboBox;
+  combo.Items.Assign(DBObject.Connection.AllUserHostCombinations);
+  combo.AutoSizeItemWidth;
 end;
 
 

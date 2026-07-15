@@ -10,7 +10,7 @@ uses
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient, IntfGraphics, FPImage,
   {$IFDEF WINDOWS} Windows, Registry, uDarkStyleParams, {$ENDIF} DelphiCompat,
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
-  IniFiles, GraphType, Sockets, Contnrs
+  IniFiles, GraphType, Sockets, Contnrs, StdCtrls
   {$IFDEF DARWIN} , MacOSAll {$ENDIF};
 
 type
@@ -168,6 +168,11 @@ type
   TWinControlHelper = class helper for TWinControl
   public
     procedure TrySetFocus;
+  end;
+
+  TCustomComboBoxHelper = class helper for TCustomComboBox
+  public
+    procedure AutoSizeItemWidth;
   end;
 
   //TSimpleKeyValuePairs = TDictionary<String, String>;
@@ -3531,6 +3536,29 @@ begin
   end;
 end;
 
+{ TCustomComboBoxHelper }
+
+procedure TCustomComboBoxHelper.AutoSizeItemWidth;
+var
+  I, TextW, MaxTextW, MaxW: Integer;
+  ExtraPad: Integer;
+begin
+  MaxW := Scale96ToForm(500);
+
+  Canvas.Font.Assign(Font);
+  ExtraPad := Canvas.TextWidth('   ');
+  if Items.Count > DropDownCount then
+    Inc(ExtraPad, Canvas.TextWidth('   ')); // leave space for scrollbar
+  MaxTextW := 0;
+  for I := 0 to Items.Count - 1 do
+  begin
+    TextW := Canvas.TextWidth(Items[I]) + ExtraPad;
+    if TextW > MaxTextW then
+      MaxTextW := TextW;
+  end;
+
+  ItemWidth := Min(MaxTextW, MaxW);
+end;
 
 { TAppSettings }
 

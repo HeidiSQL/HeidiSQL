@@ -137,6 +137,7 @@ begin
   comboReturns.Clear;
   for i:=0 to High(Obj.Connection.Datatypes) do
     comboReturns.Items.Add(Obj.Connection.Datatypes[i].Name);
+  comboReturns.AutoSizeItemWidth;
   chkDeterministic.Checked := False;
   SelectNode(listParameters, nil);
   listParameters.Clear;
@@ -225,9 +226,13 @@ end;
 
 
 procedure TfrmRoutineEditor.comboDefinerDropDown(Sender: TObject);
+var
+  combo: TCustomComboBox;
 begin
   // Populate definers from mysql.user
-  (Sender as TComboBox).Items.Assign(DBObject.Connection.AllUserHostCombinations);
+  combo := Sender as TComboBox;
+  combo.Items.Assign(DBObject.Connection.AllUserHostCombinations);
+  combo.AutoSizeItemWidth;
 end;
 
 

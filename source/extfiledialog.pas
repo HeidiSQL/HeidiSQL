@@ -118,6 +118,7 @@ begin
   FFilterNames.Add(DisplayName);
   FFilterMasks.Add(FileMask);
   comboFileType.Items.Add(DisplayName + ' (' + FileMask + ')');
+  comboFileType.AutoSizeItemWidth;
 end;
 
 procedure TfrmExtFileDialog.FormCreate(Sender: TObject);
@@ -169,6 +170,7 @@ begin
   SetFilterIndex(FFilterIndex);
 
   comboEncoding.Items.AddStrings(FEncodings, True);
+  comboEncoding.AutoSizeItemWidth;
   if (FEncodingIndex >=0) and (FEncodingIndex < comboEncoding.Items.Count) then
     comboEncoding.ItemIndex := FEncodingIndex;
 

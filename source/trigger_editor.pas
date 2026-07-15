@@ -112,6 +112,7 @@ begin
     if DBObjects[i].NodeType in [lntTable] then
       comboTable.Items.Add(DBObjects[i].Name);
   end;
+  comboTable.AutoSizeItemWidth;
   if comboTable.Items.Count > 0 then
     comboTable.ItemIndex := 0;
 
@@ -221,9 +222,13 @@ end;
 
 
 procedure TfrmTriggerEditor.comboDefinerDropDown(Sender: TObject);
+var
+  combo: TCustomComboBox;
 begin
   // Populate definers from mysql.user
-  (Sender as TComboBox).Items.Assign(DBObject.Connection.AllUserHostCombinations);
+  combo := Sender as TComboBox;
+  combo.Items.Assign(DBObject.Connection.AllUserHostCombinations);
+  combo.AutoSizeItemWidth;
 end;
 
 

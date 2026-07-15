@@ -113,6 +113,7 @@ begin
       comboCollation.Items.Add(CollationTable.Col('Collation'));
       CollationTable.Next;
     end;
+    comboCollation.AutoSizeItemWidth;
     // Pre-select best fitting collation
     comboCollation.ItemIndex := comboCollation.Items.IndexOf(CurrentCollation);
     if comboCollation.ItemIndex = -1 then

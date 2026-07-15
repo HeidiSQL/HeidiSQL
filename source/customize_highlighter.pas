@@ -128,6 +128,7 @@ begin
   for i:=0 to Highlighters.Count-1 do begin
     comboHighlighter.Items.Add(Highlighters[i].GetLanguageName);
   end;
+  comboHighlighter.AutoSizeItemWidth;
 end;
 
 procedure TfrmCustomizeHighlighter.FormDestroy(Sender: TObject);

@@ -146,9 +146,13 @@ end;
 
 
 procedure TfrmView.comboDefinerDropDown(Sender: TObject);
+var
+  combo: TCustomComboBox;
 begin
   // Populate definers from mysql.user
-  (Sender as TComboBox).Items.Assign(DBObject.Connection.AllUserHostCombinations);
+  combo := Sender as TComboBox;
+  combo.Items.Assign(DBObject.Connection.AllUserHostCombinations);
+  combo.AutoSizeItemWidth;
 end;
 
 

@@ -1054,6 +1054,7 @@ begin
       ColorBoxBackgroundColor.ItemIndex := 0;
     editDatabases.Text := Sess.AllDatabasesStr;
     comboLibrary.Items := Sess.GetLibraries;
+    comboLibrary.AutoSizeItemWidth;
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Sess.LibraryOrProvider);
     if (comboLibrary.ItemIndex = -1) and (comboLibrary.Items.Count > 0) then begin
       comboLibrary.ItemIndex := 0;
@@ -1450,6 +1451,7 @@ begin
   mainform.LogSQL(Libs.CommaText);
   if Libs.Text <> comboLibrary.Items.Text then begin
     comboLibrary.Items := Libs;
+    comboLibrary.AutoSizeItemWidth;
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Params.DefaultLibrary);
   end;
 

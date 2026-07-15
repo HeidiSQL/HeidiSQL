@@ -335,6 +335,7 @@ begin
     if DBObjects[i].NodeType in [lntTable, lntView] then
       comboTables.Items.Add(DBObjects[i].Name);
   end;
+  comboTables.AutoSizeItemWidth;
   if comboTables.Items.Count > 0 then
     comboTables.ItemIndex := 0;
   comboTables.OnChange(Sender);
