@@ -169,6 +169,7 @@ object frmView: TfrmView
         Top = 3
         Width = 204
         Height = 21
+        AutoDropDownWidth = True
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
         Text = 'comboDefiner'

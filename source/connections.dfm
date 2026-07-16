@@ -343,6 +343,7 @@ object connform: Tconnform
         Top = 36
         Width = 316
         Height = 22
+        AutoDropDownWidth = True
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1

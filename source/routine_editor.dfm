@@ -239,6 +239,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Top = 87
         Width = 310
         Height = 21
+        AutoDropDownWidth = True
         TabOrder = 4
         Text = 'comboReturns'
         OnChange = Modification
@@ -267,6 +268,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Top = 8
         Width = 194
         Height = 21
+        AutoDropDownWidth = True
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
         Text = 'comboDefiner'

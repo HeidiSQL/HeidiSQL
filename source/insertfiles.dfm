@@ -86,6 +86,7 @@ object frmInsertFiles: TfrmInsertFiles
       Top = 23
       Width = 159
       Height = 21
+      AutoDropDownWidth = True
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 1

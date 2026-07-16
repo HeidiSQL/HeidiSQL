@@ -969,6 +969,7 @@ begin
       FCombo.Items.AddStrings(DisplayList)
     else
       FCombo.Items.AddStrings(ValueList);
+    FCombo.AutoDropDownWidth := True;
     FCombo.ItemIndex := ValueList.IndexOf(FCellText);
     if AllowCustomText and FAllowEdit then begin
       FCombo.Style := csDropDown;

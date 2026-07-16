@@ -171,6 +171,7 @@ object frmEventEditor: TfrmEventEditor
         Top = 3
         Width = 194
         Height = 21
+        AutoDropDownWidth = True
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 4
         Text = 'comboDefiner'
@@ -247,6 +248,7 @@ object frmEventEditor: TfrmEventEditor
         Top = 48
         Width = 133
         Height = 21
+        AutoDropDownWidth = True
         Style = csDropDownList
         TabOrder = 6
         OnChange = comboEveryIntervalChange

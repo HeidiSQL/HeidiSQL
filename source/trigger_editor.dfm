@@ -68,6 +68,7 @@ object frmTriggerEditor: TfrmTriggerEditor
         Top = 3
         Width = 379
         Height = 21
+        AutoDropDownWidth = True
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
         Text = 'comboDefiner'
@@ -89,6 +90,7 @@ object frmTriggerEditor: TfrmTriggerEditor
         Top = 30
         Width = 599
         Height = 21
+        AutoDropDownWidth = True
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 2

@@ -472,6 +472,7 @@ object frmTableTools: TfrmTableTools
             Top = 127
             Width = 422
             Height = 22
+            AutoDropDownWidth = True
             Anchors = [akLeft, akTop, akRight]
             DropDownCount = 16
             ParentShowHint = False
@@ -532,6 +533,7 @@ object frmTableTools: TfrmTableTools
             Top = 3
             Width = 339
             Height = 22
+            AutoDropDownWidth = True
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             Enabled = False
@@ -560,6 +562,7 @@ object frmTableTools: TfrmTableTools
             Top = 49
             Width = 339
             Height = 22
+            AutoDropDownWidth = True
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             DropDownCount = 16
@@ -581,6 +584,7 @@ object frmTableTools: TfrmTableTools
             Top = 26
             Width = 339
             Height = 22
+            AutoDropDownWidth = True
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             Enabled = False
@@ -600,6 +604,7 @@ object frmTableTools: TfrmTableTools
             Top = 72
             Width = 339
             Height = 22
+            AutoDropDownWidth = True
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             DropDownCount = 16

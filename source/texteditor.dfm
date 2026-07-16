@@ -151,6 +151,7 @@ object frmTextEditor: TfrmTextEditor
       Width = 145
       Height = 22
       Align = alLeft
+      AutoDropDownWidth = True
       Style = csDropDownList
       Sorted = True
       TabOrder = 1

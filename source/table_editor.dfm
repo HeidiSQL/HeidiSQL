@@ -150,6 +150,7 @@ object frmTableEditor: TfrmTableEditor
         Top = 3
         Width = 102
         Height = 23
+        AutoDropDownWidth = True
         Style = csDropDownList
         DropDownCount = 16
         Sorted = True
@@ -178,6 +179,7 @@ object frmTableEditor: TfrmTableEditor
         Top = 26
         Width = 221
         Height = 23
+        AutoDropDownWidth = True
         Style = csDropDownList
         TabOrder = 7
         OnSelect = comboEngineSelect

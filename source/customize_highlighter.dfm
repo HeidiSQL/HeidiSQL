@@ -45,6 +45,7 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     Top = 8
     Width = 145
     Height = 23
+    AutoDropDownWidth = True
     Style = csDropDownList
     Sorted = True
     TabOrder = 0
