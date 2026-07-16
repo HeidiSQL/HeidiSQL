@@ -457,6 +457,31 @@ begin
     qLikeCompare: Result := '%s LIKE %s';
     qAddColumn: Result := 'ADD %s';
     qChangeColumn: Result := 'ALTER COLUMN %s %s';
+    qSetColumnComment: Result := 'IF NOT EXISTS (' + sLineBreak +
+      '    SELECT 1' + sLineBreak +
+      '    FROM fn_listextendedproperty (' + sLineBreak +
+      '        N''MS_Description'',' + sLineBreak +
+      '        N''SCHEMA'', :EscapedSchema,' + sLineBreak +
+      '        N''TABLE'',  :EscapedName,' + sLineBreak +
+      '        N''COLUMN'', :TargetColumn' + sLineBreak +
+      '    )' + sLineBreak +
+      ')' + sLineBreak +
+      'BEGIN' + sLineBreak +
+      '    EXEC sys.sp_addextendedproperty' + sLineBreak +
+      '        @name        = N''MS_Description'',' + sLineBreak +
+      '        @value       = :NewComment,' + sLineBreak +
+      '        @level0type  = N''SCHEMA'', @level0name = :EscapedSchema,' + sLineBreak +
+      '        @level1type  = N''TABLE'',  @level1name = :EscapedName,' + sLineBreak +
+      '        @level2type  = N''COLUMN'', @level2name = :TargetColumn' + sLineBreak +
+      'END' + sLineBreak +
+      'ELSE BEGIN' + sLineBreak +
+      '    EXEC sys.sp_updateextendedproperty' + sLineBreak +
+      '        @name        = N''MS_Description'',' + sLineBreak +
+      '        @value       = :NewComment,' + sLineBreak +
+      '        @level0type  = N''SCHEMA'', @level0name = :EscapedSchema,' + sLineBreak +
+      '        @level1type  = N''TABLE'',  @level1name = :EscapedName,' + sLineBreak +
+      '        @level2type  = N''COLUMN'', @level2name = :TargetColumn' + sLineBreak +
+      'END';
     qSessionVariables: Result := 'SELECT comment, value FROM master.dbo.syscurconfigs ORDER BY comment';
     qGlobalVariables: Result := 'SELECT comment, value FROM master.dbo.syscurconfigs ORDER BY comment';
     qISSchemaCol: Result := '%s_CATALOG';

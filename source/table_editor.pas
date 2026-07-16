@@ -654,6 +654,7 @@ var
   TblKey: TTableKey;
   Constraint: TCheckConstraint;
   Conn: TDBConnection;
+  Params: TStringMap;
 
   procedure FinishSpecs;
   begin
@@ -784,12 +785,10 @@ begin
               Specs.Add(Format(AddColBase, [ColSpec]));
             end;
           end;
-          AddQuery('EXECUTE sp_addextendedproperty '+Conn.EscapeString('MS_Description')+', '+
-            Conn.EscapeString(Col.Comment)+', '+
-            Conn.EscapeString('Schema')+', '+Conn.EscapeString(DBObject.Schema)+', '+
-            Conn.EscapeString('table')+', '+Conn.EscapeString(DBObject.Name)+', '+
-            Conn.EscapeString('column')+', '+Conn.EscapeString(Col.Name)
-            );
+          Params := DBObject.AsStringMap;
+          Params.Add('NewComment', Conn.EscapeString(Col.Comment));
+          Params.Add('TargetColumn', Conn.EscapeString(Col.Name));
+          AddQuery(Conn.SqlProvider.GetSql(qSetColumnComment, Params));
         end;
 
         ngPgSQL: begin
