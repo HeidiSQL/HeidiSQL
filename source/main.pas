@@ -1332,6 +1332,7 @@ type
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     procedure EnableDataTab(Enable: Boolean);
     procedure AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
+    procedure AsyncRepaintGrid(Data: PtrInt);
     procedure PlaceObjectEditor(Obj: TDBObject);
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
@@ -1777,6 +1778,9 @@ end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
+  // Discard a possibly queued AsyncRepaintGrid call
+  Application.RemoveAsyncCalls(Self);
+
   // Destroy dialogs
   FreeAndNil(FSearchReplaceDialog);
 
@@ -6299,10 +6303,25 @@ begin
     if Integer(vt.RootNodeCount) = MaximumRows then
       LogSQL(f_('Browsing is currently limited to a maximum of %s rows. To see more rows, increase this maximum in %s > %s > %s.', [FormatNumber(MaximumRows), _('Tools'), _('Preferences'), _('Data')]), lcInfo);
   end;
+
+  // This procedure runs inside a paint cycle of the grid, and Cocoa discards
+  // invalidations issued while a paint cycle is running. The header was already
+  // painted before OnBeforePaint fired, so it would keep showing the previous
+  // table's columns until some unrelated event repaints the window. Queue a
+  // repaint which runs right after the current paint cycle.
+  Application.QueueAsyncCall(AsyncRepaintGrid, PtrInt(vt));
+
   vt.Tag := VTREE_LOADED;
   DataGridFullRowMode := False;
   Screen.Cursor := crDefault;
   ShowStatusMsg;
+end;
+
+
+procedure TMainForm.AsyncRepaintGrid(Data: PtrInt);
+begin
+  // Deferred repaint, queued in DataGridBeforePaint
+  TLazVirtualStringTree(Data).Header.Invalidate(nil, True);
 end;
 
 
