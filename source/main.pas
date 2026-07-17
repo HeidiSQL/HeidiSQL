@@ -6929,9 +6929,7 @@ var
     Columns: TTableColumnList;
     Col: TTableColumn;
     Keys: TTableKeyList;
-    Key: TTableKey;
     Obj: TDBObject;
-    ColumnIcon: Integer;
   begin
     dbname := '';
     tblname := LeftToken;
@@ -6950,16 +6948,8 @@ var
         Columns := Obj.TableColumns;
         Keys := Obj.TableKeys;
         for Col in Columns do begin
-          // Detect index icon, if any
-          ColumnIcon := ICONINDEX_FIELD;
-          for Key in Keys do begin
-            if Key.Columns.Contains(Col.Name) then begin
-              ColumnIcon := Key.ImageIndex;
-              Break;
-            end;
-          end;
           // Put formatted text and icon into proposal
-          DisplayText := SynCompletionProposalPrettyText(ColumnIcon, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, DatatypeCategories[Col.DataType.Category].NullColor);
+          DisplayText := SynCompletionProposalPrettyText(Keys.ImageIndex(Col.Name), LowerCase(Col.DataType.Name), Col.Name, Col.Comment, DatatypeCategories[Col.DataType.Category].NullColor);
           if CurrentInput.StartsWith(Conn.QuoteChar) then
             Proposal.AddItem(DisplayText, Conn.QuoteChar + Col.Name)
           else
@@ -7700,10 +7690,14 @@ begin
     // Insert table or database name. If a table is dropped and Shift is pressed, prepend the db name.
     case ActiveDbObj.NodeType of
       lntDb: Text := ActiveDbObj.QuotedDatabase(False);
-      lntTable..lntEvent: begin
-        if ShiftPressed then
-          Text := ActiveDbObj.QuotedDatabase(False) + '.';
-        Text := Text + ActiveDbObj.Connection.QuoteIdent(ActiveDbObj.Name, False);
+      lntTable..lntEvent, lntColumn: begin
+        Text := '';
+        if ShiftPressed then begin
+          Text := Text + ActiveDbObj.QuotedDatabase(False) + '.';
+          if ActiveDbObj.NodeType = lntColumn then
+            Text := Text + ActiveDbObj.QuotedName(False) + '.';
+        end;
+        Text := Text + ActiveDbObj.Connection.QuoteIdent(DBtree.Text[DBtree.FocusedNode, DBtree.FocusedColumn], False);
       end;
     end;
   end else if src = Tree then begin
@@ -9806,7 +9800,8 @@ procedure TMainForm.DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
     Boolean; var ImageIndex: TImageIndex);
 var
-  DBObj: PDBObject;
+  DBObj, ParentObj: PDBObject;
+  TableKeys: TTableKeyList;
 begin
   if Column > 0 then
     Exit;
@@ -9816,6 +9811,11 @@ begin
   case Kind of
     ikNormal, ikSelected: begin
         ImageIndex := DBObj.ImageIndex;
+        if DBObj.NodeType = lntColumn then begin // Key/index icon
+          ParentObj := Sender.GetNodeData(Node.Parent);
+          ImageIndex := ParentObj.TableKeys.ImageIndex(DBObj.Column);
+        end;
+
         Ghosted := (DBObj.NodeType = lntNone) and (not DBObj.Connection.Active);
         Ghosted := Ghosted or ((DBObj.NodeType = lntDB)
           and (not DBObj.Connection.DbObjectsCached(DBObj.Database))
@@ -9878,8 +9878,7 @@ begin
         DBObjects := DBObj.Connection.GetDBObjects(DBObj.Database, False, DBObj.GroupType);
         ChildCount := DBObjects.Count;
       end;
-    lntTable:
-      if GetParentFormOrFrame(Sender) is TfrmSelectDBObject then begin
+    lntTable: begin
         Columns := DBObj.TableColumns;
         ChildCount := Columns.Count;
       end;
@@ -9929,14 +9928,14 @@ begin
         end else begin
           DBObjects := ParentObj.Connection.GetDBObjects(ParentObj.Database);
           Item^ := DBObjects[Node.Index];
-          if (GetParentFormOrFrame(Sender) is TfrmSelectDBObject) and (Item.NodeType = lntTable) then
+          if Item.NodeType = lntTable then
             Include(InitialStates, ivsHasChildren);
         end;
       end;
       lntGroup: begin
         DBObjects := ParentObj.Connection.GetDBObjects(ParentObj.Database, False, ParentObj.GroupType);
         Item^ := DBObjects[Node.Index];
-        if (GetParentFormOrFrame(Sender) is TfrmSelectDBObject) and (Item.NodeType = lntTable) then
+        if Item.NodeType = lntTable then
           Include(InitialStates, ivsHasChildren);
       end;
       lntTable: begin
@@ -9958,6 +9957,7 @@ end;
 procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
 var
   DBObj, PrevDBObj, ParentDBObj: PDBObject;
+  TableLevelObj: TDBObject;
   MainTabToActivate: TTabSheet;
   EnteringSession: Boolean;
 begin
@@ -9965,6 +9965,7 @@ begin
   MainTabToActivate := nil;
   PrevDBObj := nil;
   ParentDBObj := nil;
+  TableLevelObj := nil;
 
   if Assigned(Node) then begin
     LogSQL('DBtreeFocusChanged, Node level: '+IntToStr(Sender.GetNodeLevel(Node))+', FTreeRefreshInProgress: '+IntToStr(Integer(FTreeRefreshInProgress)), lcDebug);
@@ -9979,6 +9980,10 @@ begin
     FActiveDbObj.Assign(DBObj^);
     if Assigned(Node.Parent) and (DBtree.GetNodeLevel(Node) > 0) then
       ParentDBObj := Sender.GetNodeData(Node.Parent);
+    if FActiveDbObj.NodeType = lntColumn then
+      TableLevelObj := ParentDBObj^
+    else
+      TableLevelObj := FActiveDbObj;
 
     case FActiveDbObj.NodeType of
       lntNone: begin
@@ -10000,7 +10005,7 @@ begin
           MainTabToActivate := tabDatabase;
         FActiveObjectGroup := FActiveDbObj.GroupType;
       end;
-      lntTable..lntEvent: begin
+      lntTable..lntEvent, lntColumn: begin
         try
           FActiveDbObj.Connection.Database := FActiveDbObj.Database;
         except on E:EDbError do begin
@@ -10019,21 +10024,22 @@ begin
         menuQueryExactRowCount.Checked := False;
         InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
         try
-          if FActiveDbObj.NodeType in [lntTable, lntView] then begin
-            SelectedTableColumns := FActiveDbObj.TableColumns;
+          if TableLevelObj.NodeType in [lntTable, lntView] then begin
+            SelectedTableColumns := TableLevelObj.TableColumns;
             try
-              SelectedTableKeys := FActiveDbObj.TableKeys;
+              SelectedTableKeys := TableLevelObj.TableKeys;
             except // No show stopper, happening when a view references a renamed table column, see #1130
               on E:EDbError do
                 ErrorDialog(_('This view probably contains an error in its code.')+sLineBreak+sLineBreak+E.Message);
             end;
-            SelectedTableForeignKeys := FActiveDbObj.TableForeignKeys;
+            SelectedTableForeignKeys := TableLevelObj.TableForeignKeys;
           end;
-          PlaceObjectEditor(FActiveDbObj);
+          PlaceObjectEditor(TableLevelObj);
           // When a table is clicked in the tree, and the current
           // tab is a Host or Database tab, switch to showing table columns.
           if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
             MainTabToActivate := tabEditor;
+          // Todo: prevent reload when focus has changed within a table's children only
           if DataGrid.Tag = VTREE_LOADED then
             InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
           // Update the list of columns
@@ -10127,8 +10133,8 @@ begin
   if not FTreeRefreshInProgress then begin
     SetMainTab(MainTabToActivate);
     tabDatabase.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType <> lntNone);
-    tabEditor.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable..lntEvent]);
-    tabData.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable, lntView]);
+    tabEditor.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable..lntEvent, lntColumn]);
+    tabData.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable, lntView, lntColumn]);
   end;
 
   // Store click history item
@@ -10257,7 +10263,7 @@ begin
   // Paste DB or table name into query window on treeview double click.
   if AppSettings.ReadBool(asDoubleClickInsertsNodeText) and QueryTabs.HasActiveTab and Assigned(DBtree.FocusedNode) then begin
     DBObj := DBtree.GetNodeData(DBtree.FocusedNode);
-    if DBObj.NodeType in [lntDb, lntTable..lntEvent] then begin
+    if DBObj.NodeType in [lntDb, lntTable..lntEvent, lntColumn] then begin
       m := QueryTabs.ActiveMemo;
       m.DragDrop(Sender, m.CaretX, m.CaretY);
     end;
@@ -10298,18 +10304,36 @@ procedure TMainForm.DBtreePaintText(Sender: TBaseVirtualTree; const
     TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType:
     TVSTTextType);
 var
-  DBObj: PDBObject;
+  DBObj, ParentObj: PDBObject;
   WalkNode: PVirtualNode;
+  Columns: TTableColumnList;
+  Datatype: TDBDatatype;
 begin
-  // Grey out non-current connection nodes, and rather unimportant "Size" column
+  // Grey out non-current connection nodes
   DBObj := Sender.GetNodeData(Node);
-  if DBObj.Connection <> ActiveConnection then
-    TargetCanvas.Font.Color := clGrayText
-  else if (Column = 1) and (DBObj.NodeType in [lntTable..lntEvent]) then
+  if DBObj.Connection <> ActiveConnection then begin
     TargetCanvas.Font.Color := clGrayText;
+    Exit;
+  end;
+
+  // Set text color
+  case Column of
+    0: begin
+      if DBObj.NodeType = lntColumn then begin
+        ParentObj := Sender.GetNodeData(Node.Parent);
+        Columns := ParentObj.TableColumns;
+        Datatype := Columns[Node.Index].DataType;
+        TargetCanvas.Font.Color := DatatypeCategories[Datatype.Category].Color;
+      end;
+    end;
+    1: begin // Grey out rather unimportant "Size" column
+      if DBObj.NodeType in [lntTable..lntEvent] then
+        TargetCanvas.Font.Color := clGrayText;
+    end;
+  end;
 
   // Set bold text if painted node is in focused path
-  if (Column = Sender.Header.MainColumn) then begin
+  if (Column = DBtree.Header.MainColumn) then begin
     WalkNode := Sender.FocusedNode;
     while Assigned(WalkNode) do begin
       if WalkNode = Node then begin
@@ -11613,10 +11637,13 @@ end;
 
 
 function TMainForm.GetRegKeyTable: String;
+var
+  o: TDBObject;
 begin
   // Return the slightly complex registry path to \Servers\CustomFolder\ActiveServer\curdb|curtable
-  Result := ActiveDbObj.Connection.Parameters.SessionPath + '\' +
-    ActiveDatabase + DELIM + ActiveDbObj.Name;
+  o := ActiveDbObj;
+  Result := o.Connection.Parameters.SessionPath + '\' +
+    ActiveDatabase + DELIM + o.Name;
 end;
 
 
@@ -13963,7 +13990,7 @@ begin
       TargetCanvas.Brush.Color := DbObj.Connection.Parameters.SessionColor;
       TargetCanvas.FillRect(CellRect);
     end;
-    if (Column=1) and DBObj.Connection.DbObjectsCached(DBObj.Database) then begin
+    if (Column=1) and (DBObj.NodeType in [lntTable..lntEvent]) and DBObj.Connection.DbObjectsCached(DBObj.Database) then begin
       AllObjects := DBObj.Connection.GetDBObjects(DBObj.Database);
       PaintColorBar(DBObj.Size, AllObjects.LargestObjectSize, TargetCanvas, CellRect);
     end;
@@ -14476,13 +14503,13 @@ begin
          TQueryTab.HelperNodeBinding: ImageIndex := 119;
        end;
     1: case Node.Parent.Index of
-         TQueryTab.HelperNodeColumns: ImageIndex := 42;
+         TQueryTab.HelperNodeColumns: ImageIndex := ICONINDEX_FIELD;
          TQueryTab.HelperNodeFunctions: ImageIndex := 13;
          TQueryTab.HelperNodeKeywords: ImageIndex := 25;
          TQueryTab.HelperNodeSnippets: ImageIndex := 68;
          TQueryTab.HelperNodeHistory: ImageIndex := 80;
          TQueryTab.HelperNodeProfile: ImageIndex := 145;
-         TQueryTab.HelperNodeBinding: ImageIndex := 42;
+         TQueryTab.HelperNodeBinding: ImageIndex := ICONINDEX_FIELD;
        end;
   end;
 end;

@@ -112,6 +112,8 @@ type
     public
       procedure Assign(Source: TTableKeyList);
       function MaxSize: Int64;
+      // Retrieve key icon index for a column, or the normal field icon if it has no key
+      function ImageIndex(ColumnName: String): Integer;
   end;
   TKeyCache = TDictionary<String,TTableKeyList>;
 
@@ -11296,6 +11298,18 @@ begin
   end;
 end;
 
+function TTableKeyList.ImageIndex(ColumnName: String): Integer;
+var
+  Key: TTableKey;
+begin
+  Result := ICONINDEX_FIELD;
+  for Key in Self do begin
+    if Key.Columns.Contains(ColumnName) then begin
+      Result := Key.ImageIndex;
+      Break;
+    end;
+  end;
+end;
 
 
 { *** TForeignKey }

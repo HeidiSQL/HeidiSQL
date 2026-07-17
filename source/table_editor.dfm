@@ -783,7 +783,7 @@ object frmTableEditor: TfrmTableEditor
         Top = 0
         Hint = 'Add column'
         Caption = 'Add'
-        ImageIndex = 45
+        ImageIndex = 91
         ImageName = 'icons8-add'
         OnClick = btnAddColumnClick
       end
@@ -792,7 +792,7 @@ object frmTableEditor: TfrmTableEditor
         Top = 0
         Hint = 'Remove column'
         Caption = 'Remove'
-        ImageIndex = 46
+        ImageIndex = 92
         ImageName = 'icons8-delete-button'
         OnClick = btnRemoveColumnClick
       end
@@ -1044,14 +1044,14 @@ object frmTableEditor: TfrmTableEditor
     end
     object menuAddColumn: TMenuItem
       Caption = 'Add column'
-      ImageIndex = 45
+      ImageIndex = 91
       ImageName = 'icons8-add'
       ShortCut = 16429
       OnClick = btnAddColumnClick
     end
     object menuRemoveColumn: TMenuItem
       Caption = 'Remove column'
-      ImageIndex = 46
+      ImageIndex = 92
       ImageName = 'icons8-delete-button'
       ShortCut = 16430
       OnClick = btnRemoveColumnClick

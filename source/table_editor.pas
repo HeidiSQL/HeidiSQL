@@ -2137,7 +2137,7 @@ begin
       if TblKey.IsExpression(Node.Index) then
         ImageIndex := 13
       else
-        ImageIndex := 42;
+        ImageIndex := ICONINDEX_FIELD;
     end;
   end;
 end;
