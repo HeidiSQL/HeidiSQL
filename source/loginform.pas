@@ -49,9 +49,9 @@ end;
 procedure TfrmLogin.FormShow(Sender: TObject);
 begin
   if editPassword.CanFocus and (editUsername.GetTextLen > 0) and (editPassword.GetTextLen = 0) then
-    editPassword.SetFocus
+    editPassword.TrySetFocus
   else if editUsername.CanFocus then
-    editUsername.SetFocus;
+    editUsername.TrySetFocus;
 end;
 
 end.

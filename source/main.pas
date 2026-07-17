@@ -1471,7 +1471,7 @@ implementation
 
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
-  copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp, updatecheck,
+  copytable, csv_detector, exportgrid, usermanager, reformatter, connections, sqlhelp, updatecheck,
   insertfiles, texteditor, preferences, table_editor, view, routine_editor, trigger_editor, event_editor, grideditlinks,
   crashdialog;
 
@@ -1620,13 +1620,13 @@ end;
 
 procedure TMainForm.actGotoDbTreeExecute(Sender: TObject);
 begin
-  DBtree.SetFocus;
+  DBtree.TrySetFocus;
 end;
 
 
 procedure TMainForm.actGotoFilterExecute(Sender: TObject);
 begin
-  editTableFilter.SetFocus;
+  editTableFilter.TrySetFocus;
 end;
 
 
@@ -1641,19 +1641,19 @@ begin
     if Tab.Memo.Focused then begin
       if Tab.ActiveResultTab <> nil then begin
         Grid := Tab.ActiveResultTab.Grid;
-        Grid.SetFocus;
+        Grid.TrySetFocus;
         if Grid.FocusedNode = nil then
           SelectNode(Grid, 0);
       end else begin
         Beep;
       end;
     end else begin
-      Tab.Memo.SetFocus;
+      Tab.Memo.TrySetFocus;
     end;
   end else if PageControlMain.ActivePage = tabData then begin
     // Switch between data tab filter and result grid
     if SynMemoFilter.Focused then begin
-      DataGrid.SetFocus;
+      DataGrid.TrySetFocus;
       if DataGrid.FocusedNode = nil then
         SelectNode(DataGrid, 0);
     end else begin
@@ -2778,7 +2778,7 @@ begin
   // Manually set focus to tree - otherwise the database filter as the first
   // control catches focus on startup, which is ugly.
   if DBtree.CanFocus then
-    DBtree.SetFocus;
+    DBtree.TrySetFocus;
 
   // Apply resize event and call it once here in OnShow, when the form has its final dimensions
   OnResize := FormResize;
@@ -7756,7 +7756,7 @@ var
   miGroup, miFunction: TMenuItem;
 begin
   // Sets cursor into memo and activates TAction(s) like paste
-  QueryTabs.ActiveMemo.SetFocus;
+  QueryTabs.ActiveMemo.TrySetFocus;
   // Create function menu items in popup menu
   menuQueryInsertFunction.Clear;
   SQLFuncs := ActiveConnection.SQLFunctions;
@@ -7840,7 +7840,7 @@ begin
   // set y-position of cursor
   Memo.CaretY := y div Memo.LineHeight + Memo.TopLine;
   if not Memo.Focused then
-    Memo.SetFocus;
+    Memo.TrySetFocus;
 end;
 
 
@@ -7916,7 +7916,7 @@ begin
     QueryTabs.ActiveMemo.SelText := Text;
     //QueryTabs.ActiveMemo.UndoList.AddGroupBreak;
     // Requires to set focus, as doubleclick actions also call this procedure
-    QueryTabs.ActiveMemo.SetFocus;
+    QueryTabs.ActiveMemo.TrySetFocus;
   end;
 end;
 
@@ -8107,7 +8107,7 @@ begin
   FLastMouseButtonUpOnGrid := mbLeft;
   // Make sure ValidateControls detects the grid as focused, which is not the case when
   // it has 0 nodes, even with TreeOptions.SelectionOptions.RightclickSelect enabled
-  Grid.SetFocus;
+  Grid.TrySetFocus;
   CellFocused := Assigned(Grid.FocusedNode) and (Grid.FocusedColumn > 0);
   InDataGrid := Grid = DataGrid;
   DataInsertValue.Enabled := CellFocused;
@@ -8605,7 +8605,7 @@ begin
     ToggleFilterPanel;
     FilterPanelManuallyOpened := pnlFilter.Visible;
     if FilterPanelManuallyOpened then
-      SynMemoFilter.SetFocus;
+      SynMemoFilter.TrySetFocus;
   end;
 end;
 
@@ -9676,7 +9676,6 @@ procedure TMainForm.DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node:
 var
   DBObj, ParentObj: PDBObject;
   CountOriginals: Integer;
-  TableKeys: TTableKeyList;
 begin
   if Column > 0 then
     Exit;
@@ -11945,9 +11944,8 @@ var
   FocusedColumnName, ForeignColumnName: String;
   ForeignKey: TForeignKey;
   i: Integer;
-  DBObj, ReferenceTable: TDBObject;
+  ReferenceTable: TDBObject;
   Datatype: TDBDatatype;
-  DbObjects: TDBObjectList;
   Filter: String;
   Conn: TDBConnection;
 begin
@@ -13493,7 +13491,7 @@ begin
   pnlFilterVT.Visible := actFilterPanel.Checked;
   // On startup, we cannot SetFocus, throws exceptons. Call with nil in that special case - see FormCreate
   if pnlFilterVT.Visible and editFilterVT.CanFocus and (Sender <> nil) then
-    editFilterVT.SetFocus;
+    editFilterVT.TrySetFocus;
   UpdateFilterPanel(Sender);
 end;
 

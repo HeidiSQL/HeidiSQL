@@ -1950,7 +1950,7 @@ begin
   if DBObject.Name = '' then begin
     editName := FindComponent('editName') as TWinControl;
     if Assigned(editName) and editName.CanFocus then
-      editName.SetFocus;
+      editName.TrySetFocus;
   end;
 
   for i:=0 to ComponentCount-1 do begin
@@ -3528,9 +3528,10 @@ end;
 procedure TWinControlHelper.TrySetFocus;
 begin
   try
-    if Enabled
-      and CanFocus then
-      SetFocus;
+    if Enabled and CanFocus then
+      SetFocus
+    else
+      MainForm.LogSQL(Self.Name + ': either disabled or cannot focus', lcDebug);
   except
     SysUtils.Beep;
   end;

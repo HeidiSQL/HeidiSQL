@@ -161,7 +161,7 @@ begin
     comboDatabase.ItemIndex := 0;
   comboDatabaseChange(Sender);
 
-  editFilename.SetFocus;
+  editFilename.TrySetFocus;
 end;
 
 

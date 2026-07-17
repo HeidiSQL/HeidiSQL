@@ -444,7 +444,7 @@ begin
   SynMemoBody.CaretX := (x - SynMemoBody.Gutter.Width) div SynMemoBody.CharWidth - 1 + SynMemoBody.LeftChar;
   SynMemoBody.CaretY := y div SynMemoBody.LineHeight + SynMemoBody.TopLine;
   if not SynMemoBody.Focused then
-    SynMemoBody.SetFocus;
+    SynMemoBody.TrySetFocus;
 end;
 
 

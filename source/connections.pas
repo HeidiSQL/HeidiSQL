@@ -420,7 +420,7 @@ begin
     Node := ListSessions.GetNext(Node);
   end;
 
-  ListSessions.SetFocus;
+  ListSessions.TrySetFocus;
   // Reactivate statistics
   TimerStatistics.Enabled := True;
   TimerStatistics.OnTimer(Sender);
@@ -657,7 +657,7 @@ end;
 
 procedure Tconnform.actFilterExecute(Sender: TObject);
 begin
-  editSearch.SetFocus;
+  editSearch.TrySetFocus;
 end;
 
 procedure Tconnform.btnDeleteClick(Sender: TObject);
@@ -679,7 +679,7 @@ begin
       FocusNode := Node.Parent;
     ListSessions.DeleteNode(Node);
     SelectNode(ListSessions, FocusNode);
-    ListSessions.SetFocus;
+    ListSessions.TrySetFocus;
   end;
 end;
 

@@ -365,7 +365,7 @@ begin
     FStopping := True;
     FTree.CancelEditNode;
     if FTree.CanFocus then
-      FTree.SetFocus;
+      FTree.TrySetFocus;
   end;
 end;
 
@@ -377,7 +377,7 @@ begin
   if FModified and FAllowEdit then
     FTree.Text[FNode, FColumn] := NewText;
   if FTree.CanFocus and (FLastKeyDown <> VK_TAB) then
-    FTree.SetFocus;
+    FTree.TrySetFocus;
 end;
 
 {procedure TBaseGridEditorLink.TempWindowProc(var Message: TMessage);
@@ -605,7 +605,7 @@ begin
   Result := inherited BeginEdit;
   if Result then begin
     FPanel.Show;
-    FMaskEdit.SetFocus;
+    FMaskEdit.TrySetFocus;
     // Focus very last segment of date
     FMaskEdit.SelStart := AppSettings.ReadInt(asDateTimeEditorCursorPos, IntToStr(Integer(FTableColumn.DataType.Category)));
     FMaskEdit.SelLength := 1;
@@ -957,7 +957,7 @@ begin
   Result := inherited BeginEdit;
   if Result then begin
     FCombo.Show;
-    FCombo.SetFocus;
+    FCombo.TrySetFocus;
   end;
 end;
 
@@ -1075,7 +1075,7 @@ begin
   Result := inherited BeginEdit;
   if Result then begin
     FPanel.Show;
-    FCheckList.SetFocus;
+    FCheckList.TrySetFocus;
   end;
 end;
 
@@ -1229,7 +1229,7 @@ begin
       ButtonClick(FTree)
     else begin
       FPanel.Show;
-      FEdit.SetFocus;
+      FEdit.TrySetFocus;
     end;
   end;
 end;
@@ -1311,7 +1311,6 @@ end;
 
 constructor TColumnDefaultEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 var
-  SQLFunc: TSQLFunction;
   m: Integer;
 begin
   inherited;
@@ -1539,11 +1538,11 @@ begin
   Result := not FStopping;
   if Result then begin
     FPanel.Show;
-    if FRadioNothing.Checked then FRadioNothing.SetFocus
-    else if FRadioText.Checked then FTextEdit.SetFocus
-    else if FRadioNull.Checked then FRadioNull.SetFocus
-    else if FRadioExpression.Checked then FExpressionEdit.SetFocus
-    else if FRadioAutoInc.Checked then FRadioAutoInc.SetFocus;
+    if FRadioNothing.Checked then FRadioNothing.TrySetFocus
+    else if FRadioText.Checked then FTextEdit.TrySetFocus
+    else if FRadioNull.Checked then FRadioNull.TrySetFocus
+    else if FRadioExpression.Checked then FExpressionEdit.TrySetFocus
+    else if FRadioAutoInc.Checked then FRadioAutoInc.TrySetFocus;
   end;
 end;
 
@@ -1586,7 +1585,7 @@ begin
 
     FTree.Text[FNode, FColumn] := Col.DefaultText;
     if FTree.CanFocus then
-      FTree.SetFocus;
+      FTree.TrySetFocus;
   end;
 end;
 
@@ -1598,14 +1597,14 @@ begin
   else begin
     FTextEdit.Color := clWindow;
     if FTextEdit.CanFocus then
-      FTextEdit.SetFocus;
+      FTextEdit.TrySetFocus;
   end;
   if not FRadioExpression.Checked then
     FExpressionEdit.Color := clBtnFace
   else begin
     FExpressionEdit.Color := clWindow;
     if FExpressionEdit.CanFocus then
-      FExpressionEdit.SetFocus;
+      FExpressionEdit.TrySetFocus;
   end;
   FModified := True;
 end;
@@ -1762,7 +1761,7 @@ begin
   Result := inherited BeginEdit;
   if Result then begin
     FTreeSelect.Show;
-    FTreeSelect.SetFocus;
+    FTreeSelect.TrySetFocus;
   end;
 end;
 

@@ -113,7 +113,7 @@ begin
   // Fix label position:
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
   memoText.SelectAll;
-  memoText.SetFocus;
+  memoText.TrySetFocus;
   memoTextChange(Sender);
   Modified := False;
 end;

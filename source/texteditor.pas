@@ -331,7 +331,7 @@ begin
   comboHighlighter.OnSelect(comboHighlighter);
   // Trigger change event, which is not fired when text is empty. See #132.
   TimerMemoChangeTimer(Self);
-  MemoText.SetFocus;
+  MemoText.TrySetFocus;
 end;
 
 

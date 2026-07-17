@@ -1392,7 +1392,7 @@ begin
     while Assigned(Child) do
       Child := treePrivs.GetNextSibling(Child);
     treePrivs.Expanded[Node] := True;
-    treePrivs.SetFocus;
+    treePrivs.TrySetFocus;
     SelectNode(treePrivs, Node);
     Modified := True;
   end;

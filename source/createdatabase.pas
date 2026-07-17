@@ -126,7 +126,7 @@ begin
       comboCollation.ItemIndex := 0; // give up, use the first one
   end;
 
-  editDBName.SetFocus;
+  editDBName.TrySetFocus;
   editDBName.SelectAll;
 
   // Invoke SQL preview

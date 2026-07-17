@@ -118,27 +118,27 @@ begin
     vtString: begin
       editString.Text := FVarValue;
       editString.SelectAll;
-      editString.SetFocus;
+      editString.TrySetFocus;
     end;
     vtNumeric: begin
       spinNumber.Value := MakeInt(FVarValue);
       spinNumber.SelectAll;
-      spinNumber.SetFocus;
+      spinNumber.TrySetFocus;
     end;
     vtBoolean: begin
       val := UpperCase(FVarValue);
       if (val='ON') or (val='1') or (val='YES') then begin
         radioBooleanOn.Checked := True;
-        radioBooleanOn.SetFocus;
+        radioBooleanOn.TrySetFocus;
       end else begin
         radioBooleanOff.Checked := True;
-        radioBooleanOff.SetFocus;
+        radioBooleanOff.TrySetFocus;
       end;
     end;
     vtEnum: begin
       comboEnum.Items.CommaText := FVar.EnumValues;
       comboEnum.ItemIndex := comboEnum.Items.IndexOf(UpperCase(FVarValue));
-      comboEnum.SetFocus;
+      comboEnum.TrySetFocus;
     end;
   end;
 

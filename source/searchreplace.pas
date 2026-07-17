@@ -171,7 +171,7 @@ begin
     comboReplace.Text := comboReplace.Items[0];
 
   ValidateControls(Sender);
-  comboSearch.SetFocus;
+  comboSearch.TrySetFocus;
 end;
 
 

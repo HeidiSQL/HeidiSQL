@@ -108,9 +108,9 @@ begin
   FDBObj := Obj^;
   FConnection := FDBObj.Connection;
   editNewTablename.Text := FDBObj.Name + '_copy';
-  editNewTablename.SetFocus;
+  editNewTablename.TrySetFocus;
   lblNewTablename.Caption := f_('Copy "%s" to new db.table:', [FDBObj.Name]);
-  editNewTablename.SetFocus;
+  editNewTablename.TrySetFocus;
 
 	// Select TargetDatabase
   comboDatabase.Items.Clear;

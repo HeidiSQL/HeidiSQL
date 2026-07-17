@@ -287,7 +287,7 @@ begin
   // These SynMemo's don't have any (SQL) highligher, so we have to assign correct colors for basic text
   memoDescription.Font.Color := GetThemeColor(clWindowText);
   MemoExample.Font.Color := GetThemeColor(clWindowText);
-  editFilter.SetFocus;
+  editFilter.TrySetFocus;
 end;
 
 
