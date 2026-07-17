@@ -647,6 +647,7 @@ var
   Constraint: TCheckConstraint;
   Node: PVirtualNode;
   Conn: TDBConnection;
+  Params: TStringMap;
 
   procedure FinishSpecs;
   begin
@@ -660,7 +661,7 @@ var
   procedure AddQuery(Query: String);
   begin
     FinishSpecs;
-    SQL := SQL + Format(Query, [DBObject.QuotedName]) + ';' + CRLF;
+    SQL := SQL + Format(Query, [DBObject.QuotedName]) + ';' + sLineBreak;
   end;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
@@ -778,12 +779,10 @@ begin
               Specs.Add(Format(AddColBase, [ColSpec]));
             end;
           end;
-          AddQuery('EXECUTE sp_addextendedproperty '+Conn.EscapeString('MS_Description')+', '+
-            Conn.EscapeString(Col.Comment)+', '+
-            Conn.EscapeString('Schema')+', '+Conn.EscapeString(DBObject.Schema)+', '+
-            Conn.EscapeString('table')+', '+Conn.EscapeString(DBObject.Name)+', '+
-            Conn.EscapeString('column')+', '+Conn.EscapeString(Col.Name)
-            );
+          Params := DBObject.AsStringMap;
+          Params.Add('NewComment', Conn.EscapeString(Col.Comment));
+          Params.Add('TargetColumn', Conn.EscapeString(Col.Name));
+          AddQuery(Conn.SqlProvider.GetSql(qSetColumnComment, Params));
         end;
 
         ngPgSQL: begin
