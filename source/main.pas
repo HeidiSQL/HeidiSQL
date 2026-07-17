@@ -6958,9 +6958,7 @@ var
     Columns: TTableColumnList;
     Col: TTableColumn;
     Keys: TTableKeyList;
-    Key: TTableKey;
     Obj: TDBObject;
-    ColumnIcon: Integer;
     PropItem: TProposalItem;
   begin
     dbname := '';
@@ -6980,16 +6978,8 @@ var
         Columns := Obj.TableColumns;
         Keys := Obj.TableKeys;
         for Col in Columns do begin
-          // Detect index icon, if any
-          ColumnIcon := ICONINDEX_FIELD;
-          for Key in Keys do begin
-            if Key.Columns.Contains(Col.Name) then begin
-              ColumnIcon := Key.ImageIndex;
-              Break;
-            end;
-          end;
           // Put formatted text and icon into proposal
-          PropItem := FProposalItems.AddNew(Col.Name, ColumnIcon, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, AppColorSchemes.First.GridNullColors[Col.DataType.Category]);
+          PropItem := FProposalItems.AddNew(Col.Name, Keys.ImageIndex(Col.Name), LowerCase(Col.DataType.Name), Col.Name, Col.Comment, AppColorSchemes.First.GridNullColors[Col.DataType.Category]);
           if Proposal.CurrentString.StartsWith(Conn.QuoteChar) then
             PropItem.InsertText := Conn.QuoteChar + Col.Name;
           Inc(ColumnsInList);
@@ -7857,10 +7847,14 @@ begin
     // Insert table or database name. If a table is dropped and Shift is pressed, prepend the db name.
     case ActiveDbObj.NodeType of
       lntDb: Text := ActiveDbObj.QuotedDatabase(False);
-      lntTable..lntEvent: begin
-        if ShiftPressed then
-          Text := ActiveDbObj.QuotedDatabase(False) + '.';
-        Text := Text + ActiveDbObj.Connection.QuoteIdent(ActiveDbObj.Name, False);
+      lntTable..lntEvent, lntColumn: begin
+        Text := '';
+        if ShiftPressed then begin
+          Text := Text + ActiveDbObj.QuotedDatabase(False) + '.';
+          if ActiveDbObj.NodeType = lntColumn then
+            Text := Text + ActiveDbObj.QuotedName(False) + '.';
+        end;
+        Text := Text + ActiveDbObj.Connection.QuoteIdent(DBtree.Text[DBtree.FocusedNode, DBtree.FocusedColumn], False);
       end;
     end;
   end else if src = Tree then begin
@@ -9661,8 +9655,9 @@ procedure TMainForm.DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
     Boolean; var ImageIndex: Integer);
 var
-  DBObj: PDBObject;
+  DBObj, ParentObj: PDBObject;
   CountOriginals: Integer;
+  TableKeys: TTableKeyList;
 begin
   if Column > 0 then
     Exit;
@@ -9672,6 +9667,11 @@ begin
   case Kind of
     ikNormal, ikSelected: begin
         ImageIndex := DBObj.ImageIndex;
+        if DBObj.NodeType = lntColumn then begin // Key/index icon
+          ParentObj := Sender.GetNodeData(Node.Parent);
+          ImageIndex := ParentObj.TableKeys.ImageIndex(DBObj.Column);
+        end;
+
         Ghosted := (DBObj.NodeType = lntNone) and (not DBObj.Connection.Active);
         Ghosted := Ghosted or ((DBObj.NodeType = lntDB)
           and (not DBObj.Connection.DbObjectsCached(DBObj.Database))
@@ -10167,15 +10167,33 @@ procedure TMainForm.DBtreePaintText(Sender: TBaseVirtualTree; const
     TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType:
     TVSTTextType);
 var
-  DBObj: PDBObject;
+  DBObj, ParentObj: PDBObject;
   WalkNode: PVirtualNode;
+  Columns: TTableColumnList;
+  Datatype: TDBDatatype;
 begin
-  // Grey out non-current connection nodes, and rather unimportant "Size" column
+  // Grey out non-current connection nodes
   DBObj := Sender.GetNodeData(Node);
-  if DBObj.Connection <> ActiveConnection then
-    TargetCanvas.Font.Color := clGrayText
-  else if (Column = 1) and (DBObj.NodeType in [lntTable..lntEvent]) then
+  if DBObj.Connection <> ActiveConnection then begin
     TargetCanvas.Font.Color := clGrayText;
+    Exit;
+  end;
+
+  // Set text color
+  case Column of
+    0: begin
+      if DBObj.NodeType = lntColumn then begin
+        ParentObj := Sender.GetNodeData(Node.Parent);
+        Columns := ParentObj.TableColumns;
+        Datatype := Columns[Node.Index].DataType;
+        TargetCanvas.Font.Color := AppColorSchemes.First.GridTextColors[Datatype.Category];
+      end;
+    end;
+    1: begin // Grey out rather unimportant "Size" column
+      if DBObj.NodeType in [lntTable..lntEvent] then
+        TargetCanvas.Font.Color := clGrayText;
+    end;
+  end;
 
   // Set bold text if painted node is in focused path
   if (Column = DBtree.Header.MainColumn) then begin
