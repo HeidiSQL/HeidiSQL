@@ -1471,7 +1471,7 @@ implementation
 
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
-  copytable, csv_detector, exportgrid, usermanager, reformatter, connections, sqlhelp, updatecheck,
+  copytable, csv_detector, exportgrid, usermanager, rolemanagerpg, reformatter, connections, sqlhelp, updatecheck,
   insertfiles, texteditor, preferences, table_editor, view, routine_editor, trigger_editor, event_editor, grideditlinks,
   crashdialog;
 
@@ -2828,9 +2828,16 @@ end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
 var
-  Dialog: TUserManagerForm;
+  Dialog: TForm;
 begin
-  Dialog := TUserManagerForm.Create(Self);
+  Dialog := nil;
+  case ActiveConnection.Parameters.NetTypeGroup of
+    ngMySQL: Dialog := TUserManagerForm.Create(Self);
+    ngPgSQL: Dialog := TRoleManagerPgForm.Create(Self);
+    else ErrorDialog(ActiveConnection.Parameters.NetTypeName(False) + ' not supported for managing users');
+  end;
+  if Dialog = nil then
+    Exit;
   Dialog.ShowModal;
   Dialog.Free;
 end;

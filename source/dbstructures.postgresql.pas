@@ -745,6 +745,186 @@ begin
       'ORDER BY UPPER(t.typname)',
       '' // ServerVersion < 9
       );
+
+    // PostgreSQL role manager
+    qPgRolemanRolesList: Result :=
+      'SELECT rolname ' +
+      'FROM pg_catalog.pg_roles ' +
+      'ORDER BY LOWER(rolname)';
+
+    qPgRolemanRoleLoad: Result :=
+      'SELECT rolname, rolsuper, rolinherit, rolcreaterole, rolcreatedb, rolcanlogin, rolreplication, rolbypassrls, rolconnlimit ' +
+      'FROM pg_catalog.pg_roles ' +
+      'WHERE rolname = %s';
+
+    qPgRolemanMembershipsLoad: Result := IfThen(
+      FServerVersion >= 160000,
+      'SELECT all_roles.rolname AS member_of, ' +
+      '       (m.roleid IS NOT NULL) AS is_member, ' +
+      '       COALESCE(m.admin_option, FALSE) AS admin_option, ' +
+      '       COALESCE(m.inherit_option, TRUE) AS inherit_option, ' +
+      '       COALESCE(m.set_option, TRUE) AS set_option ' +
+      'FROM pg_catalog.pg_roles AS target ' +
+      'CROSS JOIN pg_catalog.pg_roles AS all_roles ' +
+      'LEFT JOIN pg_catalog.pg_auth_members AS m ' +
+      '       ON m.member = target.oid ' +
+      '      AND m.roleid = all_roles.oid ' +
+      'WHERE target.rolname = %s ' +
+      '  AND all_roles.rolname <> target.rolname ' +
+      'ORDER BY LOWER(all_roles.rolname)',
+      'SELECT all_roles.rolname AS member_of, ' +
+      '       (m.roleid IS NOT NULL) AS is_member, ' +
+      '       COALESCE(m.admin_option, FALSE) AS admin_option, ' +
+      '       TRUE AS inherit_option, ' +
+      '       TRUE AS set_option ' +
+      'FROM pg_catalog.pg_roles AS target ' +
+      'CROSS JOIN pg_catalog.pg_roles AS all_roles ' +
+      'LEFT JOIN pg_catalog.pg_auth_members AS m ' +
+      '       ON m.member = target.oid ' +
+      '      AND m.roleid = all_roles.oid ' +
+      'WHERE target.rolname = %s ' +
+      '  AND all_roles.rolname <> target.rolname ' +
+      'ORDER BY LOWER(all_roles.rolname)'
+      );
+
+    qPgRolemanObjPrivsDatabasesLoad: Result :=
+      'SELECT current_database() AS schema_name, ' +
+      '       d.datname AS object_name, ' +
+      '       quote_ident(d.datname) AS object_identity, ' +
+      '       COALESCE(string_agg(DISTINCT x.privilege_type, '','' ORDER BY x.privilege_type), '''') AS privileges, ' +
+      '       COALESCE(string_agg(DISTINCT CASE WHEN x.is_grantable THEN x.privilege_type END, '','' ORDER BY CASE WHEN x.is_grantable THEN x.privilege_type END), '''') AS grantable ' +
+      'FROM pg_catalog.pg_database AS d ' +
+      'LEFT JOIN LATERAL aclexplode(COALESCE(d.datacl, acldefault(''d'', d.datdba))) AS x ON TRUE ' +
+      'LEFT JOIN pg_catalog.pg_roles AS grantee ON grantee.oid = x.grantee ' +
+      'WHERE grantee.rolname = %s ' +
+      'GROUP BY d.datname ' +
+      'ORDER BY LOWER(d.datname)';
+
+    qPgRolemanObjPrivsSchemasLoad: Result :=
+      'SELECT n.nspname AS schema_name, ' +
+      '       n.nspname AS object_name, ' +
+      '       quote_ident(n.nspname) AS object_identity, ' +
+      '       COALESCE(string_agg(DISTINCT x.privilege_type, '','' ORDER BY x.privilege_type), '''') AS privileges, ' +
+      '       COALESCE(string_agg(DISTINCT CASE WHEN x.is_grantable THEN x.privilege_type END, '','' ORDER BY CASE WHEN x.is_grantable THEN x.privilege_type END), '''') AS grantable ' +
+      'FROM pg_catalog.pg_namespace AS n ' +
+      'LEFT JOIN LATERAL aclexplode(COALESCE(n.nspacl, acldefault(''n'', n.nspowner))) AS x ON TRUE ' +
+      'LEFT JOIN pg_catalog.pg_roles AS grantee ON grantee.oid = x.grantee ' +
+      'WHERE n.nspname NOT IN (''pg_catalog'', ''information_schema'') ' +
+      '  AND n.nspname NOT LIKE ''pg_toast%%'' ' +
+      '  AND grantee.rolname = %s ' +
+      'GROUP BY n.nspname ' +
+      'ORDER BY LOWER(n.nspname)';
+
+    qPgRolemanObjPrivsTablesViewsLoad: Result :=
+      'SELECT n.nspname AS schema_name, ' +
+      '       c.relname AS object_name, ' +
+      '       quote_ident(n.nspname) || ''.'' || quote_ident(c.relname) AS object_identity, ' +
+      '       COALESCE(string_agg(DISTINCT x.privilege_type, '','' ORDER BY x.privilege_type), '''') AS privileges, ' +
+      '       COALESCE(string_agg(DISTINCT CASE WHEN x.is_grantable THEN x.privilege_type END, '','' ORDER BY CASE WHEN x.is_grantable THEN x.privilege_type END), '''') AS grantable ' +
+      'FROM pg_catalog.pg_class AS c ' +
+      'JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace ' +
+      'LEFT JOIN LATERAL aclexplode(COALESCE(c.relacl, acldefault(''r'', c.relowner))) AS x ON TRUE ' +
+      'LEFT JOIN pg_catalog.pg_roles AS grantee ON grantee.oid = x.grantee ' +
+      'WHERE c.relkind IN (''r'', ''v'', ''m'', ''f'', ''p'') ' +
+      '  AND n.nspname NOT IN (''pg_catalog'', ''information_schema'') ' +
+      '  AND n.nspname NOT LIKE ''pg_toast%%'' ' +
+      '  AND grantee.rolname = %s ' +
+      'GROUP BY n.nspname, c.relname ' +
+      'ORDER BY LOWER(n.nspname), LOWER(c.relname)';
+
+    qPgRolemanObjPrivsSequencesLoad: Result :=
+      'SELECT n.nspname AS schema_name, ' +
+      '       c.relname AS object_name, ' +
+      '       quote_ident(n.nspname) || ''.'' || quote_ident(c.relname) AS object_identity, ' +
+      '       COALESCE(string_agg(DISTINCT x.privilege_type, '','' ORDER BY x.privilege_type), '''') AS privileges, ' +
+      '       COALESCE(string_agg(DISTINCT CASE WHEN x.is_grantable THEN x.privilege_type END, '','' ORDER BY CASE WHEN x.is_grantable THEN x.privilege_type END), '''') AS grantable ' +
+      'FROM pg_catalog.pg_class AS c ' +
+      'JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace ' +
+      'LEFT JOIN LATERAL aclexplode(COALESCE(c.relacl, acldefault(''S'', c.relowner))) AS x ON TRUE ' +
+      'LEFT JOIN pg_catalog.pg_roles AS grantee ON grantee.oid = x.grantee ' +
+      'WHERE c.relkind = ''S'' ' +
+      '  AND n.nspname NOT IN (''pg_catalog'', ''information_schema'') ' +
+      '  AND n.nspname NOT LIKE ''pg_toast%%'' ' +
+      '  AND grantee.rolname = %s ' +
+      'GROUP BY n.nspname, c.relname ' +
+      'ORDER BY LOWER(n.nspname), LOWER(c.relname)';
+
+    qPgRolemanObjPrivsRoutinesLoad: Result :=
+      'SELECT n.nspname AS schema_name, ' +
+      '       p.proname AS object_name, ' +
+      '       quote_ident(n.nspname) || ''.'' || quote_ident(p.proname) || ''('' || pg_catalog.pg_get_function_identity_arguments(p.oid) || '')'' AS object_identity, ' +
+      '       COALESCE(string_agg(DISTINCT x.privilege_type, '','' ORDER BY x.privilege_type), '''') AS privileges, ' +
+      '       COALESCE(string_agg(DISTINCT CASE WHEN x.is_grantable THEN x.privilege_type END, '','' ORDER BY CASE WHEN x.is_grantable THEN x.privilege_type END), '''') AS grantable ' +
+      'FROM pg_catalog.pg_proc AS p ' +
+      'JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace ' +
+      'LEFT JOIN LATERAL aclexplode(COALESCE(p.proacl, acldefault(''f'', p.proowner))) AS x ON TRUE ' +
+      'LEFT JOIN pg_catalog.pg_roles AS grantee ON grantee.oid = x.grantee ' +
+      'WHERE n.nspname NOT IN (''pg_catalog'', ''information_schema'') ' +
+      '  AND n.nspname NOT LIKE ''pg_toast%%'' ' +
+      '  AND grantee.rolname = %s ' +
+      'GROUP BY n.nspname, p.proname, p.oid ' +
+      'ORDER BY LOWER(n.nspname), LOWER(p.proname), p.oid';
+
+    qPgRolemanDefaultPrivsLoad: Result :=
+      'SELECT owner_role.rolname AS owner_name, ' +
+      '       COALESCE(n.nspname, '''') AS schema_name, ' +
+      '       CASE d.defaclobjtype WHEN ''r'' THEN ''TABLES'' WHEN ''S'' THEN ''SEQUENCES'' WHEN ''f'' THEN ''ROUTINES'' ELSE d.defaclobjtype::text END AS kind, ' +
+      '       grantee_role.rolname AS grantee, ' +
+      '       COALESCE(string_agg(DISTINCT x.privilege_type, '','' ORDER BY x.privilege_type), '''') AS privileges ' +
+      'FROM pg_catalog.pg_default_acl AS d ' +
+      'JOIN pg_catalog.pg_roles AS owner_role ON owner_role.oid = d.defaclrole ' +
+      'LEFT JOIN pg_catalog.pg_namespace AS n ON n.oid = d.defaclnamespace ' +
+      'LEFT JOIN LATERAL aclexplode(d.defaclacl) AS x ON TRUE ' +
+      'LEFT JOIN pg_catalog.pg_roles AS grantee_role ON grantee_role.oid = x.grantee ' +
+      'WHERE grantee_role.rolname = %s ' +
+      'GROUP BY owner_role.rolname, n.nspname, d.defaclobjtype, grantee_role.rolname ' +
+      'ORDER BY LOWER(owner_role.rolname), LOWER(COALESCE(n.nspname, '''')), d.defaclobjtype';
+
+    qPgRolemanRoleCreate: Result :=
+      'CREATE ROLE %s WITH %s %s %s %s %s %s %s CONNECTION LIMIT %d';
+
+    qPgRolemanRoleAlter: Result :=
+      'DO $$ BEGIN ' +
+      'IF %s <> %s THEN EXECUTE ''ALTER ROLE '' || %s || '' RENAME TO '' || %s; END IF; ' +
+      'END $$; ' +
+      'ALTER ROLE %s WITH %s %s %s %s %s %s %s CONNECTION LIMIT %d';
+
+    qPgRolemanRolePasswordClear: Result :=
+      'ALTER ROLE %s PASSWORD NULL';
+
+    qPgRolemanRolePasswordSet: Result :=
+      'ALTER ROLE %s PASSWORD %s';
+
+    qPgRolemanRoleDrop: Result :=
+      'DROP ROLE %s';
+
+    qPgRolemanMembershipGrant: Result := IfThen(
+      FServerVersion >= 160000,
+      'GRANT %s TO %s WITH %s, %s, %s',
+      'GRANT %s TO %s%s'
+      );
+
+    qPgRolemanMembershipRevoke: Result :=
+      'REVOKE %s FROM %s';
+
+    qPgRolemanMembershipRegrant: Result := IfThen(
+      FServerVersion >= 160000,
+      'REVOKE %s FROM %s; GRANT %s TO %s WITH %s, %s, %s',
+      'REVOKE %s FROM %s; GRANT %s TO %s%s'
+      );
+
+    qPgRolemanObjPrivGrant: Result :=
+      'GRANT %s ON %s %s TO %s%s';
+
+    qPgRolemanObjPrivRevoke: Result :=
+      'REVOKE %s ON %s %s FROM %s';
+
+    qPgRolemanDefaultPrivGrant: Result :=
+      'ALTER DEFAULT PRIVILEGES FOR ROLE %s%s GRANT %s ON %s TO %s%s';
+
+    qPgRolemanDefaultPrivRevoke: Result :=
+      'ALTER DEFAULT PRIVILEGES FOR ROLE %s%s REVOKE %s ON %s FROM %s';
+
     qAutoInc: Result := 'SERIAL';
     qCastAsText: Result := '%s::text';
     else Result := inherited;

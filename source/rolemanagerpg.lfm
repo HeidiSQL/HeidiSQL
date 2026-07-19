@@ -1,0 +1,488 @@
+object RoleManagerPgForm: TRoleManagerPgForm
+  Left = 300
+  Height = 466
+  Top = 140
+  Width = 921
+  Caption = 'PostgreSQL role manager'
+  ClientHeight = 466
+  ClientWidth = 921
+  LCLVersion = '4.4.0.0'
+  OnCreate = FormCreate
+  OnShow = FormShow
+  object pnlTop: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 0
+    Height = 48
+    Top = 0
+    Width = 921
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 48
+    ClientWidth = 921
+    TabOrder = 0
+    object lblRole: TLabel
+      Left = 8
+      Height = 15
+      Top = 16
+      Width = 26
+      Caption = 'Role:'
+    end
+    object cmbRole: TComboBox
+      Left = 48
+      Height = 23
+      Top = 12
+      Width = 220
+      ItemHeight = 15
+      Style = csDropDownList
+      TabOrder = 0
+      OnChange = cmbRoleChange
+    end
+    object btnNew: TBitBtn
+      Left = 280
+      Height = 0
+      Top = 10
+      Width = 80
+      Caption = 'New'
+      TabOrder = 1
+      OnClick = btnNewClick
+    end
+    object btnClone: TBitBtn
+      Left = 366
+      Height = 0
+      Top = 10
+      Width = 80
+      Caption = 'Clone'
+      TabOrder = 2
+      OnClick = btnCloneClick
+    end
+    object btnDrop: TBitBtn
+      Left = 452
+      Height = 0
+      Top = 10
+      Width = 80
+      Caption = 'Drop'
+      TabOrder = 3
+      OnClick = btnDropClick
+    end
+  end
+  object PageControl1: TPageControl
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = pnlTop
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = memoLog
+    Left = 0
+    Height = 283
+    Top = 48
+    Width = 921
+    ActivePage = tabRoles
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    TabIndex = 0
+    TabOrder = 1
+    object tabRoles: TTabSheet
+      Caption = 'Roles'
+      ClientHeight = 255
+      ClientWidth = 913
+      object gbRoleAttrs: TGroupBox
+        AnchorSideLeft.Control = tabRoles
+        AnchorSideTop.Control = tabRoles
+        AnchorSideBottom.Control = tabRoles
+        AnchorSideBottom.Side = asrBottom
+        Left = 5
+        Height = 245
+        Top = 5
+        Width = 420
+        Anchors = [akTop, akLeft, akBottom]
+        BorderSpacing.Around = 5
+        Caption = 'Role attributes'
+        ClientHeight = 225
+        ClientWidth = 416
+        TabOrder = 0
+        object lblRoleName: TLabel
+          AnchorSideLeft.Control = gbRoleAttrs
+          AnchorSideTop.Control = edRoleName
+          AnchorSideTop.Side = asrCenter
+          Left = 5
+          Height = 15
+          Top = 9
+          Width = 35
+          BorderSpacing.Around = 5
+          Caption = 'Name:'
+        end
+        object edRoleName: TEdit
+          AnchorSideTop.Control = gbRoleAttrs
+          AnchorSideRight.Control = gbRoleAttrs
+          AnchorSideRight.Side = asrBottom
+          Left = 140
+          Height = 23
+          Top = 5
+          Width = 271
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 5
+          TabOrder = 0
+        end
+        object cbCanLogin: TCheckBox
+          AnchorSideLeft.Control = gbRoleAttrs
+          AnchorSideTop.Control = edRoleName
+          AnchorSideTop.Side = asrBottom
+          Left = 5
+          Height = 19
+          Top = 33
+          Width = 69
+          BorderSpacing.Around = 5
+          Caption = 'Can login'
+          TabOrder = 1
+        end
+        object cbSuperUser: TCheckBox
+          AnchorSideLeft.Control = gbRoleAttrs
+          AnchorSideTop.Control = cbCanLogin
+          AnchorSideTop.Side = asrBottom
+          Left = 5
+          Height = 19
+          Top = 57
+          Width = 70
+          BorderSpacing.Around = 5
+          Caption = 'Superuser'
+          TabOrder = 2
+        end
+        object cbCreateDB: TCheckBox
+          AnchorSideLeft.Control = gbRoleAttrs
+          AnchorSideTop.Control = cbSuperUser
+          AnchorSideTop.Side = asrBottom
+          Left = 5
+          Height = 19
+          Top = 81
+          Width = 107
+          BorderSpacing.Around = 5
+          Caption = 'Create databases'
+          TabOrder = 3
+        end
+        object cbCreateRole: TCheckBox
+          AnchorSideLeft.Control = gbRoleAttrs
+          AnchorSideTop.Control = cbCreateDB
+          AnchorSideTop.Side = asrBottom
+          Left = 5
+          Height = 19
+          Top = 105
+          Width = 80
+          BorderSpacing.Around = 5
+          Caption = 'Create roles'
+          TabOrder = 4
+        end
+        object cbInheritRights: TCheckBox
+          AnchorSideLeft.Control = gbRoleAttrs
+          AnchorSideTop.Control = cbCreateRole
+          AnchorSideTop.Side = asrBottom
+          Left = 5
+          Height = 19
+          Top = 129
+          Width = 85
+          BorderSpacing.Around = 5
+          Caption = 'Inherit rights'
+          TabOrder = 5
+        end
+        object cbReplication: TCheckBox
+          AnchorSideLeft.Control = gbRoleAttrs
+          AnchorSideTop.Control = cbInheritRights
+          AnchorSideTop.Side = asrBottom
+          Left = 5
+          Height = 19
+          Top = 153
+          Width = 77
+          BorderSpacing.Around = 5
+          Caption = 'Replication'
+          TabOrder = 6
+        end
+        object cbBypassRLS: TCheckBox
+          AnchorSideLeft.Control = gbRoleAttrs
+          AnchorSideTop.Control = cbReplication
+          AnchorSideTop.Side = asrBottom
+          Left = 5
+          Height = 19
+          Top = 177
+          Width = 76
+          BorderSpacing.Around = 5
+          Caption = 'Bypass RLS'
+          TabOrder = 7
+        end
+        object lblConnLimit: TLabel
+          AnchorSideLeft.Control = gbRoleAttrs
+          AnchorSideTop.Control = seConnLimit
+          AnchorSideTop.Side = asrCenter
+          Left = 5
+          Height = 15
+          Top = 205
+          Width = 92
+          BorderSpacing.Around = 5
+          Caption = 'Connection limit:'
+        end
+        object seConnLimit: TSpinEdit
+          AnchorSideTop.Control = cbBypassRLS
+          AnchorSideTop.Side = asrBottom
+          Left = 140
+          Height = 23
+          Top = 201
+          Width = 90
+          BorderSpacing.Around = 5
+          MaxValue = 1000000
+          MinValue = -1
+          TabOrder = 8
+          Value = -1
+        end
+      end
+      object gbPassword: TGroupBox
+        AnchorSideLeft.Control = gbRoleAttrs
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = tabRoles
+        AnchorSideRight.Control = tabRoles
+        AnchorSideRight.Side = asrBottom
+        Left = 430
+        Height = 81
+        Top = 5
+        Width = 478
+        Anchors = [akTop, akLeft, akRight]
+        AutoSize = True
+        BorderSpacing.Around = 5
+        Caption = 'Password'
+        ClientHeight = 61
+        ClientWidth = 474
+        TabOrder = 1
+        object lblPasswordMode: TLabel
+          AnchorSideLeft.Control = gbPassword
+          AnchorSideTop.Control = cbPasswordMode
+          AnchorSideTop.Side = asrCenter
+          Left = 5
+          Height = 15
+          Top = 9
+          Width = 34
+          BorderSpacing.Around = 5
+          Caption = 'Mode:'
+        end
+        object cbPasswordMode: TComboBox
+          AnchorSideTop.Control = gbPassword
+          AnchorSideRight.Control = gbPassword
+          AnchorSideRight.Side = asrBottom
+          Left = 100
+          Height = 23
+          Top = 5
+          Width = 369
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 5
+          ItemHeight = 15
+          Style = csDropDownList
+          TabOrder = 0
+          OnChange = cbPasswordModeChange
+        end
+        object edPassword: TEdit
+          AnchorSideTop.Control = cbPasswordMode
+          AnchorSideTop.Side = asrBottom
+          AnchorSideRight.Control = gbPassword
+          AnchorSideRight.Side = asrBottom
+          Left = 100
+          Height = 23
+          Top = 33
+          Width = 369
+          Anchors = [akTop, akLeft, akRight]
+          BorderSpacing.Around = 5
+          EchoMode = emPassword
+          PasswordChar = '*'
+          TabOrder = 1
+        end
+      end
+    end
+    object tabMemberships: TTabSheet
+      Caption = 'Memberships'
+      ClientHeight = 255
+      ClientWidth = 913
+      object vlMemberships: TStringGrid
+        Left = 0
+        Height = 255
+        Top = 0
+        Width = 913
+        Align = alClient
+        DefaultRowHeight = 22
+        FixedCols = 0
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goEditing]
+        RowCount = 2
+        TabOrder = 0
+      end
+    end
+    object tabObjectPrivs: TTabSheet
+      Caption = 'Object privileges'
+      ClientHeight = 255
+      ClientWidth = 913
+      object tabsObjectKinds: TPageControl
+        Left = 0
+        Height = 255
+        Top = 0
+        Width = 913
+        ActivePage = tabObjDatabases
+        Align = alClient
+        TabIndex = 0
+        TabOrder = 0
+        object tabObjDatabases: TTabSheet
+          Caption = 'Databases'
+          ClientHeight = 227
+          ClientWidth = 905
+          object sgDatabasePrivs: TStringGrid
+            Left = 0
+            Height = 227
+            Top = 0
+            Width = 905
+            Align = alClient
+            Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goEditing]
+            TabOrder = 0
+          end
+        end
+        object tabObjSchemas: TTabSheet
+          Caption = 'Schemas'
+          ClientHeight = 227
+          ClientWidth = 905
+          object sgSchemaPrivs: TStringGrid
+            Left = 0
+            Height = 227
+            Top = 0
+            Width = 905
+            Align = alClient
+            Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goEditing]
+            TabOrder = 0
+          end
+        end
+        object tabObjTablesViews: TTabSheet
+          Caption = 'Tables/views'
+          ClientHeight = 227
+          ClientWidth = 905
+          object sgTableViewPrivs: TStringGrid
+            Left = 0
+            Height = 227
+            Top = 0
+            Width = 905
+            Align = alClient
+            Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goEditing]
+            TabOrder = 0
+          end
+        end
+        object tabObjSequences: TTabSheet
+          Caption = 'Sequences'
+          ClientHeight = 227
+          ClientWidth = 905
+          object sgSequencesPrivs: TStringGrid
+            Left = 0
+            Height = 227
+            Top = 0
+            Width = 905
+            Align = alClient
+            Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goEditing]
+            TabOrder = 0
+          end
+        end
+        object tabObjRoutines: TTabSheet
+          Caption = 'Routines'
+          ClientHeight = 227
+          ClientWidth = 905
+          object sgRoutinePrivs: TStringGrid
+            Left = 0
+            Height = 227
+            Top = 0
+            Width = 905
+            Align = alClient
+            Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goEditing]
+            TabOrder = 0
+          end
+        end
+      end
+    end
+    object tabDefaultPrivs: TTabSheet
+      Caption = 'Default privileges'
+      ClientHeight = 255
+      ClientWidth = 913
+      object sgDefaultPrivs: TStringGrid
+        Left = 0
+        Height = 255
+        Top = 0
+        Width = 913
+        Align = alClient
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goEditing]
+        TabOrder = 0
+      end
+    end
+  end
+  object pnlBottom: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = PageControl1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 0
+    Height = 36
+    Top = 430
+    Width = 921
+    Align = alBottom
+    AutoSize = True
+    BevelOuter = bvNone
+    ClientHeight = 36
+    ClientWidth = 921
+    TabOrder = 2
+    object btnSave: TBitBtn
+      AnchorSideRight.Control = pnlBottom
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = pnlBottom
+      AnchorSideBottom.Side = asrBottom
+      Left = 846
+      Height = 26
+      Top = 5
+      Width = 70
+      Anchors = [akRight, akBottom]
+      AutoSize = True
+      BorderSpacing.Around = 5
+      Caption = 'Save'
+      Default = True
+      ModalResult = 1
+      Images = MainForm.ImageListMain
+      ImageIndex = 10
+      TabOrder = 0
+      OnClick = btnSaveClick
+    end
+    object btnCancel: TBitBtn
+      AnchorSideRight.Control = btnSave
+      AnchorSideBottom.Control = pnlBottom
+      AnchorSideBottom.Side = asrBottom
+      Left = 759
+      Height = 26
+      Top = 5
+      Width = 82
+      Anchors = [akRight, akBottom]
+      AutoSize = True
+      BorderSpacing.Around = 5
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      Images = MainForm.ImageListMain
+      ImageIndex = 26
+      TabOrder = 1
+      OnClick = btnCancelClick
+    end
+  end
+  object memoLog: TMemo
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = PageControl1
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = pnlBottom
+    Left = 5
+    Height = 89
+    Top = 336
+    Width = 911
+    Anchors = [akLeft, akRight, akBottom]
+    BorderSpacing.Around = 5
+    TabOrder = 3
+    Visible = False
+  end
+end

@@ -455,6 +455,13 @@ if TargetOS=&apos;win64&apos; then
         <Filename Value="source\vktable.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\rolemanagerpg.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="RoleManagerPgForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

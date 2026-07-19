@@ -50,7 +50,29 @@ type
     qShowFunctionStatus, qShowProcedureStatus, qShowTriggers, qShowEvents, qShowCreateTrigger,
     qHelpKeyword, qShowWarnings, qGetEnumTypes,
     qDropUser, qCreateRole, qDropRole, qReloadPrivileges, qGrantRole, qRevokeRole, qSetDefaultRole,
-    qAutoInc, qIndexVisible, qIndexInvisible, qGetAuthPlugins, qCastAsText, qIndexSize);
+    qAutoInc, qIndexVisible, qIndexInvisible, qGetAuthPlugins, qCastAsText, qIndexSize,
+    qPgRolemanRolesList,
+    qPgRolemanRoleLoad,
+    qPgRolemanMembershipsLoad,
+    qPgRolemanObjPrivsDatabasesLoad,
+    qPgRolemanObjPrivsSchemasLoad,
+    qPgRolemanObjPrivsTablesViewsLoad,
+    qPgRolemanObjPrivsSequencesLoad,
+    qPgRolemanObjPrivsRoutinesLoad,
+    qPgRolemanDefaultPrivsLoad,
+    qPgRolemanRoleCreate,
+    qPgRolemanRoleAlter,
+    qPgRolemanRolePasswordClear,
+    qPgRolemanRolePasswordSet,
+    qPgRolemanRoleDrop,
+    qPgRolemanMembershipGrant,
+    qPgRolemanMembershipRevoke,
+    qPgRolemanMembershipRegrant,
+    qPgRolemanObjPrivGrant,
+    qPgRolemanObjPrivRevoke,
+    qPgRolemanDefaultPrivGrant,
+    qPgRolemanDefaultPrivRevoke
+    );
   TSqlProvider = class
     strict protected
       FNetType: TNetType;
