@@ -232,23 +232,24 @@ end;
 
 procedure Tloaddataform.comboTablePopulate(SelectTableName: String; RefreshDbObjects: Boolean);
 var
-  count, i: Integer;
+  i: Integer;
   DBObjects: TDBObjectList;
-  seldb, seltable: String;
+  FocusedTable: String;
 begin
   // read tables from db
   comboTable.Items.Clear;
-  seldb := Mainform.ActiveDatabase;
-  seltable := Mainform.ActiveDbObj.Name;
+  FocusedTable := Mainform.ActiveDbObj.Name;
   DBObjects := FConnection.GetDBObjects(comboDatabase.Text, RefreshDbObjects);
   for i:=0 to DBObjects.Count-1 do begin
     if DBObjects[i].NodeType in [lntTable, lntView] then
       comboTable.Items.Add(DBObjects[i].Name);
-    count := comboTable.Items.Count-1;
-    if SelectTableName.IsEmpty and (comboDatabase.Text = seldb) and (comboTable.Items[count] = seltable) then
-      comboTable.ItemIndex := count
-    else if (not SelectTableName.IsEmpty) and (SelectTableName = comboTable.Items[count]) then
-      comboTable.ItemIndex := count;
+  end;
+
+  if comboDatabase.Text = Mainform.ActiveDatabase then begin
+    if not SelectTableName.IsEmpty then
+      comboTable.ItemIndex :=  comboTable.Items.IndexOf(SelectTableName)
+    else if not FocusedTable.IsEmpty then
+      comboTable.ItemIndex := comboTable.Items.IndexOf(FocusedTable);
   end;
   if (comboTable.ItemIndex = -1) and (comboTable.Items.Count >= 1) then
     comboTable.ItemIndex := 0; // First real table
