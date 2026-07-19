@@ -1528,7 +1528,7 @@ begin
   VT.OnEndOperation := Mainform.AnyGridEndOperation;
   VT.BorderStyle := bsNone; // Cosmetic
   // Some trees have their own OnContextMenu logic set at design time:
-  if not Assigned(VT.OnContextPopup) then
+  if (not Assigned(VT.OnContextPopup)) and Assigned(VT.Header.PopupMenu) then
     VT.OnContextPopup := MainForm.AnyGridContextPopup;
 end;
 

@@ -841,6 +841,8 @@ type
       var Handled: Boolean);
     procedure DataGridContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
+    procedure DBtreeMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer
+      );
     procedure FormActivate(Sender: TObject);
     procedure ImageListGetWidthForPPI(Sender: TCustomImageList;
       AImageWidth, APPI: Integer; var AResultWidth: Integer);
@@ -4597,6 +4599,16 @@ begin
   // Prevent context popup if clicked on header
   Tree := Sender as TLazVirtualStringTree;
   Handled := Tree.Header.InHeader(MousePos);
+end;
+
+procedure TMainForm.DBtreeMouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+begin
+  // Required step with DragMode=dmManual
+  // We use dmManual to fix a non appearing context menu in conjunction with DragType=dtVCL
+  // This reserves left-clicks for dragging, leaving right-clicks for context menu
+  if (ssLeft in Shift) and (not DBtree.Dragging) then
+    DBtree.BeginDrag(False);
 end;
 
 procedure TMainForm.FormActivate(Sender: TObject);
