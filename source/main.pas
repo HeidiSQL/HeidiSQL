@@ -915,6 +915,8 @@ type
       SourceValue: string; var SourceStart, SourceEnd: TPoint; KeyChar: TUTF8Char;
       Shift: TShiftState);
     procedure SynCompletionProposalExecute(Sender: TObject);
+    // Wrap around items on top and at the end of the list
+    procedure SynCompletionProposalFormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure PageControlMainChange(Sender: TObject);
     procedure PageControlMainChanging(Sender: TObject; var AllowChange: Boolean);
     procedure PageControlHostChange(Sender: TObject);
@@ -2102,6 +2104,7 @@ begin
   // Completion proposal window
   SynCompletionProposal.TheForm.Width := Min(Max(AppSettings.ReadInt(asCompletionProposalWidth), 50), 350);
   SynCompletionProposal.TheForm.BackgroundColor := clBtnFace;
+  SynCompletionProposal.TheForm.OnKeyDown := SynCompletionProposalFormKeyDown;
   SynCompletionProposal.LinesInWindow := Min(AppSettings.ReadInt(asCompletionProposalNbLinesInWindow), 10);
   FProposalItems := TProposalItemList.Create;
   FProposalTriggeredByDot := False;
@@ -7243,6 +7246,24 @@ begin
   end;
   Proposal.ItemList.EndUpdate;
 end;
+
+
+procedure TMainForm.SynCompletionProposalFormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if (SynCompletionProposal.ItemList.Count > 0) then begin
+    if (Key = VK_DOWN) and (SynCompletionProposal.Position >= SynCompletionProposal.ItemList.Count - 1) then
+    begin
+      SynCompletionProposal.Position := 0;
+      Key := 0;
+    end
+    else if (Key = VK_UP) and (SynCompletionProposal.Position <= 0) then
+    begin
+      SynCompletionProposal.Position := SynCompletionProposal.ItemList.Count - 1;
+      Key := 0;
+    end;
+  end;
+end;
+
 
 procedure TMainForm.SynMemoQueryProcessCommand(Sender: TObject;
   var Command: TSynEditorCommand; var AChar: TUTF8Char; Data: pointer);
