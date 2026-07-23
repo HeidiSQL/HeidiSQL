@@ -50,3 +50,7 @@ desktop.ini
 #**/lib/
 #**/units/
 #**/backup/
+
+# Others, IntelliJ IDEA, etc.
+.idea
+.junie
