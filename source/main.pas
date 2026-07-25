@@ -909,8 +909,6 @@ type
     procedure popupQueryPopup(Sender: TObject);
     procedure btnDataClick(Sender: TObject);
     procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    //procedure SynCompletionProposalAfterCodeCompletion(Sender: TObject;
-    //  const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure SynCompletionProposalCodeCompletion(var Value: string;
       SourceValue: string; var SourceStart, SourceEnd: TPoint; KeyChar: TUTF8Char;
       Shift: TShiftState);
@@ -6956,18 +6954,6 @@ begin
 end;
 
 
-{procedure TMainForm.SynCompletionProposalAfterCodeCompletion(Sender: TObject;
-  const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
-var
-  Proposal: TSynCompletionProposal;
-begin
-  Proposal := Sender as TSynCompletionProposal;
-  Proposal.Form.CurrentEditor.UndoList.AddGroupBreak;
-  // Explicitly set focus again to work around a bug in Ultramon, see issue #2396
-  Proposal.Form.CurrentEditor.SetFocus;
-end;}
-
-
 { Proposal-Combobox pops up }
 procedure TMainForm.SynCompletionProposalExecute(Sender: TObject);
 var
@@ -7230,19 +7216,34 @@ var
   i: Integer;
   CurrentStr: String;
   SearchOnMid: Boolean;
+  MatchExact, MatchStart, MatchContains: Boolean;
 begin
   Proposal := SynCompletionProposal;
   Proposal.ItemList.BeginUpdate;
   Proposal.ItemList.Clear;
   CurrentStr := Proposal.CurrentString;
   SearchOnMid := AppSettings.ReadBool(asCompletionProposalSearchOnMid);
-  //logsql('SynCompletionProposalSearchPosition CurrentString:'+CurrentStr+' StartsText:');
+  // Place exact matches on top. There may be more than one exact match (table, database, etc.)
   for i:=0 to FProposalItems.Count-1 do begin
-    if CurrentStr.IsEmpty
-      or (SearchOnMid and LowerCase(FProposalItems[i].InsertText).Contains(LowerCase(CurrentStr)))
-      or ((not SearchOnMid) and LazStartsText(CurrentStr, FProposalItems[i].InsertText))
-      then
+    MatchExact := SameText(FProposalItems[i].InsertText, CurrentStr);
+    if MatchExact then
       Proposal.ItemList.AddObject(FProposalItems[i].InsertText, TObject(PtrInt(i)));
+  end;
+  // ... then those items which start with the current input
+  for i:=0 to FProposalItems.Count-1 do begin
+    MatchExact := SameText(FProposalItems[i].InsertText, CurrentStr);
+    MatchStart := LazStartsText(CurrentStr, FProposalItems[i].InsertText);
+    if (not MatchExact) and MatchStart then
+      Proposal.ItemList.AddObject(FProposalItems[i].InsertText, TObject(PtrInt(i)));
+  end;
+  // ... if wanted, show also items which contain the current input at some point
+  if SearchOnMid or CurrentStr.IsEmpty then begin
+    for i:=0 to FProposalItems.Count-1 do begin
+      MatchStart := LazStartsText(CurrentStr, FProposalItems[i].InsertText);
+      MatchContains := ContainsText(FProposalItems[i].InsertText, CurrentStr);
+      if (not MatchStart) and MatchContains then
+        Proposal.ItemList.AddObject(FProposalItems[i].InsertText, TObject(PtrInt(i)));
+    end;
   end;
   Proposal.ItemList.EndUpdate;
 end;
