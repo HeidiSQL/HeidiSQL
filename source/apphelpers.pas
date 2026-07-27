@@ -228,7 +228,7 @@ type
     asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asLogScript, asLogTimestamp, asFieldColorNumeric,
     asFieldColorReal, asFieldColorText, asFieldColorBinary, asFieldColorDatetime, asFieldColorSpatial,
     asFieldColorOther, asFieldEditorBinary, asFieldEditorDatetime, asFieldEditorDatetimePrefill, asFieldEditorEnum,
-    asFieldEditorSet, asFieldNullBackground, asRowBackgroundEven, asRowBackgroundOdd, asGroupTreeObjects, asDisplayObjectSizeColumn, asSQLfile,
+    asFieldEditorSet, asFieldNullBackground, asRowBackgroundEven, asRowBackgroundOdd, asGroupTreeObjects, asTreeShowColumns, asDisplayObjectSizeColumn, asSQLfile,
     asActionShortcut1, asActionShortcut2, asHighlighterForeground, asHighlighterBackground, asHighlighterStyle,
     asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
     asRecentFilter, asTimestampColumns, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asDoubleClickInsertsNodeText, asForeignDropDown,
@@ -3883,6 +3883,7 @@ begin
   InitSetting(asRowBackgroundEven,                'RowBackgroundEven',                     clNone);
   InitSetting(asRowBackgroundOdd,                 'RowBackgroundOdd',                      clNone);
   InitSetting(asGroupTreeObjects,                 'GroupTreeObjects',                      0, False);
+  InitSetting(asTreeShowColumns,                  'TreeShowColumns',                       0, False);
   InitSetting(asDisplayObjectSizeColumn,          'DisplayObjectSizeColumn',               0, True);
   InitSetting(asDisplayLogPanel,                  'DisplayLogPanel',                       0, True);
   InitSetting(asDisplayTreeFilters,               'DisplayTreeFilters',                    0, True);

@@ -217,6 +217,7 @@ type
   TMainForm = class(TExtForm)
     actCopyColumnNames: TAction;
     actDataEditWithoutLookup: TAction;
+    actTreeShowColumns: TAction;
     actPreferencesSQL: TAction;
     MainMenu1: TMainMenu;
     MainMenuFile: TMenuItem;
@@ -226,6 +227,8 @@ type
     menuColorScheme: TMenuItem;
     MenuItem3: TMenuItem;
     menuDataEditWithoutLookup: TMenuItem;
+    menuTreeShowColumns2: TMenuItem;
+    menuTreeShowColumns1: TMenuItem;
     menuRenameSnippet: TMenuItem;
     menuSQLpreferences: TMenuItem;
     menuQFdummy: TMenuItem;
@@ -837,6 +840,7 @@ type
     procedure actDataEditWithoutLookupExecute(Sender: TObject);
     procedure actNextTabExecute(Sender: TObject);
     procedure actPreviousTabExecute(Sender: TObject);
+    procedure actTreeShowColumnsExecute(Sender: TObject);
     procedure AnyGridContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
     procedure DataGridContextPopup(Sender: TObject; MousePos: TPoint;
@@ -1831,6 +1835,7 @@ begin
   AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.TheForm.ScaleFormToDesign(SynCompletionProposal.LinesInWindow));
   AppSettings.WriteInt(asDbtreewidth, ScaleFormToDesign(pnlLeft.width));
   AppSettings.WriteBool(asGroupTreeObjects, actGroupObjects.Checked);
+  AppSettings.WriteBool(asTreeShowColumns, actTreeShowColumns.Checked);
   AppSettings.WriteInt(asDataPreviewHeight, ScaleFormToDesign(pnlPreview.Height));
   AppSettings.WriteBool(asDataPreviewEnabled, actDataPreview.Checked);
   AppSettings.WriteInt(asLogHeight, ScaleFormToDesign(SynMemoSQLLog.Height));
@@ -2063,6 +2068,7 @@ begin
 
   // Display options, and database tree options
   actGroupObjects.Checked := AppSettings.ReadBool(asGroupTreeObjects);
+  actTreeShowColumns.Checked := AppSettings.ReadBool(asTreeShowColumns);
   actDisplayObjectSize.Checked := AppSettings.ReadBool(asDisplayObjectSizeColumn);
   actDisplayObjectSizeExecute(nil);
   actDisplayLogPanel.Checked := AppSettings.ReadBool(asDisplayLogPanel);
@@ -4571,6 +4577,12 @@ end;
 procedure TMainForm.actPreviousTabExecute(Sender: TObject);
 begin
   PageControlMain.SelectNextPage(False);
+end;
+
+procedure TMainForm.actTreeShowColumnsExecute(Sender: TObject);
+begin
+  // Show columns in table nodes on tree
+  RefreshTree(nil);
 end;
 
 procedure TMainForm.AnyGridContextPopup(Sender: TObject; MousePos: TPoint;
@@ -9836,6 +9848,14 @@ var
   Item, ParentObj: PDBObject;
   DBObjects: TDBObjectList;
   Columns: TTableColumnList;
+
+  function TreeShowColumns: Boolean;
+  begin
+    Result := Item.NodeType = lntTable;
+    if Sender = DBtree then // optional in dbtree
+      Result := actTreeShowColumns.Checked;
+  end;
+
 begin
   Item := Sender.GetNodeData(Node);
   if (not Assigned(ParentNode)) or (ParentNode = nil) then begin
@@ -9868,14 +9888,14 @@ begin
         end else begin
           DBObjects := ParentObj.Connection.GetDBObjects(ParentObj.Database);
           Item^ := DBObjects[Node.Index];
-          if Item.NodeType = lntTable then
+          if TreeShowColumns then
             Include(InitialStates, ivsHasChildren);
         end;
       end;
       lntGroup: begin
         DBObjects := ParentObj.Connection.GetDBObjects(ParentObj.Database, False, ParentObj.GroupType);
         Item^ := DBObjects[Node.Index];
-        if Item.NodeType = lntTable then
+        if TreeShowColumns then
           Include(InitialStates, ivsHasChildren);
       end;
       lntTable: begin
