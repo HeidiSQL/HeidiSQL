@@ -1061,16 +1061,14 @@ end;
 
 class function TSecureShellCmd.SshpassPath: String;
 begin
-  {$IFDEF DARWIN}
+  {$If defined(DARWIN)}
   // See https://www.heidisql.com/forum.php?t=44716
   Result := '/opt/homebrew/bin/sshpass';
-  {$ENDIF}
-  {$IFDEF WINDOWS}
+  {$ElseIf defined(WINDOWS)}
   // https://github.com/xhcoding/sshpass-win32
   Result := GetAppDir + 'sshpass.exe';
-  {$ENDIF}
-  {$IFDEF LINUX}
-  // Should be found in a known path
+  {$Else}
+  // Linux, BSD: Should be found in a known path
   Result := 'sshpass';
   {$ENDIF}
 end;
