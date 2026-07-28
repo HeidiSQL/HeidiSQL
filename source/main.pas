@@ -1479,7 +1479,7 @@ uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
   copytable, csv_detector, exportgrid, usermanager, rolemanagerpg, reformatter, connections, sqlhelp, updatecheck,
   insertfiles, texteditor, preferences, table_editor, view, routine_editor, trigger_editor, event_editor, grideditlinks,
-  crashdialog;
+  crashdialog, selectdbobject;
 
 {$R *.lfm}
 
@@ -9850,10 +9850,17 @@ var
   Columns: TTableColumnList;
 
   function TreeShowColumns: Boolean;
+  var f: TWinControl;
   begin
-    Result := Item.NodeType = lntTable;
-    if Sender = DBtree then // optional in dbtree
-      Result := actTreeShowColumns.Checked;
+    Result := False;
+    if Item.NodeType = lntTable then begin
+      if Sender = DBtree then // optional in dbtree
+        Result := actTreeShowColumns.Checked
+      else begin
+        f := GetParentFormOrFrame(Sender);
+        Result := Assigned(f) and (f is TfrmSelectDBObject);
+      end;
+    end;
   end;
 
 begin
