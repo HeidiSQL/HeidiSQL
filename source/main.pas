@@ -8627,14 +8627,16 @@ begin
         end;
 
         // Search in grouped table/view/... nodes
-        GroupedNode := Tree.GetFirstChild(ObjectNode);
-        while Assigned(GroupedNode) do begin
-          GroupedObj := Tree.GetNodeData(GroupedNode);
-          if GroupedObj.IsSameAs(Obj) then begin
-            Result := GroupedNode;
-            break;
+        if ObjectObj.NodeType = lntGroup then begin
+          GroupedNode := Tree.GetFirstChild(ObjectNode);
+          while Assigned(GroupedNode) do begin
+            GroupedObj := Tree.GetNodeData(GroupedNode);
+            if GroupedObj.IsSameAs(Obj) then begin
+              Result := GroupedNode;
+              break;
+            end;
+            GroupedNode := Tree.GetNextSibling(GroupedNode);
           end;
-          GroupedNode := Tree.GetNextSibling(GroupedNode);
         end;
 
         ObjectNode := Tree.GetNextSibling(ObjectNode);
@@ -10289,8 +10291,10 @@ begin
       if DBObj.NodeType = lntColumn then begin
         ParentObj := Sender.GetNodeData(Node.Parent);
         Columns := ParentObj.TableColumns;
-        Datatype := Columns[Node.Index].DataType;
-        TargetCanvas.Font.Color := AppColorSchemes.First.GridTextColors[Datatype.Category];
+        if Columns.Count > Node.Index then begin
+          Datatype := Columns[Node.Index].DataType;
+          TargetCanvas.Font.Color := AppColorSchemes.First.GridTextColors[Datatype.Category];
+        end;
       end;
     end;
     1: begin // Grey out rather unimportant "Size" column
