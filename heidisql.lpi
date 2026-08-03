@@ -25,7 +25,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <MajorVersionNr Value="12"/>
-      <MinorVersionNr Value="20"/>
+      <MinorVersionNr Value="21"/>
       <RevisionNr Value="1"/>
       <BuildNr Value="1"/>
     </VersionInfo>
