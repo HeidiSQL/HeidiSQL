@@ -5344,12 +5344,14 @@ function TDBConnection.FindObject(DB, Obj: String): TDBObject;
 var
   Objects: TDBObjectList;
   o: TDBObject;
+  fqname: String;
 begin
   // Find TDBObject by db and table string
   Objects := GetDBObjects(DB);
   Result := nil;
   for o in Objects do begin
-    if o.Name = Obj then begin
+    fqname := o.Schema + '.' + o.Name; // includes "dbo." schema
+    if (o.Name = Obj) or (fqname = Obj) then begin
       Result := o;
       Break;
     end;
