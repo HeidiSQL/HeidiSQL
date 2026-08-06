@@ -617,7 +617,7 @@ object frmTableEditor: TfrmTableEditor
         Height = 142
         Top = 0
         Width = 178
-        Anchors = [akTop, akLeft, akRight, akBottom]
+        Anchors = [akTop, akRight, akBottom]
         AutoWidthLastColumn = True
         BorderStyle = bsNone
         Columns = <        
@@ -649,7 +649,7 @@ object frmTableEditor: TfrmTableEditor
         Top = 0
         Width = 8
         Align = alNone
-        Anchors = [akTop, akBottom]
+        Anchors = [akTop, akRight, akBottom]
         ResizeAnchor = akRight
         Visible = False
       end

@@ -1116,7 +1116,8 @@ begin
   else begin
     ListViewReverseForeignKeys.Visible := False;
     spltForeignKeyListings.Visible := False;
-    listForeignKeys.Width := listForeignKeys.Parent.Width - tlbForeignKeys.Width;
+    // Issue #2570: following line would crash on macOS. No need to set the width with correct anchoring.
+    // listForeignKeys.Width := listForeignKeys.Parent.Width - tlbForeignKeys.Width;
   end;
   AppSettings.WriteBool(asDisplayReverseForeignKeys, DoShow);
 end;
