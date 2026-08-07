@@ -6863,3 +6863,9 @@ msgstr "Empty password after plugin change!"
 
 msgid "You changed the authentication plugin. This will reset the password, so please specify a new one."
 msgstr "You changed the authentication plugin. This will reset the password, so please specify a new one."
+
+msgid "The UPDATE affected %s rows, but 1 was expected. On tables without a primary or unique key, HeidiSQL must match on all columns, so edits may not reliably target the intended row."
+msgstr "The UPDATE affected %s rows, but 1 was expected. On tables without a primary or unique key, HeidiSQL must match on all columns, so edits may not reliably target the intended row."
+
+msgid "The DELETE affected %s rows, but 1 was expected. On tables without a primary or unique key, HeidiSQL must match on all columns, so edits may not reliably target the intended row."
+msgstr "The DELETE affected %s rows, but 1 was expected. On tables without a primary or unique key, HeidiSQL must match on all columns, so edits may not reliably target the intended row."

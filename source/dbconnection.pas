@@ -9448,7 +9448,7 @@ begin
     TempRowsAffected := Connection.RowsAffected;
     Connection.ShowWarnings;
     if TempRowsAffected = 0 then
-      raise EDbError.Create(FormatNumber(TempRowsAffected)+' rows deleted when that should have been 1.');
+      raise EDbError.Create(f_('The DELETE affected %s rows, but 1 was expected. On tables without a primary or unique key, HeidiSQL must match on all columns, so edits may not reliably target the intended row.', [FormatNumber(TempRowsAffected)]));
   end;
   if Assigned(FCurrentUpdateRow) then begin
     FUpdateData.Remove(FCurrentUpdateRow);
@@ -9714,7 +9714,7 @@ begin
         TempRowsAffected := Connection.RowsAffected;
         Connection.ShowWarnings;
         if TempRowsAffected = 0 then begin
-          raise EDbError.Create(FormatNumber(TempRowsAffected)+' rows updated when that should have been 1.');
+          raise EDbError.Create(f_('The UPDATE affected %s rows, but 1 was expected. On tables without a primary or unique key, HeidiSQL must match on all columns, so edits may not reliably target the intended row.', [FormatNumber(TempRowsAffected)]));
           Result := False;
         end;
       end;
