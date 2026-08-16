@@ -137,7 +137,7 @@ rpm-package:
 	cp -R package-skeleton rpm
 	find rpm -iname ".gitkeep" -exec rm -v {} +
 	cp -vR extra/locale/*.mo rpm/usr/share/heidisql/locale
-	cp -v extra/ini/*.ini  rpm/usr/share/heidisql
+	cp -v extra/ini/*.ini rpm/usr/share/heidisql
 	cp -v res/deb-package-icon.png rpm/usr/share/pixmaps/heidisql.png
 	cp -v $(BINQT6) rpm/usr/share/heidisql/heidisql
 	chmod +x rpm/usr/share/heidisql/heidisql
@@ -152,15 +152,15 @@ rpm-package:
 	  --description "HeidiSQL SQL client (Qt6)" \
 	  --url "https://www.heidisql.com" \
 	  --license "GPL-2.0-or-later" \
-	  --depends "libQt6Widgets.so.6" \
-	  --depends "libQt6Gui.so.6" \
-	  --depends "libQt6Core.so.6" \
-	  --depends "libQt6Pas.so.6" \
-	  --depends "libssl.so.3" \
-	  --depends "libmariadb.so.3" \
-	  --depends "libpq.so.5" \
-	  --depends "libsqlite3.so.0" \
-	  --depends "libsybdb.so.5" \
+	  --depends "libQt6Widgets.so.6()(64bit)" \
+	  --depends "libQt6Gui.so.6()(64bit)" \
+	  --depends "libQt6Core.so.6()(64bit)" \
+	  --depends "libQt6Pas.so.6()(64bit)" \
+	  --depends "libssl.so.3()(64bit)" \
+	  --depends "libmariadb.so.3()(64bit)" \
+	  --depends "libpq.so.5()(64bit)" \
+	  --depends "libsqlite3.so.0()(64bit)" \
+	  --depends "libsybdb.so.5()(64bit)" \
 	  ./rpm/=/
 
 tar-gtk2:
