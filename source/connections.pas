@@ -368,6 +368,7 @@ begin
       SessNode.Dummy := 0;
     end;
   end;
+  SessionNames.Free;
   if not Assigned(ParentNode) then begin
     RefreshBackgroundColors;
     ListSessions.SortTree(ListSessions.Header.SortColumn, ListSessions.Header.SortDirection);
@@ -418,6 +419,7 @@ begin
   LastActiveSession := AppSettings.ReadString(asLastActiveSession);
   if (LastActiveSession = '') and (LastSessions.Count > 0) then
     LastActiveSession := LastSessions[0];
+  LastSessions.Free;
   Node := ListSessions.GetFirst;
   while Assigned(Node) do begin
     PSess := ListSessions.GetNodeData(Node);

@@ -11384,9 +11384,11 @@ begin
         FNames.Add(SQLFunc.Name);
       end;
       Ini.Free;
+      Sections.Free;
       Break;
     end;
   end;
+  TryFiles.Free;
 end;
 
 

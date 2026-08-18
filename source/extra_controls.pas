@@ -158,8 +158,6 @@ var
   Regname: String;
   OwnerForm: TWinControl;
 begin
-  ValueList := TStringList.Create;
-
   // Column widths
   OwnerForm := GetParentFormOrFrame(List);
   Regname := OwnerForm.Name + '.' + List.Name;
@@ -174,6 +172,7 @@ begin
       if (List.Header.Columns.Count > i) and (ColWidth > 0) and (ColWidth < 1000) then
         List.Header.Columns[i].Width := ColWidth;
     end;
+    ValueList.Free;
   end;
 
   // Column visibility
@@ -186,6 +185,7 @@ begin
       else
         List.Header.Columns[i].Options := List.Header.Columns[i].Options - [coVisible];
     end;
+    ValueList.Free;
   end;
 
   // Column position
@@ -199,6 +199,7 @@ begin
       if List.Header.Columns.Count > i then
         List.Header.Columns[i].Position := colpos;
     end;
+    ValueList.Free;
   end;
 
   // Sort column and direction
@@ -212,9 +213,9 @@ begin
       else
         List.Header.SortDirection := sdDescending;
     end;
+    ValueList.Free;
   end;
 
-  ValueList.Free;
 end;
 
 

@@ -446,6 +446,8 @@ begin
     end else
       SynMemoPartitions.Clear;
 
+    rx.Free;
+
     FColumns := DBObject.TableColumns;
     FKeys := DBObject.TableKeys;
     FForeignKeys := DBObject.TableForeignKeys;
@@ -1362,6 +1364,7 @@ begin
     ImageIndexes := GetKeyImageIndexes(FColumns[i]);
     MinWidthThisCol := ImageIndexes.Count * listColumns.Images.Width;
     MinWidthAllCols := Max(MinWidthAllCols, MinWidthThisCol);
+    ImageIndexes.Free;
   end;
   // Add room for text and extra spacing
   Inc(MinWidthAllCols, listColumns.GetMaxColumnWidth(0));
