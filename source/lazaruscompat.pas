@@ -26,15 +26,22 @@ type
   private
     FQtShowHorzGridLines: Boolean;
     FQtShowVertGridLines: Boolean;
+    FQtWindowsHotTrack: Boolean;
+    function BlendQtColor(BaseColor, AccentColor: TColor; AccentPercent: Byte): TColor;
     procedure DrawQtSolidLine(Canvas: TCanvas; Left, Top, Right, Bottom: Integer);
   protected
+    procedure DoBeforeCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect); override;
     procedure DoAfterCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       const CellRect: TRect); override;
+    procedure DoPaintText(Node: PVirtualNode; const Canvas: TCanvas; Column: TColumnIndex;
+      TextType: TVSTTextType); override;
     procedure DrawDottedHLine(const PaintInfo: TVTPaintInfo; Left, Right, Top: Integer); override;
     procedure DrawDottedVLine(const PaintInfo: TVTPaintInfo; Top, Bottom, Left: Integer;
       UseSelectedBkColor: Boolean = False); override;
   public
     procedure ConfigureQtGridLines(ShowHorz, ShowVert: Boolean);
+    procedure ConfigureQtHotTrack(Enabled: Boolean);
   {$ENDIF}
   end;
 
@@ -203,6 +210,22 @@ implementation
 uses
   Math;
 
+function THeidiVirtualStringTree.BlendQtColor(BaseColor, AccentColor: TColor;
+  AccentPercent: Byte): TColor;
+var
+  BaseRGB, AccentRGB: LongInt;
+  BaseWeight: Integer;
+begin
+  BaseRGB := ColorToRGB(BaseColor);
+  AccentRGB := ColorToRGB(AccentColor);
+  BaseWeight := 100 - AccentPercent;
+  Result := RGBToColor(
+    (((BaseRGB and $FF) * BaseWeight) + ((AccentRGB and $FF) * AccentPercent)) div 100,
+    ((((BaseRGB shr 8) and $FF) * BaseWeight) + (((AccentRGB shr 8) and $FF) * AccentPercent)) div 100,
+    ((((BaseRGB shr 16) and $FF) * BaseWeight) + (((AccentRGB shr 16) and $FF) * AccentPercent)) div 100);
+end;
+
+
 procedure THeidiVirtualStringTree.DrawQtSolidLine(Canvas: TCanvas; Left, Top, Right, Bottom: Integer);
 var
   OldBrushColor: TColor;
@@ -224,6 +247,43 @@ procedure THeidiVirtualStringTree.ConfigureQtGridLines(ShowHorz, ShowVert: Boole
 begin
   FQtShowHorzGridLines := ShowHorz;
   FQtShowVertGridLines := ShowVert;
+end;
+
+procedure THeidiVirtualStringTree.ConfigureQtHotTrack(Enabled: Boolean);
+begin
+  FQtWindowsHotTrack := Enabled;
+end;
+
+procedure THeidiVirtualStringTree.DoBeforeCellPaint(Canvas: TCanvas; Node: PVirtualNode;
+  Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+  var ContentRect: TRect);
+var
+  OldBrushColor: TColor;
+  OldBrushStyle: TBrushStyle;
+begin
+  inherited DoBeforeCellPaint(Canvas, Node, Column, CellPaintMode, CellRect, ContentRect);
+  if (CellPaintMode <> cpmPaint) or (not FQtWindowsHotTrack) or
+    (Node <> HotNode) or (vsSelected in Node.States) then
+    Exit;
+
+  OldBrushColor := Canvas.Brush.Color;
+  OldBrushStyle := Canvas.Brush.Style;
+  try
+    Canvas.Brush.Style := bsSolid;
+    Canvas.Brush.Color := BlendQtColor(OldBrushColor, clHighlight, 12);
+    Canvas.FillRect(CellRect);
+  finally
+    Canvas.Brush.Style := OldBrushStyle;
+    Canvas.Brush.Color := OldBrushColor;
+  end;
+end;
+
+procedure THeidiVirtualStringTree.DoPaintText(Node: PVirtualNode; const Canvas: TCanvas;
+  Column: TColumnIndex; TextType: TVSTTextType);
+begin
+  inherited DoPaintText(Node, Canvas, Column, TextType);
+  if FQtWindowsHotTrack and (Node = HotNode) then
+    Canvas.Font.Style := Canvas.Font.Style - [fsUnderline];
 end;
 
 procedure THeidiVirtualStringTree.DoAfterCellPaint(Canvas: TCanvas; Node: PVirtualNode;

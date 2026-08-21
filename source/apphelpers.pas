@@ -1516,6 +1516,14 @@ begin
   if VT is THeidiVirtualStringTree then begin
     VT.LineStyle := lsSolid;
     VT.Colors.TreeLineColor := clGray;
+
+    if toUseExplorerTheme in VT.TreeOptions.PaintOptions then
+      VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
+    else
+      VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toHotTrack];
+    THeidiVirtualStringTree(VT).ConfigureQtHotTrack(
+      toUseExplorerTheme in VT.TreeOptions.PaintOptions);
+
     THeidiVirtualStringTree(VT).ConfigureQtGridLines(
       toShowHorzGridLines in VT.TreeOptions.PaintOptions,
       toShowVertGridLines in VT.TreeOptions.PaintOptions);
@@ -1564,7 +1572,6 @@ begin
   if (not Assigned(VT.OnContextPopup)) and Assigned(VT.Header.PopupMenu) then
     VT.OnContextPopup := MainForm.AnyGridContextPopup;
 end;
-
 
 function GetTextHeight(Font: TFont): Integer;
 var

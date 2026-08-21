@@ -1695,6 +1695,12 @@ begin
   FTreeSelect.OnExit := DoEndEdit;
   // See further events in PrepareEdit
   FixVT(FTreeSelect);
+  {$IFDEF LINUX}
+    {$if defined(LCLQt) or defined(LCLQt5) or defined(LCLQt6)}
+  FTreeSelect.TextMargin := 6;
+  FTreeSelect.Margin := 2;
+    {$endif}
+  {$ENDIF}
   FMainControl := FTreeSelect;
 
   FMemoHelp := TMemo.Create(FParentForm);
