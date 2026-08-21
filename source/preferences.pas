@@ -547,6 +547,7 @@ var
 begin
   Width := AppSettings.ReadInt(asPreferencesWindowWidth);
   Height := AppSettings.ReadInt(asPreferencesWindowHeight);
+  FixVT(TreeShortcutItems);
 
   // General tab
   editTerminal.Enabled := {$IFDEF WINDOWS} False {$ELSE} True {$ENDIF};

@@ -411,7 +411,7 @@ object frmRoutineEditor: TfrmRoutineEditor
       ClientHeight = 142
       ClientWidth = 682
       ImageIndex = 122
-      object listParameters: TLazVirtualStringTree
+      object listParameters: THeidiVirtualStringTree
         Left = 83
         Height = 142
         Top = 0
@@ -452,7 +452,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         NodeDataSize = 0
         TabOrder = 0
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-        TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toThemeAware, toUseBlendedImages, toFullVertGridLines, toUseExplorerTheme]
+        TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toFullVertGridLines, toUseExplorerTheme]
         TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
         OnBeforePaint = listParametersBeforePaint
         OnCreateEditor = listParametersCreateEditor

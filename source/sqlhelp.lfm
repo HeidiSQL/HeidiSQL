@@ -73,7 +73,7 @@ object frmSQLhelp: TfrmSQLhelp
         OnButtonClick = editFilterRightButtonClick
         OnChange = editFilterChange
       end
-      object treeTopics: TLazVirtualStringTree
+      object treeTopics: THeidiVirtualStringTree
         AnchorSideLeft.Control = pnlLeft
         AnchorSideTop.Control = editFilter
         AnchorSideRight.Control = pnlLeft

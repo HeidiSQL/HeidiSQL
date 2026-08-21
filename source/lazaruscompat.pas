@@ -2,17 +2,42 @@ unit lazaruscompat;
 
 {$mode delphi}{$H+}
 
+{$IFDEF LINUX}
+  {$if defined(LCLQt) or defined(LCLQt5) or defined(LCLQt6)}
+    {$DEFINE HEIDI_LINUX_QT}
+  {$endif}
+{$ENDIF}
+
 interface
 
 uses
   Classes, SysUtils, SynEdit, SynEditKeyCmds, SynEditHighlighter, laz.VirtualTrees,
-  Graphics, SynCompletion;
+  Graphics, SynCompletion, Types;
 
 type
 
   // Delphi type aliases
   TSynMemo = TSynEdit;
   TVirtualStringTree = TLazVirtualStringTree;
+
+  // VirtualTreeView fixes for Linux Qt.
+  THeidiVirtualStringTree = class(TLazVirtualStringTree)
+  {$IFDEF HEIDI_LINUX_QT}
+  private
+    FQtShowHorzGridLines: Boolean;
+    FQtShowVertGridLines: Boolean;
+    procedure DrawQtSolidLine(Canvas: TCanvas; Left, Top, Right, Bottom: Integer);
+  protected
+    procedure DoAfterCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      const CellRect: TRect); override;
+    procedure DrawDottedHLine(const PaintInfo: TVTPaintInfo; Left, Right, Top: Integer); override;
+    procedure DrawDottedVLine(const PaintInfo: TVTPaintInfo; Top, Bottom, Left: Integer;
+      UseSelectedBkColor: Boolean = False); override;
+  public
+    procedure ConfigureQtGridLines(ShowHorz, ShowVert: Boolean);
+  {$ENDIF}
+  end;
+
   TProgressBarState = (pbsNormal, pbsError, pbsPaused);
 
   // Add methods which exist in Delphi but not in Lazarus
@@ -43,6 +68,8 @@ type
       function Contains(const S: String): Boolean;
       function IsEmpty: Boolean;
   end;
+
+function CreateVirtualStringTree(AOwner: TComponent): TVirtualStringTree;
 
 const
 {$IFDEF SYN_CodeFolding}
@@ -172,6 +199,86 @@ const
 
 implementation
 
+{$IFDEF HEIDI_LINUX_QT}
+uses
+  Math;
+
+procedure THeidiVirtualStringTree.DrawQtSolidLine(Canvas: TCanvas; Left, Top, Right, Bottom: Integer);
+var
+  OldBrushColor: TColor;
+  OldBrushStyle: TBrushStyle;
+begin
+  OldBrushColor := Canvas.Brush.Color;
+  OldBrushStyle := Canvas.Brush.Style;
+  try
+    Canvas.Brush.Style := bsSolid;
+    Canvas.Brush.Color := Colors.TreeLineColor;
+    Canvas.FillRect(Rect(Left, Top, Right, Bottom));
+  finally
+    Canvas.Brush.Style := OldBrushStyle;
+    Canvas.Brush.Color := OldBrushColor;
+  end;
+end;
+
+procedure THeidiVirtualStringTree.ConfigureQtGridLines(ShowHorz, ShowVert: Boolean);
+begin
+  FQtShowHorzGridLines := ShowHorz;
+  FQtShowVertGridLines := ShowVert;
+end;
+
+procedure THeidiVirtualStringTree.DoAfterCellPaint(Canvas: TCanvas; Node: PVirtualNode;
+  Column: TColumnIndex; const CellRect: TRect);
+var
+  OldBrushColor: TColor;
+  OldBrushStyle: TBrushStyle;
+begin
+  inherited DoAfterCellPaint(Canvas, Node, Column, CellRect);
+  if not (FQtShowHorzGridLines or FQtShowVertGridLines) then
+    Exit;
+
+  OldBrushColor := Canvas.Brush.Color;
+  OldBrushStyle := Canvas.Brush.Style;
+  try
+    Canvas.Brush.Style := bsSolid;
+    Canvas.Brush.Color := Colors.GridLineColor;
+    if FQtShowVertGridLines and (CellRect.Right > CellRect.Left) then
+      Canvas.FillRect(Rect(CellRect.Right - 1, CellRect.Top, CellRect.Right, CellRect.Bottom));
+    if FQtShowHorzGridLines and (CellRect.Bottom > CellRect.Top) then
+      Canvas.FillRect(Rect(CellRect.Left, CellRect.Bottom - 1, CellRect.Right, CellRect.Bottom));
+  finally
+    Canvas.Brush.Style := OldBrushStyle;
+    Canvas.Brush.Color := OldBrushColor;
+  end;
+end;
+
+procedure THeidiVirtualStringTree.DrawDottedHLine(const PaintInfo: TVTPaintInfo;
+  Left, Right, Top: Integer);
+begin
+  if LineStyle = lsSolid then
+    DrawQtSolidLine(PaintInfo.Canvas, Min(Left, Right), Top, Max(Left, Right) + 1, Top + 1)
+  else
+    inherited DrawDottedHLine(PaintInfo, Left, Right, Top);
+end;
+
+procedure THeidiVirtualStringTree.DrawDottedVLine(const PaintInfo: TVTPaintInfo;
+  Top, Bottom, Left: Integer; UseSelectedBkColor: Boolean);
+begin
+  if LineStyle = lsSolid then
+    DrawQtSolidLine(PaintInfo.Canvas, Left, Min(Top, Bottom), Left + 1, Max(Top, Bottom) + 1)
+  else
+    inherited DrawDottedVLine(PaintInfo, Top, Bottom, Left, UseSelectedBkColor);
+end;
+{$ENDIF}
+
+function CreateVirtualStringTree(AOwner: TComponent): TVirtualStringTree;
+begin
+  {$IFDEF HEIDI_LINUX_QT}
+  Result := THeidiVirtualStringTree.Create(AOwner);
+  {$ELSE}
+  Result := TVirtualStringTree.Create(AOwner);
+  {$ENDIF}
+end;
+
 
 function TSynEditHelper.GetTextLen: Integer;
 begin
@@ -266,6 +373,9 @@ function TStringsHelper.IsEmpty: Boolean;
 begin
   Result := Count = 0;
 end;
+
+initialization
+  RegisterClass(THeidiVirtualStringTree);
 
 end.
 

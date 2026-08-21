@@ -1671,7 +1671,7 @@ constructor TDataTypeEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Bool
 begin
   inherited;
 
-  FTreeSelect := TVirtualStringTree.Create(FParentForm);
+  FTreeSelect := CreateVirtualStringTree(FParentForm);
   FTreeSelect.Hide;
   FTreeSelect.TreeOptions.PaintOptions := FTreeSelect.TreeOptions.PaintOptions
     - [toShowTreeLines, toShowButtons, toShowRoot]

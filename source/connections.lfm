@@ -1148,7 +1148,7 @@ object connform: Tconnform
     Constraints.MinWidth = 100
     ParentBackground = False
     TabOrder = 2
-    object ListSessions: TLazVirtualStringTree
+    object ListSessions: THeidiVirtualStringTree
       Left = 0
       Height = 427
       Top = 28

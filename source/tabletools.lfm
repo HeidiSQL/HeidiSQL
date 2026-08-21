@@ -78,7 +78,7 @@ object frmTableTools: TfrmTableTools
       ClientWidth = 565
       ParentBackground = False
       TabOrder = 0
-      object ResultGrid: TLazVirtualStringTree
+      object ResultGrid: THeidiVirtualStringTree
         Left = 0
         Height = 149
         Top = 194
@@ -94,7 +94,7 @@ object frmTableTools: TfrmTableTools
         IncrementalSearch = isAll
         TabOrder = 0
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
         TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
         OnCompareNodes = ResultGridCompareNodes
         OnGetText = ResultGridGetText
@@ -967,7 +967,7 @@ object frmTableTools: TfrmTableTools
           OnKeyPress = editDatabaseTableFilterKeyPress
         end
       end
-      object TreeObjects: TLazVirtualStringTree
+      object TreeObjects: THeidiVirtualStringTree
         Left = 0
         Height = 314
         Top = 29

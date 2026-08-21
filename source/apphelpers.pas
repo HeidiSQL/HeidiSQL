@@ -1510,11 +1510,34 @@ begin
     VT.EndUpdate;
   end;
   VT.DefaultText := '-'; // "Node" by default
-  {$IFNDEF WINDOWS}
-  // Disable grid lines, looks ok on Windows with dotted light lines, but not on macOS and Linux
-  if (toHotTrack in VT.TreeOptions.PaintOptions) then
-    VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toShowHorzGridLines, toShowVertGridLines];
+
+  {$IFDEF LINUX}
+    {$if defined(LCLQt) or defined(LCLQt5) or defined(LCLQt6)}
+  if VT is THeidiVirtualStringTree then begin
+    VT.LineStyle := lsSolid;
+    VT.Colors.TreeLineColor := clGray;
+    THeidiVirtualStringTree(VT).ConfigureQtGridLines(
+      toShowHorzGridLines in VT.TreeOptions.PaintOptions,
+      toShowVertGridLines in VT.TreeOptions.PaintOptions);
+    if (toShowHorzGridLines in VT.TreeOptions.PaintOptions) or
+      (toShowVertGridLines in VT.TreeOptions.PaintOptions) then
+      VT.Colors.GridLineColor := clGray;
+    VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions -
+      [toShowHorzGridLines, toShowVertGridLines];
+  end;
+    {$else}
+  if not IsResultGrid then
+    VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions -
+      [toShowHorzGridLines, toShowVertGridLines];
+    {$endif}
+  {$ELSE}
+    {$IFNDEF WINDOWS}
+  if not IsResultGrid then
+    VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions -
+      [toShowHorzGridLines, toShowVertGridLines];
+    {$ENDIF}
   {$ENDIF}
+
   VT.OnGetHint := MainForm.AnyGridGetHint;
   VT.OnScroll := MainForm.AnyGridScroll;
   VT.OnMouseWheel := MainForm.AnyGridMouseWheel;

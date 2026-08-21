@@ -12704,7 +12704,7 @@ begin
   QueryTab.filterHelpers.OnChange := filterQueryHelpers.OnChange;
   QueryTab.filterHelpers.OnButtonClick := filterQueryHelpers.OnButtonClick;
 
-  QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.pnlHelpers);
+  QueryTab.treeHelpers := CreateVirtualStringTree(QueryTab.pnlHelpers);
   QueryTab.treeHelpers.Name := treeQueryHelpers.Name + i.ToString;
   QueryTab.treeHelpers.Parent := QueryTab.pnlHelpers;
   QueryTab.treeHelpers.Align := treeQueryHelpers.Align;
@@ -15884,7 +15884,7 @@ begin
   inherited Create;
   QueryTab := AOwner;
   OrgGrid := Mainform.QueryGrid;
-  Grid := TVirtualStringTree.Create(QueryTab.TabSheet);
+  Grid := CreateVirtualStringTree(QueryTab.TabSheet);
   Grid.Parent := QueryTab.TabSheet;
   Grid.Tag := OrgGrid.Tag;
   Grid.BorderStyle := OrgGrid.BorderStyle;

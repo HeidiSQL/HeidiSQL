@@ -344,7 +344,7 @@ object frmTableEditor: TfrmTableEditor
       ClientHeight = 142
       ClientWidth = 692
       ImageIndex = 13
-      object treeIndexes: TLazVirtualStringTree
+      object treeIndexes: THeidiVirtualStringTree
         Left = 67
         Height = 142
         Top = 0
@@ -399,7 +399,7 @@ object frmTableEditor: TfrmTableEditor
         TabOrder = 1
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toFullVertGridLines, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toFullVertGridLines, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toExtendedFocus, toRightClickSelect]
         OnBeforeCellPaint = treeIndexesBeforeCellPaint
         OnBeforePaint = treeIndexesBeforePaint
@@ -536,7 +536,7 @@ object frmTableEditor: TfrmTableEditor
           OnClick = btnShowReverseForeignKeysClick
         end
       end
-      object listForeignKeys: TLazVirtualStringTree
+      object listForeignKeys: THeidiVirtualStringTree
         AnchorSideLeft.Control = tlbForeignKeys
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = tabForeignKeys
@@ -593,7 +593,7 @@ object frmTableEditor: TfrmTableEditor
         PopupMenu = popupProperties
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-        TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toExtendedFocus]
         OnBeforePaint = listForeignKeysBeforePaint
         OnClick = AnyTreeClick
@@ -699,7 +699,7 @@ object frmTableEditor: TfrmTableEditor
           OnClick = btnClearCheckConstraintsClick
         end
       end
-      object listCheckConstraints: TLazVirtualStringTree
+      object listCheckConstraints: THeidiVirtualStringTree
         Left = 67
         Height = 142
         Top = 0
@@ -726,7 +726,7 @@ object frmTableEditor: TfrmTableEditor
         PopupMenu = popupProperties
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-        TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toExtendedFocus]
         OnBeforePaint = listCheckConstraintsBeforePaint
         OnClick = AnyTreeClick
@@ -1097,7 +1097,7 @@ object frmTableEditor: TfrmTableEditor
       end
     end
   end
-  object listColumns: TLazVirtualStringTree
+  object listColumns: THeidiVirtualStringTree
     AnchorSideBottom.Control = btnSave
     Left = 0
     Height = 260
@@ -1196,7 +1196,7 @@ object frmTableEditor: TfrmTableEditor
     TabOrder = 2
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toWheelPanning, toFullRowDrag, toEditOnClick]
-    TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+    TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
     TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect]
     WantTabs = True
     OnAfterCellPaint = listColumnsAfterCellPaint

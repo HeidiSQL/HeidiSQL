@@ -32,7 +32,7 @@ object frmSelectDBObject: TfrmSelectDBObject
     BorderSpacing.Around = 5
     Caption = '... or wildcard database (% and _ allowed):'
   end
-  object TreeDBO: TLazVirtualStringTree
+  object TreeDBO: THeidiVirtualStringTree
     AnchorSideTop.Control = lblSelect
     AnchorSideTop.Side = asrBottom
     Left = 8

@@ -940,7 +940,7 @@ object MainForm: TMainForm
           OnKeyPress = editDatabaseTableFilterKeyPress
         end
       end
-      object DBtree: TLazVirtualStringTree
+      object DBtree: THeidiVirtualStringTree
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Side = asrBottom
         Left = 0
@@ -1127,7 +1127,7 @@ object MainForm: TMainForm
               ClientHeight = 176
               ClientWidth = 607
               ImageIndex = 5
-              object ListDatabases: TLazVirtualStringTree
+              object ListDatabases: THeidiVirtualStringTree
                 Left = 0
                 Height = 176
                 Top = 0
@@ -1211,7 +1211,7 @@ object MainForm: TMainForm
               ClientHeight = 176
               ClientWidth = 607
               ImageIndex = 137
-              object ListVariables: TLazVirtualStringTree
+              object ListVariables: THeidiVirtualStringTree
                 Left = 0
                 Height = 176
                 Top = 0
@@ -1268,7 +1268,7 @@ object MainForm: TMainForm
               ClientHeight = 176
               ClientWidth = 607
               ImageIndex = 13
-              object ListStatus: TLazVirtualStringTree
+              object ListStatus: THeidiVirtualStringTree
                 Left = 0
                 Height = 176
                 Top = 0
@@ -1843,7 +1843,7 @@ object MainForm: TMainForm
                 Align = alBottom
                 ResizeAnchor = akBottom
               end
-              object ListProcesses: TLazVirtualStringTree
+              object ListProcesses: THeidiVirtualStringTree
                 Left = 0
                 Height = 116
                 Top = 0
@@ -1925,7 +1925,7 @@ object MainForm: TMainForm
               ClientHeight = 176
               ClientWidth = 607
               ImageIndex = 145
-              object ListCommandStats: TLazVirtualStringTree
+              object ListCommandStats: THeidiVirtualStringTree
                 Left = 0
                 Height = 176
                 Top = 0
@@ -1996,7 +1996,7 @@ object MainForm: TMainForm
           ClientHeight = 204
           ClientWidth = 615
           ImageIndex = 5
-          object ListTables: TLazVirtualStringTree
+          object ListTables: THeidiVirtualStringTree
             Left = 0
             Height = 204
             Top = 0
@@ -2844,7 +2844,7 @@ object MainForm: TMainForm
               end
             end
           end
-          object DataGrid: TLazVirtualStringTree
+          object DataGrid: THeidiVirtualStringTree
             Left = 2
             Height = 95
             Top = 107
@@ -2938,7 +2938,7 @@ object MainForm: TMainForm
                 OnButtonClick = buttonedEditClear
                 OnChange = filterQueryHelpersChange
               end
-              object treeQueryHelpers: TLazVirtualStringTree
+              object treeQueryHelpers: THeidiVirtualStringTree
                 AnchorSideTop.Side = asrBottom
                 Left = 0
                 Height = 81
@@ -3508,7 +3508,7 @@ object MainForm: TMainForm
             ShowHint = True
             TabOrder = 2
           end
-          object QueryGrid: TLazVirtualStringTree
+          object QueryGrid: THeidiVirtualStringTree
             Left = 0
             Height = 69
             Top = 135

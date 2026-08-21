@@ -1667,7 +1667,7 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 5
         Caption = 'Secondary shortcut:'
       end
-      object TreeShortcutItems: TLazVirtualStringTree
+      object TreeShortcutItems: THeidiVirtualStringTree
         AnchorSideLeft.Control = tabShortcuts
         AnchorSideTop.Control = editShortcutsFilter
         AnchorSideTop.Side = asrBottom
