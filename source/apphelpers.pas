@@ -3617,13 +3617,22 @@ begin
   InitSetting(asLogFileDdl,                       'LogFileDdl',                            0, False, '', True);
   InitSetting(asLogFileDml,                       'LogFileDml',                            0, False, '', True);
   InitSetting(asLogFilePath,                      'LogFilePath',                           0, False, DirnameUserAppData + 'Logs'+PathDelim+'%session'+PathDelim+'%db'+PathDelim+'%y%m%d.sql', True);
+  {$IFDEF LINUX}
+  // Use generic fontconfig families on Linux.
+  InitSetting(asFontName,                         'FontName',                              0, False, 'monospace');
+  {$ELSE}
   if Screen.Fonts.IndexOf('Consolas') > -1 then
     InitSetting(asFontName,                       'FontName',                              0, False, 'Consolas')
   else
     InitSetting(asFontName,                       'FontName',                              0, False, 'Courier New');
+  {$ENDIF}
   InitSetting(asFontSize,                         'FontSize',                              9);
   InitSetting(asTabWidth,                         'TabWidth',                              3);
+  {$IFDEF LINUX}
+  InitSetting(asDataFontName,                     'DataFontName',                          0, False, 'sans-serif');
+  {$ELSE}
   InitSetting(asDataFontName,                     'DataFontName',                          0, False, 'Tahoma');
+  {$ENDIF}
   InitSetting(asDataFontSize,                     'DataFontSize',                          8);
   InitSetting(asDataLocalNumberFormat,            'DataLocalNumberFormat',                 0, True);
   InitSetting(asLowercaseHex,                     'LowercaseHex',                          0, True);
@@ -4191,6 +4200,15 @@ var
   B: Boolean;
 begin
   Read(Index, FormatName, adString, I, B, Result, 0, False, Default);
+  {$IFDEF LINUX}
+  // Keep imported font settings portable.
+  if FormatName.IsEmpty then begin
+    if (Index = asFontName) and (not SameText(Result, 'monospace')) and (Screen.Fonts.IndexOf(Result) < 0) then
+      Result := 'monospace'
+    else if (Index = asDataFontName) and (not SameText(Result, 'sans-serif')) and (Screen.Fonts.IndexOf(Result) < 0) then
+      Result := 'sans-serif';
+  end;
+  {$ENDIF}
 end;
 
 
