@@ -12,7 +12,10 @@ interface
 
 uses
   Classes, SysUtils, SynEdit, SynEditKeyCmds, SynEditHighlighter, laz.VirtualTrees,
-  Graphics, SynCompletion, Types;
+  Graphics, SynCompletion, Types
+  {$IFDEF HEIDI_LINUX_QT}
+  , Forms, LMessages
+  {$ENDIF};
 
 type
 
@@ -30,6 +33,10 @@ type
     function BlendQtColor(BaseColor, AccentColor: TColor; AccentPercent: Byte): TColor;
     procedure DrawQtSolidLine(Canvas: TCanvas; Left, Top, Right, Bottom: Integer);
   protected
+    procedure CMHintShow(var Message: TCMHintShow); message CM_HINTSHOW;
+    procedure CMHintShowPause(var Message: TCMHintShowPause); message CM_HINTSHOWPAUSE;
+    function QtHintMaxWidth: Integer;
+    function WrapQtHintLongTokens(const S: String; MaxWidth: Integer): String;
     procedure DoBeforeCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect); override;
     procedure DoAfterCellPaint(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
@@ -208,7 +215,134 @@ implementation
 
 {$IFDEF HEIDI_LINUX_QT}
 uses
-  Math;
+  Math, LazUTF8;
+const
+  QtHintInitialPauseMs = 250;
+  QtHintKeepAliveMs = 24 * 60 * 60 * 1000;
+
+function THeidiVirtualStringTree.QtHintMaxWidth: Integer;
+var
+  Monitor: TMonitor;
+  WorkWidth, PreferredWidth, MinimumWidth, ScreenCap: Integer;
+begin
+  PreferredWidth := Canvas.TextWidth(StringOfChar('0', 96)) + 24;
+  MinimumWidth := Canvas.TextWidth(StringOfChar('0', 48)) + 24;
+  Monitor := Screen.MonitorFromWindow(Handle);
+  if Assigned(Monitor) then
+    WorkWidth := Monitor.WorkareaRect.Right - Monitor.WorkareaRect.Left
+  else
+    WorkWidth := Screen.Width;
+
+  Result := PreferredWidth;
+  if WorkWidth > 0 then begin
+    ScreenCap := (WorkWidth * 2) div 3;
+    if ScreenCap < MinimumWidth then
+      Result := ScreenCap
+    else
+      Result := Min(Result, ScreenCap);
+  end;
+  Result := Max(240, Result);
+end;
+
+function THeidiVirtualStringTree.WrapQtHintLongTokens(const S: String; MaxWidth: Integer): String;
+const
+  BreakChars = '.,;:/\_-+=)]}>';
+
+  function WrapToken(Token: String): String;
+  var
+    CharCount, LowPos, HighPos, MidPos, FitPos, BreakPos, I: Integer;
+    Prefix, C: String;
+  begin
+    Result := '';
+    while (Token <> '') and (Canvas.TextWidth(Token) > MaxWidth) do begin
+      CharCount := UTF8Length(Token);
+      if CharCount <= 1 then
+        Break;
+
+      LowPos := 1;
+      HighPos := CharCount;
+      FitPos := 1;
+      while LowPos <= HighPos do begin
+        MidPos := (LowPos + HighPos) div 2;
+        Prefix := UTF8Copy(Token, 1, MidPos);
+        if Canvas.TextWidth(Prefix) <= MaxWidth then begin
+          FitPos := MidPos;
+          LowPos := MidPos + 1;
+        end
+        else
+          HighPos := MidPos - 1;
+      end;
+
+      BreakPos := FitPos;
+      for I := FitPos downto Max(1, (FitPos * 3) div 4) do begin
+        C := UTF8Copy(Token, I, 1);
+        if Pos(C, BreakChars) > 0 then begin
+          BreakPos := I;
+          Break;
+        end;
+      end;
+
+      Result := Result + UTF8Copy(Token, 1, BreakPos) + LineEnding;
+      Token := UTF8Copy(Token, BreakPos + 1, CharCount - BreakPos);
+    end;
+    Result := Result + Token;
+  end;
+
+var
+  I, TokenStart: Integer;
+  Token: String;
+begin
+  if (S = '') or (MaxWidth <= 0) then begin
+    Result := S;
+    Exit;
+  end;
+
+  Result := '';
+  TokenStart := 1;
+  I := 1;
+  while I <= Length(S) do begin
+    if S[I] in [#9, #10, #13, ' '] then begin
+      if I > TokenStart then begin
+        Token := Copy(S, TokenStart, I - TokenStart);
+        Result := Result + WrapToken(Token);
+      end;
+      Result := Result + S[I];
+      Inc(I);
+      TokenStart := I;
+    end
+    else
+      Inc(I);
+  end;
+  if TokenStart <= Length(S) then begin
+    Token := Copy(S, TokenStart, Length(S) - TokenStart + 1);
+    Result := Result + WrapToken(Token);
+  end;
+end;
+
+procedure THeidiVirtualStringTree.CMHintShowPause(var Message: TCMHintShowPause);
+begin
+  if Assigned(Message.Pause) and (Message.WasActive = 0) and
+    (Message.Pause^ > QtHintInitialPauseMs) then
+    Message.Pause^ := QtHintInitialPauseMs;
+  Message.Result := 0;
+end;
+
+procedure THeidiVirtualStringTree.CMHintShow(var Message: TCMHintShow);
+var
+  MaxWidth: Integer;
+begin
+  LastHintRect := Rect(0, 0, 0, 0);
+  inherited;
+
+  if (Message.Result <> 0) or not Assigned(Message.HintInfo) then
+    Exit;
+
+  MaxWidth := QtHintMaxWidth;
+  Message.HintInfo^.HintMaxWidth := MaxWidth;
+  Message.HintInfo^.HideTimeout := QtHintKeepAliveMs;
+  Message.HintInfo^.ReshowTimeout := 0;
+  Message.HintInfo^.HintStr := WrapQtHintLongTokens(Message.HintInfo^.HintStr, Max(1, MaxWidth - 16));
+end;
 
 function THeidiVirtualStringTree.BlendQtColor(BaseColor, AccentColor: TColor;
   AccentPercent: Byte): TColor;

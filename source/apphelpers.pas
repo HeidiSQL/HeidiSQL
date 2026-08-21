@@ -1553,7 +1553,6 @@ begin
 
   if IsResultGrid then begin
     VT.Colors.GridLineColor := clGray; // 50% black grid lines, should fit on both light and dark theme
-    VT.HintMode := hmHint; // Show cell contents with linebreakds in datagrid and querygrid's
     if AppSettings.ReadBool(asIncrementalSearch) then begin
       // Apply case insensitive incremental search event
       VT.IncrementalSearch := isInitializedOnly;
@@ -1562,9 +1561,21 @@ begin
     else begin
       VT.IncrementalSearch := isNone;
     end;
-  end
+  end;
+
+  {$IFDEF LINUX}
+    {$if defined(LCLQt) or defined(LCLQt5) or defined(LCLQt6)}
+  if (VT is THeidiVirtualStringTree) and
+    (toGridExtensions in VT.TreeOptions.MiscOptions) then
+    VT.HintMode := hmHint
   else
-    VT.HintMode := hmTooltip; // Just a quick tooltip for clipped nodes
+    {$endif}
+  {$ENDIF}
+  if IsResultGrid then
+    VT.HintMode := hmHint
+  else
+    VT.HintMode := hmTooltip;
+
   VT.OnStartOperation := Mainform.AnyGridStartOperation;
   VT.OnEndOperation := Mainform.AnyGridEndOperation;
   VT.BorderStyle := bsNone; // Cosmetic
@@ -1572,6 +1583,7 @@ begin
   if (not Assigned(VT.OnContextPopup)) and Assigned(VT.Header.PopupMenu) then
     VT.OnContextPopup := MainForm.AnyGridContextPopup;
 end;
+
 
 function GetTextHeight(Font: TFont): Integer;
 var
