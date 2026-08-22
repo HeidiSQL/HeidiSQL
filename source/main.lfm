@@ -726,7 +726,7 @@ object MainForm: TMainForm
     MouseLinkColor.Foreground = clBlue
     LineHighlightColor.Background = clNone
     LineHighlightColor.Foreground = clNone
-    OnSpecialLineColors = SynMemoSQLLogSpecialLineColors
+    OnSpecialLineMarkup = SynMemoSQLLogSpecialLineMarkup
     inline SynLeftGutterPartList1: TSynGutterPartList
       object SynGutterLineNumber1: TSynGutterLineNumber
         Width = 13
@@ -3446,7 +3446,7 @@ object MainForm: TMainForm
               OnProcessCommand = SynMemoQueryProcessCommand
               OnReplaceText = SynMemoQueryReplaceText
               OnShowHint = SynMemoQueryShowHint
-              OnSpecialLineColors = SynMemoQuerySpecialLineColors
+              OnSpecialLineMarkup = SynMemoQuerySpecialLineMarkup
               OnStatusChange = SynMemoQueryStatusChange
               inline SynLeftGutterPartList1: TSynGutterPartList
                 object SynGutterMarks1: TSynGutterMarks
