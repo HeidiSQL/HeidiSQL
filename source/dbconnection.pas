@@ -517,6 +517,7 @@ type
       function GetRowCount(Obj: TDBObject; ForceExact: Boolean=False): Int64; virtual;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
+      procedure RestartKeepAliveTimer;
       procedure KeepAliveTimerEvent(Sender: TObject);
       procedure Drop(Obj: TDBObject); virtual;
       procedure PrefetchResults(SQL: String);
@@ -3479,9 +3480,7 @@ begin
       Active := True;
   end;
   Result := FActive;
-  // Restart keep-alive timer
-  FKeepAliveTimer.Enabled := False;
-  FKeepAliveTimer.Enabled := True;
+  RestartKeepAliveTimer;
 end;
 
 {$IFDEF HASMSSQL}
@@ -3500,9 +3499,7 @@ begin
     end;
   end;
   Result := FActive;
-  // Restart keep-alive timer
-  FKeepAliveTimer.Enabled := False;
-  FKeepAliveTimer.Enabled := True;
+  RestartKeepAliveTimer;
 end;
 {$ENDIF}
 
@@ -3538,9 +3535,7 @@ begin
       Active := True;
   end;
   Result := FActive;
-  // Restart keep-alive timer
-  FKeepAliveTimer.Enabled := False;
-  FKeepAliveTimer.Enabled := True;
+  RestartKeepAliveTimer;
 end;
 
 
@@ -3558,9 +3553,7 @@ begin
     end;
   end;
   Result := FActive;
-  // Restart keep-alive timer
-  FKeepAliveTimer.Enabled := False;
-  FKeepAliveTimer.Enabled := True;
+  RestartKeepAliveTimer;
 end;
 
 
@@ -3575,6 +3568,15 @@ begin
   FKeepAliveTimer.Enabled := False;
   FKeepAliveTimer.Enabled := True;
 end;}
+
+
+procedure TDBConnection.RestartKeepAliveTimer;
+begin
+  if GetCurrentThreadID <> MainThreadID then
+    Exit;
+  FKeepAliveTimer.Enabled := False;
+  FKeepAliveTimer.Enabled := True;
+end;
 
 
 procedure TDBConnection.KeepAliveTimerEvent(Sender: TObject);
