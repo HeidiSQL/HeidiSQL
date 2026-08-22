@@ -438,6 +438,10 @@ if TargetOS=&apos;win64&apos; then
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
+        <Filename Value="source\platformtheme.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
         <Filename Value="source\crashdialog.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmCrashDialog"/>

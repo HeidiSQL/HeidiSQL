@@ -457,7 +457,10 @@ var
 
 implementation
 
-uses main;
+uses main
+{$if defined(LINUX) and (defined(LCLQt5) or defined(LCLQt6))}
+  , platformtheme
+{$endif};
 
 
 
@@ -2893,8 +2896,11 @@ begin
   Result := uDarkStyleParams.IsDarkModeEnabled;
   {$ENDIF}
   {$IFDEF LINUX}
-  // Not yet possible to detect the system's dark mode. Ideas welcome.
+  {$if defined(LCLQt5) or defined(LCLQt6)}
+  Result := PlatformThemeIsDark(AppSettings.ReadInt(asThemeMode));
+  {$else}
   Result := False;
+  {$endif}
   {$ENDIF}
   {$IFDEF DARWIN}
   // Detect system's dark mode on macOS

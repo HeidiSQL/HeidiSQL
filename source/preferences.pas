@@ -563,7 +563,7 @@ begin
       comboGUIFont.Items.Add(Screen.Fonts[i]);
   end;
 
-  {$IFDEF WINDOWS}
+  {$if defined(WINDOWS) or (defined(LINUX) and (defined(LCLQt5) or defined(LCLQt6)))}
   comboTheme.Items.Add(_('Automatic, depending on system settings'));
   comboTheme.Items.Add(_('Light'));
   comboTheme.Items.Add(_('Dark'));

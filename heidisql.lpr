@@ -10,13 +10,16 @@ uses
   SysUtils, Dialogs,
   Forms, printer4lazarus, datetimectrls, LCLTranslator, Translations,
   { you can add units after this }
-  main, apphelpers, dbconnection, generic_types;
+  main, apphelpers, dbconnection, generic_types
+  {$if defined(LINUX) and (defined(LCLQt5) or defined(LCLQt6))}
+  , platformtheme
+  {$endif};
 
 {$R *.res}
 
 var
   AppLanguage: String;
-  WasDarkMode: Boolean;
+  WasDarkMode, IsDarkMode: Boolean;
 begin
   PostponedLogItems := TDBLogItems.Create(True);
   Application.{%H-}MainFormOnTaskBar := True; // hide warning: Symbol "MainFormOnTaskBar" is not portable
@@ -68,13 +71,19 @@ begin
   {$ENDIF}
   // Switch synedit and grid colors to dark mode and vice versa
   WasDarkMode := AppSettings.ReadBool(asCurrentThemeIsDark);
-  if (not WasDarkMode) and ThemeIsDark then
+  IsDarkMode := ThemeIsDark;
+  if (not WasDarkMode) and IsDarkMode then
     AppColorSchemes.ApplyDark
-  else if WasDarkMode and (not ThemeIsDark) then
+  else if WasDarkMode and (not IsDarkMode) then
     AppColorSchemes.ApplyLight;
-  AppSettings.WriteBool(asCurrentThemeIsDark, ThemeIsDark);
+  AppSettings.WriteBool(asCurrentThemeIsDark, IsDarkMode);
 
   Application.Initialize;
+
+  {$if defined(LINUX) and (defined(LCLQt5) or defined(LCLQt6))}
+  // Let LCL install its Qt event hook before replacing the application palette.
+  ApplyPlatformTheme(AppSettings.ReadInt(asThemeMode));
+  {$endif}
 
   Application.CreateForm(TMainForm, MainForm);
   Application.OnException := MainForm.ApplicationException;
