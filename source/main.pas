@@ -15536,7 +15536,8 @@ begin
       Memo.Text := Content
     else
       Memo.SelText := Content;
-    Memo.SelStart := Memo.SelEnd;
+    Memo.CaretXY := Memo.BlockEnd;
+    Memo.ClearSelection;
     Memo.Modified := False;
     MemoFilename := Filepath;
     FileEncoding := MainForm.GetEncodingName(Encoding);

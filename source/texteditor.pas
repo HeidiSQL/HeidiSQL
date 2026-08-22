@@ -108,7 +108,7 @@ type
 
 implementation
 
-uses main;
+uses main, Types;
 
 {$R *.lfm}
 
@@ -381,13 +381,13 @@ procedure TfrmTextEditor.comboHighlighterSelect(Sender: TObject);
 var
   Highlighters: TSynHighlighterList;
   i: Integer;
-  SelStart, SelLength: Integer;
+  SelBegin, SelEnd: TPoint;
 begin
   // Code highlighter selected
   if not comboHighlighter.Enabled then
     Exit;
-  SelStart := MemoText.SelStart;
-  SelLength := MemoText.SelEnd - MemoText.SelStart;
+  SelBegin := MemoText.BlockBegin;
+  SelEnd := MemoText.BlockEnd;
   MemoText.Highlighter := nil;
   FHighlighter.Free;
   FHighlighter := nil;
@@ -403,8 +403,8 @@ begin
   menuFormatCodeOnce.Enabled := Assigned(FHighlighter) and (FHighlighterFormatters.IndexOf(FHighlighter.ClassName) > -1);
   if menuAlwaysFormatCode.Checked and menuFormatCodeOnce.Enabled then begin
     menuFormatCodeOnce.OnClick(Sender);
-    SelStart := 0;
-    SelLength := 0;
+    SelBegin := Point(1, 1);
+    SelEnd := SelBegin;
   end;
 
   if Assigned(FHighlighter) then begin
@@ -412,8 +412,8 @@ begin
     MemoText.Highlighter.LoadFromFile(AppSettings.DirnameHighlighters + MemoText.Highlighter.LanguageName + '.ini');
   end;
 
-  MemoText.SelStart := SelStart;
-  MemoText.SelEnd := SelStart + SelLength;
+  MemoText.BlockBegin := SelBegin;
+  MemoText.BlockEnd := SelEnd;
 end;
 
 procedure TfrmTextEditor.btnLoadTextClick(Sender: TObject);
@@ -468,15 +468,15 @@ begin
       JsonParser := TJSONParser.Create(MemoText.Text, []);
       MemoText.Text := JsonParser.Parse.FormatJSON();
       JsonParser.Free;
-      MemoText.SelStart := 0;
-      MemoText.SelEnd := 0;
+      MemoText.CaretXY := Point(1, 1);
+      MemoText.ClearSelection;
     end
     else if FHighlighter is TSynSQLSyn then begin
       // Prefer old internal formatter here, so the user does not run into request limits
       frmReformatter := TfrmReformatter.Create(Self);
       MemoText.Text := frmReformatter.FormatSqlInternal(MemoText.Text);
-      MemoText.SelStart := 0;
-      MemoText.SelEnd := 0;
+      MemoText.CaretXY := Point(1, 1);
+      MemoText.ClearSelection;
       frmReformatter.Free;
     end
     else if FHighlighter is TSynXMLSyn then begin
@@ -492,8 +492,8 @@ begin
         MemoText.BeginUpdate;
         MemoText.Text := OutStream.DataString; // show formatted XML
         MemoText.EndUpdate;
-        MemoText.SelStart := 0;
-        MemoText.SelEnd := 0;
+        MemoText.CaretXY := Point(1, 1);
+        MemoText.ClearSelection;
       finally
         InStream.Free;
         OutStream.Free;
