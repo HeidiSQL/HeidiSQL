@@ -411,7 +411,7 @@ object frmRoutineEditor: TfrmRoutineEditor
       ClientHeight = 142
       ClientWidth = 682
       ImageIndex = 122
-      object listParameters: THeidiVirtualStringTree
+      object listParameters: TLazVirtualStringTree
         Left = 83
         Height = 142
         Top = 0

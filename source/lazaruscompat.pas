@@ -569,7 +569,11 @@ begin
 end;
 
 initialization
+  {$IFDEF HEIDI_LINUX_QT}
   RegisterClass(THeidiVirtualStringTree);
+  UnRegisterClass(TLazVirtualStringTree);
+  RegisterClassAlias(THeidiVirtualStringTree, 'TLazVirtualStringTree');
+  {$ENDIF}
 
 end.
 

@@ -113,7 +113,7 @@ object CopyTableForm: TCopyTableForm
     TabOrder = 4
     OnClick = btnOKClick
   end
-  object TreeElements: THeidiVirtualStringTree
+  object TreeElements: TLazVirtualStringTree
     AnchorSideLeft.Control = comboDatabase
     AnchorSideTop.Control = lblItems
     AnchorSideTop.Side = asrBottom

@@ -47,7 +47,7 @@ object UserManagerForm: TUserManagerForm
       Caption = '&Select user account:'
       FocusControl = listUsers
     end
-    object listUsers: THeidiVirtualStringTree
+    object listUsers: TLazVirtualStringTree
       AnchorSideLeft.Control = pnlLeft
       AnchorSideTop.Control = editFilterUsers
       AnchorSideTop.Side = asrBottom
@@ -632,7 +632,7 @@ object UserManagerForm: TUserManagerForm
         Caption = 'Privileges'
         ClientHeight = 74
         ClientWidth = 377
-        object treePrivs: THeidiVirtualStringTree
+        object treePrivs: TLazVirtualStringTree
           Left = 0
           Height = 46
           Top = 28

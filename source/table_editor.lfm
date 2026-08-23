@@ -344,7 +344,7 @@ object frmTableEditor: TfrmTableEditor
       ClientHeight = 142
       ClientWidth = 692
       ImageIndex = 13
-      object treeIndexes: THeidiVirtualStringTree
+      object treeIndexes: TLazVirtualStringTree
         Left = 67
         Height = 142
         Top = 0
@@ -536,7 +536,7 @@ object frmTableEditor: TfrmTableEditor
           OnClick = btnShowReverseForeignKeysClick
         end
       end
-      object listForeignKeys: THeidiVirtualStringTree
+      object listForeignKeys: TLazVirtualStringTree
         AnchorSideLeft.Control = tlbForeignKeys
         AnchorSideLeft.Side = asrBottom
         AnchorSideTop.Control = tabForeignKeys
@@ -699,7 +699,7 @@ object frmTableEditor: TfrmTableEditor
           OnClick = btnClearCheckConstraintsClick
         end
       end
-      object listCheckConstraints: THeidiVirtualStringTree
+      object listCheckConstraints: TLazVirtualStringTree
         Left = 67
         Height = 142
         Top = 0
@@ -1097,7 +1097,7 @@ object frmTableEditor: TfrmTableEditor
       end
     end
   end
-  object listColumns: THeidiVirtualStringTree
+  object listColumns: TLazVirtualStringTree
     AnchorSideBottom.Control = btnSave
     Left = 0
     Height = 260

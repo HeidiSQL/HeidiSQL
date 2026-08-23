@@ -121,7 +121,7 @@ object frmInsertFiles: TfrmInsertFiles
       TabOrder = 1
       OnChange = comboTablesChange
     end
-    object ListColumns: THeidiVirtualStringTree
+    object ListColumns: TLazVirtualStringTree
       AnchorSideLeft.Control = grpSelectObject
       AnchorSideTop.Control = lblFilecontents
       AnchorSideTop.Side = asrBottom
@@ -221,7 +221,7 @@ object frmInsertFiles: TfrmInsertFiles
       BorderSpacing.Around = 5
       Caption = '0 files'
     end
-    object ListFiles: THeidiVirtualStringTree
+    object ListFiles: TLazVirtualStringTree
       AnchorSideLeft.Control = GroupBox2
       AnchorSideTop.Control = ToolBar1
       AnchorSideTop.Side = asrBottom
