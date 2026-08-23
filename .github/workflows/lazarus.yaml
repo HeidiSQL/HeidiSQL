@@ -116,6 +116,18 @@ jobs:
             name: ${{ matrix.operating-system }}-QT5
             path: out/qt5/heidisql
 
+        - name: Patch Lazarus 4.8 for QT6
+          if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+          run: |
+            LAZARUS_DIR="/usr/share/lazarus/4.8.0"
+            test -f "$LAZARUS_DIR/lcl/include/lclintf.inc"
+            for p in "$GITHUB_WORKSPACE"/extra/lazarus-patches/4.8/*.patch; do
+              sudo patch -d "$LAZARUS_DIR" -p1 --dry-run < "$p"
+              sudo patch -d "$LAZARUS_DIR" -p1 < "$p"
+            done
+            grep -Fq "QPaintDevice_devicePixelRatioF" "$LAZARUS_DIR/lcl/interfaces/qt6/qtwscontrols.pp"
+            grep -Fq "LCLIntf.SetCanvasScaleFactor(NodeBitmap.Canvas.Handle, ScaleFactor);" "$LAZARUS_DIR/components/virtualtreeview/laz.virtualtrees.pas"
+
         - name: Build HeidiSQL (Ubuntu QT6)
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
           run: |
@@ -169,6 +181,17 @@ jobs:
             wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_arm64.deb" -O /tmp/libqt6pas6-dev.deb
             sudo dpkg -i /tmp/libqt6pas6-dev.deb || sudo apt-get install -f -y
             rm -f /tmp/libqt6pas6.deb /tmp/libqt6pas6-dev.deb
+
+        - name: Patch Lazarus 4.8 for QT6
+          run: |
+            LAZARUS_DIR="/usr/share/lazarus/4.8.0"
+            test -f "$LAZARUS_DIR/lcl/include/lclintf.inc"
+            for p in "$GITHUB_WORKSPACE"/extra/lazarus-patches/4.8/*.patch; do
+              sudo patch -d "$LAZARUS_DIR" -p1 --dry-run < "$p"
+              sudo patch -d "$LAZARUS_DIR" -p1 < "$p"
+            done
+            grep -Fq "QPaintDevice_devicePixelRatioF" "$LAZARUS_DIR/lcl/interfaces/qt6/qtwscontrols.pp"
+            grep -Fq "LCLIntf.SetCanvasScaleFactor(NodeBitmap.Canvas.Handle, ScaleFactor);" "$LAZARUS_DIR/components/virtualtreeview/laz.virtualtrees.pas"
 
         - name: Build HeidiSQL (Linux ARM64 QT6)
           run: |

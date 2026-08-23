@@ -1,0 +1,34 @@
+diff --git a/lcl/interfaces/qt6/qtlclintf.inc b/lcl/interfaces/qt6/qtlclintf.inc
+index d6251f8..5aaf334 100644
+--- a/lcl/interfaces/qt6/qtlclintf.inc
++++ b/lcl/interfaces/qt6/qtlclintf.inc
+@@ -8,6 +8,18 @@ begin
+   // todo
+ end;
+ 
++procedure TQtWidgetSet.SetCanvasScaleFactor(DC: HDC; const AScaleRatio: double);
++var
++  QtDc: TQtDeviceContext absolute DC;
++begin
++  if IsValidDC(DC) and (QtDC.vImage <> nil) and (QtDC.vImage.Handle <> nil) then
++  begin
++    QPainter_end(QtDC.Widget);
++    QImage_setDevicePixelRatio(QtDC.vImage.Handle, AScaleRatio);
++    QPainter_begin(QtDC.Widget, QtDC.vImage.Handle);
++  end;
++end;
++
+ procedure TQtWidgetSet.SetEventHandlerFlags(AHandler: PEventHandler;
+   NewFlags: dword);
+ var
+diff --git a/lcl/interfaces/qt6/qtlclintfh.inc b/lcl/interfaces/qt6/qtlclintfh.inc
+index d8f0123..86c9c15 100644
+--- a/lcl/interfaces/qt6/qtlclintfh.inc
++++ b/lcl/interfaces/qt6/qtlclintfh.inc
+@@ -3,5 +3,6 @@ procedure RemovePipeEventHandler(var AHandler: PPipeEventHandler); override;
+ procedure RemoveProcessEventHandler(var AHandler: PProcessEventHandler); override;
+ 
+ procedure SetEventHandlerFlags(AHandler: PEventHandler; NewFlags: dword); override;
++procedure SetCanvasScaleFactor(DC: HDC; const AScaleRatio: double); override;
+ function SetComboMinDropDownSize(Handle: HWND; MinItemsWidth, MinItemsHeight, MinItemCount: integer): boolean; override;
+ procedure SetRubberBandRect(const ARubberBand: HWND; const ARect: TRect); override;

@@ -1,0 +1,43 @@
+diff --git a/lcl/include/intfbaselcl.inc b/lcl/include/intfbaselcl.inc
+index d9b5da7..9d17e87 100644
+--- a/lcl/include/intfbaselcl.inc
++++ b/lcl/include/intfbaselcl.inc
+@@ -11,6 +11,10 @@ procedure TWidgetSet.SendCachedLCLMessages;
+ begin
+ end;
+ 
++procedure TWidgetSet.SetCanvasScaleFactor(DC: HDC; const AScaleRatio: double);
++begin
++end;
++
+ function TWidgetSet.SetCaretRespondToFocus(handle: HWND;
+   ShowHideOnFocus: boolean): Boolean;
+ begin
+diff --git a/lcl/include/lclintf.inc b/lcl/include/lclintf.inc
+index e2147d8..45d4fb5 100644
+--- a/lcl/include/lclintf.inc
++++ b/lcl/include/lclintf.inc
+@@ -12,6 +12,11 @@ procedure SendCachedLCLMessages;
+ begin
+ end;
+ 
++procedure SetCanvasScaleFactor(DC: HDC; const AScaleRatio: double);
++begin
++  WidgetSet.SetCanvasScaleFactor(DC, AScaleRatio);
++end;
++
+ function SetCaretRespondToFocus(Handle: hWnd; ShowHideOnFocus: boolean):Boolean;
+ begin
+   Result := WidgetSet.SetCaretRespondToFocus(Handle,ShowHideOnFocus);
+diff --git a/lcl/include/lclintfh.inc b/lcl/include/lclintfh.inc
+index a726824..f315942 100644
+--- a/lcl/include/lclintfh.inc
++++ b/lcl/include/lclintfh.inc
+@@ -4,6 +4,7 @@ procedure RemovePipeEventHandler(var AHandler: PPipeEventHandler); {$IFDEF IF_BA
+ function RequestInput(const InputCaption, InputPrompt : String; MaskInput : Boolean; var Value : String) : Boolean; {$IFDEF IF_BASE_MEMBER}virtual;{$ENDIF}
+ 
+ procedure SendCachedLCLMessages; {$IFDEF IF_BASE_MEMBER}virtual;{$ENDIF}
++procedure SetCanvasScaleFactor(DC: HDC; const AScaleRatio: double); {$IFDEF IF_BASE_MEMBER}virtual;{$ENDIF}
+ function SetCaretRespondToFocus(handle: HWND; ShowHideOnFocus: boolean): Boolean; {$IFDEF IF_BASE_MEMBER}virtual;{$ENDIF}
+ function SetComboMinDropDownSize(Handle: HWND; MinItemsWidth, MinItemsHeight, MinItemCount: integer): boolean; {$IFDEF IF_BASE_MEMBER}virtual;{$ENDIF}
+ procedure SetEventHandlerFlags(AHandler: PEventHandler; NewFlags: dword); {$IFDEF IF_BASE_MEMBER}virtual;{$ENDIF}

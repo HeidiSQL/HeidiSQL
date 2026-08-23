@@ -1,0 +1,53 @@
+diff --git a/lcl/interfaces/qt6/qtwinapi.inc b/lcl/interfaces/qt6/qtwinapi.inc
+--- a/lcl/interfaces/qt6/qtwinapi.inc
++++ b/lcl/interfaces/qt6/qtwinapi.inc
+@@ -6845,6 +6845,12 @@ var
+     else
+       QPixmap_copy(APixmap, ATempPixmap, 0, 0, QPixmap_width(APixmap), QPixmap_height(APixmap));
+
++    if (AMaskImg = nil) and QPixmap_isNull(ATempPixmap) then
++    begin
++      QPixmap_destroy(ATempPixmap);
++      exit;
++    end;
++
+     if AMaskImg <> nil then
+     begin
+       // apply mask to pixmap
+@@ -6855,8 +6861,8 @@ var
+
+         if IsRectEmpty(MaskRect) or (MaskRect.Size <> DstRect.Size) then
+         begin
+-          if (QPixmap_width(ATempPixmap) < (DstRect.Right - DstRect.Left)) or
+-            (QPixmap_Height(ATempPixmap) < (DstRect.Bottom - DstRect.Top)) then
++          if not QPixmap_isNull(ATempPixmap) and ((QPixmap_width(ATempPixmap) < (DstRect.Right - DstRect.Left)) or
++            (QPixmap_Height(ATempPixmap) < (DstRect.Bottom - DstRect.Top))) then
+             QPixmap_scaled(AMaskPix, AScaledPix, QPixmap_width(ATempPixmap), QPixmap_height(ATempPixmap))
+           else
+             QPixmap_scaled(AMaskPix, AScaledPix, Width, Height);
+@@ -6874,13 +6880,20 @@ var
+       end;
+     end;
+
+-    if ARenderHint then
+-      QPainter_setRenderHint(DstQDC.Widget, QPainterSmoothPixmapTransform, True);
++    if not QPixmap_isNull(ATempPixmap) then
++    begin
++      if ARenderHint then
++        QPainter_setRenderHint(DstQDC.Widget, QPainterSmoothPixmapTransform, True);
+
+-    QPainter_drawPixmap(DstQDC.Widget, X, Y, Width, Height, ATempPixmap);
++      if (QPixmap_width(ATempPixmap) = Width) and (QPixmap_height(ATempPixmap) = Height) and (Rop = SRCCOPY) then
++      begin
++        QPainter_drawPixmap(DstQDC.Widget, X, Y, ATempPixmap);
++      end else
++        QPainter_drawPixmap(DstQDC.Widget, X, Y, Width, Height, ATempPixmap);
+
+-    if ARenderHint then
+-      QPainter_setRenderHint(DstQDC.Widget, QPainterSmoothPixmapTransform, not ARenderHint);
++      if ARenderHint then
++        QPainter_setRenderHint(DstQDC.Widget, QPainterSmoothPixmapTransform, not ARenderHint);
++    end;
+
+     QPixmap_destroy(ATempPixmap);
+   end;

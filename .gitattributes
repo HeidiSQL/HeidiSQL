@@ -38,3 +38,4 @@
 .gitattributes  export-ignore
 
 # Add scripts that do not need to be exported, here
+extra/lazarus-patches/**/*.patch -whitespace

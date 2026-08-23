@@ -1,0 +1,28 @@
+diff --git a/lcl/interfaces/qt6/qtwscontrols.pp b/lcl/interfaces/qt6/qtwscontrols.pp
+index 84396a1..9f28b3d 100644
+--- a/lcl/interfaces/qt6/qtwscontrols.pp
++++ b/lcl/interfaces/qt6/qtwscontrols.pp
+@@ -6,6 +6,7 @@
+     class procedure DestroyHandle(const AWinControl: TWinControl); override;
+     class procedure Invalidate(const AWinControl: TWinControl); override;
+     class procedure AddControl(const AControl: TControl); override;
++    class function GetCanvasScaleFactor(const AControl: TControl): Double; override;
+     class function  GetClientBounds(const AWincontrol: TWinControl; var ARect: TRect): Boolean; override;
+     class function  GetClientRect(const AWincontrol: TWinControl; var ARect: TRect): Boolean; override;
+     class function GetDesignInteractive(const AWinControl: TWinControl; AClientPos: TPoint): Boolean; override;
+@@ -33,6 +34,15 @@ begin
+   end;
+ end;
+ 
++class function TQtWSWinControl.GetCanvasScaleFactor(const AControl: TControl
++  ): Double;
++begin
++  Result := 1;
++  if not WSCheckHandleAllocated(TWinControl(AControl), 'GetCanvasScaleFactor') then
++    Exit;
++  Result := QPaintDevice_devicePixelRatioF(QWidget_to_QPaintDevice(TQtWidget(TWinControl(AControl).Handle).Widget));
++end;
++
+ class function TQtWSWinControl.GetClientBounds(const AWincontrol: TWinControl;
+   var ARect: TRect): Boolean;
+ begin
