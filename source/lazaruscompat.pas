@@ -14,7 +14,7 @@ uses
   Classes, SysUtils, SynEdit, SynEditKeyCmds, SynEditHighlighter, laz.VirtualTrees,
   Graphics, SynCompletion, Types
   {$IFDEF HEIDI_LINUX_QT}
-  , Forms, LMessages
+  , Forms, LMessages, LResources
   {$ENDIF};
 
 type
@@ -51,6 +51,14 @@ type
     procedure ConfigureQtHotTrack(Enabled: Boolean);
   {$ENDIF}
   end;
+
+  {$IFDEF HEIDI_LINUX_QT}
+  THeidiLRSObjectReader = class(TLRSObjectReader)
+  public
+    procedure BeginComponent(var Flags: TFilerFlags; var AChildPos: Integer;
+      var CompClassName, CompName: String); override;
+  end;
+  {$ENDIF}
 
   TProgressBarState = (pbsNormal, pbsError, pbsPaused);
 
@@ -216,6 +224,15 @@ implementation
 {$IFDEF HEIDI_LINUX_QT}
 uses
   Math, LazUTF8;
+
+procedure THeidiLRSObjectReader.BeginComponent(var Flags: TFilerFlags;
+  var AChildPos: Integer; var CompClassName, CompName: String);
+begin
+  inherited BeginComponent(Flags, AChildPos, CompClassName, CompName);
+  if CompClassName = 'TLazVirtualStringTree' then
+    CompClassName := THeidiVirtualStringTree.ClassName;
+end;
+
 const
   QtHintInitialPauseMs = 250;
   QtHintKeepAliveMs = 24 * 60 * 60 * 1000;
@@ -571,8 +588,7 @@ end;
 initialization
   {$IFDEF HEIDI_LINUX_QT}
   RegisterClass(THeidiVirtualStringTree);
-  UnRegisterClass(TLazVirtualStringTree);
-  RegisterClassAlias(THeidiVirtualStringTree, 'TLazVirtualStringTree');
+  LRSObjectReaderClass := THeidiLRSObjectReader;
   {$ENDIF}
 
 end.
