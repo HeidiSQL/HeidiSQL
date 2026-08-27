@@ -3185,8 +3185,10 @@ begin
   end
   else begin
     LibMajorVer := String(mysql_get_client_info);
-    if LibMajorVer.StartsWith('8.') or LibMajorVer.StartsWith('9.') then begin
+    LibMajorVer := Copy(LibMajorVer, 1, Pos('.', LibMajorVer)-1);
+    if StrToIntDef(LibMajorVer, 0) >= 8 then begin
       // Some constants were removed in MySQL 8.0, so the offsets differ
+      // This also covers MySQL 9.x "Innovation" releases, which kept the same offsets as 8.x.
       MYSQL_PLUGIN_DIR := 16;
       MYSQL_OPT_SSL_KEY := 19;
       MYSQL_OPT_SSL_CERT := 20;
