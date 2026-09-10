@@ -5236,6 +5236,7 @@ var
   Obj: TDBObject;
   Tab: TQueryTab;
   Conn: TDBConnection;
+  TableName: String;
 begin
   // Query table data
   Conn := ActiveConnection;
@@ -5248,7 +5249,11 @@ begin
 
   for Obj in Objects do begin
     Tab := GetOrCreateEmptyQueryTab(True);
-    Tab.Memo.Text := Conn.ApplyLimitClause('SELECT', '* FROM '+Obj.QuotedName, AppSettings.ReadInt(asDatagridRowsPerStep), 0);
+    if ssShift in GetKeyShiftState then
+      TableName := Obj.QuotedDbAndTableName
+    else
+      TableName := Obj.QuotedName;
+    Tab.Memo.Text := Conn.ApplyLimitClause('SELECT', '* FROM '+TableName, AppSettings.ReadInt(asDatagridRowsPerStep), 0);
     SetTabCaption(Tab.TabSheet.TabIndex, Obj.Name);
     actExecuteQueryExecute(Sender);
   end;
