@@ -36,6 +36,7 @@ object frmTableTools: TfrmTableTools
     Width = 95
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 5
+    Cancel = True
     Caption = 'Close'
     ModalResult = 2
     TabOrder = 3
@@ -1019,6 +1020,7 @@ object frmTableTools: TfrmTableTools
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 5
     Caption = 'Execute'
+    Default = True
     TabOrder = 2
     OnClick = Execute
   end

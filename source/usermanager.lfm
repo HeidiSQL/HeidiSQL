@@ -728,7 +728,7 @@ object UserManagerForm: TUserManagerForm
     ClientWidth = 617
     ParentBackground = False
     TabOrder = 3
-    object btnDiscard: TSpeedButton
+    object btnDiscard: TBitBtn
       AnchorSideRight.Control = btnCancel
       AnchorSideBottom.Control = pnlBottom
       AnchorSideBottom.Side = asrBottom
@@ -739,13 +739,14 @@ object UserManagerForm: TUserManagerForm
       Anchors = [akRight, akBottom]
       AutoSize = True
       BorderSpacing.Left = 5
-      Constraints.MinWidth = 100
       Caption = 'Discard'
+      Constraints.MinWidth = 100
       Images = MainForm.ImageListMain
       ImageIndex = 40
+      TabOrder = 0
       OnClick = btnDiscardClick
     end
-    object btnSave: TSpeedButton
+    object btnSave: TBitBtn
       AnchorSideRight.Control = btnDiscard
       AnchorSideBottom.Control = pnlBottom
       AnchorSideBottom.Side = asrBottom
@@ -755,13 +756,15 @@ object UserManagerForm: TUserManagerForm
       Width = 100
       Anchors = [akRight, akBottom]
       AutoSize = True
-      Constraints.MinWidth = 100
       Caption = 'Save'
+      Constraints.MinWidth = 100
+      Default = True
       Images = MainForm.ImageListMain
       ImageIndex = 10
+      TabOrder = 1
       OnClick = btnSaveClick
     end
-    object btnCancel: TSpeedButton
+    object btnCancel: TBitBtn
       AnchorSideRight.Control = pnlBottom
       AnchorSideRight.Side = asrBottom
       AnchorSideBottom.Control = pnlBottom
@@ -773,10 +776,12 @@ object UserManagerForm: TUserManagerForm
       Anchors = [akRight, akBottom]
       AutoSize = True
       BorderSpacing.Left = 5
-      Constraints.MinWidth = 100
+      Cancel = True
       Caption = 'Close'
+      Constraints.MinWidth = 100
       Images = MainForm.ImageListMain
       ImageIndex = 26
+      TabOrder = 2
       OnClick = btnCancelClick
     end
     object lblWarning: TLabel

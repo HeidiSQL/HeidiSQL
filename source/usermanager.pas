@@ -61,8 +61,8 @@ type
   { TUserManagerForm }
 
   TUserManagerForm = class(TExtForm)
-    btnCancel: TSpeedButton;
-    btnSave: TSpeedButton;
+    btnCancel: TBitBtn;
+    btnSave: TBitBtn;
     comboPlugins: TComboBox;
     lblPasswordHint: TLabel;
     lblPlugin: TLabel;
@@ -71,7 +71,7 @@ type
     listUsers: TLazVirtualStringTree;
     Splitter1: TSplitter;
     pnlRight: TPanel;
-    btnDiscard: TSpeedButton;
+    btnDiscard: TBitBtn;
     lblUsers: TLabel;
     ToolBar1: TToolBar;
     btnAddUser: TToolButton;
@@ -526,6 +526,10 @@ begin
   FModified := Value;
   btnSave.Enabled := FModified;
   btnDiscard.Enabled := FModified and (not FAdded);
+  btnDiscard.Cancel := False;
+  btnCancel.Cancel := False;
+  btnDiscard.Cancel := btnDiscard.Enabled;
+  btnCancel.Cancel := not btnDiscard.Enabled;
   listUsers.Invalidate;
 end;
 

@@ -27,6 +27,7 @@ object frmExportGrid: TfrmExportGrid
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 5
     Caption = 'OK'
+    Default = True
     ModalResult = 1
     TabOrder = 5
     OnClick = btnOKClick
@@ -42,6 +43,7 @@ object frmExportGrid: TfrmExportGrid
     Width = 75
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 5
+    Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 4

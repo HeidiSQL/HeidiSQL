@@ -28,6 +28,7 @@ object loaddataform: Tloaddataform
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 5
     Caption = 'Import!'
+    Default = True
     Enabled = False
     ModalResult = 1
     TabOrder = 6
@@ -43,6 +44,7 @@ object loaddataform: Tloaddataform
     Width = 75
     Anchors = [akRight, akBottom]
     BorderSpacing.Around = 5
+    Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 7
