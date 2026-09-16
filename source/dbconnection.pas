@@ -8179,6 +8179,7 @@ begin
       FResultList[i].Close;
       FResultList[i].Free;
     end;
+    FResultList.Clear;
     NumResults := 1;
     FRecordCount := 0;
     FAutoIncrementColumn := -1;
