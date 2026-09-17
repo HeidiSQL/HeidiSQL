@@ -3709,6 +3709,7 @@ begin
 
   TimerStart := GetTickCount64;
   FLastRawResults.Clear;
+  QueryResult := nil;
   try
     QueryResult := TSQLQuery.Create(FHandle);
     FLastRawResults.Add(QueryResult);
@@ -3726,6 +3727,8 @@ begin
   except
     on E:Exception do begin
       FLastError := E.Message;
+      FLastRawResults.Clear;
+      QueryResult.Free;
       Log(lcError, GetLastErrorMsg);
       raise EDbError.Create(GetLastErrorMsg);
     end;
