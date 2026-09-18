@@ -10337,8 +10337,66 @@ end;
 procedure TMainForm.RefreshTree(FocusNewObject: TDBObject=nil);
 var
   DBNode: PVirtualNode;
-  OnlyDBNode, Expanded: Boolean;
+  OnlyDBNode, Expanded, ObjectFocused, CreatingObject: Boolean;
   SessNode: PVirtualNode;
+  ExpandedNodes: TStringList;
+  RefreshedObj: TDBObject;
+
+  function GroupKey(DBObj: PDBObject): String;
+  begin
+    Result := DBObj.Database + #9 + IntToStr(Integer(DBObj.GroupType));
+  end;
+
+  procedure StoreExpandedState(DBNode: PVirtualNode);
+  var
+    GroupNode: PVirtualNode;
+    DBObj: PDBObject;
+  begin
+    // Remember expanded state of a database node and its group nodes, as ResetNode collapses them
+    if (not (vsInitialized in DBNode.States)) or (not DBtree.Expanded[DBNode]) then
+      Exit;
+    DBObj := DBtree.GetNodeData(DBNode);
+    ExpandedNodes.Add(DBObj.Database);
+    GroupNode := DBtree.GetFirstChildNoInit(DBNode);
+    while Assigned(GroupNode) do begin
+      if (vsInitialized in GroupNode.States) and DBtree.Expanded[GroupNode] then begin
+        DBObj := DBtree.GetNodeData(GroupNode);
+        if DBObj.NodeType = lntGroup then
+          ExpandedNodes.Add(GroupKey(DBObj));
+      end;
+      GroupNode := DBtree.GetNextSiblingNoInit(GroupNode);
+    end;
+  end;
+
+  procedure RestoreExpandedState(DBNode: PVirtualNode);
+  var
+    GroupNode: PVirtualNode;
+    DBObj: PDBObject;
+  begin
+    // Node was probably just reset, so its data needs to be initialized again
+    DBtree.ValidateNode(DBNode, False);
+    DBObj := DBtree.GetNodeData(DBNode);
+    if ExpandedNodes.IndexOf(DBObj.Database) = -1 then
+      Exit;
+    try
+      DBtree.Expanded[DBNode] := True;
+      if not actGroupObjects.Checked then
+        Exit;
+      GroupNode := DBtree.GetFirstChild(DBNode);
+      while Assigned(GroupNode) do begin
+        DBObj := DBtree.GetNodeData(GroupNode);
+        if (DBObj.NodeType = lntGroup) and (ExpandedNodes.IndexOf(GroupKey(DBObj)) > -1) then
+          DBtree.Expanded[GroupNode] := True;
+        GroupNode := DBtree.GetNextSibling(GroupNode);
+      end;
+    except
+      // Expanding reads the objects of that database. Leave the node collapsed if that fails,
+      // so the rest of the refresh and the reselection of the focused node still happens.
+      on E:EDbError do
+        LogSQL('RefreshTree: '+E.Message, lcError);
+    end;
+  end;
+
 begin
   // This refreshes exactly one session node and all its db and table nodes.
   // Also, tries to focus the previous focused object, if present.
@@ -10356,27 +10414,60 @@ begin
   // ReInit tree population
   FTreeRefreshInProgress := True;
   SelectNode(DBtree, nil);
+  ExpandedNodes := TStringList.Create;
+  ExpandedNodes.CaseSensitive := True;
   try
     if not OnlyDBNode then begin
+      SessNode := GetRootNode(DBtree, FocusNewObject.Connection);
+      if Assigned(SessNode) then begin
+        DBNode := DBtree.GetFirstChildNoInit(SessNode);
+        while Assigned(DBNode) do begin
+          StoreExpandedState(DBNode);
+          DBNode := DBtree.GetNextSiblingNoInit(DBNode);
+        end;
+      end;
       FocusNewObject.Connection.ClearAllDbObjects;
       FocusNewObject.Connection.RefreshAllDatabases;
-      SessNode := GetRootNode(DBtree, FocusNewObject.Connection);
       if Assigned(SessNode) then begin
         Expanded := DBtree.Expanded[SessNode];
         DBtree.ResetNode(SessNode);
         DBtree.Expanded[SessNode] := Expanded;
+        if Expanded then begin
+          DBNode := DBtree.GetFirstChild(SessNode);
+          while Assigned(DBNode) do begin
+            RestoreExpandedState(DBNode);
+            DBNode := DBtree.GetNextSibling(DBNode);
+          end;
+        end;
       end;
     end else begin
-      FocusNewObject.Connection.ClearDbObjects(FocusNewObject.Database);
       DBNode := FindDbNode(DBtree, FocusNewObject.Connection, FocusNewObject.Database);
       if Assigned(DBNode) then
+        StoreExpandedState(DBNode);
+      FocusNewObject.Connection.ClearDbObjects(FocusNewObject.Database);
+      if Assigned(DBNode) then begin
         DBtree.ResetNode(DBNode);
+        RestoreExpandedState(DBNode);
+      end;
     end;
 
     // Reselect active or new database if present. Could have been deleted or renamed.
     try
-      if FocusNewObject.NodeType in [lntTable..lntEvent] then
+      if FocusNewObject.NodeType in [lntTable..lntEvent] then begin
+        // A just created object has no schema yet, while the server put it into the default one,
+        // e.g. "dbo" or "public". Take over the schema, so the node gets found in the tree.
+        if FocusNewObject.Schema.IsEmpty and (not FocusNewObject.Name.IsEmpty) then begin
+          for RefreshedObj in FocusNewObject.Connection.GetDBObjects(FocusNewObject.Database) do begin
+            if (RefreshedObj.NodeType = FocusNewObject.NodeType)
+              and (not RefreshedObj.Schema.IsEmpty)
+              and FocusNewObject.Connection.IdentifierEquals(RefreshedObj.Name, FocusNewObject.Name) then begin
+              FocusNewObject.Schema := RefreshedObj.Schema;
+              Break;
+            end;
+          end;
+        end;
         ActiveDBObj := FocusNewObject;
+      end;
       if not Assigned(DBtree.FocusedNode) then
         SetActiveDatabase(FocusNewObject.Database, FocusNewObject.Connection);
       if not Assigned(DBtree.FocusedNode) then
@@ -10388,6 +10479,22 @@ begin
 
   finally
     FTreeRefreshInProgress := False;
+    ExpandedNodes.Free;
+    // Tabs were left untouched during refresh. Hide editor and data tab if the previously focused
+    // object is gone, e.g. after it was dropped. Keep the editor of a new, yet unsaved object.
+    ObjectFocused := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable..lntEvent, lntColumn]);
+    CreatingObject := Assigned(ActiveObjectEditor) and ActiveObjectEditor.DBObject.Name.IsEmpty;
+    if (not ObjectFocused) and (not CreatingObject) then begin
+      if (PageControlMain.ActivePage = tabEditor) or (PageControlMain.ActivePage = tabData) then begin
+        if (FActiveDbObj <> nil) and (FActiveDbObj.NodeType <> lntNone) then begin
+          tabDatabase.TabVisible := True;
+          SetMainTab(tabDatabase);
+        end else
+          SetMainTab(tabHost);
+      end;
+      tabEditor.TabVisible := False;
+      tabData.TabVisible := False;
+    end;
     // Tree node filtering needs a hit in special cases, e.g. after a db was dropped
     if editDatabaseFilter.Text <> '' then
       editDatabaseFilter.OnChange(editDatabaseFilter);
