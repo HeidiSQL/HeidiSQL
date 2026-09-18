@@ -1079,7 +1079,7 @@ var
   SshCmd, SshCmdDisplay, DialogTitle, TargetHost: String;
   OutText, ErrorText, AllPipesText, UserInput: String;
   rx: TRegExpr;
-  ExitCode: LongWord;
+  ExitCode: Integer;
   PortChecks, i: Integer;
   CheckIntervalMs: Integer;
   TimeStartedMs, WaitedMs, TimeOutMs: Int64;
