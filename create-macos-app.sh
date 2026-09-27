@@ -2,10 +2,12 @@
 set -euo pipefail
 
 DO_NOTARIZE=false
+DO_ADHOC=false
 # parse args
 for arg in "$@"; do
   case "$arg" in
     --notarize) DO_NOTARIZE=true ;;
+    --adhoc) DO_ADHOC=true ;;
   esac
 done
 
@@ -18,18 +20,37 @@ APP_DIR="$(pwd)/${BUNDLE_NAME}"
 LPI_FILE="$(pwd)/heidisql.lpi"
 
 # Path to the already built Lazarus executable
-EXECUTABLE_SRC="$(pwd)/out/heidisql"
+if [[ -f "$(pwd)/out/heidisql" ]]; then
+  EXECUTABLE_SRC="$(pwd)/out/heidisql"
+elif [[ -f "$(pwd)/out/macos/heidisql" ]]; then
+  EXECUTABLE_SRC="$(pwd)/out/macos/heidisql"
+else
+  echo "ERROR: No built executable found in out/ or out/macos/" >&2
+  exit 1
+fi
 EXECUTABLE_TRG="${APP_DIR}/Contents/MacOS/${APP_NAME}"
 
 # Homebrew prefix (auto-detected; override if needed)
 BREW_PREFIX="$(brew --prefix 2>/dev/null || echo "/opt/homebrew")"
 
-# Your Developer ID identity, as shown by: security find-identity -v -p codesigning
-TEAM_ID="QBD4CC6FH3"
-CODESIGN_IDENTITY="Developer ID Application: Ansgar Becker (${TEAM_ID})"
+# Developer ID identity, overridable via environment (CI), as shown by: security find-identity -v -p codesigning
+TEAM_ID="${MACOS_TEAM_ID:-QBD4CC6FH3}"
+CODESIGN_IDENTITY="${MACOS_CODESIGN_IDENTITY:-Developer ID Application: Ansgar Becker (${TEAM_ID})}"
+
+# Ad-hoc signing (no Developer ID available, e.g. fork CI builds)
+if $DO_ADHOC; then
+  CODESIGN_IDENTITY="-"
+fi
 
 # Name for notarytool keychain profile (store once with notarytool store-credentials)
-NOTARY_PROFILE="notarytool-profile"
+NOTARY_PROFILE="${MACOS_NOTARY_PROFILE:-notarytool-profile}"
+
+# codesign flags: hardened runtime + secure timestamp only make sense with a real identity
+if $DO_ADHOC; then
+  SIGN_OPTS=()
+else
+  SIGN_OPTS=(--options runtime --timestamp)
+fi
 
 LOCALES_ZIP_URL="https://www.heidisql.com/downloads/locale/HeidiSQL-locale.zip"
 
@@ -74,8 +95,10 @@ brew list sqlite >/dev/null 2>&1 || brew install sqlite
 # MariaDB Connector/C (libmariadb*.dylib)
 brew list mariadb-connector-c >/dev/null 2>&1 || brew install mariadb-connector-c
 
-# OpenSSL 1.1 for TFPHTTPClient
-brew list openssl@1.1 >/dev/null 2>&1 || brew install openssl@1.1
+# OpenSSL 1.1 for TFPHTTPClient (deprecated in Homebrew, may be unavailable on CI runners)
+if ! brew list openssl@1.1 >/dev/null 2>&1; then
+  brew install openssl@1.1 2>/dev/null || echo "WARNING: openssl@1.1 not installable, skipping" >&2
+fi
 
 MYSQL_LIB_DIR="${BREW_PREFIX}/opt/mysql-client/lib"
 PG_LIB_DIR="${BREW_PREFIX}/opt/libpq/lib"
@@ -95,7 +118,7 @@ mkdir -p "${APP_DIR}/Contents/Frameworks"   # where we will put .dylib and .so f
 # Copy main executable
 cp "${EXECUTABLE_SRC}" "${EXECUTABLE_TRG}"
 chmod +x "${EXECUTABLE_TRG}"
-codesign --force --options runtime --timestamp --sign "${CODESIGN_IDENTITY}" "${EXECUTABLE_TRG}"
+codesign --force "${SIGN_OPTS[@]}" --sign "${CODESIGN_IDENTITY}" "${EXECUTABLE_TRG}"
 
 # Minimal Info.plist (adjust identifiers/versions as needed)
 cat > "${APP_DIR}/Contents/Info.plist" <<EOF
@@ -320,17 +343,22 @@ echo "Done. Bundled app is at: ${APP_DIR}"
 echo "Signing embedded libraries..."
 find "${APP_DIR}/Contents" -type f \( -name "*.dylib" -o -name "*.so" \) | while read -r f; do
   echo "  Signing ${f}"
-  codesign --force --options runtime --timestamp --sign "${CODESIGN_IDENTITY}" "${f}"
+  codesign --force "${SIGN_OPTS[@]}" --sign "${CODESIGN_IDENTITY}" "${f}"
 done
 
 echo "Signing main app bundle..."
-codesign --force --options runtime --timestamp --deep --sign "${CODESIGN_IDENTITY}" "${APP_DIR}"
+codesign --force "${SIGN_OPTS[@]}" --deep --sign "${CODESIGN_IDENTITY}" "${APP_DIR}"
 
 echo "Verifying code signature..."
 codesign --verify --deep --strict --verbose=2 "${APP_DIR}"
 
 
 ### ZIP, NOTARIZE, AND STAPLE
+
+if $DO_ADHOC; then
+  echo "Skip notarization (ad-hoc signed bundle cannot be notarized)"
+  exit 0
+fi
 
 if ! $DO_NOTARIZE; then
   echo "Skip notarization (--notarize not given)"
