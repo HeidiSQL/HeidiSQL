@@ -2414,7 +2414,7 @@ var
   Section, Filename, BackupFilename, TabCaption: String;
   TabsIni: TIniFile;
   pid: Cardinal;
-  EditorHeight, EditorTopLine: Integer;
+  EditorHeight, HelpersWidth, EditorTopLine: Integer;
   BindParams: String;
   TabFocused: Boolean;
   TabLoadStart, TabLoadTime: UInt64;
@@ -2449,7 +2449,7 @@ begin
       TabCaption := TabsIni.ReadString(Section, TQueryTab.IdentCaption, '');
       pid := Cardinal(TabsIni.ReadInteger(Section, TQueryTab.IdentPid, 0));
       EditorHeight := TabsIni.ReadInteger(Section, TQueryTab.IdentEditorHeight, 0);
-      //HelpersWidth := TabsIni.ReadInteger(Section, TQueryTab.IdentHelpersWidth, 0);
+      HelpersWidth := TabsIni.ReadInteger(Section, TQueryTab.IdentHelpersWidth, 0);
       BindParams := TabsIni.ReadString(Section, TQueryTab.IdentBindParams, '');
       EditorTopLine := TabsIni.ReadInteger(Section, TQueryTab.IdentEditorTopLine, 1);
       TabFocused := TabsIni.ReadBool(Section, TQueryTab.IdentTabFocused, False);
@@ -2475,8 +2475,8 @@ begin
           if EditorHeight > 50 then
             Tab.pnlMemo.Height := EditorHeight;
           // Causes sporadic long-waiters:
-          //if HelpersWidth > 50 then
-          //  Tab.pnlHelpers.Width := HelpersWidth;
+          if HelpersWidth > 50 then
+            Tab.pnlHelpers.Width := HelpersWidth;
           Tab.ListBindParams.AsText := BindParams;
           Tab.BindParamsActivated := Tab.ListBindParams.Count > 0;
           Tab.Memo.TopLine := EditorTopLine;
@@ -2498,8 +2498,8 @@ begin
           if EditorHeight > 50 then
             Tab.pnlMemo.Height := EditorHeight;
           // Causes sporadic long-waiters:
-          //if HelpersWidth > 50 then
-          //  Tab.pnlHelpers.Width := HelpersWidth;
+          if HelpersWidth > 50 then
+            Tab.pnlHelpers.Width := HelpersWidth;
           Tab.ListBindParams.AsText := BindParams;
           Tab.BindParamsActivated := Tab.ListBindParams.Count > 0;
           Tab.Memo.TopLine := EditorTopLine;
