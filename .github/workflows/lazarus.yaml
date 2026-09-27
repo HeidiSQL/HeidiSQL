@@ -200,11 +200,14 @@ jobs:
           echo "$RUNNER_TEMP/lazarus" >> $GITHUB_PATH
 
       - name: Import code signing certificate
-        if: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 != '' }}
         env:
           MACOS_CERTIFICATE_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
           MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
         run: |
+          if [ -z "${MACOS_CERTIFICATE_P12_BASE64}" ]; then
+            echo "No signing certificate configured, skipping keychain setup"
+            exit 0
+          fi
           KEYCHAIN_PATH="$RUNNER_TEMP/signing.keychain-db"
           KEYCHAIN_PASSWORD=$(uuidgen)
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
