@@ -39,7 +39,8 @@ jobs:
           shell: pwsh
           run: |
             $installer = "${env:RUNNER_TEMP}\lazarus-4.8.exe"
-            Invoke-WebRequest -Uri "https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2064%20bits/Lazarus%204.8/lazarus-4.8-fpc-3.2.2-win64.exe" -OutFile $installer
+            curl.exe -L --retry 3 -o $installer "https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2064%20bits/Lazarus%204.8/lazarus-4.8-fpc-3.2.2-win64.exe/download"
+            if ((Get-Item $installer).Length -lt 100MB) { throw "Lazarus installer download failed: file too small" }
             $lazarusDir = "${env:RUNNER_TEMP}\lazarus"
             Start-Process -FilePath $installer -ArgumentList "/VERYSILENT", "/SP-", "/SUPPRESSMSGBOXES", "/DIR=$lazarusDir" -Wait -NoNewWindow
             Add-Content -Path $env:GITHUB_PATH -Value $lazarusDir
