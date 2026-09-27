@@ -47,9 +47,9 @@ NOTARY_PROFILE="${MACOS_NOTARY_PROFILE:-notarytool-profile}"
 
 # codesign flags: hardened runtime + secure timestamp only make sense with a real identity
 if $DO_ADHOC; then
-  SIGN_OPTS=()
+  SIGN_OPTS=""
 else
-  SIGN_OPTS=(--options runtime --timestamp)
+  SIGN_OPTS="--options runtime --timestamp"
 fi
 
 LOCALES_ZIP_URL="https://www.heidisql.com/downloads/locale/HeidiSQL-locale.zip"
@@ -118,7 +118,7 @@ mkdir -p "${APP_DIR}/Contents/Frameworks"   # where we will put .dylib and .so f
 # Copy main executable
 cp "${EXECUTABLE_SRC}" "${EXECUTABLE_TRG}"
 chmod +x "${EXECUTABLE_TRG}"
-codesign --force "${SIGN_OPTS[@]}" --sign "${CODESIGN_IDENTITY}" "${EXECUTABLE_TRG}"
+codesign --force ${SIGN_OPTS} --sign "${CODESIGN_IDENTITY}" "${EXECUTABLE_TRG}"
 
 # Minimal Info.plist (adjust identifiers/versions as needed)
 cat > "${APP_DIR}/Contents/Info.plist" <<EOF
@@ -343,11 +343,11 @@ echo "Done. Bundled app is at: ${APP_DIR}"
 echo "Signing embedded libraries..."
 find "${APP_DIR}/Contents" -type f \( -name "*.dylib" -o -name "*.so" \) | while read -r f; do
   echo "  Signing ${f}"
-  codesign --force "${SIGN_OPTS[@]}" --sign "${CODESIGN_IDENTITY}" "${f}"
+  codesign --force ${SIGN_OPTS} --sign "${CODESIGN_IDENTITY}" "${f}"
 done
 
 echo "Signing main app bundle..."
-codesign --force "${SIGN_OPTS[@]}" --deep --sign "${CODESIGN_IDENTITY}" "${APP_DIR}"
+codesign --force ${SIGN_OPTS} --sign --deep --sign "${CODESIGN_IDENTITY}" "${APP_DIR}"
 
 echo "Verifying code signature..."
 codesign --verify --deep --strict --verbose=2 "${APP_DIR}"
