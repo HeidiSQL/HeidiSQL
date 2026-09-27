@@ -1326,6 +1326,7 @@ type
     FProposalItems: TProposalItemList;
     FProposalLeftWidth: Integer;
     FProposalTriggeredByDot: Boolean;
+    FPendingErrorMsg: String;
 
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
@@ -1364,6 +1365,7 @@ type
     procedure SetHintFontByControl(Control: TWinControl=nil);
     procedure GlobalSynEditStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     procedure ColorSchemeMenuClick(Sender: TObject);
+    procedure AsyncErrorDialog(Data: PtrInt);
   public
     QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
@@ -2170,6 +2172,7 @@ begin
   FFormatSettings.ThousandSeparator := ' ';;
   FDefaultHintFontName := Screen.HintFont.Name;
   SetHintFontByControl(SynMemoQuery);
+  FPendingErrorMsg := '';
 
   // Now we are free to use certain methods, which are otherwise fired too early
   MainFormCreated := True;
@@ -6308,8 +6311,13 @@ begin
 
     except
       // Wrong WHERE clause in most cases
-      on E:EDbError do
-        ErrorDialog(E.Message);
+      on E:EDbError do begin
+        // Caution on macOS: This runs inside the grid's paint cycle, i.e. within -[NSView drawRect:].
+        // A modal dialog opened here either deadlocks AppKit's display
+        // transaction or faults inside MessageDlg. Defer it to the next message.
+        FPendingErrorMsg := E.Message;
+        Application.QueueAsyncCall(AsyncErrorDialog, 0);
+      end;
     end;
 
     vt.EndUpdate;
@@ -15479,6 +15487,17 @@ begin
     Beep;
 end;
 
+
+procedure TMainForm.AsyncErrorDialog(Data: PtrInt);
+begin
+  if FPendingErrorMsg.IsEmpty then
+    Exit;
+  try
+    ErrorDialog(FPendingErrorMsg);
+  finally
+    FPendingErrorMsg := '';
+  end;
+end;
 
 { TQueryTab }
 
