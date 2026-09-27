@@ -2554,8 +2554,8 @@ begin
           if EditorHeight > 50 then
             Tab.pnlMemo.Height := EditorHeight;
           // Causes sporadic long-waiters:
-          //if HelpersWidth > 50 then
-          //  Tab.pnlHelpers.Width := HelpersWidth;
+          if HelpersWidth > 50 then
+            Tab.pnlHelpers.Width := HelpersWidth;
           Tab.ListBindParams.AsText := BindParams;
           Tab.BindParamsActivated := Tab.ListBindParams.Count > 0;
           Tab.Memo.TopLine := EditorTopLine;
@@ -2577,8 +2577,8 @@ begin
           if EditorHeight > 50 then
             Tab.pnlMemo.Height := EditorHeight;
           // Causes sporadic long-waiters:
-          //if HelpersWidth > 50 then
-          //  Tab.pnlHelpers.Width := HelpersWidth;
+          if HelpersWidth > 50 then
+            Tab.pnlHelpers.Width := HelpersWidth;
           Tab.ListBindParams.AsText := BindParams;
           Tab.BindParamsActivated := Tab.ListBindParams.Count > 0;
           Tab.Memo.TopLine := EditorTopLine;
