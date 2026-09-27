@@ -34,12 +34,32 @@ jobs:
         - name: Checkout source code
           uses: actions/checkout@v4
 
-        - name: Install Lazarus
-          if: ${{ matrix.operating-system != 'ubuntu-latest' }}
-          uses: gcarreno/setup-lazarus@v3
-          with:
-            lazarus-version: ${{ matrix.lazarus-versions }}
-            with-cache: false
+        - name: Install Lazarus 4.8 (Windows)
+          if: ${{ matrix.operating-system == 'windows-latest' }}
+          shell: pwsh
+          run: |
+            $installer = "${env:RUNNER_TEMP}\lazarus-4.8.exe"
+            Invoke-WebRequest -Uri "https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2064%20bits/Lazarus%204.8/lazarus-4.8-fpc-3.2.2-win64.exe" -OutFile $installer
+            $lazarusDir = "${env:RUNNER_TEMP}\lazarus"
+            Start-Process -FilePath $installer -ArgumentList "/VERYSILENT", "/SP-", "/SUPPRESSMSGBOXES", "/DIR=$lazarusDir" -Wait -NoNewWindow
+            Add-Content -Path $env:GITHUB_PATH -Value $lazarusDir
+            Add-Content -Path $env:GITHUB_PATH -Value "$lazarusDir\fpc\3.2.2\bin\x86_64-win64"
+
+        - name: Install Lazarus 4.8 (macOS)
+          if: ${{ matrix.operating-system == 'macos-15' }}
+          run: |
+            wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20x86-64/Lazarus%204.8/fpc-3.2.4rc1a.intelarm64-macosx.dmg" -O "$RUNNER_TEMP/fpc.dmg"
+            wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20aarch64/Lazarus%204.8/lazarus-darwin-aarch64-4.8.zip" -O "$RUNNER_TEMP/lazarus.zip"
+            sudo hdiutil attach "$RUNNER_TEMP/fpc.dmg"
+            FPC_VOL=$(ls -d /Volumes/fpc* | head -1)
+            FPC_PKG=$(find "$FPC_VOL" -maxdepth 1 -name "*.pkg" | head -1)
+            sudo installer -package "$FPC_PKG" -target /
+            sudo hdiutil detach "$FPC_VOL"
+            xattr -cr "$RUNNER_TEMP/lazarus.zip"
+            unzip -q "$RUNNER_TEMP/lazarus.zip" -d "$RUNNER_TEMP"
+            sed -i '' 's|"/Developer/lazarus/"|"'$RUNNER_TEMP'/lazarus/"|g' "$RUNNER_TEMP/lazarus/config/environmentoptions.xml" 2>/dev/null || true
+            sudo ln -sf "$RUNNER_TEMP/lazarus/lazbuild" /usr/local/bin/lazbuild
+            echo "$RUNNER_TEMP/lazarus" >> $GITHUB_PATH
 
         - name: Install Lazarus 4.8 (Ubuntu)
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
