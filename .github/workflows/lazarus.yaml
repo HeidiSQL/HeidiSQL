@@ -32,7 +32,7 @@ jobs:
 
         steps:
         - name: Checkout source code
-          uses: actions/checkout@v4
+          uses: actions/checkout@v6
 
         - name: Install Lazarus 4.8 (Windows)
           if: ${{ matrix.operating-system == 'windows-latest' }}
@@ -95,7 +95,7 @@ jobs:
 
         - name: Upload binaries Windows
           if: ${{ matrix.operating-system == 'windows-latest' && matrix.lazarus-versions == 'stable' }}
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v6
           with:
             name: ${{ matrix.operating-system }}-WIN64
             path: out/win64/heidisql.exe
@@ -108,7 +108,7 @@ jobs:
 
         - name: Upload binaries GTK
           if: ${{ matrix.operating-system == 'ubuntu-latest' && matrix.lazarus-versions == 'stable' }}
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v6
           with:
             name: ${{ matrix.operating-system }}-GTK
             path: out/gtk2/heidisql
@@ -133,7 +133,7 @@ jobs:
 
         - name: Upload binaries QT5
           if: ${{ matrix.operating-system == 'ubuntu-latest' && matrix.lazarus-versions == 'stable' }}
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v6
           with:
             name: ${{ matrix.operating-system }}-QT5
             path: out/qt5/heidisql
@@ -158,7 +158,7 @@ jobs:
 
         - name: Upload binaries QT6
           if: ${{ matrix.operating-system == 'ubuntu-latest' && matrix.lazarus-versions == 'stable' }}
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v6
           with:
             name: ${{ matrix.operating-system }}-QT6
             path: out/qt6/heidisql
@@ -169,7 +169,7 @@ jobs:
 
         - name: Upload binaries macOS
           if: ${{ matrix.operating-system == 'macos-15' && matrix.lazarus-versions == 'stable' }}
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v6
           with:
             name: ${{ matrix.operating-system }}
             path: out/macos/heidisql
@@ -182,7 +182,7 @@ jobs:
         GITHUB: 1
       steps:
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Lazarus 4.8 (macOS)
         run: |
@@ -250,7 +250,7 @@ jobs:
           /usr/bin/zip -r -y heidisql-macos-app.zip heidisql.app
 
       - name: Upload app bundle artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: macos-app-bundle
           path: heidisql-macos-app.zip
@@ -268,7 +268,7 @@ jobs:
 
       steps:
         - name: Checkout source code
-          uses: actions/checkout@v4
+          uses: actions/checkout@v6
 
         - name: Install Lazarus 4.8 (ARM64)
           run: |
@@ -307,7 +307,7 @@ jobs:
             make build-qt6arm
 
         - name: Upload binaries QT6 ARM64
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v6
           with:
             name: ubuntu-24.04-arm-QT6
             path: out/qt6arm/heidisql
@@ -323,7 +323,7 @@ jobs:
 
         steps:
             - name: Checkout source code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
               with:
                 fetch-depth: 0
 
@@ -335,30 +335,30 @@ jobs:
                 echo "prev_tag=$prev_tag" >> "$GITHUB_ENV"
 
             - name: Download Ubuntu GTK
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v7
               with:
                 name: ubuntu-latest-GTK
                 path: out/gtk2
 
             - name: Download Ubuntu QT5
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v7
               with:
                 name: ubuntu-latest-QT5
                 path: out/qt5
 
             - name: Download Ubuntu QT6
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v7
               with:
                 name: ubuntu-latest-QT6
                 path: out/qt6
 
             - name: Download Ubuntu QT6 ARM64
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v7
               with:
                 name: ubuntu-24.04-arm-QT6
                 path: out/qt6arm
             - name: Download macOS app bundle
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v7
               with:
                 name: macos-app-bundle
                 path: dist
@@ -407,7 +407,7 @@ jobs:
                 args: "${{ env.prev_tag }}..HEAD --strip header"
 
             - name: Create GitHub release
-              uses: softprops/action-gh-release@v2
+              uses: softprops/action-gh-release@v3
               with:
                 name: HeidiSQL ${{ env.tag }}
                 body: ${{ steps.git-cliff.outputs.content }}
