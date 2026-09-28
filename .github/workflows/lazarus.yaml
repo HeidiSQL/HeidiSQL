@@ -94,11 +94,31 @@ jobs:
             exit 0
 
         - name: Upload binaries Windows
+          id: upload-unsigned-win64
           if: ${{ matrix.operating-system == 'windows-latest' && matrix.lazarus-versions == 'stable' }}
           uses: actions/upload-artifact@v6
           with:
             name: ${{ matrix.operating-system }}-WIN64
             path: out/win64/heidisql.exe
+
+        - name: Sign heidisql.exe via SignPath
+          if: ${{ matrix.operating-system == 'windows-latest' && matrix.lazarus-versions == 'stable' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
+          uses: signpath/github-action-submit-signing-request@v2
+          with:
+            api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+            organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+            project-slug: HeidiSQL
+            signing-policy-slug: test-signing
+            github-artifact-id: ${{ steps.upload-unsigned-win64.outputs.artifact-id }}
+            wait-for-completion: true
+            output-artifact-directory: signed
+
+        - name: Upload signed Windows binary
+          if: ${{ matrix.operating-system == 'windows-latest' && matrix.lazarus-versions == 'stable' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
+          uses: actions/upload-artifact@v6
+          with:
+            name: ${{ matrix.operating-system }}-WIN64-signed
+            path: signed/heidisql.exe
 
         - name: Build HeidiSQL (Ubuntu GTK)
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
