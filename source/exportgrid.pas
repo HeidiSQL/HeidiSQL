@@ -1227,7 +1227,8 @@ begin
         tmp := '];' + CRLF;
       end;
       efJSON: begin
-        S.Size := S.Size - 1;
+        if NodeCount > 0 then
+          S.Size := S.Size - 1;
         tmp := sLineBreak + CodeIndent + ']' + sLineBreak + '}';
       end;
       else
