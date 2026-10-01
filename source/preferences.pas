@@ -1354,6 +1354,20 @@ var
   Data: PShortcutItemData;
   NewShortCut: TShortCut;
   Shift: TShiftState;
+
+  function UncheckableModifiers(OldShortCut: TShortCut; NewKey: Word): TShiftState;
+  var
+    OldKey: Word;
+  begin
+    // Keep modifiers which have no checkbox here, e.g. Cmd (ssMeta) on macOS,
+    // unless the shortcut gets removed
+    ShortCutToKey(OldShortCut, OldKey, Result);
+    if NewKey = VK_UNKNOWN then
+      Result := []
+    else
+      Result := Result * [ssMeta];
+  end;
+
 begin
   // Check if shortcut 1 or 2 changed
   if (not Assigned(OldNode)) or (TreeShortcutItems.GetNodeLevel(OldNode) = 0) then
@@ -1361,7 +1375,7 @@ begin
   Data := TreeShortcutItems.GetNodeData(OldNode);
   Allowed := True;
 
-  Shift := [];
+  Shift := UncheckableModifiers(Data.ShortCut1, VKcodes[comboShortcut1Key.ItemIndex].Code);
   if chkShortcut1Shift.Checked then Include(Shift, ssShift);
   if chkShortcut1Alt.Checked then Include(Shift, ssAlt);
   if chkShortcut1Control.Checked then Include(Shift, ssCtrl);
@@ -1376,7 +1390,7 @@ begin
   end;
 
   if chkShortcut2Shift.Enabled then begin
-    Shift := [];
+    Shift := UncheckableModifiers(Data.ShortCut2, VKcodes[comboShortcut2Key.ItemIndex].Code);
     if chkShortcut2Shift.Checked then Include(Shift, ssShift);
     if chkShortcut2Alt.Checked then Include(Shift, ssAlt);
     if chkShortcut2Control.Checked then Include(Shift, ssCtrl);
