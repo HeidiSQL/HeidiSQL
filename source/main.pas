@@ -1991,6 +1991,12 @@ begin
   QueryTab.spltHelpers := spltQueryHelpers;
   QueryTab.spltQuery := spltQuery;
   QueryTab.tabsetQuery := tabsetQuery;
+  {$IFDEF DARWIN}
+  // The native NSTabView frame of a TTabControl extends some pixels above its LCL bounds (see
+  // TCocoaTabControl.lclGetFrameToLayoutDelta: 6px in Lazarus 4.4, 5px in 4.8), covering
+  // spltQuery and swallowing its mouse events
+  tabsetQuery.BorderSpacing.Top := 6;
+  {$ENDIF}
   //InheritFont(QueryTab.tabsetQuery.Font);
   QueryTab.ResultTabs := TResultTabs.Create(True);
 
@@ -12879,6 +12885,7 @@ begin
   // Prevent various problems with alignment of controls. See http://www.heidisql.com/forum.php?t=18924
   QueryTab.tabsetQuery.Top := QueryTab.spltQuery.Top + QueryTab.spltQuery.Height;
   QueryTab.tabsetQuery.Align := tabsetQuery.Align;
+  QueryTab.tabsetQuery.BorderSpacing.Top := tabsetQuery.BorderSpacing.Top;
   QueryTab.tabsetQuery.Font.Assign(tabsetQuery.Font);
   QueryTab.tabsetQuery.Images := tabsetQuery.Images;
   QueryTab.tabsetQuery.ShowHint := tabsetQuery.ShowHint;
