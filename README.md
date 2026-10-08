@@ -21,7 +21,7 @@ Ansgar
 ![HeidiSQL GTK2 running on Ubuntu Linux 22.04](https://www.heidisql.com/images/screenshots/linux_version_datagrid.png)
 
 ### Building
-Install Lazarus 4.4 and FreePascal. Then load the `.lpi` file in the root directory in the Lazarus IDE.
+Install Lazarus 4.8 and FreePascal. Then load the `.lpi` file in the root directory in the Lazarus IDE.
 Alternatively, use `/usr/bin/lazbuild heidisql.lpi` on the command line.
 
 ### Icons8 copyright
