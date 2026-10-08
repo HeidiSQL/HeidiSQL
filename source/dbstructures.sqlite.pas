@@ -122,6 +122,8 @@ type
     sqlite3_reset: function(pStmt: Psqlite3_stmt): Integer; cdecl;
     sqlite3_total_changes: function(ppDb: Psqlite3): Integer; cdecl;
     sqlite3_column_text: function(pStmt: Psqlite3_stmt; iCol: Integer): PAnsiChar; cdecl;
+    sqlite3_column_blob: function(pStmt: Psqlite3_stmt; iCol: Integer): Pointer; cdecl;
+    sqlite3_column_bytes: function(pStmt: Psqlite3_stmt; iCol: Integer): Integer; cdecl;
     sqlite3_column_count: function(pStmt: Psqlite3_stmt): Integer; cdecl;
     sqlite3_column_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
     sqlite3_column_decltype: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
@@ -370,6 +372,8 @@ begin
   AssignProc(@sqlite3_reset, 'sqlite3_reset');
   AssignProc(@sqlite3_total_changes, 'sqlite3_total_changes');
   AssignProc(@sqlite3_column_text, 'sqlite3_column_text');
+  AssignProc(@sqlite3_column_blob, 'sqlite3_column_blob');
+  AssignProc(@sqlite3_column_bytes, 'sqlite3_column_bytes');
   AssignProc(@sqlite3_column_count, 'sqlite3_column_count');
   AssignProc(@sqlite3_column_name, 'sqlite3_column_name');
   AssignProc(@sqlite3_column_decltype, 'sqlite3_column_decltype');
