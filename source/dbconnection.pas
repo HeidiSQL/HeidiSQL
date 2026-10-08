@@ -979,6 +979,7 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
+      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -9001,6 +9002,26 @@ begin
     Result := TextInvalidColumn;
 end;
 
+
+function TSQLiteQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
+var
+  AnsiStr: AnsiString;
+  Len: Integer;
+begin
+  Result := False;
+  if ColumnExists(Column) then begin
+    if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
+      AnsiStr := AnsiString(FCurrentUpdateRow[Column].NewText);
+    end else begin
+      AnsiStr := AnsiString(FCurrentResults[FRecNoLocal][Column].OldText);
+    end;
+    Len := Length(AnsiStr);
+    SetLength(baData, Len);
+    if Len > 0 then
+      Move(AnsiStr[1], baData[0], Len);
+    Result := True;
+  end;
+end;
 
 function TSQLiteQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 begin
