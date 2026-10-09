@@ -532,8 +532,8 @@ type
       procedure Log(Category: TDBLogCategory; Msg: String);
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: Boolean=True): String; overload;
       function EscapeString(Text: String; Datatype: TDBDatatype): String; overload;
-      function EscapeBin(BinValue: String): String; overload;
-      function EscapeBin(var ByteData: TBytes): String; overload;
+      function EscapeBin(BinValue: String): String; overload; virtual;
+      function EscapeBin(var ByteData: TBytes): String; overload; virtual;
       function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
       function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
       function CleanIdent(Identifier: String): String;
@@ -770,6 +770,8 @@ type
       property Lib: TSQLiteLib read FLib;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
+      function EscapeBin(BinValue: String): String; overload; override;
+      function EscapeBin(var ByteData: TBytes): String; overload; override;
       function GetCreateCode(Obj: TDBObject): String; override;
       property LastRawResults: TSQLiteRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
@@ -3539,6 +3541,20 @@ begin
   RestartKeepAliveTimer;
 end;
 
+
+function TSQLiteConnection.EscapeBin(BinValue: String): String;
+begin
+  Result := inherited EscapeBin(BinValue);
+  if Result.StartsWith('0x', True) then
+    Result := 'x''' + Result.Remove(0, 2) + '''';
+end;
+
+function TSQLiteConnection.EscapeBin(var ByteData: TBytes): String;
+begin
+  Result := inherited EscapeBin(ByteData);
+  if Result.StartsWith('0x', True) then
+    Result := 'x''' + Result.Remove(0, 2) + '''';
+end;
 
 function TSQLiteConnection.Ping(Reconnect: Boolean): Boolean;
 begin
