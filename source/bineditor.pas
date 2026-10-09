@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, Graphics, Forms, Controls, StdCtrls, laz.VirtualTrees,
-  ComCtrls, Dialogs, SysUtils, extra_controls, LCLType, extfiledialog;
+  ComCtrls, Dialogs, SysUtils, extra_controls, LCLType, extfiledialog, dbconnection;
 
 {$I const.inc}
 
@@ -64,9 +64,16 @@ begin
 end;
 
 procedure TfrmBinEditor.SetText(text: String);
+var
+  Conn: TDBConnection;
 begin
   // Skip '0x'.
-  memoText.Text := Copy(text, 3);
+  Conn := MainForm.ActiveConnection;
+  if not Conn.HexPrefix.IsEmpty then
+    Delete(text, 1, Length(Conn.HexPrefix));
+  if not Conn.HexPostfix.IsEmpty then
+    Delete(text, Length(text) - Length(Conn.HexPostfix) + 1, Length(Conn.HexPostfix));
+  memoText.Text := text;
 end;
 
 

@@ -489,6 +489,7 @@ type
       FCaseSensitivity: Integer;
       FSQLFunctions: TSQLFunctionList;
       FNamedEnums: TStringList;
+      FHexPrefix, FHexPostfix: String;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure StartSSHTunnel(var FinalHost: String; var FinalPort: Integer);
@@ -630,6 +631,8 @@ type
       property SqlProvider: TSqlProvider read FSqlProvider;
       property NamedEnums: TStringList read FNamedEnums;
       procedure GetColumnDefaultExpressions(Items: TStrings); virtual;
+      property HexPrefix: String read FHexPrefix;
+      property HexPostfix: String read FHexPostfix;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -2088,6 +2091,8 @@ begin
   FQuoteChar := '"';
   FQuoteChars := '"[]';
   FNamedEnums := TStringList.Create;
+  FHexPrefix := '';
+  FHexPostfix := '';
 end;
 
 
@@ -2098,6 +2103,8 @@ begin
   inherited;
   FQuoteChar := '`';
   FQuoteChars := '`"';
+  FHexPrefix := '0x';
+  FHexPostfix := '';
   FStatementNum := 0;
   // The compiler complains that dynamic and static arrays are incompatible, so this does not work:
   // FDatatypes := MySQLDatatypes
@@ -2142,6 +2149,8 @@ var
   i: Integer;
 begin
   inherited;
+  FHexPrefix := 'x''';
+  FHexPostfix := '''';
   SetLength(FDatatypes, Length(SQLiteDatatypes));
   for i:=0 to High(SQLiteDatatypes) do
     FDatatypes[i] := SQLiteDatatypes[i];
@@ -5109,7 +5118,7 @@ begin
   ValuePrefix := '';
   case Datatype.Category of
     // Some special cases
-    dtcBinary: begin
+    dtcBinary, dtcSpatial: begin
       if IsHex(Text) then
         DoQuote := False;
     end;
@@ -5208,7 +5217,7 @@ begin
     end else begin
       SetLength(Result, BinLen*2);
       BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
-      Result := '0x' + Result;
+      Result := FHexPrefix + Result + FHexPostfix;
     end;
     if AppSettings.ReadBool(asLowercaseHex) then
       Result := Result.ToLowerInvariant;
@@ -5222,16 +5231,16 @@ var
   Ansi: AnsiString;
 begin
   BinLen := Length(ByteData);
-  SetString(Ansi, PAnsiChar(ByteData), BinLen);
   if BinLen = 0 then begin
     Result := EscapeString('');
   end else begin
+    SetString(Ansi, PAnsiChar(ByteData), BinLen);
     if IsHex(String(Ansi)) then begin
       Result := String(Ansi); // Already hex encoded
     end else begin
       SetLength(Result, BinLen*2);
       BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
-      Result := '0x' + Result;
+      Result := FHexPrefix + Result + FHexPostfix;
     end;
     if AppSettings.ReadBool(asLowercaseHex) then
       Result := Result.ToLowerInvariant;
@@ -6617,7 +6626,7 @@ begin
   Result := False;
   Len := Length(Text);
   if Len >= 3 then begin
-    Result := (Text[1] = '0') and (Text[2] = 'x');
+    Result := (FHexPrefix.IsEmpty or Text.StartsWith(FHexPrefix)) and (FHexPostfix.IsEmpty or Text.EndsWith(FHexPostfix));
     if Result then begin
       for i:=3 to SIZE_KB do begin
         if not CharInSet(Text[i], HexChars) then begin
@@ -9077,12 +9086,14 @@ var
   baData: TBytes;
 begin
   // Return a binary column value as hex AnsiString
-  if FConnection.Parameters.IsAnyMysql then begin
-    baData := [];
+  baData := [];
+  try
+    // Throws sNotImplemented on connections without an override
     GetColBinData(Column, baData);
     Result := FConnection.EscapeBin(baData);
-  end else
+  except
     Result := FConnection.EscapeBin(Col(Column, IgnoreErrors));
+  end;
 end;
 
 
