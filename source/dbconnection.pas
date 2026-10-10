@@ -8977,16 +8977,17 @@ end;
 {$IFDEF HASMSSQL}
 function TSqlSrvQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 var
-  Stream: TStream;
+  Stream: TMemoryStream;
 begin
   Result := False;
   if ColumnExists(Column) and (not IsNull(Column)) then begin
     if FCurrentResults.Fields[Column] is TBlobField then begin
-      Stream := TBlobField(FCurrentResults.Fields[Column]).DataStream;
+      Stream := TMemoryStream.Create;
       try
+        TBlobField(FCurrentResults.Fields[Column]).SaveToStream(Stream);
         SetLength(baData, Stream.Size);
         if Stream.Size > 0 then
-          Stream.ReadBuffer(baData[0], Stream.Size);
+          Move((Stream.Memory)^, baData[0], Stream.Size);
         Result := True;
       finally
         Stream.Free;
