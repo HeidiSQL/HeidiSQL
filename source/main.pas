@@ -8179,7 +8179,7 @@ var
   Results: TDBQuery;
   i: Integer;
   Col, Value, FocusedColumnName: String;
-  CellFocused, InDataGrid, HasNullValue, HasNotNullValue: Boolean;
+  CellFocused, InDataGrid, HasNullValue, HasNotNullValue, IsBinary: Boolean;
   RowNumber: PInt64;
   Node: PVirtualNode;
   OldDataLocalNumberFormat: Boolean;
@@ -8230,6 +8230,7 @@ begin
   Node := Grid.GetFirstSelected;
   HasNullValue := False;
   HasNotNullValue := False;
+  IsBinary := Datatype.Category in [dtcBinary, dtcSpatial];
   OldDataLocalNumberFormat := DataLocalNumberFormat;
   DataLocalNumberFormat := False;
   IncludedValues := TStringList.Create; // Used to skip duplicates
@@ -8293,9 +8294,9 @@ begin
   end;
   actQuickFilterFocused1.Visible := HasNotNullValue or HasNullValue;
   actQuickFilterFocused2.Visible := HasNotNullValue or HasNullValue;
-  actQuickFilterFocused3.Visible := HasNotNullValue;
-  actQuickFilterFocused4.Visible := HasNotNullValue;
-  actQuickFilterFocused5.Visible := HasNotNullValue;
+  actQuickFilterFocused3.Visible := HasNotNullValue and (not IsBinary); // LIKE is broken with quoted hex, but anyway used rarely
+  actQuickFilterFocused4.Visible := HasNotNullValue and (not IsBinary); // dito
+  actQuickFilterFocused5.Visible := HasNotNullValue and (not IsBinary); // dito
   actQuickFilterFocused6.Visible := HasNotNullValue;
   actQuickFilterFocused7.Visible := HasNotNullValue;
   IncludedValues.Free;
