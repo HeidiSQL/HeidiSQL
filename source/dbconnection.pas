@@ -2091,7 +2091,7 @@ begin
   FQuoteChar := '"';
   FQuoteChars := '"[]';
   FNamedEnums := TStringList.Create;
-  FHexPrefix := '';
+  FHexPrefix := '0x'; // MySQL and MSSQL. Override if required.
   FHexPostfix := '';
 end;
 
@@ -2103,8 +2103,6 @@ begin
   inherited;
   FQuoteChar := '`';
   FQuoteChars := '`"';
-  FHexPrefix := '0x';
-  FHexPostfix := '';
   FStatementNum := 0;
   // The compiler complains that dynamic and static arrays are incompatible, so this does not work:
   // FDatatypes := MySQLDatatypes
@@ -2134,6 +2132,8 @@ var
 begin
   inherited;
   FQuoteChars := '"';
+  FHexPrefix := '\x';
+  FHexPostfix := '';
   SetLength(FDatatypes, Length(PostGreSQLDatatypes));
   for i:=0 to High(PostGreSQLDatatypes) do
     FDatatypes[i] := PostGreSQLDatatypes[i];
@@ -6623,14 +6623,21 @@ function TDBConnection.IsHex(Text: String): Boolean;
 var
   i, BodyLen: Integer;
   HexBody: String;
+  AllowOddHexLen: Boolean;
 const
   HexChars: TSysCharSet = ['0'..'9','a'..'f', 'A'..'F'];
 begin
   // Check first kilobyte of passed text whether it's a hex encoded string. Hopefully faster than a regex.
-  Result := False;
   BodyLen := Length(Text) - Length(FHexPrefix) - Length(FHexPostfix);
+  AllowOddHexLen := FParameters.IsAnyMySQL;
 
-  if (BodyLen >= 0) and (not Odd(BodyLen)) then begin
+  if BodyLen < 0 then begin
+    Result := False;
+  end
+  else if (not AllowOddHexLen) and Odd(BodyLen) then begin
+    Result := False;
+  end
+  else begin
     Result := (FHexPrefix.IsEmpty or Text.StartsWith(FHexPrefix)) and
       (FHexPostfix.IsEmpty or Text.EndsWith(FHexPostfix));
     if Result then begin
