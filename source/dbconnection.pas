@@ -939,6 +939,7 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
+      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -8974,6 +8975,27 @@ begin
 end;
 
 {$IFDEF HASMSSQL}
+function TSqlSrvQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
+var
+  Stream: TStream;
+begin
+  Result := False;
+  if ColumnExists(Column) and (not IsNull(Column)) then begin
+    if FCurrentResults.Fields[Column] is TBlobField then begin
+      Stream := TBlobField(FCurrentResults.Fields[Column]).DataStream;
+      try
+        SetLength(baData, Stream.Size);
+        if Stream.Size > 0 then
+          Stream.ReadBuffer(baData[0], Stream.Size);
+        Result := True;
+      finally
+        Stream.Free;
+      end;
+    end else
+      Raise EDbError.Create(SNotImplemented);
+  end;
+end;
+
 function TSqlSrvQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 begin
   if ColumnExists(Column) then begin
