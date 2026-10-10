@@ -940,6 +940,7 @@ type
     public
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
+      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -9108,6 +9109,28 @@ begin
     Result := TextInvalidColumn;
 end;
 
+
+function TAdoDBQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
+var
+  Stream: TMemoryStream;
+begin
+  Result := False;
+  if ColumnExists(Column) and (not IsNull(Column)) then begin
+    if FCurrentResults.Fields[Column] is TBlobField then begin
+      Stream := TMemoryStream.Create;
+      try
+        TBlobField(FCurrentResults.Fields[Column]).SaveToStream(Stream);
+        SetLength(baData, Stream.Size);
+        if Stream.Size > 0 then
+          Move((Stream.Memory)^, baData[0], Stream.Size);
+        Result := True;
+      finally
+        Stream.Free;
+      end;
+    end else
+      Raise EDbError.Create(SNotImplemented);
+  end;
+end;
 
 function TAdoDBQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 begin
