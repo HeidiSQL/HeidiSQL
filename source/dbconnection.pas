@@ -3962,7 +3962,8 @@ var
   Value: TGridValue;
   QueryResult: Psqlite3_stmt;
   QueryStatus: Integer;
-  i, OldRowsAffected: Integer;
+  i, NumBytes, OldRowsAffected: Integer;
+  AnsiStr: AnsiString;
   CurrentSQL, NextSQL: PAnsiChar;
   StepResult: Integer;
 begin
@@ -3994,8 +3995,15 @@ begin
         Row := TGridRow.Create;
         for i:=0 to FLib.sqlite3_column_count(QueryResult)-1 do begin
           Value := TGridValue.Create;
-          Value.OldText := DecodeAPIString(FLib.sqlite3_column_text(QueryResult, i));
-          Value.OldIsNull := FLib.sqlite3_column_text(QueryResult, i) = nil;
+          if FLib.sqlite3_column_type(QueryResult, i) = SQLITE_BLOB then begin
+            NumBytes := FLib.sqlite3_column_bytes(QueryResult, i);
+            SetString(AnsiStr, PAnsiChar(FLib.sqlite3_column_blob(QueryResult, i)), NumBytes);
+            Value.OldText := String(AnsiStr);
+            Value.OldIsNull := False;
+          end else begin
+            Value.OldText := DecodeAPIString(FLib.sqlite3_column_text(QueryResult, i));
+            Value.OldIsNull := FLib.sqlite3_column_text(QueryResult, i) = nil;
+          end;
           Row.Add(Value);
         end;
         Rows.Add(Row);
