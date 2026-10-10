@@ -2132,8 +2132,8 @@ var
 begin
   inherited;
   FQuoteChars := '"';
-  FHexPrefix := '\x';
-  FHexPostfix := '';
+  FHexPrefix := '''\x';
+  FHexPostfix := '''';
   SetLength(FDatatypes, Length(PostGreSQLDatatypes));
   for i:=0 to High(PostGreSQLDatatypes) do
     FDatatypes[i] := PostGreSQLDatatypes[i];
@@ -6647,8 +6647,6 @@ begin
       if not FHexPostfix.IsEmpty then
         Delete(HexBody, Length(HexBody) - Length(FHexPostfix) + 1, Length(FHexPostfix));
       for i:=1 to Length(HexBody) do begin
-        if i > SIZE_KB then
-          Break;
         if not CharInSet(HexBody[i], HexChars) then begin
           Result := False;
           Break;
