@@ -2209,8 +2209,8 @@ var
   i: Integer;
 begin
   inherited;
-  FHexPrefix := '\x';
-  FHexPostfix := '';
+  FHexPrefix := '''\x';
+  FHexPostfix := '''';
   FQuoteChars := '"';
   SetLength(FDatatypes, Length(PostGreSQLDatatypes));
   for i:=0 to High(PostGreSQLDatatypes) do
