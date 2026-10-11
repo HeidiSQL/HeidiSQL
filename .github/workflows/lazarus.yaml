@@ -103,7 +103,7 @@ jobs:
 
         - name: Sign heidisql.exe via SignPath
           if: ${{ matrix.operating-system == 'windows-latest' && matrix.lazarus-versions == 'stable' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
-          uses: signpath/github-action-submit-signing-request@v2
+          uses: signpath/github-action-submit-signing-request@v3
           with:
             api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
             organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
