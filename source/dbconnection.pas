@@ -3711,10 +3711,15 @@ begin
 end;
 
 {$IFDEF HASMSSQL}
+type
+  // Grants access to the protected Cursor, see TSqlSrvConnection.Query
+  TSQLQueryAccess = class(TSQLQuery);
+
 procedure TSqlSrvConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 var
   TimerStart: QWord;
   QueryResult: TSQLQuery;
+  HasRows: Boolean;
 begin
   inherited;
 
@@ -3729,8 +3734,18 @@ begin
     QueryResult.SQL.Text := SQL;
     QueryResult.Options := [sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh];
     QueryResult.PacketRecords := 10000;
+    // Prepare explicitly, so the cursor survives ExecSQL and tells us whether a result set came back
+    QueryResult.Prepare;
     QueryResult.ExecSQL;
     Inc(FRowsAffected, QueryResult.RowsAffected);
+    HasRows := TSQLQueryAccess(QueryResult).Cursor.FSelectable;
+    QueryResult.UnPrepare;
+    if not HasRows then begin
+      // Opening a statement without result set would execute it a second time, and then raise
+      // "Cannot open a non-select statement". See issue #2392
+      FLastRawResults.Remove(QueryResult);
+      FreeAndNil(QueryResult);
+    end;
     FLastQueryDuration := GetTickCount64 - TimerStart;
     FLastQueryNetworkDuration := 0;
 

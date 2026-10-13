@@ -3209,7 +3209,15 @@ begin
       end;
     end;
     FConnection.SetLockedByThread(nil);
-    Synchronize(AfterQuery);
+    try
+      Synchronize(AfterQuery);
+    except
+      // Synchronize re-raises here. Without BatchFinished, the tab would stay in running state forever.
+      on E:Exception do begin
+        FErrorMessage := E.Message;
+        ErrorAborted := True;
+      end;
+    end;
     // Check if FAborted is set by the main thread, to avoid proceeding the loop in case
     // FStopOnErrors is set to false
     if FAborted or ErrorAborted then
