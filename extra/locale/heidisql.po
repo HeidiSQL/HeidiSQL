@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2026-07-27 19:34+0200\n"
+"PO-Revision-Date: 2026-10-13 21:16+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -6869,3 +6869,6 @@ msgstr "The UPDATE affected %s rows, but 1 was expected. On tables without a pri
 
 msgid "The DELETE affected %s rows, but 1 was expected. On tables without a primary or unique key, HeidiSQL must match on all columns, so edits may not reliably target the intended row."
 msgstr "The DELETE affected %s rows, but 1 was expected. On tables without a primary or unique key, HeidiSQL must match on all columns, so edits may not reliably target the intended row."
+
+msgid "Variables in MS SQL only exist within the batch they are declared in. Your queries were sent one by one. Activate \"%s\" in the drop-down menu of the Run button to send them as one batch."
+msgstr "Variables in MS SQL only exist within the batch they are declared in. Your queries were sent one by one. Activate \"%s\" in the drop-down menu of the Run button to send them as one batch."
