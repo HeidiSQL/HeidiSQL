@@ -708,6 +708,7 @@ type
       function GetLastResults: TDBQueryList; override;
       property LastRawResults: TSqlSrvResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
+      function GetTableKeys(Table: TDBObject): TTableKeyList; override;
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
   end;
   {$ENDIF}
@@ -6248,6 +6249,51 @@ begin
   end;
   KeyQuery.Free;
 end;
+
+{$IFDEF HASMSSQL}
+function TSqlSrvConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
+var
+  KeyQuery: TDBQuery;
+  NewKey: TTableKey;
+begin
+  // IS.TABLE_CONSTRAINTS only lists PRIMARY and UNIQUE constraints, not indexes created
+  // with CREATE INDEX. Included (non-key) columns are left out.
+  Result := TTableKeyList.Create(True);
+  KeyQuery := GetResults('SELECT'+
+    '   i.name AS CONSTRAINT_NAME,'+
+    '   CASE WHEN i.is_primary_key=1 THEN '+EscapeString(TTableKey.PRIMARY)+
+    '     WHEN i.is_unique=1 THEN '+EscapeString(TTableKey.UNIQUE)+
+    '     ELSE '+EscapeString(TTableKey.KEY)+' END AS CONSTRAINT_TYPE,'+
+    '   c.name AS COLUMN_NAME,'+
+    '   CASE WHEN ic.is_descending_key=1 THEN '+EscapeString('D')+' ELSE '+EscapeString('A')+' END AS SORT_ORDER'+
+    ' FROM sys.indexes AS i'+
+    ' INNER JOIN sys.index_columns AS ic'+
+    '   ON ic.object_id = i.object_id AND ic.index_id = i.index_id'+
+    ' INNER JOIN sys.columns AS c'+
+    '   ON c.object_id = ic.object_id AND c.column_id = ic.column_id'+
+    ' WHERE i.object_id = OBJECT_ID('+EscapeString(Table.QuotedDbAndTableName)+')'+
+    '   AND i.type IN (1, 2)'+ // Clustered and nonclustered rowstore indexes
+    '   AND ic.key_ordinal > 0'+
+    ' ORDER BY i.index_id, ic.key_ordinal'
+    );
+  NewKey := nil;
+  while not KeyQuery.Eof do begin
+    if (not Assigned(NewKey)) or (NewKey.Name <> KeyQuery.Col('CONSTRAINT_NAME')) then begin
+      NewKey := TTableKey.Create(Self);
+      Result.Add(NewKey);
+      NewKey.Name := KeyQuery.Col('CONSTRAINT_NAME');
+      NewKey.OldName := NewKey.Name;
+      NewKey.IndexType := KeyQuery.Col('CONSTRAINT_TYPE');
+      NewKey.OldIndexType := NewKey.IndexType;
+    end;
+    NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'));
+    NewKey.SubParts.Add('');
+    NewKey.Collations.Add(KeyQuery.Col('SORT_ORDER'));
+    KeyQuery.Next;
+  end;
+  KeyQuery.Free;
+end;
+{$ENDIF}
 
 
 function TSQLiteConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
