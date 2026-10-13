@@ -3432,7 +3432,7 @@ end;
 procedure TMainForm.FinishedQueryExecution(Thread: TQueryThread);
 var
   Tab: TQueryTab;
-  MetaInfo, ErroneousSQL, RegName: String;
+  MetaInfo, ErroneousSQL, RegName, ErrorHint: String;
   ProfileAllTime: Extended;
   ProfileNode: PVirtualNode;
   History: TQueryHistory;
@@ -3486,7 +3486,16 @@ begin
   if not Thread.ErrorMessage.IsEmpty then begin
     SetProgressState(pbsError);
     GoToErrorPos(Thread.ErrorMessage);
-    ErrorDialog(Thread.ErrorMessage);
+    ErrorHint := '';
+    // MS SQL variables only live within one batch, unlike in SSMS which only splits on GO
+    if Thread.Connection.Parameters.IsAnyMSSQL
+      and (not Thread.BatchInOneGo)
+      and (Thread.Batch.Count > 1)
+      and ExecRegExprI('Must declare the (table|scalar) variable', Thread.ErrorMessage) then begin
+      ErrorHint := sLineBreak + sLineBreak +
+        f_('Variables in MS SQL only exist within the batch they are declared in. Your queries were sent one by one. Activate "%s" in the drop-down menu of the Run button to send them as one batch.', [actBatchInOneGo.Caption]);
+    end;
+    ErrorDialog(Thread.ErrorMessage + ErrorHint);
   end;
 
   // Gather meta info for logging
