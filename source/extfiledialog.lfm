@@ -175,6 +175,7 @@ object frmExtFileDialog: TfrmExtFileDialog
     Width = 209
     Align = alLeft
     BorderSpacing.Left = 8
+    FileSortType = fstAlphabet
     HideSelection = False
     TabOrder = 0
     Options = [tvoAutoItemHeight, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
@@ -200,6 +201,7 @@ object frmExtFileDialog: TfrmExtFileDialog
     BorderSpacing.Right = 8
     Color = clDefault
     RowSelect = True
+    SortColumn = 0
     SortType = stText
     TabOrder = 1
     ObjectTypes = [otNonFolders, otHidden]
