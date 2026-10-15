@@ -108,7 +108,7 @@ jobs:
             api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
             organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
             project-slug: HeidiSQL
-            signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY || 'test-signing' }}
+            signing-policy-slug: ${{ github.ref_type == 'tag' && 'release-signing' || 'test-signing' }}
             github-artifact-id: ${{ steps.upload-unsigned-win64.outputs.artifact-id }}
             wait-for-completion: true
             output-artifact-directory: signed
