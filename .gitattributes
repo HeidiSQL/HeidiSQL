@@ -10,6 +10,7 @@
 *.lpi  text
 *.lps  text
 *.lpr  text
+*.lfm  text
 *.def  text
 *.css  text
 *.html text
