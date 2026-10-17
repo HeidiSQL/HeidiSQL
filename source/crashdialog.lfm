@@ -7,7 +7,7 @@ object frmCrashDialog: TfrmCrashDialog
   ClientHeight = 360
   ClientWidth = 640
   Position = poOwnerFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnShow = FormShow
   object lblHeader: TLabel
     Left = 5

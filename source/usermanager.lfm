@@ -11,7 +11,7 @@ object UserManagerForm: TUserManagerForm
   Constraints.MinHeight = 150
   Constraints.MinWidth = 250
   Position = poMainFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate

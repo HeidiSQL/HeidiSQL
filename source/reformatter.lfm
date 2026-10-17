@@ -9,7 +9,7 @@ object frmReformatter: TfrmReformatter
   ClientWidth = 503
   Color = clBtnFace
   Position = poOwnerFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   object grpReformatter: TRadioGroup

@@ -9,7 +9,7 @@ object frmTableTools: TfrmTableTools
   ClientWidth = 764
   Color = clBtnFace
   Position = poMainFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow

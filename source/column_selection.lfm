@@ -10,7 +10,7 @@ object frmColumnSelection: TfrmColumnSelection
   Color = clBtnFace
   Constraints.MinHeight = 150
   Constraints.MinWidth = 200
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate

@@ -8,7 +8,7 @@ object CopyTableForm: TCopyTableForm
   ClientWidth = 364
   Color = clBtnFace
   Position = poMainFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy

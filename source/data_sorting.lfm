@@ -8,7 +8,7 @@ object frmDataSorting: TfrmDataSorting
   ClientHeight = 97
   ClientWidth = 204
   Color = clBtnFace
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate

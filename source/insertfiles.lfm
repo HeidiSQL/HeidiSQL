@@ -12,7 +12,7 @@ object frmInsertFiles: TfrmInsertFiles
   Constraints.MinHeight = 200
   Constraints.MinWidth = 200
   Position = poOwnerFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnDropFiles = FormDropFiles

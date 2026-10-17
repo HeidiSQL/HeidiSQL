@@ -11,7 +11,7 @@ object frmExportGrid: TfrmExportGrid
   Constraints.MinHeight = 320
   Constraints.MinWidth = 320
   Position = poMainFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy

@@ -11,7 +11,7 @@ object AboutBox: TAboutBox
   Color = clBtnFace
   FormStyle = fsStayOnTop
   Position = poOwnerFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnShow = FormShow
   object lblAppName: TLabel
     AnchorSideLeft.Control = ImageHeidisql

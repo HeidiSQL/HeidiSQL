@@ -10,7 +10,7 @@ object frmUpdateCheck: TfrmUpdateCheck
   Constraints.MinHeight = 240
   Constraints.MinWidth = 300
   Position = poOwnerFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow

@@ -12,7 +12,7 @@ object frmSearchReplace: TfrmSearchReplace
   Constraints.MinWidth = 400
   Font.Color = clWindowText
   Position = poOwnerFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow

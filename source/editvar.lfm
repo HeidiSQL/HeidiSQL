@@ -10,7 +10,7 @@ object frmEditVariable: TfrmEditVariable
   Constraints.MinHeight = 216
   Constraints.MinWidth = 288
   Position = poMainFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow

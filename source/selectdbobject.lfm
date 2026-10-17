@@ -10,7 +10,7 @@ object frmSelectDBObject: TfrmSelectDBObject
   Constraints.MinHeight = 120
   Constraints.MinWidth = 100
   Position = poOwnerFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow

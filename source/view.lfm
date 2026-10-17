@@ -5,7 +5,7 @@ object frmView: TfrmView
   Width = 700
   ClientHeight = 500
   ClientWidth = 700
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   ParentFont = False
   TabOrder = 0
   object lblSelect: TLabel

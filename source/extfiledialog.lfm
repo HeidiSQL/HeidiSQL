@@ -8,7 +8,7 @@ object frmExtFileDialog: TfrmExtFileDialog
   ClientHeight = 435
   ClientWidth = 698
   Position = poOwnerFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy

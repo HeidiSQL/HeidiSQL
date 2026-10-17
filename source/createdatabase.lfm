@@ -8,7 +8,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
   ClientWidth = 317
   Color = clBtnFace
   Position = poOwnerFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow

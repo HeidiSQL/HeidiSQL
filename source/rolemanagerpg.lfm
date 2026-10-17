@@ -6,7 +6,7 @@ object RoleManagerPgForm: TRoleManagerPgForm
   Caption = 'PostgreSQL role manager'
   ClientHeight = 466
   ClientWidth = 921
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnCreate = FormCreate
   OnShow = FormShow
   object pnlTop: TPanel

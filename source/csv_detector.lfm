@@ -8,7 +8,7 @@ object frmCsvDetector: TfrmCsvDetector
   ClientWidth = 541
   Color = clBtnFace
   Position = poOwnerFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnCreate = FormCreate
   OnShow = FormShow
   object btnScan: TSpeedButton

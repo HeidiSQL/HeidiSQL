@@ -9,7 +9,7 @@ object frmLogin: TfrmLogin
   ClientWidth = 270
   Color = clBtnFace
   Position = poScreenCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnCreate = FormCreate
   OnShow = FormShow
   object btnOK: TButton

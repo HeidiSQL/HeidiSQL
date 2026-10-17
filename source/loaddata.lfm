@@ -10,7 +10,7 @@ object loaddataform: Tloaddataform
   Constraints.MinHeight = 550
   Constraints.MinWidth = 525
   Position = poMainFormCenter
-  LCLVersion = '4.4.0.0'
+  LCLVersion = '4.8.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
