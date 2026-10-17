@@ -350,7 +350,6 @@ object frmTableEditor: TfrmTableEditor
         Top = 0
         Width = 625
         Align = alClient
-        DragMode = dmAutomatic
         DragType = dtVCL
         EditDelay = 0
         Header.AutoSizeIndex = -1
@@ -413,6 +412,7 @@ object frmTableEditor: TfrmTableEditor
         OnGetImageIndex = treeIndexesGetImageIndex
         OnInitChildren = treeIndexesInitChildren
         OnInitNode = treeIndexesInitNode
+        OnMouseMove = treeIndexesMouseMove
         OnNewText = treeIndexesNewText
         OnStructureChange = AnyTreeStructureChange
       end
@@ -1106,7 +1106,6 @@ object frmTableEditor: TfrmTableEditor
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     Constraints.MinHeight = 20
-    DragMode = dmAutomatic
     DragType = dtVCL
     EditDelay = 0
     Header.AutoSizeIndex = -1
@@ -1214,6 +1213,7 @@ object frmTableEditor: TfrmTableEditor
     OnHeaderClick = listColumnsHeaderClick
     OnInitNode = listColumnsInitNode
     OnKeyPress = listColumnsKeyPress
+    OnMouseMove = listColumnsMouseMove
     OnNewText = listColumnsNewText
   end
   object btnSave: TButton

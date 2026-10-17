@@ -69,6 +69,8 @@ type
       Node: PVirtualNode; Column: TColumnIndex; NewText: String);
     procedure listParametersEditing(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+    procedure listParametersMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
     procedure Modification(Sender: TObject);
     procedure SynMemoBodyDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
@@ -287,6 +289,17 @@ begin
   SelectNode(listParameters, Target);
   listParameters.Repaint;
   Modification(Sender);
+end;
+
+
+procedure TfrmRoutineEditor.listParametersMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  // Required step with DragMode=dmManual
+  // We use dmManual to fix a non appearing context menu in conjunction with DragType=dtVCL
+  // This reserves left-clicks for dragging, leaving right-clicks for context menu
+  if (ssLeft in Shift) and (not listParameters.Dragging) then
+    listParameters.BeginDrag(False);
 end;
 
 

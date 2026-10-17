@@ -418,7 +418,6 @@ object frmRoutineEditor: TfrmRoutineEditor
         Width = 599
         Align = alClient
         DragImageKind = diMainColumnOnly
-        DragMode = dmAutomatic
         DragType = dtVCL
         EditDelay = 0
         Header.AutoSizeIndex = 1
@@ -461,6 +460,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         OnGetText = listParametersGetText
         OnPaintText = listParametersPaintText
         OnGetImageIndex = listParametersGetImageIndex
+        OnMouseMove = listParametersMouseMove
         OnNewText = listParametersNewText
       end
       object tlbParameters: TToolBar

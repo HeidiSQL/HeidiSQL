@@ -120,6 +120,8 @@ type
     procedure listColumnsDragDrop(Sender: TBaseVirtualTree; Source: TObject;
       DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
       const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
+    procedure listColumnsMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
     procedure listColumnsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
 		  Column: TColumnIndex; TextType: TVSTTextType);
     procedure listColumnsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
@@ -151,6 +153,8 @@ type
     procedure treeIndexesDragDrop(Sender: TBaseVirtualTree; Source: TObject;
       DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
       const Pt: TPoint; var Effect: LongWord; Mode: TDropMode);
+    procedure treeIndexesMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
     procedure treeIndexesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: String);
     procedure treeIndexesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
     procedure treeIndexesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
@@ -1274,6 +1278,17 @@ begin
   Result := (Sender.Header.SortColumn = 0)
     and (Sender.Header.SortDirection = sdAscending);
 end;
+
+procedure TfrmTableEditor.listColumnsMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  // Required step with DragMode=dmManual
+  // We use dmManual to fix a non appearing context menu in conjunction with DragType=dtVCL
+  // This reserves left-clicks for dragging, leaving right-clicks for context menu
+  if (ssLeft in Shift) and (not listColumns.Dragging) then
+    listColumns.BeginDrag(False);
+end;
+
 
 procedure TfrmTableEditor.listColumnsDragOver(Sender: TBaseVirtualTree;
   Source: TObject; Shift: TShiftState; State: TDragState; Pt: TPoint;
@@ -2546,6 +2561,17 @@ procedure TfrmTableEditor.treeIndexesBeforePaint(Sender: TBaseVirtualTree;
 begin
   // (Re)paint index list
   treeIndexes.RootNodeCount := FKeys.Count;
+end;
+
+
+procedure TfrmTableEditor.treeIndexesMouseMove(Sender: TObject;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  // Required step with DragMode=dmManual
+  // We use dmManual to fix a non appearing context menu in conjunction with DragType=dtVCL
+  // This reserves left-clicks for dragging, leaving right-clicks for context menu
+  if (ssLeft in Shift) and (not treeIndexes.Dragging) then
+    treeIndexes.BeginDrag(False);
 end;
 
 

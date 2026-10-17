@@ -167,6 +167,8 @@ type
     procedure ListSessionsFocusChanging(Sender: TBaseVirtualTree; OldNode,
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
       var Allowed: Boolean);
+    procedure ListSessionsMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure TimerStatisticsTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -1217,6 +1219,17 @@ begin
       Break;
     end;
   end;
+end;
+
+
+procedure Tconnform.ListSessionsMouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+begin
+  // Required step with DragMode=dmManual
+  // We use dmManual to fix a non appearing context menu in conjunction with DragType=dtVCL
+  // This reserves left-clicks for dragging, leaving right-clicks for context menu
+  if (ssLeft in Shift) and (not ListSessions.Dragging) then
+    ListSessions.BeginDrag(False);
 end;
 
 
