@@ -1,8 +1,10 @@
-# Set the default behavior, in case people don't have core.autocrlf set.
+# All text files are normalized to LF in the repository. Developers keep
+# core.autocrlf=true, so Windows checkouts are CRLF and Linux/macOS checkouts
+# are LF, while the blobs stay identical everywhere.
 * text=auto
 
-# Explicitly declare text files you want to always be normalized and converted
-# to native line endings on checkout.
+# Explicitly declare text files that are normalized to LF in the repository
+# and converted to the native line ending on checkout.
 *.inc  text
 *.pas  text
 *.pp   text
@@ -17,14 +19,26 @@
 *.xml  text
 *.sql  text
 *.txt  text
+*.md   text
+*.po   text
+*.yaml text
+*.yml  text
+*.diff text
+# Patch files: LF in the repository so the CI can apply them to the LF line
+# endings of the Linux Lazarus installation. With autocrlf=true the Windows
+# checkout is CRLF, which matches the CRLF Lazarus installation for local
+# application with "patch --binary".
+*.patch text
+
+# Scripts and CI files must keep LF line endings on all platforms.
+*.sh    text eol=lf
+*.bash  text eol=lf
+.editorconfig text eol=lf
 
 # Declare files that will always have CRLF line endings on checkout.
 *.iss   text eol=crlf
 *.dpk   text eol=crlf
 *.dproj text eol=crlf
-
-# Declare files that will always have LF line endings on checkout.
-
 
 # Denote all files that are truly binary and should not be modified.
 *.png binary
@@ -34,9 +48,11 @@
 *.ico binary
 *.dll binary
 
+# Do not flag patch files as having whitespace errors.
+extra/lazarus-patches/**/*.patch -whitespace
+
 # Keep these files from archive/exports, mainly from production.
 .gitignore      export-ignore
 .gitattributes  export-ignore
 
 # Add scripts that do not need to be exported, here
-extra/lazarus-patches/**/*.patch -whitespace
