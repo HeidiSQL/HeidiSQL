@@ -578,6 +578,8 @@ begin
   while not NameOK do begin
     if not InputQuery(_('Clone session ...'), _('New session name:'), newName) then
       Exit; // Cancelled
+    // Safety replacement for folder separator, see issue #682
+    newName := StringReplace(newName, AppSettings.PathDelimiter, '-', [rfReplaceAll]);
     NameOK := SessionNames.IndexOf(newName) = -1;
     if not NameOK then
       ErrorDialog(f_('Session "%s" already exists!', [ParentKey+newName]))

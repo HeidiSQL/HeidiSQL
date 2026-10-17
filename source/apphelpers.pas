@@ -4413,7 +4413,7 @@ procedure TAppSettings.ImportSettings(Filename: String);
 var
   Content, Name, Value, KeyPath: String;
   Lines, Segments: TStringList;
-  i: Integer;
+  i, NamePos: Integer;
   DataType: Integer;
 begin
   // Load registry settings from file
@@ -4430,9 +4430,14 @@ begin
     if Segments.Count <> 3 then
       continue;
     // Windows registry to JSON path delimiter conversion: \ => /
-    Segments[0] := StringReplace(Segments[0], '\', PathDelimiter, [rfReplaceAll]);
-    KeyPath := PathDelimiter + ExtractFilePath(Segments[0]);
-    Name := ExtractFileName(Segments[0]);
+    // A slash in a key name would collide with the JSON path delimiter,
+    // e.g. in a session name "A/B". Replace it by a dash first, in the key
+    // path only, not in the value name. Same replacement as in session
+    // renaming, see issue #682. See https://www.heidisql.com/forum.php?t=44817
+    NamePos := LastDelimiter('\', Segments[0]);
+    KeyPath := StringReplace(Copy(Segments[0], 1, NamePos), '/', '-', [rfReplaceAll]);
+    KeyPath := PathDelimiter + StringReplace(KeyPath, '\', PathDelimiter, [rfReplaceAll]);
+    Name := Copy(Segments[0], NamePos+1, MaxInt);
     DataType := StrToIntDef(Segments[1], 0);
     FRegistry.OpenKey(KeyPath, True);
     if FRegistry.ValueExists(Name) then
