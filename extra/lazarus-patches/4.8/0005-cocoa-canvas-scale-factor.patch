@@ -1,0 +1,31 @@
+diff --git a/lcl/interfaces/cocoa/cocoalclintf.inc b/lcl/interfaces/cocoa/cocoalclintf.inc
+--- a/lcl/interfaces/cocoa/cocoalclintf.inc
++++ b/lcl/interfaces/cocoa/cocoalclintf.inc
+@@ -661,7 +661,16 @@
+   Result := True;
+ end;
+ 
++procedure TCocoaWidgetSet.SetCanvasScaleFactor(DC: HDC; const AScaleRatio: double);
++var
++  ctx: TCocoaContext;
++begin
++  ctx := TCocoaGDIUtil.checkDC(DC);
++  if Assigned(ctx) and (ctx is TCocoaBitmapContext) then
++    CGContextScaleCTM(ctx.CGContext, AScaleRatio, AScaleRatio);
++end;
+ 
++
+ {------------------------------------------------------------------------------
+   Function: RawImage_QueryDescription
+   Params: AFlags:
+diff --git a/lcl/interfaces/cocoa/cocoalclintfh.inc b/lcl/interfaces/cocoa/cocoalclintfh.inc
+--- a/lcl/interfaces/cocoa/cocoalclintfh.inc
++++ b/lcl/interfaces/cocoa/cocoalclintfh.inc
+@@ -45,6 +45,7 @@
+ function RawImage_DescriptionFromDevice(ADC: HDC; out ADesc: TRawImageDescription): Boolean; override;
+ function RawImage_FromBitmap(out ARawImage: TRawImage; ABitmap, AMask: HBITMAP; ARect: PRect = nil): Boolean; override;
+ function RawImage_FromDevice(out ARawImage: TRawImage; ADC: HDC; const ARect: TRect): Boolean; override;
++procedure SetCanvasScaleFactor(DC: HDC; const AScaleRatio: double); override;
+ // override only when queried formats are different from screen description
+ //function RawImage_QueryDescription(AFlags: TRawImageQueryFlags; var ADesc: TRawImageDescription): Boolean; override;
+ 

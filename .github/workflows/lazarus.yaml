@@ -62,6 +62,18 @@ jobs:
             sudo ln -sf "$RUNNER_TEMP/lazarus/lazbuild" /usr/local/bin/lazbuild
             echo "$RUNNER_TEMP/lazarus" >> $GITHUB_PATH
 
+        - name: Patch Lazarus 4.8 (macOS)
+          if: ${{ matrix.operating-system == 'macos-15' }}
+          run: |
+            LAZARUS_DIR="$RUNNER_TEMP/lazarus"
+            test -f "$LAZARUS_DIR/lcl/include/lclintf.inc"
+            for p in "$GITHUB_WORKSPACE"/extra/lazarus-patches/4.8/*.patch; do
+              patch -d "$LAZARUS_DIR" -p1 --dry-run < "$p"
+              patch -d "$LAZARUS_DIR" -p1 < "$p"
+            done
+            grep -Fq "LCLIntf.SetCanvasScaleFactor(NodeBitmap.Canvas.Handle, ScaleFactor);" "$LAZARUS_DIR/components/virtualtreeview/laz.virtualtrees.pas"
+            grep -Fq "CGContextScaleCTM(ctx.CGContext, AScaleRatio, AScaleRatio);" "$LAZARUS_DIR/lcl/interfaces/cocoa/cocoalclintf.inc"
+
         - name: Install Lazarus 4.8 (Ubuntu)
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
           run: |
@@ -218,6 +230,17 @@ jobs:
           sed -i '' 's|"/Developer/lazarus/"|"'$RUNNER_TEMP'/lazarus/"|g' "$RUNNER_TEMP/lazarus/config/environmentoptions.xml" 2>/dev/null || true
           sudo ln -sf "$RUNNER_TEMP/lazarus/lazbuild" /usr/local/bin/lazbuild
           echo "$RUNNER_TEMP/lazarus" >> $GITHUB_PATH
+
+      - name: Patch Lazarus 4.8 (macOS)
+        run: |
+          LAZARUS_DIR="$RUNNER_TEMP/lazarus"
+          test -f "$LAZARUS_DIR/lcl/include/lclintf.inc"
+          for p in "$GITHUB_WORKSPACE"/extra/lazarus-patches/4.8/*.patch; do
+            patch -d "$LAZARUS_DIR" -p1 --dry-run < "$p"
+            patch -d "$LAZARUS_DIR" -p1 < "$p"
+          done
+          grep -Fq "LCLIntf.SetCanvasScaleFactor(NodeBitmap.Canvas.Handle, ScaleFactor);" "$LAZARUS_DIR/components/virtualtreeview/laz.virtualtrees.pas"
+          grep -Fq "CGContextScaleCTM(ctx.CGContext, AScaleRatio, AScaleRatio);" "$LAZARUS_DIR/lcl/interfaces/cocoa/cocoalclintf.inc"
 
       - name: Import code signing certificate
         env:
