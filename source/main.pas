@@ -845,8 +845,8 @@ type
       var Handled: Boolean);
     procedure DataGridContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
-    procedure DBtreeMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer
-      );
+    procedure AnyGridMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
     procedure FormActivate(Sender: TObject);
     procedure ImageListGetWidthForPPI(Sender: TCustomImageList;
       AImageWidth, APPI: Integer; var AResultWidth: Integer);
@@ -4667,14 +4667,19 @@ begin
   Handled := Tree.Header.InHeader(MousePos);
 end;
 
-procedure TMainForm.DBtreeMouseMove(Sender: TObject; Shift: TShiftState; X,
+procedure TMainForm.AnyGridMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
+var
+  VT: TLazVirtualStringTree;
 begin
   // Required step with DragMode=dmManual
   // We use dmManual to fix a non appearing context menu in conjunction with DragType=dtVCL
   // This reserves left-clicks for dragging, leaving right-clicks for context menu
-  if (ssLeft in Shift) and (not DBtree.Dragging) then
-    DBtree.BeginDrag(False);
+  if not (ssLeft in Shift) then
+    Exit;
+  VT := Sender as TLazVirtualStringTree;
+  if (VT.DragMode = dmManual) and (VT.DragType = dtVCL) and (not VT.Dragging) then
+    VT.BeginDrag(False);
 end;
 
 procedure TMainForm.FormActivate(Sender: TObject);

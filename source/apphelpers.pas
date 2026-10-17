@@ -1553,6 +1553,7 @@ begin
   VT.OnGetHint := MainForm.AnyGridGetHint;
   VT.OnScroll := MainForm.AnyGridScroll;
   VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
+  VT.OnMouseMove := MainForm.AnyGridMouseMove;
   VT.ShowHint := True;
 
   if IsResultGrid then begin

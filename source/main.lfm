@@ -992,7 +992,6 @@ object MainForm: TMainForm
         OnGetNodeDataSize = DBtreeGetNodeDataSize
         OnInitChildren = DBtreeInitChildren
         OnInitNode = DBtreeInitNode
-        OnMouseMove = DBtreeMouseMove
         OnMouseUp = DBtreeMouseUp
       end
     end

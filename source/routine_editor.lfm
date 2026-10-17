@@ -460,7 +460,6 @@ object frmRoutineEditor: TfrmRoutineEditor
         OnGetText = listParametersGetText
         OnPaintText = listParametersPaintText
         OnGetImageIndex = listParametersGetImageIndex
-        OnMouseMove = listParametersMouseMove
         OnNewText = listParametersNewText
       end
       object tlbParameters: TToolBar
