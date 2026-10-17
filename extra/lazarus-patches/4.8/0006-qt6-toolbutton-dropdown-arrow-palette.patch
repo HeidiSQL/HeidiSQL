@@ -1,0 +1,17 @@
+diff --git a/lcl/interfaces/qt6/qtthemes.pas b/lcl/interfaces/qt6/qtthemes.pas
+--- a/lcl/interfaces/qt6/qtthemes.pas
++++ b/lcl/interfaces/qt6/qtthemes.pas
+@@ -386,6 +386,13 @@
+               opt := QStyleOptionToolButton_create();
+               QStyleOptionToolButton_setFeatures(QStyleOptionToolButtonH(opt),
+                 Element.Features);
++              // Pass the palette of the painted widget to the style option.
++              // Otherwise the default palette is used, and styles like KDE
++              // Breeze with a dark color scheme draw the menu arrow in black,
++              // which is invisible on the dark toolbar.
++              // See HeidiSQL issue #2635.
++              if Context.Parent <> nil then
++                QStyleOption_setPalette(opt, QWidget_palette(Context.Parent));
+             end;
+             QStyleCC_ComboBox:
+             begin
