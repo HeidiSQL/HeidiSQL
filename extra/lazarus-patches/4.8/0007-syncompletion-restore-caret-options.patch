@@ -1,0 +1,57 @@
+diff --git a/components/synedit/syncompletion.pas b/components/synedit/syncompletion.pas
+--- a/components/synedit/syncompletion.pas
++++ b/components/synedit/syncompletion.pas
+@@ -341,6 +341,7 @@
+     procedure Execute(s: string; x, y: integer); overload;
+     procedure Execute(s: string; TopLeft: TPoint); overload;
+     procedure Execute(s: string; TokenRect: TRect); overload; // Excute below or above the token // may be extended to adjust left corner too
++    procedure RestoreEditorCaretOptions;
+     procedure Deactivate;
+     function IsActive: boolean;
+     function TheForm: TSynBaseCompletionForm;
+@@ -1744,10 +1745,14 @@
+   Form.SetNbLinesInWindow(Form.FNbLinesInWindow);
+ end;
+ 
+-procedure TSynBaseCompletion.Deactivate;
++procedure TSynBaseCompletion.RestoreEditorCaretOptions;
+ var
+   CurSynEdit: TCustomSynEdit;
+ begin
++  // Restore the caret options modified by Execute().
++  // Must be called whenever the completion closes (Validate/Cancel),
++  // otherwise the editor keeps eoPersistentCaret and shows a blinking
++  // caret while it is not focused.
+   if (Form<>nil) and (Form.CurrentEditor is TCustomSynEdit)
+   then begin
+     CurSynEdit:=TCustomSynEdit(Form.CurrentEditor);
+@@ -1756,6 +1761,13 @@
+     if FChangedNoneBlink then
+       CurSynEdit.Options2:=CurSynEdit.Options2+[eoPersistentCaretStopBlink];
+   end;
++  FAddedPersistentCaret := False;
++  FChangedNoneBlink := False;
++end;
++
++procedure TSynBaseCompletion.Deactivate;
++begin
++  RestoreEditorCaretOptions;
+   if Assigned(Form) then Form.Deactivate;
+ end;
+ 
+@@ -1830,6 +1842,7 @@
+       TWinControl((F.CurrentEditor as TCustomSynEdit).Owner).SetFocus;
+     (F.CurrentEditor as TCustomSynEdit).SetFocus;
+   end;
++  RestoreEditorCaretOptions;
+ end;
+ 
+ procedure TSynCompletion.Validate(Sender: TObject; KeyChar: TUTF8Char;
+@@ -1900,6 +1913,7 @@
+         EndUndoBlock{$IFDEF SynUndoDebugBeginEnd}('TSynCompletion.Validate'){$ENDIF};
+       end;
+     end;
++  RestoreEditorCaretOptions;
+ end;
+ 
+ constructor TSynCompletion.Create(AOwner: TComponent);
