@@ -190,6 +190,7 @@ type
     procedure ColorBoxBackgroundColorGetColors(Sender: TCustomColorBox;
       Items: TStrings);
     procedure editTrim(Sender: TObject);
+    procedure editHostExit(Sender: TObject);
     procedure editSearchChange(Sender: TObject);
     procedure editSearchRightButtonClick(Sender: TObject);
     procedure editHostDblClick(Sender: TObject);
@@ -1239,6 +1240,49 @@ begin
   if Edit.Text <> Trimmed then begin
     Edit.Text := Trimmed;
   end;
+end;
+
+
+procedure Tconnform.editHostExit(Sender: TObject);
+var
+  ColonPos, PortNumber, i: Integer;
+  HostPart, PortPart: String;
+begin
+  // Trim input, then move a pasted "host:port" value into the port field. See issue #2608
+  editTrim(Sender);
+  if (Sender <> editHost) or not updownPort.Enabled then
+    Exit;
+  HostPart := editHost.Text;
+  PortPart := '';
+  if HostPart.StartsWith('[') then begin
+    // IPv6 in bracket notation, e.g. [2001:db8::1]:5432
+    ColonPos := HostPart.IndexOf(']:');
+    if ColonPos > 0 then begin
+      PortPart := HostPart.Substring(ColonPos + 2);
+      HostPart := HostPart.Substring(0, ColonPos + 1);
+    end;
+  end
+  else begin
+    // Hostname or IPv4 with port, e.g. example.com:3306. More than one colon
+    // means an unbracketed IPv6 address like 2001:db8::1, which we leave as-is.
+    ColonPos := HostPart.LastIndexOf(':');
+    if (ColonPos > 0) and (Pos(':', HostPart) = ColonPos + 1) then begin
+      PortPart := HostPart.Substring(ColonPos + 1);
+      HostPart := HostPart.Substring(0, ColonPos);
+    end;
+  end;
+  if (HostPart = '') or (PortPart = '') then
+    Exit;
+  // Require a numeric TCP port in the range 1-65535
+  for i := 1 to Length(PortPart) do
+    if not CharInSet(PortPart[i], ['0'..'9']) then
+      Exit;
+  if not TryStrToInt(PortPart, PortNumber) then
+    Exit;
+  if (PortNumber < 1) or (PortNumber > 65535) then
+    Exit;
+  editHost.Text := HostPart;
+  updownPort.Position := PortNumber;
 end;
 
 

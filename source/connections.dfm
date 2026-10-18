@@ -278,7 +278,7 @@ object connform: Tconnform
         TabOrder = 2
         OnChange = editHostChange
         OnDblClick = editHostDblClick
-        OnExit = editTrim
+        OnExit = editHostExit
       end
       object comboNetType: TComboBoxEx
         Left = 190
