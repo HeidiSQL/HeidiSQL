@@ -195,6 +195,11 @@ jobs:
             name: ${{ matrix.operating-system }}-QT6
             path: out/qt6/heidisql
 
+        - name: Install FreeTDS (macOS)
+          if: ${{ matrix.operating-system == 'macos-15' }}
+          run: |
+            brew install freetds
+
         - name: Build HeidiSQL (macOS)
           if: ${{ matrix.operating-system == 'macos-15' }}
           run: make build-macos
@@ -262,6 +267,10 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" >/dev/null
           rm -f "$RUNNER_TEMP/certificate.p12"
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+
+      - name: Install FreeTDS (macOS)
+        run: |
+          brew install freetds
 
       - name: Build HeidiSQL (macOS)
         run: make build-macos

@@ -43,6 +43,8 @@
             <OtherUnitFiles Value="source;source\metadarkstyle\src"/>
             <UnitOutputDirectory Value="bin\lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
+          <Conditionals Value="if TargetOS=&apos;darwin&apos; then
+  CustomOptions := CustomOptions + &apos; -Fuextra/fpc-src/mssql -Fl/opt/homebrew/lib -Fl/usr/local/lib&apos;;"/>
           <CodeGeneration>
             <Checks>
               <IOChecks Value="True"/>
@@ -83,7 +85,7 @@
             <UnitOutputDirectory Value="bin\lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Conditionals Value="if TargetOS=&apos;darwin&apos; then
-  CustomOptions := CustomOptions + &apos; -WM10.15&apos;;
+  CustomOptions := CustomOptions + &apos; -WM10.15 -Fuextra/fpc-src/mssql -Fl/opt/homebrew/lib -Fl/usr/local/lib&apos;;
 
 if TargetOS=&apos;win64&apos; then
   CustomOptions := CustomOptions + &apos; -WB -WR&apos;;"/>
@@ -480,7 +482,7 @@ if TargetOS=&apos;win64&apos; then
       <UnitOutputDirectory Value="bin\lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Conditionals Value="if TargetOS=&apos;darwin&apos; then
-  CustomOptions := CustomOptions + &apos; -WM10.15&apos;;
+  CustomOptions := CustomOptions + &apos; -WM10.15 -Fuextra/fpc-src/mssql -Fl/opt/homebrew/lib -Fl/usr/local/lib&apos;;
 
 if TargetOS=&apos;win64&apos; then
   CustomOptions := CustomOptions + &apos; -WB -WR&apos;;"/>

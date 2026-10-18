@@ -1,0 +1,51 @@
+diff --git a/packages/dblib/fpmake.pp b/packages/dblib/fpmake.pp
+index 96ccac8..bae6a35 100644
+--- a/packages/dblib/fpmake.pp
++++ b/packages/dblib/fpmake.pp
+@@ -9,7 +9,7 @@ uses fpmkunit;
+ procedure add_dblib(const ADirectory: string);
+ 
+ Const
+-  DBLibOSes         = [linux,freebsd,netbsd,openbsd,solaris,win32,win64,haiku,android,dragonfly,beos];
++  DBLibOSes         = [linux,freebsd,netbsd,openbsd,solaris,win32,win64,haiku,android,dragonfly,beos,darwin];
+ 
+ Var
+   P : TPackage;
+diff --git a/packages/fcl-db/fpmake.pp b/packages/fcl-db/fpmake.pp
+index 8e9914c..e2fa41b 100644
+--- a/packages/fcl-db/fpmake.pp
++++ b/packages/fcl-db/fpmake.pp
+@@ -13,7 +13,7 @@ const
+   SqldbConnectionOSes = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
+   SqliteOSes          = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,dragonfly];
+   DBaseOSes           = [aix,beos,haiku,linux,freebsd,darwin,iphonesim,ios,netbsd,openbsd,solaris,win32,win64,wince,android,os2,dragonfly];
+-  MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,solaris,win32,win64,android,dragonfly];
++  MSSQLOSes           = [beos,haiku,linux,freebsd,netbsd,openbsd,solaris,win32,win64,android,dragonfly,darwin];
+ 
+ 
+ Var
+diff --git a/packages/fcl-db/src/sqldb/Makefile.fpc b/packages/fcl-db/src/sqldb/Makefile.fpc
+index 66158d7..ddcbbaf 100644
+--- a/packages/fcl-db/src/sqldb/Makefile.fpc
++++ b/packages/fcl-db/src/sqldb/Makefile.fpc
+@@ -9,7 +9,7 @@ main=fcl-db
+ dirs_beos=interbase postgres mysql odbc oracle sqlite mssql
+ dirs_linux=interbase postgres mysql odbc oracle sqlite mssql 
+ dirs_freebsd=interbase postgres mysql odbc oracle sqlite mssql
+-dirs_darwin=interbase postgres mysql odbc oracle sqlite 
++dirs_darwin=interbase postgres mysql odbc oracle sqlite mssql
+ dirs_iphonesim=interbase postgres mysql odbc oracle sqlite
+ dirs_netbsd=interbase postgres mysql odbc oracle sqlite mssql
+ dirs_openbsd=interbase postgres mysql odbc oracle sqlite mssql
+diff --git a/packages/fcl-db/src/sqldb/mssql/fpmake.inc b/packages/fcl-db/src/sqldb/mssql/fpmake.inc
+index 0703b35..4114d55 100644
+--- a/packages/fcl-db/src/sqldb/mssql/fpmake.inc
++++ b/packages/fcl-db/src/sqldb/mssql/fpmake.inc
+@@ -6,6 +6,6 @@
+ Targets.ResetDefaults;
+ Targets.DefaultDir:='db/sqldb/mssql';
+ { Drivers only for the following OSes }
+-Targets.DefaultOS:=[win32,win64,openbsd,netbsd,freebsd,linux,haiku,dragonfly];
++Targets.DefaultOS:=[win32,win64,openbsd,netbsd,freebsd,linux,haiku,dragonfly,darwin];
+ T:=Targets.AddUnit('mssqlconn');
+ T.ResourceStrings:=False;
