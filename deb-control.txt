@@ -8,7 +8,8 @@ Priority: optional
 Depends: libqt6widgets6, libqt6gui6, libqt6core6, libqt6pas6,
  libssl3 (>= 3.0.0),
  libmariadb-dev | libmysqlclient-dev,
- libpq5, libsqlite3-0, libsybdb5
+ libpq5, libsqlite3-0, libsybdb5,
+ libfbclient2
 Recommends: openssh-client
 Description: Powerful SQL client for everyday database work
  HeidiSQL is a popular desktop tool for developers and DBAs who live in SQL all

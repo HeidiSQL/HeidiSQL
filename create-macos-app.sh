@@ -268,6 +268,25 @@ else
   echo "WARNING: No libsybdb*.dylib found in ${FREETDS_LIB_DIR}" >&2
 fi
 
+# libfbclient.dylib (Firebird/Interbase client; there is no homebrew formula, so use
+# the official Firebird framework from https://firebirdsql.org if installed on the build machine)
+FBCLIENT_CANDIDATES=(
+  "/Library/Frameworks/Firebird.framework/Versions/A/Libraries/libfbclient.dylib"
+  "${BREW_PREFIX}/opt/firebird/lib/libfbclient.dylib"
+)
+FBCLIENT_SRC=""
+for fbclient_candidate in "${FBCLIENT_CANDIDATES[@]}"; do
+  if [[ -f "${fbclient_candidate}" ]]; then
+    FBCLIENT_SRC="${fbclient_candidate}"
+    break
+  fi
+done
+if [[ -n "${FBCLIENT_SRC}" ]]; then
+  copy_and_rewrite_dylib "${FBCLIENT_SRC}"
+else
+  echo "WARNING: No libfbclient.dylib found - Firebird/Interbase connections will need the Firebird client installed by the user" >&2
+fi
+
 # MARIADB PLUGIN .so FILES
 if ls "${MARIADB_PLUGIN_DIR}"/*.so >/dev/null 2>&1; then
   for f in "${MARIADB_PLUGIN_DIR}"/*.so; do
