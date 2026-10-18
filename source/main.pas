@@ -2545,7 +2545,13 @@ begin
       if not BackupFilename.IsEmpty then begin
         if FileExists(BackupFilename) then begin
           Tab := GetOrCreateEmptyQueryTab(False);
-          Tab.Uid := Section;
+          if Section.IsEmpty then begin
+            // Fix broken tab section with empty name, see issue #2637
+            Tab.Uid := TQueryTab.GenerateUid;
+            TabsIni.EraseSection(Section);
+          end else begin
+            Tab.Uid := Section;
+          end;
           Tab.LoadContents(BackupFilename, True, Encoding);
           Tab.MemoFilename := Filename;
           Tab.Memo.Modified := True;
@@ -2569,7 +2575,13 @@ begin
       end else if not Filename.IsEmpty then begin
         if FileExists(Filename) then begin
           Tab := GetOrCreateEmptyQueryTab(False);
-          Tab.Uid := Section;
+          if Section.IsEmpty then begin
+            // Fix broken tab section with empty name, see issue #2637
+            Tab.Uid := TQueryTab.GenerateUid;
+            TabsIni.EraseSection(Section);
+          end else begin
+            Tab.Uid := Section;
+          end;
           Tab.LoadContents(Filename, True, Encoding);
           Tab.MemoFilename := Filename;
           if not TabCaption.IsEmpty then
