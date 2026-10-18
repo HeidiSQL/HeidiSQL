@@ -1,4 +1,4 @@
-﻿{ VerySimpleXML v3.0.0 - a lightweight, one-unit, cross-platform XML reader/writer
+{ VerySimpleXML v3.0.0 - a lightweight, one-unit, cross-platform XML reader/writer
   for Delphi 10.4+ by Dennis Spreen
   http://blog.spreendigital.de/2014/09/13/verysimplexml-3-0/
 

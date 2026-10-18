@@ -1,4 +1,4 @@
-﻿unit dbstructures.mysql;
+unit dbstructures.mysql;
 
 
 interface

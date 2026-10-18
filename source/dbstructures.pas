@@ -1,4 +1,4 @@
-﻿unit dbstructures;
+unit dbstructures;
 
 // Column structures, dll loading
 // For server constants, variables and data types see dbstructures.XXX.pas
