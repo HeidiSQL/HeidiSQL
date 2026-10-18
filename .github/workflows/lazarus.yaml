@@ -34,12 +34,23 @@ jobs:
         - name: Checkout source code
           uses: actions/checkout@v6
 
+        # The installer is downloaded to ~/lazarus-installers, served by actions/cache.
+        # Bump the cache key when changing the installer URL in this step.
+        - name: Cache Lazarus 4.8 installer (Windows)
+          if: ${{ matrix.operating-system == 'windows-latest' }}
+          uses: actions/cache@v6
+          with:
+            path: ~/lazarus-installers
+            key: lazarus48-installers-win64-fpc-3.2.2
         - name: Install Lazarus 4.8 (Windows)
           if: ${{ matrix.operating-system == 'windows-latest' }}
           shell: pwsh
           run: |
-            $installer = "${env:RUNNER_TEMP}\lazarus-4.8.exe"
-            curl.exe -L --retry 3 -o $installer "https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2064%20bits/Lazarus%204.8/lazarus-4.8-fpc-3.2.2-win64.exe/download"
+            $installer = "$env:USERPROFILE\lazarus-installers\lazarus-4.8.exe"
+            New-Item -ItemType Directory -Force -Path (Split-Path $installer) | Out-Null
+            if (-not (Test-Path $installer) -or (Get-Item $installer).Length -lt 100MB) {
+              curl.exe -L --retry 3 -o $installer "https://sourceforge.net/projects/lazarus/files/Lazarus%20Windows%2064%20bits/Lazarus%204.8/lazarus-4.8-fpc-3.2.2-win64.exe/download"
+            }
             if ((Get-Item $installer).Length -lt 100MB) { throw "Lazarus installer download failed: file too small" }
             $lazarusDir = "${env:RUNNER_TEMP}\lazarus"
             Start-Process -FilePath $installer -ArgumentList "/VERYSILENT", "/SP-", "/SUPPRESSMSGBOXES", "/DIR=$lazarusDir" -Wait -NoNewWindow
@@ -88,14 +99,30 @@ jobs:
             grep -Fq "LCLIntf.SetCanvasScaleFactor(NodeBitmap.Canvas.Handle, ScaleFactor);" "$LAZARUS_DIR/components/virtualtreeview/laz.virtualtrees.pas"
             grep -Fq "CGContextScaleCTM(ctx.CGContext, AScaleRatio, AScaleRatio);" "$LAZARUS_DIR/lcl/interfaces/cocoa/cocoalclintf.inc"
 
+        # The installers are downloaded to ~/lazarus-installers, served by actions/cache.
+        # Bump the cache key when changing the installer URLs in the steps of this job.
+        - name: Cache Lazarus 4.8 installers (Ubuntu)
+          if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+          uses: actions/cache@v6
+          with:
+            path: ~/lazarus-installers
+            key: lazarus48-installers-linux-amd64-fpc-3.2.2-qt6pas-6.2.10
         - name: Install Lazarus 4.8 (Ubuntu)
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
           run: |
-            wget -q https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.8/fpc-laz_3.2.2-210709_amd64.deb -O /tmp/fpc-laz.deb
-            wget -q https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.8/fpc-src_3.2.2-210709_amd64.deb -O /tmp/fpc-src.deb
-            wget -q https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.8/lazarus-project_4.8.0-0_amd64.deb -O /tmp/lazarus.deb
+            INSTALLER_CACHE="$HOME/lazarus-installers"
+            mkdir -p "$INSTALLER_CACHE"
+            if [ ! -s "$INSTALLER_CACHE/fpc-laz_3.2.2-210709_amd64.deb" ]; then
+              wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.8/fpc-laz_3.2.2-210709_amd64.deb" -O "$INSTALLER_CACHE/fpc-laz_3.2.2-210709_amd64.deb"
+            fi
+            if [ ! -s "$INSTALLER_CACHE/fpc-src_3.2.2-210709_amd64.deb" ]; then
+              wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.8/fpc-src_3.2.2-210709_amd64.deb" -O "$INSTALLER_CACHE/fpc-src_3.2.2-210709_amd64.deb"
+            fi
+            if [ ! -s "$INSTALLER_CACHE/lazarus-project_4.8.0-0_amd64.deb" ]; then
+              wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.8/lazarus-project_4.8.0-0_amd64.deb" -O "$INSTALLER_CACHE/lazarus-project_4.8.0-0_amd64.deb"
+            fi
             sudo apt-get update
-            sudo apt-get install -y /tmp/fpc-laz.deb /tmp/fpc-src.deb /tmp/lazarus.deb
+            sudo apt-get install -y "$INSTALLER_CACHE/fpc-laz_3.2.2-210709_amd64.deb" "$INSTALLER_CACHE/fpc-src_3.2.2-210709_amd64.deb" "$INSTALLER_CACHE/lazarus-project_4.8.0-0_amd64.deb"
             echo "/usr/lib/lazarus/4.8" >> $GITHUB_PATH
 
         - name: Build HeidiSQL (Windows)
@@ -164,12 +191,17 @@ jobs:
           run: |
             sudo apt update
             sudo apt install -y libqt5pas-dev wget qt6-base-dev
+            INSTALLER_CACHE="$HOME/lazarus-installers"
+            mkdir -p "$INSTALLER_CACHE"
             LIBQT6PAS_VERSION="6.2.10"
-            wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6_${LIBQT6PAS_VERSION}-1_amd64.deb" -O /tmp/libqt6pas6.deb
-            sudo dpkg -i /tmp/libqt6pas6.deb || sudo apt-get install -f -y
-            wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_amd64.deb" -O /tmp/libqt6pas6-dev.deb
-            sudo dpkg -i /tmp/libqt6pas6-dev.deb || sudo apt-get install -f -y
-            rm -f /tmp/libqt6pas6.deb /tmp/libqt6pas6-dev.deb
+            if [ ! -s "$INSTALLER_CACHE/libqt6pas6_${LIBQT6PAS_VERSION}-1_amd64.deb" ]; then
+              wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6_${LIBQT6PAS_VERSION}-1_amd64.deb" -O "$INSTALLER_CACHE/libqt6pas6_${LIBQT6PAS_VERSION}-1_amd64.deb"
+            fi
+            sudo dpkg -i "$INSTALLER_CACHE/libqt6pas6_${LIBQT6PAS_VERSION}-1_amd64.deb" || sudo apt-get install -f -y
+            if [ ! -s "$INSTALLER_CACHE/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_amd64.deb" ]; then
+              wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_amd64.deb" -O "$INSTALLER_CACHE/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_amd64.deb"
+            fi
+            sudo dpkg -i "$INSTALLER_CACHE/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_amd64.deb" || sudo apt-get install -f -y
 
         - name: Build HeidiSQL (Ubuntu QT5)
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
@@ -349,25 +381,45 @@ jobs:
         - name: Checkout source code
           uses: actions/checkout@v6
 
+        # The installers are downloaded to ~/lazarus-installers, served by actions/cache.
+        # Bump the cache key when changing the installer URLs in the steps of this job.
+        - name: Cache Lazarus 4.8 installers (ARM64)
+          uses: actions/cache@v6
+          with:
+            path: ~/lazarus-installers
+            key: lazarus48-installers-linux-arm64-fpc-3.2.3-qt6pas-6.2.10
         - name: Install Lazarus 4.8 (ARM64)
           run: |
             sudo apt-get update
-            wget -q https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.8/fpc-laz_3.2.3-240813_arm64.deb -O /tmp/fpc-laz.deb
-            wget -q https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.8/fpc-src_3.2.3-240813_arm64.deb -O /tmp/fpc-src.deb
-            wget -q https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.8/lazarus-project_4.8.0-0_arm64.deb -O /tmp/lazarus.deb
-            sudo apt-get install -y /tmp/fpc-laz.deb /tmp/fpc-src.deb /tmp/lazarus.deb
+            INSTALLER_CACHE="$HOME/lazarus-installers"
+            mkdir -p "$INSTALLER_CACHE"
+            if [ ! -s "$INSTALLER_CACHE/fpc-laz_3.2.3-240813_arm64.deb" ]; then
+              wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.8/fpc-laz_3.2.3-240813_arm64.deb" -O "$INSTALLER_CACHE/fpc-laz_3.2.3-240813_arm64.deb"
+            fi
+            if [ ! -s "$INSTALLER_CACHE/fpc-src_3.2.3-240813_arm64.deb" ]; then
+              wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.8/fpc-src_3.2.3-240813_arm64.deb" -O "$INSTALLER_CACHE/fpc-src_3.2.3-240813_arm64.deb"
+            fi
+            if [ ! -s "$INSTALLER_CACHE/lazarus-project_4.8.0-0_arm64.deb" ]; then
+              wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.8/lazarus-project_4.8.0-0_arm64.deb" -O "$INSTALLER_CACHE/lazarus-project_4.8.0-0_arm64.deb"
+            fi
+            sudo apt-get install -y "$INSTALLER_CACHE/fpc-laz_3.2.3-240813_arm64.deb" "$INSTALLER_CACHE/fpc-src_3.2.3-240813_arm64.deb" "$INSTALLER_CACHE/lazarus-project_4.8.0-0_arm64.deb"
             echo "/usr/lib/lazarus/4.8" >> $GITHUB_PATH
 
         - name: Install Qt6 for ARM64
           run: |
             sudo apt-get update
             sudo apt-get install -y wget qt6-base-dev
+            INSTALLER_CACHE="$HOME/lazarus-installers"
+            mkdir -p "$INSTALLER_CACHE"
             LIBQT6PAS_VERSION="6.2.10"
-            wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6_${LIBQT6PAS_VERSION}-1_arm64.deb" -O /tmp/libqt6pas6.deb
-            sudo dpkg -i /tmp/libqt6pas6.deb || sudo apt-get install -f -y
-            wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_arm64.deb" -O /tmp/libqt6pas6-dev.deb
-            sudo dpkg -i /tmp/libqt6pas6-dev.deb || sudo apt-get install -f -y
-            rm -f /tmp/libqt6pas6.deb /tmp/libqt6pas6-dev.deb
+            if [ ! -s "$INSTALLER_CACHE/libqt6pas6_${LIBQT6PAS_VERSION}-1_arm64.deb" ]; then
+              wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6_${LIBQT6PAS_VERSION}-1_arm64.deb" -O "$INSTALLER_CACHE/libqt6pas6_${LIBQT6PAS_VERSION}-1_arm64.deb"
+            fi
+            sudo dpkg -i "$INSTALLER_CACHE/libqt6pas6_${LIBQT6PAS_VERSION}-1_arm64.deb" || sudo apt-get install -f -y
+            if [ ! -s "$INSTALLER_CACHE/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_arm64.deb" ]; then
+              wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_arm64.deb" -O "$INSTALLER_CACHE/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_arm64.deb"
+            fi
+            sudo dpkg -i "$INSTALLER_CACHE/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_arm64.deb" || sudo apt-get install -f -y
 
         - name: Patch Lazarus 4.8 for QT6
           run: |
