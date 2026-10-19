@@ -223,7 +223,7 @@ type
     FSessionModified, FOnlyPasswordModified: Boolean;
     FServerVersion: String;
     FSettingsImportWaitTime: Cardinal;
-    FWinRegistrySessionCount: Integer;
+    FWinRegistryRootExists: Boolean;
     FPopupDatabases: TPopupMenu;
     FPopupCiphers: TPopupMenu;
     FButtonAnimationStep: Integer;
@@ -290,7 +290,8 @@ begin
   ListSessions.OnHeaderClick := MainForm.AnyGridHeaderClick;
   ListSessions.OnHeaderDraggedOut := MainForm.AnyGridHeaderDraggedOut;
   btnImportSettings.Caption := MainForm.actImportSettings.Caption;
-  lblImportSessions.Caption := _('Previous versions of HeidiSQL stored your sessions in the Windows registry. Click on the button above to copy them over into the new session storage, so they will appear in the list on the left. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which also imports your sessions along with all other settings.');
+  btnImportSessions.Caption := _('Import settings from Windows registry');
+  lblImportSessions.Caption := _('Previous versions of HeidiSQL stored your settings and sessions in the Windows registry. Click on the button above to import them, so they will appear in this application. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which imports the same from that file.');
   FLoaded := False;
   menuFoldersAtTop.Checked := AppSettings.ReadBool(asSessionManagerListFoldersAtTop);
   FSettingsImportWaitTime := 0;
@@ -417,10 +418,8 @@ var
 begin
   RestoreListSetup(ListSessions);
 
-  // Detect sessions stored in the Windows registry by a previous version, once per show
-  FWinRegistrySessionCount := AppSettings.WinRegistrySessionCount;
-  if FWinRegistrySessionCount > 0 then
-    btnImportSessions.Caption := f_('Import %d sessions from Windows registry', [FWinRegistrySessionCount]);
+  // Detect settings stored in the Windows registry by a previous version, once per show
+  FWinRegistryRootExists := AppSettings.WinRegistryExists;
   UpdateWinRegistryImportControls;
 
   // Init sessions tree
@@ -612,39 +611,26 @@ end;
 
 procedure Tconnform.UpdateWinRegistryImportControls;
 begin
-  // Offer the import only if there is at least one session stored in the
-  // Windows registry by a previous version, and if it was never imported before
-  btnImportSessions.Visible := (FWinRegistrySessionCount > 0)
+  // Offer the import only if the previous version's registry root key exists,
+  // and if the import was never done before
+  btnImportSessions.Visible := FWinRegistryRootExists
     and (not AppSettings.ReadBool(asSessionManagerWinRegistryImport));
   lblImportSessions.Visible := btnImportSessions.Visible;
 end;
 
 procedure Tconnform.btnImportSessionsClick(Sender: TObject);
-var
-  Imported, AlreadyPresent: Integer;
-  SkippedSessions: TStringList;
 begin
-  // Copy sessions stored in the Windows registry by a previous version into
-  // the JSON registry. Sessions which already exist here are left alone.
-  SkippedSessions := nil;
-  Imported := AppSettings.ImportWinRegistrySessions(AlreadyPresent, SkippedSessions);
+  // Copy all settings and sessions stored in the Windows registry by a previous
+  // version into the JSON registry. Existing values are left alone.
+  AppSettings.ImportWinRegistrySettings;
   // Ensure this button is not offered again after the import has run once
   AppSettings.WriteBool(asSessionManagerWinRegistryImport, True);
-  FWinRegistrySessionCount := 0;
   UpdateWinRegistryImportControls;
   RefreshSessions(nil);
   SelectNode(ListSessions, nil);
   if ListSessions.GetFirst <> nil then
     SelectNode(ListSessions, ListSessions.GetFirst);
-  try
-    if AlreadyPresent > 0 then
-      MessageDialog(f_('Imported %d sessions from the Windows registry. %d sessions were left alone, as they already existed before: %s',
-        [Imported, AlreadyPresent, Implode(', ', SkippedSessions)]), mtInformation, [mbOK])
-    else
-      MessageDialog(f_('Imported %d sessions from the Windows registry.', [Imported]), mtInformation, [mbOK]);
-  finally
-    SkippedSessions.Free;
-  end;
+  MessageDialog(_('Imported settings and sessions from the Windows registry.'), mtInformation, [mbOK]);
 end;
 
 procedure Tconnform.timerSettingsImportTimer(Sender: TObject);

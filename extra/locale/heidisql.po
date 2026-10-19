@@ -5822,20 +5822,17 @@ msgid "More"
 msgstr "More"
 
 #. Session manager > Start tab
-msgid "Import %d sessions from Windows registry"
-msgstr "Import %d sessions from Windows registry"
+msgid "Import settings from Windows registry"
+msgstr "Import settings from Windows registry"
 
 #. Session manager > Start tab
-msgid "Previous versions of HeidiSQL stored your sessions in the Windows registry. Click on the button above to copy them over into the new session storage, so they will appear in the list on the left. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which also imports your sessions along with all other settings."
-msgstr "Previous versions of HeidiSQL stored your sessions in the Windows registry. Click on the button above to copy them over into the new session storage, so they will appear in the list on the left. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which also imports your sessions along with all other settings."
+msgid "Previous versions of HeidiSQL stored your settings and sessions in the Windows registry. Click on the button above to import them, so they will appear in this application. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which imports the same from that file."
+msgstr "Previous versions of HeidiSQL stored your settings and sessions in the Windows registry. Click on the button above to import them, so they will appear in this application. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which imports the same from that file."
 
 #. Session manager > Start tab
-msgid "Imported %d sessions from the Windows registry. %d sessions were left alone, as they already existed before: %s"
-msgstr "Imported %d sessions from the Windows registry. %d sessions were left alone, as they already existed before: %s"
+msgid "Imported settings and sessions from the Windows registry."
+msgstr "Imported settings and sessions from the Windows registry."
 
-#. Session manager > Start tab
-msgid "Imported %d sessions from the Windows registry."
-msgstr "Imported %d sessions from the Windows registry."
 
 #. MessageDialog()
 msgid "Missing \"No\" button in %() call"

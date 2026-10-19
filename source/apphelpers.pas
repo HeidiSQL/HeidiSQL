@@ -269,7 +269,6 @@ type
       procedure PrepareRegistry;
       {$IFDEF WINDOWS}
       procedure CopyWinRegistryKey(Reg: TRegistry; RegPath, TargetPath: String);
-      function CountWinRegistrySessions(Reg: TRegistry; RegPath, SessionPath: String; Sessions: TStringList): Integer;
       {$ENDIF}
       procedure Read(Index: TAppSettingIndex; FormatName: String;
         DataType: TAppSettingDataType; out I: Integer; out B: Boolean; out S: String;
@@ -310,9 +309,9 @@ type
       property PortableMode: Boolean read FPortableMode;
       property Writes: Integer read FWrites;
       function ConvertWindowsToLinuxPath(Path: String): String;
-      // Sessions stored in the Windows registry by previous versions
-      function WinRegistrySessionCount: Integer;
-      function ImportWinRegistrySessions(out AlreadyPresent: Integer; out SkippedSessions: TStringList): Integer;
+      // Settings stored in the Windows registry by previous versions
+      function WinRegistryExists: Boolean;
+      function ImportWinRegistrySettings: Boolean;
       procedure ImportSettings(Filename: String);
       function ExportSettings(Filename: String): Boolean;
       // Common directories
@@ -4418,28 +4417,16 @@ begin
 end;
 
 
-function TAppSettings.WinRegistrySessionCount: Integer;
+function TAppSettings.WinRegistryExists: Boolean;
 {$IFDEF WINDOWS}
 var
   Reg: TRegistry;
-  SessionKeys: TStringList;
-  i: Integer;
 begin
-  // Count sessions stored in the Windows registry by a previous version
-  Result := 0;
+  // Detect settings stored in the Windows registry by a previous version
   Reg := TRegistry.Create;
   try
     Reg.RootKey := HKEY_CURRENT_USER;
-    if not Reg.OpenKeyReadOnly(WINREGKEY_SESSIONS) then
-      Exit;
-    SessionKeys := TStringList.Create;
-    try
-      Reg.GetKeyNames(SessionKeys);
-      for i:=0 to SessionKeys.Count-1 do
-        Result := Result + CountWinRegistrySessions(Reg, WINREGKEY_SESSIONS+'\'+SessionKeys[i], SessionKeys[i], nil);
-    finally
-      SessionKeys.Free;
-    end;
+    Result := Reg.OpenKeyReadOnly(WINREGKEY);
   finally
     Reg.Free;
   end;
@@ -4447,48 +4434,7 @@ end;
 {$ELSE}
 begin
   // No Windows registry on this platform
-  Result := 0;
-end;
-{$ENDIF}
-
-{$IFDEF WINDOWS}
-function TAppSettings.CountWinRegistrySessions(Reg: TRegistry; RegPath, SessionPath: String; Sessions: TStringList): Integer;
-var
-  SubKeys: TStringList;
-  i: Integer;
-  SubPath: String;
-begin
-  // Count the key at the given path as one session, unless it is a folder,
-  // in which case count the sessions and folders below it. Does not recurse
-  // into session keys, as their subkeys hold session-internal data
-  // (query history, table filters, etc.), not sessions.
-  // Adds the path of found sessions to the given list, unless it's nil
-  Result := 0;
-  if not Reg.OpenKeyReadOnly(RegPath) then
-    Exit;
-  SubKeys := TStringList.Create;
-  try
-    if not Reg.ValueExists(GetValueName(asSessionFolder)) then begin
-      Result := 1;
-      if Sessions <> nil then
-        Sessions.Add(SessionPath);
-    end
-    else begin
-      Reg.GetKeyNames(SubKeys);
-      for i:=0 to SubKeys.Count-1 do begin
-        // A slash in a key name would collide with the JSON path delimiter,
-        // see issue #682
-        SubPath := StringReplace(SubKeys[i], PathDelimiter, '-', [rfReplaceAll]);
-        if SessionPath = '' then
-          SubPath := SessionPath + SubPath
-        else
-          SubPath := SessionPath + PathDelimiter + SubPath;
-        Inc(Result, CountWinRegistrySessions(Reg, RegPath+'\'+SubKeys[i], SubPath, Sessions));
-      end;
-    end;
-  finally
-    SubKeys.Free;
-  end;
+  Result := False;
 end;
 {$ENDIF}
 
@@ -4499,7 +4445,8 @@ var
   i: Integer;
   ValueName, SubKey: String;
 begin
-  // Copy all values and subkeys of a registry key into the JSON registry
+  // Copy all values and subkeys of a registry key into the JSON registry.
+  // TargetPath must have a trailing PathDelimiter
   if not Reg.OpenKeyReadOnly(RegPath) then
     Exit;
   ValueNames := TStringList.Create;
@@ -4525,7 +4472,7 @@ begin
       // e.g. in a session name "A/B". Replace it by a dash first.
       // Same replacement as in session renaming, see issue #682.
       SubKey := StringReplace(SubKeys[i], PathDelimiter, '-', [rfReplaceAll]);
-      CopyWinRegistryKey(Reg, RegPath+'\'+SubKeys[i], AppendDelimiter(TargetPath)+SubKey+PathDelimiter);
+      CopyWinRegistryKey(Reg, RegPath+'\'+SubKeys[i], TargetPath+SubKey+PathDelimiter);
     end;
   finally
     SubKeys.Free;
@@ -4534,45 +4481,23 @@ begin
 end;
 {$ENDIF}
 
-function TAppSettings.ImportWinRegistrySessions(out AlreadyPresent: Integer; out SkippedSessions: TStringList): Integer;
+function TAppSettings.ImportWinRegistrySettings: Boolean;
 {$IFDEF WINDOWS}
 var
   Reg: TRegistry;
-  SessionKeys: TStringList;
-  i: Integer;
-  KeyName, RegPath, TargetPath: String;
 begin
-  // Import sessions from the Windows registry into the JSON registry.
-  // Sessions which already exist in the JSON registry are left alone,
-  // including all their subkeys (session folders) and values
-  Result := 0;
-  AlreadyPresent := 0;
-  SkippedSessions := TStringList.Create;
+  // Import all settings and sessions stored in the Windows registry by a
+  // previous version into the JSON registry, the same way the settings file
+  // import does. The registry root key maps to the JSON root path,
+  // values which already exist are left alone
+  Result := False;
   Reg := TRegistry.Create;
   try
     Reg.RootKey := HKEY_CURRENT_USER;
-    if not Reg.OpenKeyReadOnly(WINREGKEY_SESSIONS) then
+    if not Reg.OpenKeyReadOnly(WINREGKEY) then
       Exit;
-    SessionKeys := TStringList.Create;
-    try
-      Reg.GetKeyNames(SessionKeys);
-      for i:=0 to SessionKeys.Count-1 do begin
-        // A slash in a key name would collide with the JSON path delimiter,
-        // e.g. in a session name "A/B". Replace it by a dash first.
-        // Same replacement as in session renaming, see issue #682.
-        KeyName := StringReplace(SessionKeys[i], PathDelimiter, '-', [rfReplaceAll]);
-        RegPath := WINREGKEY_SESSIONS+'\'+SessionKeys[i];
-        TargetPath := PathDelimiter + AppendDelimiter(REGKEY_SESSIONS) + KeyName;
-        if FRegistry.KeyExists(TargetPath) then
-          AlreadyPresent := AlreadyPresent + CountWinRegistrySessions(Reg, RegPath, KeyName, SkippedSessions)
-        else begin
-          Result := Result + CountWinRegistrySessions(Reg, RegPath, KeyName, nil);
-          CopyWinRegistryKey(Reg, RegPath, TargetPath+PathDelimiter);
-        end;
-      end;
-    finally
-      SessionKeys.Free;
-    end;
+    CopyWinRegistryKey(Reg, WINREGKEY, PathDelimiter);
+    Result := True;
   finally
     Reg.Free;
   end;
@@ -4582,9 +4507,7 @@ end;
 {$ELSE}
 begin
   // No Windows registry on this platform
-  Result := 0;
-  AlreadyPresent := 0;
-  SkippedSessions := TStringList.Create;
+  Result := False;
 end;
 {$ENDIF}
 

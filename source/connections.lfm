@@ -98,11 +98,11 @@ object connform: Tconnform
         Width = 141
         AutoSize = True
         BorderSpacing.Around = 5
-        Caption = 'Import sessions from Windows registry'
+        Caption = 'Import settings from Windows registry'
         Images = MainForm.ImageListMain
         ImageIndex = 101
-        OnClick = btnImportSessionsClick
         Visible = False
+        OnClick = btnImportSessionsClick
       end
       object lblImportSessions: TLabel
         AnchorSideLeft.Control = tabStart
@@ -116,7 +116,7 @@ object connform: Tconnform
         Width = 503
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
-        Caption = 'Previous versions of HeidiSQL stored your sessions in the Windows registry. Click on the button above to copy them over into the new session storage, so they will appear in the list on the left. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which also imports your sessions along with all other settings.'
+        Caption = 'Previous versions of HeidiSQL stored your settings and sessions in the Windows registry. Click on the button above to import them, so they will appear in this application. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which imports the same from that file.'
         Visible = False
         WordWrap = True
       end

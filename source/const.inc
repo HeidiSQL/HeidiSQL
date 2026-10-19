@@ -19,8 +19,11 @@ const
   REGKEY_SESSIONS = 'Servers';
   REGKEY_QUERYHISTORY = 'QueryHistory';
   REGKEY_RECENTFILTERS = 'RecentFilters';
-  // Path to session key of previous versions which stored settings in the Windows registry
-  WINREGKEY_SESSIONS = '\Software\' + APPNAME + '\' + REGKEY_SESSIONS;
+  // Path to settings and session keys of previous versions which stored
+  // settings in the Windows registry. Note: the leading backslash is required,
+  // paths without it are taken relative to the currently open key by
+  // TRegistry.OpenKeyReadOnly.
+  WINREGKEY = '\Software\' + APPNAME;
   // Some unique char, used to separate e.g. selected columns in registry
   DELIM = '|';
   CHR10REPLACEMENT = '<}}}>';
