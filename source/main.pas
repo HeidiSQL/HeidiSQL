@@ -1834,7 +1834,7 @@ begin
   AppSettings.WriteInt(asQuerymemoheight, ScaleFormToDesign(pnlQueryMemo.Height));
   AppSettings.WriteInt(asQueryhelperswidth, ScaleFormToDesign(pnlQueryHelpers.Width));
   AppSettings.WriteInt(asCompletionProposalWidth, SynCompletionProposal.TheForm.ScaleFormToDesign(SynCompletionProposal.TheForm.Width));
-  AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.TheForm.ScaleFormToDesign(SynCompletionProposal.LinesInWindow));
+  AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.LinesInWindow);
   AppSettings.WriteInt(asDbtreewidth, ScaleFormToDesign(pnlLeft.width));
   AppSettings.WriteBool(asGroupTreeObjects, actGroupObjects.Checked);
   AppSettings.WriteBool(asTreeShowColumns, actTreeShowColumns.Checked);
@@ -2149,7 +2149,14 @@ begin
   end;
 
   // Completion proposal window
-  SynCompletionProposal.TheForm.Width := Min(Max(AppSettings.ReadInt(asCompletionProposalWidth), 50), 350);
+  // The LCL scales the proposal form again when it is shown on a monitor with
+  // a different DPI, which inflates its height on every show. Keep Scaled off
+  // and handle DPI awareness ourselves, as the Delphi trunk does.
+  SynCompletionProposal.TheForm.Scaled := False;
+  // Width is stored in design units, so scale it back to the form's current DPI
+  SynCompletionProposal.TheForm.Width := SynCompletionProposal.TheForm.ScaleDesignToForm(
+    Min(Max(AppSettings.ReadInt(asCompletionProposalWidth), 50), 350)
+  );
   SynCompletionProposal.TheForm.BackgroundColor := clBtnFace;
   SynCompletionProposal.TheForm.OnKeyDown := SynCompletionProposalFormKeyDown;
   SynCompletionProposal.LinesInWindow := Min(AppSettings.ReadInt(asCompletionProposalNbLinesInWindow), 10);
@@ -13091,7 +13098,9 @@ begin
   end;
   AppSettings.DeleteValue(asCompletionProposalWidth);
   AppSettings.DeleteValue(asCompletionProposalNbLinesInWindow);
-  SynCompletionProposal.TheForm.Width := Max(AppSettings.ReadInt(asCompletionProposalWidth), 50);
+  SynCompletionProposal.TheForm.Width := SynCompletionProposal.TheForm.ScaleDesignToForm(
+    Max(AppSettings.ReadInt(asCompletionProposalWidth), 50)
+  );
   SynCompletionProposal.LinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
 end;
 
