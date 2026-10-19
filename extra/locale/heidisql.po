@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2026-10-13 21:16+0200\n"
+"PO-Revision-Date: 2026-10-19 08:37+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.9\n"
+"X-Generator: Poedit 3.10\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -4173,7 +4173,8 @@ msgstr "Real Hostname"
 msgid "Server OS"
 msgstr "Server OS"
 
-#: dbconnection.pas:3182 tabletools.pas:1198 dbconnection.pas:4865 dbconnection.pas:7768
+#: dbconnection.pas:3182 tabletools.pas:1198 dbconnection.pas:4865
+#: dbconnection.pas:7768
 msgid "Server version"
 msgstr "Server version"
 
@@ -5819,6 +5820,22 @@ msgstr "Folder in selected folder"
 #. Session manager
 msgid "More"
 msgstr "More"
+
+#. Session manager > Start tab
+msgid "Import %d sessions from Windows registry"
+msgstr "Import %d sessions from Windows registry"
+
+#. Session manager > Start tab
+msgid "Previous versions of HeidiSQL stored your sessions in the Windows registry. Click on the button above to copy them over into the new session storage, so they will appear in the list on the left. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which also imports your sessions along with all other settings."
+msgstr "Previous versions of HeidiSQL stored your sessions in the Windows registry. Click on the button above to copy them over into the new session storage, so they will appear in the list on the left. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which also imports your sessions along with all other settings."
+
+#. Session manager > Start tab
+msgid "Imported %d sessions from the Windows registry. %d sessions were left alone, as they already existed before: %s"
+msgstr "Imported %d sessions from the Windows registry. %d sessions were left alone, as they already existed before: %s"
+
+#. Session manager > Start tab
+msgid "Imported %d sessions from the Windows registry."
+msgstr "Imported %d sessions from the Windows registry."
 
 #. MessageDialog()
 msgid "Missing \"No\" button in %() call"

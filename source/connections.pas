@@ -28,6 +28,8 @@ type
     btnDelete: TBitBtn;
     chkForceUnicode: TCheckBox;
     lblHelpPortable: TLabel;
+    btnImportSessions: TSpeedButton;
+    lblImportSessions: TLabel;
     lblSshPassHint: TLabel;
     pnlBottom: TPanel;
     popupSessions: TPopupMenu;
@@ -181,6 +183,7 @@ type
     procedure comboNetTypeChange(Sender: TObject);
     procedure splitterMainMoved(Sender: TObject);
     procedure timerSettingsImportTimer(Sender: TObject);
+    procedure btnImportSessionsClick(Sender: TObject);
     procedure ListSessionsStructureChange(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Reason: TChangeReason);
     procedure ListSessionsDragOver(Sender: TBaseVirtualTree; Source: TObject;
@@ -220,6 +223,7 @@ type
     FSessionModified, FOnlyPasswordModified: Boolean;
     FServerVersion: String;
     FSettingsImportWaitTime: Cardinal;
+    FWinRegistrySessionCount: Integer;
     FPopupDatabases: TPopupMenu;
     FPopupCiphers: TPopupMenu;
     FButtonAnimationStep: Integer;
@@ -227,6 +231,7 @@ type
     function GetSelectedNetType: TNetType;
     procedure SetSelectedNetType(Value: TNetType);
     procedure RefreshSessions(ParentNode: PVirtualNode);
+    procedure UpdateWinRegistryImportControls;
     function SelectedSessionPath: String;
     function CurrentParams: TConnectionParameters;
     procedure FinalizeModifications(var CanProceed: Boolean);
@@ -285,6 +290,7 @@ begin
   ListSessions.OnHeaderClick := MainForm.AnyGridHeaderClick;
   ListSessions.OnHeaderDraggedOut := MainForm.AnyGridHeaderDraggedOut;
   btnImportSettings.Caption := MainForm.actImportSettings.Caption;
+  lblImportSessions.Caption := _('Previous versions of HeidiSQL stored your sessions in the Windows registry. Click on the button above to copy them over into the new session storage, so they will appear in the list on the left. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which also imports your sessions along with all other settings.');
   FLoaded := False;
   menuFoldersAtTop.Checked := AppSettings.ReadBool(asSessionManagerListFoldersAtTop);
   FSettingsImportWaitTime := 0;
@@ -410,6 +416,12 @@ var
   Node: PVirtualNode;
 begin
   RestoreListSetup(ListSessions);
+
+  // Detect sessions stored in the Windows registry by a previous version, once per show
+  FWinRegistrySessionCount := AppSettings.WinRegistrySessionCount;
+  if FWinRegistrySessionCount > 0 then
+    btnImportSessions.Caption := f_('Import %d sessions from Windows registry', [FWinRegistrySessionCount]);
+  UpdateWinRegistryImportControls;
 
   // Init sessions tree
   RefreshSessions(nil);
@@ -597,6 +609,43 @@ begin
   SessionNames.Free;
 end;
 
+
+procedure Tconnform.UpdateWinRegistryImportControls;
+begin
+  // Offer the import only if there is at least one session stored in the
+  // Windows registry by a previous version, and if it was never imported before
+  btnImportSessions.Visible := (FWinRegistrySessionCount > 0)
+    and (not AppSettings.ReadBool(asSessionManagerWinRegistryImport));
+  lblImportSessions.Visible := btnImportSessions.Visible;
+end;
+
+procedure Tconnform.btnImportSessionsClick(Sender: TObject);
+var
+  Imported, AlreadyPresent: Integer;
+  SkippedSessions: TStringList;
+begin
+  // Copy sessions stored in the Windows registry by a previous version into
+  // the JSON registry. Sessions which already exist here are left alone.
+  SkippedSessions := nil;
+  Imported := AppSettings.ImportWinRegistrySessions(AlreadyPresent, SkippedSessions);
+  // Ensure this button is not offered again after the import has run once
+  AppSettings.WriteBool(asSessionManagerWinRegistryImport, True);
+  FWinRegistrySessionCount := 0;
+  UpdateWinRegistryImportControls;
+  RefreshSessions(nil);
+  SelectNode(ListSessions, nil);
+  if ListSessions.GetFirst <> nil then
+    SelectNode(ListSessions, ListSessions.GetFirst);
+  try
+    if AlreadyPresent > 0 then
+      MessageDialog(f_('Imported %d sessions from the Windows registry. %d sessions were left alone, as they already existed before: %s',
+        [Imported, AlreadyPresent, Implode(', ', SkippedSessions)]), mtInformation, [mbOK])
+    else
+      MessageDialog(f_('Imported %d sessions from the Windows registry.', [Imported]), mtInformation, [mbOK]);
+  finally
+    SkippedSessions.Free;
+  end;
+end;
 
 procedure Tconnform.timerSettingsImportTimer(Sender: TObject);
 begin
@@ -1027,6 +1076,7 @@ begin
   menuNewFolderInFolder.Enabled := InFolder;
   FreeAndNil(FPopupDatabases);
   FreeAndNil(FPopupCiphers);
+  UpdateWinRegistryImportControls;
 
   if not SessionFocused then begin
     PageControlDetails.ActivePage := tabStart;
