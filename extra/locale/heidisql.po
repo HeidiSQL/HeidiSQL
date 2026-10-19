@@ -4157,6 +4157,14 @@ msgstr "The server did not return a non-zero value for the %s variable. Assuming
 msgid "Not implemented for this DBMS"
 msgstr "Not implemented for this DBMS"
 
+#: dbconnection.pas:3036
+msgid "Could not load any Firebird/Interbase client library (fbclient, gds32 or ibclient). Install one, or check the library setting in your session."
+msgstr "Could not load any Firebird/Interbase client library (fbclient, gds32 or ibclient). Install one, or check the library setting in your session."
+
+#: dbconnection.pas:3044
+msgid "Firebird/Interbase client already loaded from library %s, ignoring selected library %s"
+msgstr "Firebird/Interbase client already loaded from library %s, ignoring selected library %s"
+
 #: dbconnection.pas:3180
 msgid "Real Hostname"
 msgstr "Real Hostname"
@@ -4165,7 +4173,7 @@ msgstr "Real Hostname"
 msgid "Server OS"
 msgstr "Server OS"
 
-#: dbconnection.pas:3182 tabletools.pas:1198
+#: dbconnection.pas:3182 tabletools.pas:1198 dbconnection.pas:4865 dbconnection.pas:7768
 msgid "Server version"
 msgstr "Server version"
 
@@ -4216,6 +4224,18 @@ msgstr "Could not determine name of table."
 #: dbconnection.pas:4859
 msgid "Column #%d has an undefined origin: %s"
 msgstr "Column #%d has an undefined origin: %s"
+
+#: dbconnection.pas:4864 dbconnection.pas:7767
+msgid "Server type"
+msgstr "Server type"
+
+#: dbconnection.pas:4866 dbconnection.pas:7769
+msgid "Client name"
+msgstr "Client name"
+
+#: dbconnection.pas:4867
+msgid "Client library"
+msgstr "Client library"
 
 #: dbconnection.pas:4877
 msgid "Cannot compose WHERE clause - column missing: %s"

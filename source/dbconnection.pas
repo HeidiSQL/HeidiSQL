@@ -3033,7 +3033,7 @@ begin
             InitialiseIBase60;
           except
             on E:EInOutError do
-              raise EDbError.Create('Could not load any Firebird/Interbase client library (fbclient, gds32 or ibclient). Install one, or check the library setting in your session.');
+              raise EDbError.Create(_('Could not load any Firebird/Interbase client library (fbclient, gds32 or ibclient). Install one, or check the library setting in your session.'));
           end;
         end;
       finally
