@@ -4771,6 +4771,9 @@ begin
         end;
       end;
       TableKeys.Free;
+      if OutsideKeyAdded then
+        // Drop the last semicolon, callers such as the export's Output() add it on their own
+        Delete(Result, Length(Result), 1);
 
     end;
 
