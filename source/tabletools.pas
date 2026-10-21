@@ -1906,14 +1906,23 @@ begin
     if chkExportDatabasesDrop.Checked and chkExportDatabasesDrop.Enabled then
       Output('DROP DATABASE IF EXISTS '+Quoter.QuoteIdent(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     if chkExportDatabasesCreate.Checked and chkExportDatabasesCreate.Enabled then begin
-      if DBObj.Connection.ServerVersionInt >= 40100 then begin
-        Struc := DBObj.Connection.GetVar('SHOW CREATE DATABASE '+DBObj.QuotedDatabase, 1);
-        // Gracefully ignore it when target database exists, important in server mode
-        Insert('IF NOT EXISTS ', Struc, Pos('DATABASE', Struc) + 9);
-        // Create the right dbname
-        Struc := StringReplace(Struc, DBObj.Database, FinalDbName, []);
-      end else
-        Struc := 'CREATE DATABASE IF NOT EXISTS '+Quoter.QuoteIdent(FinalDbName);
+      case DBObj.Connection.Parameters.NetTypeGroup of
+        ngMySQL: begin
+          if DBObj.Connection.ServerVersionInt >= 40100 then begin
+            Struc := DBObj.Connection.GetVar('SHOW CREATE DATABASE '+DBObj.QuotedDatabase, 1);
+            // Gracefully ignore it when target database exists, important in server mode
+            Insert('IF NOT EXISTS ', Struc, Pos('DATABASE', Struc) + 9);
+            // Create the right dbname
+            Struc := StringReplace(Struc, DBObj.Database, FinalDbName, []);
+          end else
+            Struc := 'CREATE DATABASE IF NOT EXISTS '+Quoter.QuoteIdent(FinalDbName);
+        end;
+        else begin
+          // SHOW CREATE DATABASE is MySQL-only syntax, and non-MySQL servers
+          // also lack IF NOT EXISTS on CREATE DATABASE
+          Struc := 'CREATE DATABASE '+Quoter.QuoteIdent(FinalDbName);
+        end;
+      end;
       Output(Struc, True, NeedsDBStructure, False, False, NeedsDBStructure);
       Output(Quoter.SqlProvider.GetSql(qUSEQuery, [Quoter.QuoteIdent(FinalDbName)]), True, NeedsDBStructure, False, False, NeedsDBStructure);
       Output(CRLF, False, NeedsDBStructure, False, False, NeedsDBStructure);
