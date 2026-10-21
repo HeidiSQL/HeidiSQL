@@ -864,6 +864,10 @@ type
       function IsNull(Column: String): Boolean; overload;
       function IsFunction(Column: Integer): Boolean;
       function HasResult: Boolean; virtual; abstract;
+      // Indicates whether a previously fetched result is still usable. SQLDB
+      // based connections override this, as their results get closed when any
+      // other query commits the shared transaction. See TSQLTransaction.
+      function IsResultAlive: Boolean; virtual;
       function GetWhereClause: String;
       procedure CheckEditable;
       function IsEditable: Boolean;
@@ -926,6 +930,7 @@ type
       FCurrentResults: TSQLQuery;
       FResultList: TSqlSrvResults;
       procedure SetRecNo(Value: Int64); override;
+      function IsResultAlive: Boolean; override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -990,6 +995,7 @@ type
       FCurrentResults: TSQLQuery;
       FResultList: TInterbaseRawResults;
       procedure SetRecNo(Value: Int64); override;
+      function IsResultAlive: Boolean; override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -6061,6 +6067,10 @@ function TDBConnection.GetCollationTable: TDBQuery;
 begin
   Log(lcDebug, 'Fetching list of collations ...');
   Ping(True);
+  // Cached results of SQLDB based connections get closed by the next
+  // transaction commit of any other query, so detect that and re-fetch
+  if Assigned(FCollationTable) and (not FCollationTable.IsResultAlive) then
+    FreeAndNil(FCollationTable);
   if (not Assigned(FCollationTable)) and FSqlProvider.Has(qGetCollations) then begin
     if FSqlProvider.Has(qGetCollationsExtended) then try
       FCollationTable := GetResults(FSqlProvider.GetSql(qGetCollationsExtended));
@@ -6093,6 +6103,10 @@ function TDBConnection.GetCharsetTable: TDBQuery;
 begin
   Log(lcDebug, 'Fetching charset list ...');
   Ping(True);
+  // Cached results of SQLDB based connections get closed by the next
+  // transaction commit of any other query, so detect that and re-fetch
+  if Assigned(FCharsetTable) and (not FCharsetTable.IsResultAlive) then
+    FreeAndNil(FCharsetTable);
   if (not Assigned(FCharsetTable)) and FSqlProvider.Has(qGetCharsets) then
     FCharsetTable := GetResults(FSqlProvider.GetSql(qGetCharsets));
   Result := FCharsetTable;
@@ -6119,6 +6133,10 @@ end;
 function TDBConnection.GetSessionVariables(Refresh: Boolean): TDBQuery;
 begin
   // Return server variables
+  // Cached results of SQLDB based connections get closed by the next
+  // transaction commit of any other query, so detect that and re-fetch
+  if Assigned(FSessionVariables) and (not FSessionVariables.IsResultAlive) then
+    FreeAndNil(FSessionVariables);
   if (not Assigned(FSessionVariables)) or Refresh then begin
     if Assigned(FSessionVariables) then
       FreeAndNil(FSessionVariables);
@@ -8134,12 +8152,22 @@ procedure TInterbaseConnection.FetchDbObjects(db: String; var Cache: TDBObjectLi
 var
   obj: TDBObject;
   Results: TDBQuery;
+  ViewContext: String;
 begin
-  // Tables and views
+  // Tables and views. RDB$RELATION_TYPE is a SMALLINT in Firebird 2.1+,
+  // but a CHAR ("PERSISTENT", "VIEW", "EXTERNAL") in InterBase 2020+, and
+  // missing on very old servers - so fall back to RDB$VIEW_SOURCE there,
+  // which is only set for views.
   Results := nil;
   try
-    Results := GetResults('SELECT RDB$RELATION_NAME, RDB$DESCRIPTION, RDB$RELATION_TYPE AS '+QuoteIdent('ViewContext') +
-      ' FROM RDB$RELATIONS WHERE RDB$RELATIONS.RDB$SYSTEM_FLAG = 0');
+    try
+      Results := GetResults('SELECT RDB$RELATION_NAME, RDB$DESCRIPTION, RDB$RELATION_TYPE AS '+QuoteIdent('ViewContext')+
+        ', RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATIONS.RDB$SYSTEM_FLAG = 0');
+    except
+      on E:EDbError do
+        Results := GetResults('SELECT RDB$RELATION_NAME, RDB$DESCRIPTION, NULL AS '+QuoteIdent('ViewContext')+
+          ', RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATIONS.RDB$SYSTEM_FLAG = 0');
+    end;
     try
       while not Results.Eof do begin
         obj := TDBObject.Create(Self);
@@ -8151,16 +8179,24 @@ begin
         obj.Database := db;
         obj.Comment := Trim(Results.Col('RDB$DESCRIPTION'));
 
-        if Parameters.IsInterbase then
-        begin
-          if Results.Col('ViewContext') = 'PERSISTENT' then
+        ViewContext := Trim(Results.Col('ViewContext'));
+        if ViewContext = '' then begin
+          // Old server without RDB$RELATION_TYPE: only views have a view source
+          if Results.IsNull('RDB$VIEW_SOURCE') then
             obj.NodeType := lntTable
           else
             obj.NodeType := lntView;
         end
-        else
-        begin
-          if Results.Col('ViewContext') = '0' then
+        else if Parameters.IsInterbase then begin
+          // InterBase: CHAR values "PERSISTENT", "VIEW", "EXTERNAL"
+          if SameText(ViewContext, 'PERSISTENT') or SameText(ViewContext, 'EXTERNAL') then
+            obj.NodeType := lntTable
+          else
+            obj.NodeType := lntView;
+        end
+        else begin
+          // Firebird: SMALLINT, 0=persistent table, 1=view, 2=external table, 3=virtual
+          if MakeInt(ViewContext) in [0, 2] then
             obj.NodeType := lntTable
           else
             obj.NodeType := lntView;
@@ -10159,6 +10195,29 @@ end;
 function TInterbaseQuery.HasResult: Boolean;
 begin
   Result := FResultList.Count > 0;
+end;
+
+
+function TDBQuery.IsResultAlive: Boolean;
+begin
+  // Results of C-API based connections do not get closed implicitly
+  Result := True;
+end;
+
+
+function TSqlSrvQuery.IsResultAlive: Boolean;
+begin
+  // The dataset gets closed by TSQLTransaction.Commit of any other query
+  // running on the same connection, see TSQLTransaction.AllowClose
+  Result := (FResultList.Count > 0) and FResultList[0].Active;
+end;
+
+
+function TInterbaseQuery.IsResultAlive: Boolean;
+begin
+  // The dataset gets closed by TSQLTransaction.Commit of any other query
+  // running on the same connection, see TSQLTransaction.AllowClose
+  Result := (FResultList.Count > 0) and FResultList[0].Active;
 end;
 
 
