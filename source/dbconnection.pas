@@ -1931,7 +1931,7 @@ begin
     FLibraries := TNetTypeLibs.Create;
   end;
 
-  if not FLibraries.ContainsKey(NetType) then begin
+  if not FLibraries.ContainsKey(Ord(NetType)) then begin
     FoundLibs := TStringList.Create;
     rx := TRegExpr.Create;
     rx.ModifierI := True;
@@ -2008,9 +2008,10 @@ begin
       end;
     end;
     rx.Free;
-    FLibraries.Add(NetType, FoundLibs);
+    FLibraries.Add(Ord(NetType), FoundLibs);
   end;
-  FLibraries.TryGetValue(NetType, Result);
+  if not FLibraries.TryGetValue(Ord(NetType), Result) then
+    Result := TStringList.Create;
 end;
 
 
