@@ -4770,6 +4770,11 @@ begin
     else
       Result := '';
   end;
+  // Callers such as the export's Output() append their own semicolon and line
+  // break for every finished query, so do not terminate the last statement,
+  // matching TMySQLConnection.GetCreateCode. See #2591
+  while (Result <> '') and ((Result[Length(Result)] = ';') or (Result[Length(Result)] = #10) or (Result[Length(Result)] = #13)) do
+    Delete(Result, Length(Result), 1);
 end;
 
 
