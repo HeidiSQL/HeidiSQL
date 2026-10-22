@@ -123,7 +123,7 @@ Source: "sqlite3-64.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Flags: igno
 Source: "sqlite3mc-64.dll"; DestDir: "{app}"; DestName: "sqlite3mc.dll"; Flags: ignoreversion
 ; Interbase/Firebird:
 Source: "ibclient64-14.1.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "fbclient-4.0-64.dll"; DestDir: "{app}"; DestName: "fbclient-4.0.dll"; Flags: ignoreversion
+Source: "fbclient-5.0-64.dll"; DestDir: "{app}"; DestName: "fbclient-5.0.dll"; Flags: ignoreversion
 ; SQL function definitions
 Source: "functions-*.ini"; DestDir: "{app}"; Flags: ignoreversion
 
