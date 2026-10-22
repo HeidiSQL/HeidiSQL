@@ -4252,10 +4252,11 @@ begin
     lntTable: begin
       Lines := TStringList.Create;
       try
-        // Columns. Identity columns need Firebird 3+, and array dimensions
-        // use LIST(), available since Firebird 2.1+ / recent InterBase.
-        // Fall back on older servers:
-        try
+        // Columns. Identity columns need Firebird 3+, and array dimensions use
+        // LIST(), available since Firebird 2.1+. InterBase has neither, so pick
+        // the query by server family and version instead of probing and
+        // catching query errors, which would spam the SQL log.
+        if Parameters.IsFirebird and (ServerVersionInt >= 30000) then
           Q := GetResults(
             'SELECT r.RDB$FIELD_NAME AS field_name, r.RDB$NULL_FLAG AS null_flag,'+
             ' r.RDB$DEFAULT_SOURCE AS default_source, r.RDB$IDENTITY_TYPE AS identity_type,'+
@@ -4274,10 +4275,9 @@ begin
             ' LEFT JOIN RDB$COLLATIONS collr ON collr.RDB$COLLATION_ID = r.RDB$COLLATION_ID AND collr.RDB$CHARACTER_SET_ID = f.RDB$CHARACTER_SET_ID'+
             ' LEFT JOIN RDB$COLLATIONS collf ON collf.RDB$COLLATION_ID = f.RDB$COLLATION_ID AND collf.RDB$CHARACTER_SET_ID = f.RDB$CHARACTER_SET_ID'+
             ' WHERE r.RDB$RELATION_NAME = '+EscapeString(Obj.Name)+
-            ' ORDER BY r.RDB$FIELD_POSITION');
-        except
-          on E:EDbError do
-            Q := GetResults(
+            ' ORDER BY r.RDB$FIELD_POSITION')
+        else
+          Q := GetResults(
               'SELECT r.RDB$FIELD_NAME AS field_name, r.RDB$NULL_FLAG AS null_flag,'+
               ' r.RDB$DEFAULT_SOURCE AS default_source, CAST(NULL AS SMALLINT) AS identity_type,'+
               ' f.RDB$FIELD_TYPE AS field_type, f.RDB$FIELD_SUB_TYPE AS field_subtype,'+
@@ -4295,7 +4295,6 @@ begin
               ' LEFT JOIN RDB$COLLATIONS collf ON collf.RDB$COLLATION_ID = f.RDB$COLLATION_ID AND collf.RDB$CHARACTER_SET_ID = f.RDB$CHARACTER_SET_ID'+
               ' WHERE r.RDB$RELATION_NAME = '+EscapeString(Obj.Name)+
               ' ORDER BY r.RDB$FIELD_POSITION');
-        end;
         while not Q.Eof do begin
           Line := '  '+QuoteIdent(Trim(Q.Col('field_name')))+' '+
             FieldTypeText(MakeInt(Q.Col('field_type')), MakeInt(Q.Col('field_subtype')),
@@ -4637,8 +4636,9 @@ begin
         else
           Q.Free;
       except
-        // Not available on old InterBase versions, or external function
-        on E:EDbError do
+        // Not available on old InterBase versions, or external function.
+        // InterBase has no RDB$FUNCTION_SOURCE at all.
+        on E:Exception do
           Result := '';
       end;
     end;
@@ -8190,7 +8190,8 @@ begin
       Results := GetResults('SELECT RDB$RELATION_NAME, RDB$DESCRIPTION, RDB$RELATION_TYPE AS '+QuoteIdent('ViewContext')+
         ', RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATIONS.RDB$SYSTEM_FLAG = 0');
     except
-      on E:EDbError do
+      // Old servers do not have RDB$RELATION_TYPE
+      on E:Exception do
         Results := GetResults('SELECT RDB$RELATION_NAME, RDB$DESCRIPTION, NULL AS '+QuoteIdent('ViewContext')+
           ', RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATIONS.RDB$SYSTEM_FLAG = 0');
     end;
