@@ -89,6 +89,8 @@ type
     public
       Name, OldName: String;
       IndexType, OldIndexType, Algorithm, Comment: String;
+      // Full "CREATE INDEX" definition from pg_get_indexdef, used by PostgreSQL create code
+      Definition: String;
       Size: Int64;
       Columns, SubParts, Collations: TStringList;
       Modified, Added, Visible: Boolean;
@@ -4314,10 +4316,14 @@ var
   TableForeignKey: TForeignKey;
   TableCheckConstraints: TCheckConstraintList;
   TableCheckConstraint: TCheckConstraint;
+  OutsideKeyAdded: Boolean;
 begin
   case Obj.NodeType of
     lntTable: begin
-      Result := 'CREATE TABLE '+QuoteIdent(Obj.Name)+' (';
+      if (FParameters.NetTypeGroup = ngPgSQL) and (not Obj.Schema.IsEmpty) then
+        Result := 'CREATE TABLE '+Obj.QuotedDatabase+'.'+QuoteIdent(Obj.Name)+' ('
+      else
+        Result := 'CREATE TABLE '+QuoteIdent(Obj.Name)+' (';
       TableCols := Obj.GetTableColumns;
       for TableCol in TableCols do begin
         Result := Result + sLineBreak + CodeIndent + TableCol.SQLCode + ',';
@@ -4347,14 +4353,23 @@ begin
       Result := Result + sLineBreak + ')';
 
       TableKeys := Obj.GetTableKeys;
+      OutsideKeyAdded := False;
       for TableKey in TableKeys do begin
         if not TableKey.InsideCreateCode then begin
-          if TableKeys.IndexOf(TableKey) = 0 then
+          if not OutsideKeyAdded then begin
             Result := Result + ';';
-          Result := Result + sLineBreak + TableKey.SQLCode + ';';
+            OutsideKeyAdded := True;
+          end;
+          if (FParameters.NetTypeGroup = ngPgSQL) and (not Obj.Schema.IsEmpty) then
+            Result := Result + sLineBreak + TableKey.SQLCode(Obj.QuotedDatabase+'.'+QuoteIdent(Obj.Name)) + ';'
+          else
+            Result := Result + sLineBreak + TableKey.SQLCode(QuoteIdent(Obj.Name)) + ';';
         end;
       end;
       TableKeys.Free;
+      if OutsideKeyAdded then
+        // Drop the last semicolon, callers such as the export's Output() add it on their own
+        Delete(Result, Length(Result), 1);
 
     end;
 
@@ -6345,7 +6360,8 @@ begin
       '    JOIN ndx_list ON (pg_class.oid = ndx_list.indexrelid)'+
       '    WHERE pg_table_is_visible(pg_class.oid)'+
       '  )'+
-      'SELECT ndx_cols.relname AS CONSTRAINT_NAME, ndx_cols.CONSTRAINT_TYPE, a.attname AS COLUMN_NAME '+
+      'SELECT ndx_cols.relname AS CONSTRAINT_NAME, ndx_cols.CONSTRAINT_TYPE, a.attname AS COLUMN_NAME, '+
+      'pg_get_indexdef(ndx_cols.oid) AS INDEXDEF '+
       'FROM pg_attribute a '+
       'JOIN ndx_cols ON (a.attnum = ndx_cols.col_ndx) '+
       'JOIN ndx_list ON (ndx_list.oid = a.attrelid AND ndx_list.indexrelid = ndx_cols.oid)'
@@ -6381,6 +6397,8 @@ begin
       if NewKey.IndexType.ToLowerInvariant.EndsWith(' key') then
         Delete(NewKey.IndexType, Length(NewKey.IndexType)-4, 4);
       NewKey.OldIndexType := NewKey.IndexType;
+      if KeyQuery.ColumnExists('INDEXDEF') then
+        NewKey.Definition := KeyQuery.Col('INDEXDEF');
     end;
     NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'));
     NewKey.SubParts.Add('');
@@ -11268,6 +11286,7 @@ begin
     OldIndexType := s.OldIndexType;
     Algorithm := s.Algorithm;
     Comment := s.Comment;
+    Definition := s.Definition;
     Visible := s.Visible;
     Size := s.Size;
     Columns.Assign(s.Columns);
@@ -11390,6 +11409,11 @@ begin
 
   end
   else begin
+    if (not Definition.IsEmpty) and FConnection.Parameters.IsAnyPostgreSQL then begin
+      // Use the original definition from pg_get_indexdef, see TPGConnection.GetTableKeys
+      Result := Definition;
+      Exit;
+    end;
     // SQLite syntax:
     // CREATE INDEX myindex ON table1 ("Column 1")
     // TODO: test on PG, MS, IB
