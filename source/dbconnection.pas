@@ -4242,8 +4242,534 @@ end;
 
 
 function TInterbaseConnection.GetCreateCode(Obj: TDBObject): String;
+
+  function FieldTypeText(TNr, STNr, Len, Prec, Scale, CharLen: Integer): String;
+  var
+    TypeName: String;
+  begin
+    // NUMERIC/DECIMAL are stored on SMALLINT, INTEGER or INT64 columns,
+    // distinguished by RDB$FIELD_SUB_TYPE: 1=NUMERIC, 2=DECIMAL
+    if (TNr in [7, 8, 16]) and (STNr in [1, 2]) then begin
+      if STNr = 1 then
+        TypeName := 'NUMERIC'
+      else
+        TypeName := 'DECIMAL';
+      if Prec <= 0 then begin
+        case TNr of
+          7: Prec := 4;
+          8: Prec := 9;
+          16: Prec := 18;
+        end;
+      end;
+      Result := TypeName+'('+IntToStr(Prec)+', '+IntToStr(Abs(Scale))+')';
+      Exit;
+    end;
+    case TNr of
+      7: Result := 'SMALLINT';
+      8: Result := 'INTEGER';
+      16: Result := 'BIGINT';
+      9: Result := 'QUAD';
+      10: Result := 'FLOAT';
+      11: Result := 'D_FLOAT';
+      27: Result := 'DOUBLE PRECISION';
+      12: Result := 'DATE';
+      13: Result := 'TIME';
+      35: Result := 'TIMESTAMP';
+      17: Result := 'BOOLEAN';
+      14: begin
+        if CharLen > 0 then
+          Len := CharLen;
+        Result := 'CHAR('+IntToStr(Len)+')';
+      end;
+      37: begin
+        if CharLen > 0 then
+          Len := CharLen;
+        Result := 'VARCHAR('+IntToStr(Len)+')';
+      end;
+      40: begin
+        if CharLen > 0 then
+          Len := CharLen;
+        Result := 'CSTRING('+IntToStr(Len)+')';
+      end;
+      261: begin
+        case STNr of
+          0: Result := 'BLOB';
+          1: Result := 'BLOB SUB_TYPE TEXT';
+          else Result := 'BLOB SUB_TYPE '+IntToStr(STNr);
+        end;
+      end;
+      else
+        Result := 'UNKNOWN-'+IntToStr(TNr);
+    end;
+  end;
+
+  function TriggerTypeName(TrigType: Integer): String;
+  const
+    SingleTypes: array[1..6] of String = ('BEFORE INSERT', 'AFTER INSERT', 'BEFORE UPDATE', 'AFTER UPDATE', 'BEFORE DELETE', 'AFTER DELETE');
+  var
+    SinglePart, Rest, FieldPos, EventValue: Integer;
+  begin
+    // See Firebird language reference, appendix on RDB$TRIGGERS:
+    // single event triggers use the legacy values 1..6, database level
+    // triggers 8192..8196. Composite DML types are a bitmap, in which
+    // bits 0-2 hold the single type of the first event, followed by
+    // 2-bit-fields for every further event, starting at bit 3:
+    // 1=INSERT, 2=UPDATE, 3=DELETE.
+    Result := '';
+    if (TrigType >= 1) and (TrigType <= 6) then
+      Result := SingleTypes[TrigType]
+    else if (TrigType >= 8192) and (TrigType <= 8196) then begin
+      case TrigType of
+        8192: Result := 'ON CONNECT';
+        8193: Result := 'ON DISCONNECT';
+        8194: Result := 'ON TRANSACTION START';
+        8195: Result := 'ON TRANSACTION COMMIT';
+        8196: Result := 'ON TRANSACTION ROLLBACK';
+      end;
+    end
+    else if TrigType >= 17 then begin
+      SinglePart := TrigType and 7;
+      if (SinglePart >= 1) and (SinglePart <= 6) then begin
+        Result := SingleTypes[SinglePart];
+        Rest := TrigType and not 7;
+        FieldPos := 3;
+        while (Rest > 0) and (FieldPos < 30) do begin
+          EventValue := (Rest shr FieldPos) and 3;
+          if EventValue = 0 then
+            Break;
+          case EventValue of
+            1: Result := Result+' OR INSERT';
+            2: Result := Result+' OR UPDATE';
+            3: Result := Result+' OR DELETE';
+          end;
+          Rest := Rest and not (3 shl FieldPos);
+          Inc(FieldPos, 2);
+        end;
+      end;
+    end;
+  end;
+
+  function CommaList(List: TStringList): String;
+  var
+    i: Integer;
+  begin
+    Result := '';
+    for i:=0 to List.Count-1 do begin
+      if i > 0 then
+        Result := Result+', ';
+      Result := Result+List[i];
+    end;
+  end;
+
+var
+  Q, Sub: TDBQuery;
+  Lines, FromCols, ToCols, InParams, OutParams, Args: TStringList;
+  Line, KeyName, CharsetName, CollName, Source, FkRefTable, FkOnUpdate, FkOnDelete, FkLine: String;
+  i, RetPos, TrigType: Integer;
+  FkDeferrable, FkInitiallyDeferred: Boolean;
 begin
-  // Todo
+  Result := '';
+  FkDeferrable := False;
+  FkInitiallyDeferred := False;
+  case Obj.NodeType of
+
+    lntTable: begin
+      Lines := TStringList.Create;
+      try
+        // Columns. Identity columns need Firebird 3+, and array dimensions
+        // use LIST(), available since Firebird 2.1+ / recent InterBase.
+        // Fall back on older servers:
+        try
+          Q := GetResults(
+            'SELECT r.RDB$FIELD_NAME AS field_name, r.RDB$NULL_FLAG AS null_flag,'+
+            ' r.RDB$DEFAULT_SOURCE AS default_source, r.RDB$IDENTITY_TYPE AS identity_type,'+
+            ' f.RDB$FIELD_TYPE AS field_type, f.RDB$FIELD_SUB_TYPE AS field_subtype,'+
+            ' f.RDB$FIELD_LENGTH AS field_length, f.RDB$FIELD_PRECISION AS field_precision,'+
+            ' f.RDB$FIELD_SCALE AS field_scale, f.RDB$CHARACTER_LENGTH AS charlen,'+
+            ' f.RDB$NULL_FLAG AS domain_null_flag, f.RDB$DEFAULT_SOURCE AS domain_default_source,'+
+            ' f.RDB$COMPUTED_SOURCE AS computed_source,'+
+            ' cset.RDB$CHARACTER_SET_NAME AS charset_name,'+
+            ' collr.RDB$COLLATION_NAME AS collation_name_r, collf.RDB$COLLATION_NAME AS collation_name_f,'+
+            ' (SELECT LIST(TRIM(CAST(d.RDB$LOWER_BOUND AS VARCHAR(11))) || '':'' || TRIM(CAST(d.RDB$UPPER_BOUND AS VARCHAR(11))))'+
+            ' FROM RDB$FIELD_DIMENSIONS d WHERE d.RDB$FIELD_NAME = r.RDB$FIELD_SOURCE) AS dimensions'+
+            ' FROM RDB$RELATION_FIELDS r'+
+            ' JOIN RDB$FIELDS f ON f.RDB$FIELD_NAME = r.RDB$FIELD_SOURCE'+
+            ' LEFT JOIN RDB$CHARACTER_SETS cset ON cset.RDB$CHARACTER_SET_ID = f.RDB$CHARACTER_SET_ID'+
+            ' LEFT JOIN RDB$COLLATIONS collr ON collr.RDB$COLLATION_ID = r.RDB$COLLATION_ID AND collr.RDB$CHARACTER_SET_ID = f.RDB$CHARACTER_SET_ID'+
+            ' LEFT JOIN RDB$COLLATIONS collf ON collf.RDB$COLLATION_ID = f.RDB$COLLATION_ID AND collf.RDB$CHARACTER_SET_ID = f.RDB$CHARACTER_SET_ID'+
+            ' WHERE r.RDB$RELATION_NAME = '+EscapeString(Obj.Name)+
+            ' ORDER BY r.RDB$FIELD_POSITION');
+        except
+          on E:EDbError do
+            Q := GetResults(
+              'SELECT r.RDB$FIELD_NAME AS field_name, r.RDB$NULL_FLAG AS null_flag,'+
+              ' r.RDB$DEFAULT_SOURCE AS default_source, CAST(NULL AS SMALLINT) AS identity_type,'+
+              ' f.RDB$FIELD_TYPE AS field_type, f.RDB$FIELD_SUB_TYPE AS field_subtype,'+
+              ' f.RDB$FIELD_LENGTH AS field_length, f.RDB$FIELD_PRECISION AS field_precision,'+
+              ' f.RDB$FIELD_SCALE AS field_scale, f.RDB$CHARACTER_LENGTH AS charlen,'+
+              ' f.RDB$NULL_FLAG AS domain_null_flag, f.RDB$DEFAULT_SOURCE AS domain_default_source,'+
+              ' f.RDB$COMPUTED_SOURCE AS computed_source,'+
+              ' cset.RDB$CHARACTER_SET_NAME AS charset_name,'+
+              ' NULL AS collation_name_r,'+
+              ' collf.RDB$COLLATION_NAME AS collation_name_f,'+
+              ' NULL AS dimensions'+
+              ' FROM RDB$RELATION_FIELDS r'+
+              ' JOIN RDB$FIELDS f ON f.RDB$FIELD_NAME = r.RDB$FIELD_SOURCE'+
+              ' LEFT JOIN RDB$CHARACTER_SETS cset ON cset.RDB$CHARACTER_SET_ID = f.RDB$CHARACTER_SET_ID'+
+              ' LEFT JOIN RDB$COLLATIONS collf ON collf.RDB$COLLATION_ID = f.RDB$COLLATION_ID AND collf.RDB$CHARACTER_SET_ID = f.RDB$CHARACTER_SET_ID'+
+              ' WHERE r.RDB$RELATION_NAME = '+EscapeString(Obj.Name)+
+              ' ORDER BY r.RDB$FIELD_POSITION');
+        end;
+        while not Q.Eof do begin
+          Line := '  '+QuoteIdent(Trim(Q.Col('field_name')))+' '+
+            FieldTypeText(MakeInt(Q.Col('field_type')), MakeInt(Q.Col('field_subtype')),
+              MakeInt(Q.Col('field_length')), MakeInt(Q.Col('field_precision')),
+              MakeInt(Q.Col('field_scale')), MakeInt(Q.Col('charlen')));
+          if Trim(Q.Col('dimensions')) <> '' then
+            Line := Line+' ['+Trim(Q.Col('dimensions'))+']';
+          if not Q.IsNull('identity_type') then begin
+            if MakeInt(Q.Col('identity_type')) = 1 then
+              Line := Line+' GENERATED ALWAYS AS IDENTITY'
+            else
+              Line := Line+' GENERATED BY DEFAULT AS IDENTITY';
+          end;
+          if not Q.IsNull('computed_source') then
+            Line := Line+' COMPUTED BY '+Trim(Q.Col('computed_source'));
+          CharsetName := Trim(Q.Col('charset_name'));
+          if (CharsetName <> '') and (not SameText(CharsetName, 'NONE')) then
+            Line := Line+' CHARACTER SET '+CharsetName;
+          CollName := Trim(Q.Col('collation_name_r'));
+          if CollName = '' then
+            CollName := Trim(Q.Col('collation_name_f'));
+          if (CollName <> '') and (not SameText(CollName, 'NONE')) and (not SameText(CollName, CharsetName)) then
+            Line := Line+' COLLATE '+CollName;
+          if not Q.IsNull('default_source') then
+            Line := Line+' '+Trim(Q.Col('default_source'))
+          else if not Q.IsNull('domain_default_source') then
+            Line := Line+' '+Trim(Q.Col('domain_default_source'));
+          if (MakeInt(Q.Col('null_flag')) = 1) or (MakeInt(Q.Col('domain_null_flag')) = 1) then
+            Line := Line+' NOT NULL';
+          Lines.Add(Line);
+          Q.Next;
+        end;
+        Q.Free;
+
+        // PRIMARY KEY and UNIQUE constraints
+        Q := GetResults(
+          'SELECT rc.RDB$CONSTRAINT_NAME AS constraint_name, rc.RDB$CONSTRAINT_TYPE AS constraint_type,'+
+          ' s.RDB$FIELD_NAME AS field_name'+
+          ' FROM RDB$RELATION_CONSTRAINTS rc'+
+          ' JOIN RDB$INDEX_SEGMENTS s ON s.RDB$INDEX_NAME = rc.RDB$INDEX_NAME'+
+          ' WHERE rc.RDB$RELATION_NAME = '+EscapeString(Obj.Name)+
+          ' AND rc.RDB$CONSTRAINT_TYPE IN ('+EscapeString('PRIMARY KEY')+', '+EscapeString('UNIQUE')+')'+
+          ' ORDER BY rc.RDB$CONSTRAINT_NAME, s.RDB$FIELD_POSITION');
+        KeyName := '';
+        Line := '';
+        while not Q.Eof do begin
+          if Trim(Q.Col('constraint_name')) <> KeyName then begin
+            if Line <> '' then
+              Lines.Add(Line+')');
+            KeyName := Trim(Q.Col('constraint_name'));
+            if SameText(Trim(Q.Col('constraint_type')), 'PRIMARY KEY') then
+              Line := '  CONSTRAINT '+QuoteIdent(KeyName)+' PRIMARY KEY ('
+            else
+              Line := '  CONSTRAINT '+QuoteIdent(KeyName)+' UNIQUE (';
+          end
+          else
+            Line := Line+', ';
+          Line := Line+QuoteIdent(Trim(Q.Col('field_name')));
+          Q.Next;
+        end;
+        if Line <> '' then
+          Lines.Add(Line+')');
+        Q.Free;
+
+        // FOREIGN KEY constraints
+        FromCols := TStringList.Create;
+        ToCols := TStringList.Create;
+        try
+          Q := GetResults(
+            'SELECT rc.RDB$CONSTRAINT_NAME AS constraint_name, rc.RDB$DEFERRABLE AS deferrable,'+
+            ' rc.RDB$INITIALLY_DEFERRED AS initially_deferred,'+
+            ' refc.RDB$UPDATE_RULE AS update_rule, refc.RDB$DELETE_RULE AS delete_rule,'+
+            ' fkrc.RDB$RELATION_NAME AS ref_table,'+
+            ' stis.RDB$FIELD_NAME AS from_field, fkis.RDB$FIELD_NAME AS to_field'+
+            ' FROM RDB$RELATION_CONSTRAINTS rc'+
+            ' JOIN RDB$REF_CONSTRAINTS refc ON refc.RDB$CONSTRAINT_NAME = rc.RDB$CONSTRAINT_NAME'+
+            ' JOIN RDB$RELATION_CONSTRAINTS fkrc ON fkrc.RDB$CONSTRAINT_NAME = refc.RDB$CONST_NAME_UQ'+
+            ' JOIN RDB$INDEX_SEGMENTS stis ON stis.RDB$INDEX_NAME = rc.RDB$INDEX_NAME'+
+            ' JOIN RDB$INDEX_SEGMENTS fkis ON fkis.RDB$INDEX_NAME = fkrc.RDB$INDEX_NAME AND fkis.RDB$FIELD_POSITION = stis.RDB$FIELD_POSITION'+
+            ' WHERE rc.RDB$RELATION_NAME = '+EscapeString(Obj.Name)+
+            ' AND rc.RDB$CONSTRAINT_TYPE = '+EscapeString('FOREIGN KEY')+
+            ' ORDER BY rc.RDB$CONSTRAINT_NAME, stis.RDB$FIELD_POSITION');
+          KeyName := '';
+          while not Q.Eof do begin
+            if Trim(Q.Col('constraint_name')) <> KeyName then begin
+              if KeyName <> '' then begin
+                FkLine := '  CONSTRAINT '+QuoteIdent(KeyName)+' FOREIGN KEY ('+CommaList(FromCols)+')'+
+                  ' REFERENCES '+QuoteIdent(FkRefTable)+' ('+CommaList(ToCols)+')';
+                if FkOnUpdate <> '' then
+                  FkLine := FkLine+' ON UPDATE '+FkOnUpdate;
+                if FkOnDelete <> '' then
+                  FkLine := FkLine+' ON DELETE '+FkOnDelete;
+                if FkDeferrable then begin
+                  FkLine := FkLine+' DEFERRABLE';
+                  if FkInitiallyDeferred then
+                    FkLine := FkLine+' INITIALLY DEFERRED';
+                end;
+                Lines.Add(FkLine);
+              end;
+              KeyName := Trim(Q.Col('constraint_name'));
+              FromCols.Clear;
+              ToCols.Clear;
+              FkRefTable := Trim(Q.Col('ref_table'));
+              FkOnUpdate := Trim(Q.Col('update_rule'));
+              FkOnDelete := Trim(Q.Col('delete_rule'));
+              // RDB$REF_CONSTRAINTS stores "RESTRICT" where DDL requires "NO ACTION"
+              if SameText(FkOnUpdate, 'RESTRICT') then
+                FkOnUpdate := 'NO ACTION';
+              if SameText(FkOnDelete, 'RESTRICT') then
+                FkOnDelete := 'NO ACTION';
+              FkDeferrable := SameText(Trim(Q.Col('deferrable')), 'YES');
+              FkInitiallyDeferred := SameText(Trim(Q.Col('initially_deferred')), 'YES');
+            end;
+            FromCols.Add(QuoteIdent(Trim(Q.Col('from_field'))));
+            ToCols.Add(QuoteIdent(Trim(Q.Col('to_field'))));
+            Q.Next;
+          end;
+          if KeyName <> '' then begin
+            FkLine := '  CONSTRAINT '+QuoteIdent(KeyName)+' FOREIGN KEY ('+CommaList(FromCols)+')'+
+              ' REFERENCES '+QuoteIdent(FkRefTable)+' ('+CommaList(ToCols)+')';
+            if FkOnUpdate <> '' then
+              FkLine := FkLine+' ON UPDATE '+FkOnUpdate;
+            if FkOnDelete <> '' then
+              FkLine := FkLine+' ON DELETE '+FkOnDelete;
+            if FkDeferrable then begin
+              FkLine := FkLine+' DEFERRABLE';
+              if FkInitiallyDeferred then
+                FkLine := FkLine+' INITIALLY DEFERRED';
+            end;
+            Lines.Add(FkLine);
+          end;
+          Q.Free;
+        finally
+          FromCols.Free;
+          ToCols.Free;
+        end;
+
+        // CHECK constraints. Every check has one entry per DML statement in
+        // RDB$CHECK_CONSTRAINTS, so only take the first source per constraint.
+        Q := GetResults(
+          'SELECT rc.RDB$CONSTRAINT_NAME AS constraint_name, t.RDB$TRIGGER_SOURCE AS check_source'+
+          ' FROM RDB$RELATION_CONSTRAINTS rc'+
+          ' JOIN RDB$CHECK_CONSTRAINTS cc ON cc.RDB$CONSTRAINT_NAME = rc.RDB$CONSTRAINT_NAME'+
+          ' JOIN RDB$TRIGGERS t ON t.RDB$TRIGGER_NAME = cc.RDB$TRIGGER_NAME'+
+          ' WHERE rc.RDB$RELATION_NAME = '+EscapeString(Obj.Name)+
+          ' AND rc.RDB$CONSTRAINT_TYPE = '+EscapeString('CHECK')+
+          ' ORDER BY rc.RDB$CONSTRAINT_NAME');
+        KeyName := '';
+        while not Q.Eof do begin
+          if (Trim(Q.Col('constraint_name')) <> KeyName) and (not Q.IsNull('check_source')) then begin
+            KeyName := Trim(Q.Col('constraint_name'));
+            Lines.Add('  CONSTRAINT '+QuoteIdent(KeyName)+' '+Trim(Q.Col('check_source')));
+          end;
+          Q.Next;
+        end;
+        Q.Free;
+
+        if Lines.Count = 0 then
+          Exit;
+        Result := 'CREATE TABLE '+QuoteIdent(Obj.Name)+' ('+sLineBreak;
+        for i:=0 to Lines.Count-1 do begin
+          if i > 0 then
+            Result := Result+','+sLineBreak;
+          Result := Result+Lines[i];
+        end;
+        Result := Result+sLineBreak+');'+sLineBreak+sLineBreak;
+
+        // Plain indexes, which are not the backing index of any constraint
+        Q := GetResults(
+          'SELECT i.RDB$INDEX_NAME AS index_name, i.RDB$UNIQUE_FLAG AS unique_flag,'+
+          ' i.RDB$INDEX_TYPE AS index_type, s.RDB$FIELD_NAME AS field_name'+
+          ' FROM RDB$INDICES i'+
+          ' JOIN RDB$INDEX_SEGMENTS s ON s.RDB$INDEX_NAME = i.RDB$INDEX_NAME'+
+          ' WHERE i.RDB$RELATION_NAME = '+EscapeString(Obj.Name)+
+          ' AND NOT EXISTS (SELECT 1 FROM RDB$RELATION_CONSTRAINTS rc WHERE rc.RDB$INDEX_NAME = i.RDB$INDEX_NAME)'+
+          ' ORDER BY i.RDB$INDEX_NAME, s.RDB$FIELD_POSITION');
+        KeyName := '';
+        Line := '';
+        while not Q.Eof do begin
+          if Trim(Q.Col('index_name')) <> KeyName then begin
+            if KeyName <> '' then
+              Result := Result+Line+');'+sLineBreak+sLineBreak;
+            KeyName := Trim(Q.Col('index_name'));
+            Line := 'CREATE ';
+            if MakeInt(Q.Col('unique_flag')) = 1 then
+              Line := Line+'UNIQUE ';
+            if MakeInt(Q.Col('index_type')) = 1 then
+              Line := Line+'DESCENDING ';
+            Line := Line+'INDEX '+QuoteIdent(KeyName)+' ON '+QuoteIdent(Obj.Name)+' (';
+          end
+          else
+            Line := Line+', ';
+          Line := Line+QuoteIdent(Trim(Q.Col('field_name')));
+          Q.Next;
+        end;
+        if KeyName <> '' then
+          Result := Result+Line+');'+sLineBreak;
+        Q.Free;
+      finally
+        Lines.Free;
+      end;
+    end;
+
+    lntView: begin
+      Q := GetResults('SELECT RDB$VIEW_SOURCE AS view_source FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = '+EscapeString(Obj.Name));
+      if (not Q.Eof) and (not Q.IsNull('view_source')) then begin
+        Source := Trim(Q.Col('view_source'));
+        Q.Free;
+        Result := 'CREATE VIEW '+QuoteIdent(Obj.Name);
+        Sub := GetResults('SELECT RDB$FIELD_NAME AS field_name FROM RDB$RELATION_FIELDS WHERE RDB$RELATION_NAME = '+EscapeString(Obj.Name)+' ORDER BY RDB$FIELD_POSITION');
+        Line := '';
+        while not Sub.Eof do begin
+          if Line <> '' then
+            Line := Line+', ';
+          Line := Line+QuoteIdent(Trim(Sub.Col('field_name')));
+          Sub.Next;
+        end;
+        Sub.Free;
+        if Line <> '' then
+          Result := Result+' ('+Line+')';
+        Result := Result+' AS'+sLineBreak+Source+';';
+      end
+      else
+        Q.Free;
+    end;
+
+    lntProcedure: begin
+      InParams := TStringList.Create;
+      OutParams := TStringList.Create;
+      try
+        Q := GetResults(
+          'SELECT p.RDB$PARAMETER_NAME AS param_name, p.RDB$PARAMETER_TYPE AS param_type,'+
+          ' f.RDB$FIELD_TYPE AS field_type, f.RDB$FIELD_SUB_TYPE AS field_subtype,'+
+          ' f.RDB$FIELD_LENGTH AS field_length, f.RDB$FIELD_PRECISION AS field_precision,'+
+          ' f.RDB$FIELD_SCALE AS field_scale, f.RDB$CHARACTER_LENGTH AS charlen'+
+          ' FROM RDB$PROCEDURE_PARAMETERS p'+
+          ' JOIN RDB$FIELDS f ON f.RDB$FIELD_NAME = p.RDB$FIELD_SOURCE'+
+          ' WHERE p.RDB$PROCEDURE_NAME = '+EscapeString(Obj.Name)+
+          ' ORDER BY p.RDB$PARAMETER_TYPE, p.RDB$PARAMETER_NUMBER');
+        while not Q.Eof do begin
+          Line := Trim(Q.Col('param_name'))+' '+
+            FieldTypeText(MakeInt(Q.Col('field_type')), MakeInt(Q.Col('field_subtype')),
+              MakeInt(Q.Col('field_length')), MakeInt(Q.Col('field_precision')),
+              MakeInt(Q.Col('field_scale')), MakeInt(Q.Col('charlen')));
+          if MakeInt(Q.Col('param_type')) = 0 then
+            InParams.Add(Line)
+          else
+            OutParams.Add(Line);
+          Q.Next;
+        end;
+        Q.Free;
+        Result := 'CREATE PROCEDURE '+QuoteIdent(Obj.Name);
+        if InParams.Count > 0 then
+          Result := Result+' ('+CommaList(InParams)+')';
+        if OutParams.Count > 0 then
+          Result := Result+sLineBreak+'RETURNS ('+CommaList(OutParams)+')';
+        Result := Result+' AS'+sLineBreak;
+        Q := GetResults('SELECT RDB$PROCEDURE_SOURCE AS proc_source FROM RDB$PROCEDURES WHERE RDB$PROCEDURE_NAME = '+EscapeString(Obj.Name));
+        if not Q.Eof then
+          Result := Result+Trim(Q.Col('proc_source'))+';';
+        Q.Free;
+      finally
+        InParams.Free;
+        OutParams.Free;
+      end;
+    end;
+
+    lntTrigger: begin
+      Q := GetResults(
+        'SELECT RDB$RELATION_NAME AS relation_name, RDB$TRIGGER_TYPE AS trigger_type,'+
+        ' RDB$TRIGGER_SEQUENCE AS trigger_sequence, RDB$TRIGGER_INACTIVE AS trigger_inactive,'+
+        ' RDB$TRIGGER_SOURCE AS trigger_source'+
+        ' FROM RDB$TRIGGERS WHERE RDB$TRIGGER_NAME = '+EscapeString(Obj.Name));
+      if not Q.Eof then begin
+        Source := Trim(Q.Col('trigger_source'));
+        TrigType := MakeInt(Q.Col('trigger_type'));
+        Result := 'CREATE TRIGGER '+QuoteIdent(Obj.Name);
+        if Trim(Q.Col('relation_name')) <> '' then
+          Result := Result+' FOR '+QuoteIdent(Trim(Q.Col('relation_name')));
+        if MakeInt(Q.Col('trigger_inactive')) = 1 then
+          Result := Result+' INACTIVE'
+        else
+          Result := Result+' ACTIVE';
+        Result := Result+' '+TriggerTypeName(TrigType);
+        if (TrigType >= 1) and (TrigType <= 6) or (TrigType >= 17) and (TrigType < 8192) then
+          Result := Result+' POSITION '+Trim(Q.Col('trigger_sequence'));
+        Result := Result+sLineBreak+Source+';';
+      end;
+      Q.Free;
+    end;
+
+    lntFunction: begin
+      try
+        // PSQL functions need Firebird 3+, and the argument metadata is in
+        // RDB$FUNCTION_ARGUMENTS. External functions have no source to
+        // reconstruct, see RDB$MODULE_NAME.
+        Q := GetResults(
+          'SELECT RDB$FUNCTION_SOURCE AS function_source, RDB$RETURN_ARGUMENT AS return_argument'+
+          ' FROM RDB$FUNCTIONS WHERE RDB$FUNCTION_NAME = '+EscapeString(Obj.Name)+
+          ' AND RDB$SYSTEM_FLAG = 0');
+        if (not Q.Eof) and (not Q.IsNull('function_source')) then begin
+          Source := Trim(Q.Col('function_source'));
+          RetPos := MakeInt(Q.Col('return_argument'));
+          Q.Free;
+          Args := TStringList.Create;
+          try
+            Q := GetResults(
+              'SELECT a.RDB$ARGUMENT_POSITION AS arg_pos, a.RDB$ARGUMENT_NAME AS arg_name,'+
+              ' f.RDB$FIELD_TYPE AS field_type, f.RDB$FIELD_SUB_TYPE AS field_subtype,'+
+              ' f.RDB$FIELD_LENGTH AS field_length, f.RDB$FIELD_PRECISION AS field_precision,'+
+              ' f.RDB$FIELD_SCALE AS field_scale, f.RDB$CHARACTER_LENGTH AS charlen'+
+              ' FROM RDB$FUNCTION_ARGUMENTS a'+
+              ' JOIN RDB$FIELDS f ON f.RDB$FIELD_NAME = a.RDB$FIELD_SOURCE'+
+              ' WHERE a.RDB$FUNCTION_NAME = '+EscapeString(Obj.Name)+
+              ' ORDER BY a.RDB$ARGUMENT_POSITION');
+            Line := '';
+            while not Q.Eof do begin
+              CollName := FieldTypeText(MakeInt(Q.Col('field_type')), MakeInt(Q.Col('field_subtype')),
+                MakeInt(Q.Col('field_length')), MakeInt(Q.Col('field_precision')),
+                MakeInt(Q.Col('field_scale')), MakeInt(Q.Col('charlen')));
+              if MakeInt(Q.Col('arg_pos')) = RetPos then
+                Line := CollName
+              else begin
+                if Trim(Q.Col('arg_name')) <> '' then
+                  CollName := Trim(Q.Col('arg_name'))+' '+CollName;
+                Args.Add(CollName);
+              end;
+              Q.Next;
+            end;
+            Q.Free;
+            Result := 'CREATE FUNCTION '+QuoteIdent(Obj.Name)+' ('+CommaList(Args)+')';
+            if Line <> '' then
+              Result := Result+' RETURNS '+Line;
+            Result := Result+' AS'+sLineBreak+Source+';';
+          finally
+            Args.Free;
+          end;
+        end
+        else
+          Q.Free;
+      except
+        // Not available on old InterBase versions, or external function
+        on E:EDbError do
+          Result := '';
+      end;
+    end;
+
+    else
+      Result := '';
+  end;
 end;
 
 
@@ -6154,17 +6680,16 @@ var
   ColQuery: TDBQuery;
   Col: TTableColumn;
 begin
-  // Todo
   Result := TTableColumnList.Create(True);
   ColQuery := GetResults(FSqlProvider.GetSql(qGetTableColumns, [EscapeString(Table.Name)]));
   while not ColQuery.Eof do begin
     Col := TTableColumn.Create(Self);
     Result.Add(Col);
-    Col.Name := ColQuery.Col('FIELD_NAME');
+    Col.Name := Trim(ColQuery.Col('field_name'));
     Col.OldName := Col.Name;
     //Col.ParseDatatype(ColQuery.Col('type'));
-    Col.DataType := GetDatatypeByNativeType(MakeInt(ColQuery.Col('FIELD_TYPE')));
-    Col.AllowNull := ColQuery.IsNull('NULL_FLAG');
+    Col.DataType := GetDatatypeByNativeType(MakeInt(ColQuery.Col('field_type')));
+    Col.AllowNull := ColQuery.IsNull('null_flag');
     Col.DefaultType := cdtNothing;
     Col.DefaultText := '';
     Col.OnUpdateType := cdtNothing;
@@ -6505,8 +7030,83 @@ end;
 
 
 function TInterbaseConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
+var
+  KeyQuery: TDBQuery;
+  NewKey: TTableKey;
+  KeyName: String;
 begin
   Result := TTableKeyList.Create(True);
+
+  // Index backed constraints: PRIMARY KEY and UNIQUE.
+  // Foreign keys are collected by GetTableForeignKeys instead.
+  KeyQuery := GetResults(
+    'SELECT rc.RDB$CONSTRAINT_NAME AS constraint_name, rc.RDB$CONSTRAINT_TYPE AS constraint_type,'+
+    ' i.RDB$INDEX_TYPE AS index_type, s.RDB$FIELD_NAME AS field_name'+
+    ' FROM RDB$RELATION_CONSTRAINTS rc'+
+    ' JOIN RDB$INDEX_SEGMENTS s ON s.RDB$INDEX_NAME = rc.RDB$INDEX_NAME'+
+    ' LEFT JOIN RDB$INDICES i ON i.RDB$INDEX_NAME = rc.RDB$INDEX_NAME'+
+    ' WHERE rc.RDB$RELATION_NAME = '+EscapeString(Table.Name)+
+    ' AND rc.RDB$CONSTRAINT_TYPE IN ('+EscapeString('PRIMARY KEY')+', '+EscapeString('UNIQUE')+')'+
+    ' ORDER BY rc.RDB$CONSTRAINT_NAME, s.RDB$FIELD_POSITION');
+  KeyName := '';
+  NewKey := nil;
+  while not KeyQuery.Eof do begin
+    if Trim(KeyQuery.Col('constraint_name')) <> KeyName then begin
+      KeyName := Trim(KeyQuery.Col('constraint_name'));
+      NewKey := TTableKey.Create(Self);
+      Result.Add(NewKey);
+      NewKey.Name := KeyName;
+      NewKey.OldName := NewKey.Name;
+      if SameText(Trim(KeyQuery.Col('constraint_type')), 'PRIMARY KEY') then
+        NewKey.IndexType := TTableKey.PRIMARY
+      else
+        NewKey.IndexType := TTableKey.UNIQUE;
+      NewKey.OldIndexType := NewKey.IndexType;
+    end;
+    NewKey.Columns.Add(Trim(KeyQuery.Col('field_name')));
+    NewKey.SubParts.Add('');
+    // RDB$INDEX_TYPE: null or 0 = ascending, 1 = descending
+    if MakeInt(KeyQuery.Col('index_type')) = 1 then
+      NewKey.Collations.Add('D')
+    else
+      NewKey.Collations.Add('A');
+    KeyQuery.Next;
+  end;
+  KeyQuery.Free;
+
+  // Plain indexes, which are not the backing index of any constraint
+  KeyQuery := GetResults(
+    'SELECT i.RDB$INDEX_NAME AS index_name, i.RDB$UNIQUE_FLAG AS unique_flag,'+
+    ' i.RDB$INDEX_TYPE AS index_type, s.RDB$FIELD_NAME AS field_name'+
+    ' FROM RDB$INDICES i'+
+    ' JOIN RDB$INDEX_SEGMENTS s ON s.RDB$INDEX_NAME = i.RDB$INDEX_NAME'+
+    ' WHERE i.RDB$RELATION_NAME = '+EscapeString(Table.Name)+
+    ' AND NOT EXISTS (SELECT 1 FROM RDB$RELATION_CONSTRAINTS rc WHERE rc.RDB$INDEX_NAME = i.RDB$INDEX_NAME)'+
+    ' ORDER BY i.RDB$INDEX_NAME, s.RDB$FIELD_POSITION');
+  KeyName := '';
+  NewKey := nil;
+  while not KeyQuery.Eof do begin
+    if Trim(KeyQuery.Col('index_name')) <> KeyName then begin
+      KeyName := Trim(KeyQuery.Col('index_name'));
+      NewKey := TTableKey.Create(Self);
+      Result.Add(NewKey);
+      NewKey.Name := KeyName;
+      NewKey.OldName := NewKey.Name;
+      if MakeInt(KeyQuery.Col('unique_flag')) = 1 then
+        NewKey.IndexType := TTableKey.UNIQUE
+      else
+        NewKey.IndexType := TTableKey.KEY;
+      NewKey.OldIndexType := NewKey.IndexType;
+    end;
+    NewKey.Columns.Add(Trim(KeyQuery.Col('field_name')));
+    NewKey.SubParts.Add('');
+    if MakeInt(KeyQuery.Col('index_type')) = 1 then
+      NewKey.Collations.Add('D')
+    else
+      NewKey.Collations.Add('A');
+    KeyQuery.Next;
+  end;
+  KeyQuery.Free;
 end;
 
 
@@ -6734,7 +7334,6 @@ var
   ForeignQuery: TDBQuery;
   ForeignKey: TForeignKey;
 begin
-  // SQLite: query PRAGMA foreign_key_list
   Result := TForeignKeyList.Create(True);
   ForeignQuery := GetResults(
             'select strc.rdb$relation_name' +#13#10+
@@ -6754,17 +7353,17 @@ begin
 
   ForeignKey := nil;
   while not ForeignQuery.Eof do begin
-    if (not Assigned(ForeignKey)) or (ForeignKey.KeyName <> ForeignQuery.Col('rdb$constraint_name')) then begin
+    if (not Assigned(ForeignKey)) or (ForeignKey.KeyName <> Trim(ForeignQuery.Col('rdb$constraint_name'))) then begin
       ForeignKey := TForeignKey.Create(Self);
       Result.Add(ForeignKey);
-      ForeignKey.KeyName := ForeignQuery.Col('rdb$constraint_name');
+      ForeignKey.KeyName := Trim(ForeignQuery.Col('rdb$constraint_name'));
       ForeignKey.OldKeyName := ForeignKey.KeyName;
-      ForeignKey.ReferenceTable := ForeignQuery.Col('ReferenceTable');
-      ForeignKey.OnUpdate := ForeignQuery.Col('rdb$update_rule');
-      ForeignKey.OnDelete := ForeignQuery.Col('rdb$delete_rule');
+      ForeignKey.ReferenceTable := Trim(ForeignQuery.Col('ReferenceTable'));
+      ForeignKey.OnUpdate := Trim(ForeignQuery.Col('rdb$update_rule'));
+      ForeignKey.OnDelete := Trim(ForeignQuery.Col('rdb$delete_rule'));
     end;
-    ForeignKey.Columns.Add(ForeignQuery.Col('from'));
-    ForeignKey.ForeignColumns.Add(ForeignQuery.Col('to'));
+    ForeignKey.Columns.Add(Trim(ForeignQuery.Col('from')));
+    ForeignKey.ForeignColumns.Add(Trim(ForeignQuery.Col('to')));
     ForeignQuery.Next;
   end;
   ForeignQuery.Free;
@@ -7682,32 +8281,51 @@ procedure TInterbaseConnection.FetchDbObjects(db: String; var Cache: TDBObjectLi
 var
   obj: TDBObject;
   Results: TDBQuery;
+  ViewContext: String;
 begin
-  // Tables and views
+  // Tables and views. RDB$RELATION_TYPE is a SMALLINT in Firebird 2.1+,
+  // but a CHAR ("PERSISTENT", "VIEW", "EXTERNAL") in InterBase 2020+, and
+  // missing on very old servers - so fall back to RDB$VIEW_SOURCE there,
+  // which is only set for views.
   Results := nil;
   try
-    Results := GetResults('SELECT RDB$RELATION_NAME, RDB$DESCRIPTION, RDB$RELATION_TYPE AS '+QuoteIdent('ViewContext') +
-      ' FROM RDB$RELATIONS WHERE RDB$RELATIONS.RDB$SYSTEM_FLAG = 0');
+    try
+      Results := GetResults('SELECT RDB$RELATION_NAME, RDB$DESCRIPTION, RDB$RELATION_TYPE AS '+QuoteIdent('ViewContext')+
+        ', RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATIONS.RDB$SYSTEM_FLAG = 0');
+    except
+      on E:EDbError do
+        Results := GetResults('SELECT RDB$RELATION_NAME, RDB$DESCRIPTION, NULL AS '+QuoteIdent('ViewContext')+
+          ', RDB$VIEW_SOURCE FROM RDB$RELATIONS WHERE RDB$RELATIONS.RDB$SYSTEM_FLAG = 0');
+    end;
     try
       while not Results.Eof do begin
         obj := TDBObject.Create(Self);
         Cache.Add(obj);
-        obj.Name := Results.Col(0);
+        // CHAR columns from the RDB$ tables are padded with spaces up to their length
+        obj.Name := Trim(Results.Col(0));
         obj.Created := Now;
         obj.Updated := Now;
         obj.Database := db;
-        obj.Comment := Results.Col('RDB$DESCRIPTION');
+        obj.Comment := Trim(Results.Col('RDB$DESCRIPTION'));
 
-        if Parameters.IsInterbase then
-        begin
-          if Results.Col('ViewContext') = 'PERSISTENT' then
+        ViewContext := Trim(Results.Col('ViewContext'));
+        if ViewContext = '' then begin
+          // Old server without RDB$RELATION_TYPE: only views have a view source
+          if Results.IsNull('RDB$VIEW_SOURCE') then
             obj.NodeType := lntTable
           else
             obj.NodeType := lntView;
         end
-        else
-        begin
-          if Results.Col('ViewContext') = '0' then
+        else if Parameters.IsInterbase then begin
+          // InterBase: CHAR values "PERSISTENT", "VIEW", "EXTERNAL"
+          if SameText(ViewContext, 'PERSISTENT') or SameText(ViewContext, 'EXTERNAL') then
+            obj.NodeType := lntTable
+          else
+            obj.NodeType := lntView;
+        end
+        else begin
+          // Firebird: SMALLINT, 0=persistent table, 1=view, 2=external table, 3=virtual
+          if MakeInt(ViewContext) in [0, 2] then
             obj.NodeType := lntTable
           else
             obj.NodeType := lntView;
@@ -7729,12 +8347,12 @@ begin
     while not Results.Eof do begin
       obj := TDBObject.Create(Self);
       Cache.Add(obj);
-      obj.Name := Results.Col('RDB$PROCEDURE_NAME');
+      obj.Name := Trim(Results.Col('RDB$PROCEDURE_NAME'));
       obj.Database := db;
       Obj.NodeType := lntProcedure;
       obj.Created := Now;
       obj.Updated := Now;
-      Obj.Comment := Results.Col('RDB$DESCRIPTION');
+      Obj.Comment := Trim(Results.Col('RDB$DESCRIPTION'));
       Results.Next;
     end;
     finally
@@ -7752,12 +8370,12 @@ begin
     while not Results.Eof do begin
       obj := TDBObject.Create(Self);
       Cache.Add(obj);
-      obj.Name := Results.Col('RDB$TRIGGER_NAME');
+      obj.Name := Trim(Results.Col('RDB$TRIGGER_NAME'));
       obj.Database := db;
       Obj.NodeType := lntTrigger;
       obj.Created := Now;
       obj.Updated := Now;
-      Obj.Comment := Results.Col('RDB$DESCRIPTION');
+      Obj.Comment := Trim(Results.Col('RDB$DESCRIPTION'));
       Results.Next;
     end;
     finally
@@ -7775,12 +8393,12 @@ begin
     while not Results.Eof do begin
       obj := TDBObject.Create(Self);
       Cache.Add(obj);
-      obj.Name := Results.Col('RDB$function_name');
+      obj.Name := Trim(Results.Col('RDB$function_name'));
       obj.Database := db;
       Obj.NodeType := lntFunction;
       obj.Created := Now;
       obj.Updated := Now;
-      Obj.Comment := Results.Col('RDB$DESCRIPTION');
+      Obj.Comment := Trim(Results.Col('RDB$DESCRIPTION'));
       Results.Next;
     end;
     finally
