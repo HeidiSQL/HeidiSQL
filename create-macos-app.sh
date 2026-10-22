@@ -66,6 +66,12 @@ get_version_from_lpi() {
   minor=$(xmllint --xpath 'string(//CONFIG/ProjectOptions/VersionInfo/MinorVersionNr/@Value)' "$lpi" 2>/dev/null || true)
   release=$(xmllint --xpath 'string(//CONFIG/ProjectOptions/VersionInfo/RevisionNr/@Value)' "$lpi" 2>/dev/null || true)
   build=$(xmllint --xpath 'string(//CONFIG/ProjectOptions/VersionInfo/BuildNr/@Value)' "$lpi" 2>/dev/null || true)
+  # BuildNr=0 means "not committed": derive it from the commit count, so the
+  # app bundle version matches what lazbuild-with-buildnr.sh injected into the
+  # lpi while building.
+  if [[ -z "$build" || "$build" == "0" ]]; then
+    build=$(git rev-list --count HEAD 2>/dev/null || echo 0)
+  fi
 
   if [[ -n "$major" && -n "$minor" ]]; then
     if [[ -n "$release" && -n "$build" ]]; then
