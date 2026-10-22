@@ -19,7 +19,9 @@ backup="$(mktemp)"
 trap 'mv -f "$backup" "$LPI"' EXIT
 cp "$LPI" "$backup"
 
-sed -i "s|<BuildNr Value=\"[0-9]*\"/>|<BuildNr Value=\"$BUILDNR\"/>|" "$LPI"
+# Avoid "sed -i": its argument handling differs between GNU and BSD sed.
+# Instead, transform the backup into the lpi.
+sed "s|<BuildNr Value=\"[0-9]*\"/>|<BuildNr Value=\"$BUILDNR\"/>|" "$backup" > "$LPI"
 if ! grep -q "<BuildNr Value=\"$BUILDNR\"/>" "$LPI"; then
   echo "ERROR: BuildNr pattern not found in $LPI" >&2
   exit 1
