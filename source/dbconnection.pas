@@ -11365,10 +11365,10 @@ var
   ColumnsInCache: TTableColumnList;
 begin
   // Return columns from table object
-  if not FConnection.FColumnCache.ContainsKey(QuotedDbAndTableName) then begin
-    FConnection.FColumnCache.AddOrSetValue(QuotedDbAndTableName, Connection.GetTableColumns(Self));
+  if not FConnection.FColumnCache.TryGetValue(QuotedDbAndTableName, ColumnsInCache) then begin
+    ColumnsInCache := Connection.GetTableColumns(Self);
+    FConnection.FColumnCache.AddOrSetValue(QuotedDbAndTableName, ColumnsInCache);
   end;
-  FConnection.FColumnCache.TryGetValue(QuotedDbAndTableName, ColumnsInCache);
   Result := TTableColumnList.Create;
   Result.Assign(ColumnsInCache);
 end;
@@ -11378,10 +11378,10 @@ var
   KeysInCache: TTableKeyList;
 begin
   // Return keys from table object
-  if not FConnection.FKeyCache.ContainsKey(QuotedDbAndTableName) then begin
-    FConnection.FKeyCache.AddOrSetValue(QuotedDbAndTableName, Connection.GetTableKeys(Self));
+  if not FConnection.FKeyCache.TryGetValue(QuotedDbAndTableName, KeysInCache) then begin
+    KeysInCache := Connection.GetTableKeys(Self);
+    FConnection.FKeyCache.AddOrSetValue(QuotedDbAndTableName, KeysInCache);
   end;
-  FConnection.FKeyCache.TryGetValue(QuotedDbAndTableName, KeysInCache);
   Result := TTableKeyList.Create;
   Result.Assign(KeysInCache);
 end;
@@ -11391,10 +11391,10 @@ var
   ForeignKeysInCache: TForeignKeyList;
 begin
   // Return foreign keys from table object
-  if not FConnection.FForeignKeyCache.ContainsKey(QuotedDbAndTableName) then begin
-    FConnection.FForeignKeyCache.AddOrSetValue(QuotedDbAndTableName, Connection.GetTableForeignKeys(Self));
+  if not FConnection.FForeignKeyCache.TryGetValue(QuotedDbAndTableName, ForeignKeysInCache) then begin
+    ForeignKeysInCache := Connection.GetTableForeignKeys(Self);
+    FConnection.FForeignKeyCache.AddOrSetValue(QuotedDbAndTableName, ForeignKeysInCache);
   end;
-  FConnection.FForeignKeyCache.TryGetValue(QuotedDbAndTableName, ForeignKeysInCache);
   Result := TForeignKeyList.Create;
   Result.Assign(ForeignKeysInCache);
 end;
@@ -11404,10 +11404,10 @@ var
   CheckConstraintsInCache: TCheckConstraintList;
 begin
   // Return check constraint from table object
-  if not FConnection.CheckConstraintCache.ContainsKey(QuotedDbAndTableName) then begin
-    FConnection.CheckConstraintCache.AddOrSetValue(QuotedDbAndTableName, Connection.GetTableCheckConstraints(Self));
+  if not FConnection.CheckConstraintCache.TryGetValue(QuotedDbAndTableName, CheckConstraintsInCache) then begin
+    CheckConstraintsInCache := Connection.GetTableCheckConstraints(Self);
+    FConnection.CheckConstraintCache.AddOrSetValue(QuotedDbAndTableName, CheckConstraintsInCache);
   end;
-  FConnection.CheckConstraintCache.TryGetValue(QuotedDbAndTableName, CheckConstraintsInCache);
   Result := TCheckConstraintList.Create;
   Result.Assign(CheckConstraintsInCache);
 end;
