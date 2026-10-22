@@ -4244,6 +4244,8 @@ var
   FkDeferrable, FkInitiallyDeferred: Boolean;
 begin
   Result := '';
+  FkDeferrable := False;
+  FkInitiallyDeferred := False;
   case Obj.NodeType of
 
     lntTable: begin
