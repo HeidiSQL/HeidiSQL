@@ -3621,7 +3621,21 @@ procedure TCustomComboBoxHelper.AutoSizeItemWidth;
 var
   I, TextW, MaxTextW, MaxW: Integer;
   ExtraPad: Integer;
+  Ctl: TWinControl;
 begin
+  // Measuring text forces creation of the control canvas, which requires a
+  // parent window somewhere in the ancestor chain. Skip when there is none,
+  // e.g. when called from a frame constructor before it is parented.
+  // See issue #2605.
+  Ctl := Self;
+  while Ctl <> nil do begin
+    if Ctl.HandleAllocated or (Ctl is TCustomForm) then
+      Break;
+    if Ctl.Parent = nil then
+      Exit;
+    Ctl := Ctl.Parent;
+  end;
+
   MaxW := Scale96ToForm(500);
 
   Canvas.Font.Assign(Font);

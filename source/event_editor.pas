@@ -80,7 +80,6 @@ begin
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   comboEveryInterval.Items := Explode('|', 'YEAR|QUARTER|MONTH|DAY|HOUR|MINUTE|WEEK|SECOND|YEAR_MONTH|'+
     'DAY_HOUR|DAY_MINUTE|DAY_SECOND|HOUR_MINUTE|HOUR_SECOND|MINUTE_SECOND');
-  comboEveryInterval.AutoSizeItemWidth;
   grpState.Items := Explode('|', 'Enable|Disable|Disable on slave');
   FMainSynMemo := SynMemoBody;
   btnSave.Hint := ShortCutToText(MainForm.actSaveSQL.ShortCut);
@@ -112,6 +111,7 @@ begin
   timeEnds.Time := Now;
   editEveryQuantity.Text := '1';
   comboEveryInterval.ItemIndex := comboEveryInterval.Items.IndexOf('DAY');
+  comboEveryInterval.AutoSizeItemWidth;
   tabALTERcode.TabVisible := False;
   if ObjectExists then begin
     // Edit mode
