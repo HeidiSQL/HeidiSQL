@@ -1832,7 +1832,7 @@ begin
     end;
     ngInterbase: begin
       if IsInterbase then
-        Result := IfThen(GetExecutableBits=64, 'ibclient64.', 'gds32.') + SharedSuffix
+        Result := 'ibclient64.' + SharedSuffix
       else if IsFirebird then
         Result := 'fbclient.' + SharedSuffix;
     end
@@ -1972,13 +1972,25 @@ begin
         {$EndIf}
       end;
       ngInterbase:
+        // Do not offer InterBase clients (ibclient) for Firebird sessions and
+        // vice versa, or a Firebird server rejects the connection attempt with
+        // "connection rejected by remote interface". See issue #2527
         {$If defined(LINUX)}
         // libfbclient.so.2 (libc6,x86-64) => /usr/lib/x86_64-linux-gnu/libfbclient.so.2
-        rx.Expression := '^\s*(libfbclient|libgds|fbclient|gds32|ibclient)[^=]*=>\s*(\S+)$';
+        if IsInterbase then
+          rx.Expression := '^\s*ibclient[^=]*=>\s*(\S+)$'
+        else
+          rx.Expression := '^\s*(libfbclient|fbclient)[^=]*=>\s*(\S+)$';
         {$ElseIf defined(FREEBSD)}
-        rx.Expression := '(libfbclient|libgds|fbclient|gds32|ibclient)[^=]+=>\s*(\S+)$';
+        if IsInterbase then
+          rx.Expression := 'ibclient[^=]+=>\s*(\S+)$'
+        else
+          rx.Expression := '(libfbclient|fbclient)[^=]+=>\s*(\S+)$';
         {$Else}
-        rx.Expression := '^((lib)?fbclient|gds32|ibclient).*\.' + SharedSuffix;
+        if IsInterbase then
+          rx.Expression := '^ibclient.*\.' + SharedSuffix
+        else
+          rx.Expression := '^(lib)?fbclient.*\.' + SharedSuffix;
         {$EndIf}
     end;
     case NetTypeGroup of
@@ -3017,7 +3029,7 @@ begin
   if Value then begin
     DoBeforeConnect;
 
-    // Load the client library (fbclient.dll / libfbclient.so / gds32.dll etc.) once per process.
+    // Load the client library (fbclient.dll / libfbclient.so / ibclient64.dll etc.) once per process.
     // ibase60dyn refuses a second, different library, so log instead when that happens.
     if IBaseLoadedLibrary = '' then begin
       CandidateLibs := TStringList.Create;
@@ -3038,12 +3050,12 @@ begin
           end;
         end;
         if IBaseLoadedLibrary = '' then begin
-          // Last resort: try default names, e.g. fbembed.dll, fbclient.dll, libfbclient.so, gds32.dll
+          // Last resort: try default names, e.g. fbembed.dll, fbclient.dll, libfbclient.so, ibclient64.dll
           try
             InitialiseIBase60;
           except
             on E:EInOutError do
-              raise EDbError.Create(_('Could not load any Firebird/Interbase client library (fbclient, gds32 or ibclient). Install one, or check the library setting in your session.'));
+              raise EDbError.Create(_('Could not load any Firebird/Interbase client library (fbclient or ibclient). Install one, or check the library setting in your session.'));
           end;
         end;
       finally
