@@ -42,7 +42,8 @@ var
     ),
     (
       Index:           dbdtBool;
-      NativeTypes:     '23';
+      // BOOLEAN is RDB$FIELD_TYPE 23 on Firebird and 17 on InterBase
+      NativeTypes:     '17|23';
       Name:            'BOOLEAN';
       HasLength:       False;
       RequiresLength:  False;
@@ -98,7 +99,7 @@ var
     (
       Index:           dbdtBigint;
       NativeTypes:     '16';
-      Name:            'INT64';
+      Name:            'BIGINT';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
@@ -255,7 +256,14 @@ begin
     qKillProcess: Result := 'KILL %d';
     qFuncLength: Result := 'LENGTH';
     qFuncCeil: Result := 'CEIL';
-    qFuncLeft: Result := 'SUBSTRING(%s FROM 1 FOR %d)';
+    qFuncLeft: begin
+      if FNetType in [ntInterbase_TCPIP, ntInterbase_Local] then
+        // InterBase has no SUBSTRING or LEFT, and a CAST to a shorter type
+        // aborts with a string truncation error, so load text columns fully
+        Result := '%s'
+      else
+        Result := 'SUBSTRING(%s FROM 1 FOR %d)';
+    end;
     qFuncNow: Result := ' cast(''now'' as timestamp) from rdb$database';
     qFuncLastAutoIncNumber: Result := 'LAST_INSERT_ID()';
     qLockedTables: Result := '';
