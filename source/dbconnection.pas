@@ -786,6 +786,7 @@ type
       FLastError: String;
       FLastErrorCode: Integer;
       FLastRawResults: TInterbaseRawResults;
+      procedure UpdateDatatypes;
       procedure SetActive(Value: Boolean); override;
       function GetThreadId: Int64; override;
       function GetLastErrorCode: Cardinal; override;
@@ -2186,6 +2187,29 @@ begin
 end;
 
 
+procedure TInterbaseConnection.UpdateDatatypes;
+var
+  i: Integer;
+begin
+  // Skip the Firebird-only column types when connecting to InterBase, which
+  // rejects them in DDL and never returns them: BIGINT (16), DECFLOAT (24/25),
+  // INT128 (26) and the time zone types (28/29), see RDB$TYPES.
+  // Called from SetActive, as the nettype is unknown in the constructor.
+  if Parameters.IsInterbase then begin
+    SetLength(FDatatypes, 0);
+    for i:=0 to High(InterbaseDatatypes) do begin
+      if InterbaseDatatypes[i].NativeTypes = '16' then Continue;
+      if InterbaseDatatypes[i].NativeTypes = '24|25' then Continue;
+      if InterbaseDatatypes[i].NativeTypes = '26' then Continue;
+      if InterbaseDatatypes[i].NativeTypes = '28' then Continue;
+      if InterbaseDatatypes[i].NativeTypes = '29' then Continue;
+      SetLength(FDatatypes, Length(FDatatypes)+1);
+      FDatatypes[High(FDatatypes)] := InterbaseDatatypes[i];
+    end;
+  end;
+end;
+
+
 destructor TDBConnection.Destroy;
 begin
   ClearCache(True);
@@ -3028,6 +3052,7 @@ var
 begin
   if Value then begin
     DoBeforeConnect;
+    UpdateDatatypes;
 
     // Load the client library (fbclient.dll / libfbclient.so / ibclient64.dll etc.) once per process.
     // ibase60dyn refuses a second, different library, so log instead when that happens.
@@ -4165,7 +4190,8 @@ function TInterbaseConnection.GetCreateCode(Obj: TDBObject): String;
       12: Result := 'DATE';
       13: Result := 'TIME';
       35: Result := 'TIMESTAMP';
-      23: Result := 'BOOLEAN';
+      23: Result := 'BOOLEAN';  // Firebird
+      17: Result := 'BOOLEAN';  // InterBase
       // Firebird 4+:
       24: Result := 'DECFLOAT(16)';
       25: Result := 'DECFLOAT(34)';
