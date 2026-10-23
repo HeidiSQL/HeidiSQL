@@ -1947,7 +1947,7 @@ begin
     end;
     ngInterbase: begin
       if IsInterbase then
-        Result := IfThen(GetExecutableBits=64, 'ibclient64.dll', 'gds32.dll')
+        Result := 'ibclient64.dll'
       else if IsFirebird then
         Result := 'fbclient.dll';
     end
@@ -2060,7 +2060,13 @@ begin
           rx.Expression := '^sqlite3mc.*\.dll$';
       end;
       ngInterbase:
-        rx.Expression := '^(gds32|ibclient|fbclient).*\.dll$';
+        // Only offer clients of the matching server family, so a Firebird
+        // session cannot end up with the InterBase client, which a Firebird
+        // server rejects with 'connection rejected by remote interface'
+        if IsInterbase then
+          rx.Expression := '^ibclient.*\.dll$'
+        else
+          rx.Expression := '^fbclient.*\.dll$';
     end;
     case NetTypeGroup of
       ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
