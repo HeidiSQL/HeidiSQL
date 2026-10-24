@@ -1129,9 +1129,9 @@ object MainForm: TMainForm
               684
               66)
             object lblTableFilter: TLabel
-              Left = 497
+              Left = 520
               Top = 0
-              Width = 141
+              Width = 161
               Height = 14
               Anchors = [akTop, akRight]
               Caption = 'Create multi column filter:'
@@ -1144,29 +1144,31 @@ object MainForm: TMainForm
               Caption = 'Recent filters:'
             end
             object btnFilterApply: TButton
-              Left = 497
+              Left = 520
               Top = 41
-              Width = 89
+              Width = 125
               Height = 22
               Action = actApplyFilter
               Anchors = [akTop, akRight]
               DropDownMenu = popupApplyFilter
+              Images = VirtualImageListMain
               Style = bsSplitButton
               TabOrder = 3
             end
             object btnFilterClear: TButton
-              Left = 592
+              Left = 651
               Top = 41
-              Width = 89
+              Width = 30
               Height = 22
               Action = actClearFilterEditor
               Anchors = [akTop, akRight]
+              Images = VirtualImageListMain
               TabOrder = 4
             end
             object SynMemoFilter: TSynMemo
               Left = 0
               Top = 21
-              Width = 494
+              Width = 514
               Height = 42
               SingleLineMode = False
               Anchors = [akLeft, akTop, akRight, akBottom]
@@ -1205,9 +1207,9 @@ object MainForm: TMainForm
               FontSmoothing = fsmNone
             end
             object editFilterSearch: TEdit
-              Left = 497
+              Left = 520
               Top = 15
-              Width = 184
+              Width = 161
               Height = 22
               Anchors = [akTop, akRight]
               TabOrder = 2
@@ -1218,7 +1220,7 @@ object MainForm: TMainForm
             object comboRecentFilters: TComboBox
               Left = 77
               Top = 0
-              Width = 417
+              Width = 437
               Height = 22
               AutoDropDown = True
               AutoCloseUp = True
@@ -2718,10 +2720,9 @@ object MainForm: TMainForm
     end
     object actClearFilterEditor: TAction
       Category = 'Data'
-      Caption = 'Clear'
       Hint = 'Clear filter editor'
-      ImageIndex = 58
-      ImageName = 'icons8-rename'
+      ImageIndex = 193
+      ImageName = 'icons8-clear-symbol'
       ShortCut = 16471
       OnExecute = actClearEditorExecute
     end
@@ -4227,6 +4228,7 @@ object MainForm: TMainForm
     end
     object menuFilterClear: TMenuItem
       Action = actClearFilterEditor
+      Caption = 'Clear'
     end
     object N8a: TMenuItem
       Caption = '-'
