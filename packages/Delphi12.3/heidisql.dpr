@@ -14,6 +14,7 @@ uses
   loaddata in '..\..\source\loaddata.pas' {loaddataform},
   usermanager in '..\..\source\usermanager.pas' {UserManagerForm},
   rolemanagerpg in '..\..\source\rolemanagerpg.pas' {RoleManagerPgForm},
+  rolemanagermssql in '..\..\source\rolemanagermssql.pas' {RoleManagerMssqlForm},
   preferences in '..\..\source\preferences.pas' {frmPreferences},
   tabletools in '..\..\source\tabletools.pas' {frmTableTools},
   printlist in '..\..\source\printlist.pas' {printlistForm},

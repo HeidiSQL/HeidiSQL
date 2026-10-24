@@ -164,6 +164,9 @@
         <DCCReference Include="..\..\source\rolemanagerpg.pas">
             <Form>RoleManagerPgForm</Form>
         </DCCReference>
+        <DCCReference Include="..\..\source\rolemanagermssql.pas">
+            <Form>RoleManagerMssqlForm</Form>
+        </DCCReference>
         <DCCReference Include="..\..\source\preferences.pas">
             <Form>frmPreferences</Form>
         </DCCReference>

@@ -54,7 +54,10 @@ type
     qDropUser, qCreateRole, qDropRole, qReloadPrivileges, qGrantRole, qRevokeRole, qSetDefaultRole,
     qAutoInc, qIndexVisible, qIndexInvisible, qGetAuthPlugins, qCastAsText, qIndexSize,
     qPgRoleAttributes, qPgRoleMemberships, qPgRoleCreate, qPgRoleAlter, qPgRoleRename,
-    qPgRoleDrop, qPgRoleMembershipGrant, qPgRoleMembershipRevoke);
+    qPgRoleDrop, qPgRoleMembershipGrant, qPgRoleMembershipRevoke,
+    qMssqlLoginAttributes, qMssqlServerRoles, qMssqlLoginMemberships, qMssqlDatabases,
+    qMssqlLoginCreate, qMssqlLoginAlter, qMssqlLoginRename, qMssqlLoginDrop,
+    qMssqlRoleMembershipGrant, qMssqlRoleMembershipRevoke);
   TSqlProvider = class
     strict protected
       FNetType: TNetType;
