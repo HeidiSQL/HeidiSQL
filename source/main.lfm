@@ -2293,10 +2293,10 @@ object MainForm: TMainForm
               AnchorSideTop.Control = pnlFilter
               AnchorSideRight.Control = pnlFilter
               AnchorSideRight.Side = asrBottom
-              Left = 428
+              Left = 450
               Height = 15
               Top = 2
-              Width = 185
+              Width = 163
               Anchors = [akTop, akLeft, akRight]
               BorderSpacing.Around = 2
               Caption = 'Create multi column filter:'
@@ -2312,22 +2312,24 @@ object MainForm: TMainForm
               BorderSpacing.Around = 2
               Caption = 'Recent filters:'
             end
-            object btnFilterApply: TButton
+            object btnFilterApply: TBitBtn
               AnchorSideLeft.Control = SynMemoFilter
               AnchorSideLeft.Side = asrBottom
               AnchorSideTop.Control = editFilterSearch
               AnchorSideTop.Side = asrBottom
-              Left = 428
-              Height = 25
+              Left = 450
+              Height = 26
               Top = 44
-              Width = 109
+              Width = 87
               Action = actApplyFilter
               Anchors = [akTop, akLeft, akRight]
               AutoSize = True
               BorderSpacing.Around = 2
+              Images = ImageListMain
+              ImageIndex = 55
               TabOrder = 3
             end
-            object btnFilterClear: TButton
+            object btnFilterClear: TBitBtn
               AnchorSideLeft.Control = btnFilterApply
               AnchorSideLeft.Side = asrBottom
               AnchorSideTop.Control = editFilterSearch
@@ -2335,13 +2337,15 @@ object MainForm: TMainForm
               AnchorSideRight.Control = pnlFilter
               AnchorSideRight.Side = asrBottom
               Left = 539
-              Height = 25
+              Height = 26
               Top = 44
               Width = 74
               Action = actClearFilterEditor
               Anchors = [akTop, akLeft, akRight]
               AutoSize = True
               BorderSpacing.Around = 2
+              Images = ImageListMain
+              ImageIndex = 193
               TabOrder = 2
             end
             object editFilterSearch: TEdit
@@ -2351,10 +2355,10 @@ object MainForm: TMainForm
               AnchorSideTop.Side = asrBottom
               AnchorSideRight.Control = pnlFilter
               AnchorSideRight.Side = asrBottom
-              Left = 428
+              Left = 450
               Height = 23
               Top = 19
-              Width = 185
+              Width = 163
               Anchors = [akTop, akLeft, akRight]
               BorderSpacing.Around = 2
               TabOrder = 1
@@ -2369,7 +2373,7 @@ object MainForm: TMainForm
               Left = 75
               Height = 23
               Top = 2
-              Width = 351
+              Width = 373
               Anchors = [akTop, akLeft, akRight]
               AutoDropDown = True
               BorderSpacing.Around = 2
@@ -2388,7 +2392,7 @@ object MainForm: TMainForm
               Left = 2
               Height = 50
               Top = 27
-              Width = 424
+              Width = 446
               BorderSpacing.Around = 2
               Anchors = [akTop, akLeft, akRight, akBottom]
               Font.Height = -10
@@ -4431,9 +4435,8 @@ object MainForm: TMainForm
     end
     object actClearFilterEditor: TAction
       Category = 'Data'
-      Caption = 'Clear'
       Hint = 'Clear filter editor'
-      ImageIndex = 58
+      ImageIndex = 193
       ShortCut = 16471
       OnExecute = actClearEditorExecute
     end
@@ -20986,6 +20989,7 @@ object MainForm: TMainForm
     end
     object menuFilterClear: TMenuItem
       Action = actClearFilterEditor
+      Caption = 'Clear'
     end
     object N8a: TMenuItem
       Caption = '-'

@@ -474,10 +474,10 @@ type
     tbtnDataColumns: TSpeedButton;
     tbtnDataFilter: TSpeedButton;
     pnlFilter: TPanel;
-    btnFilterApply: TButton;
+    btnFilterApply: TBitBtn;
     lblTableFilter: TLabel;
     editFilterSearch: TEdit;
-    btnFilterClear: TButton;
+    btnFilterClear: TBitBtn;
     popupFilter: TPopupMenu;
     menuFilterCopy: TMenuItem;
     menuFilterPaste: TMenuItem;
