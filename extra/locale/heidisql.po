@@ -6906,3 +6906,108 @@ msgstr "The DELETE affected %s rows, but 1 was expected. On tables without a pri
 
 msgid "Variables in MS SQL only exist within the batch they are declared in. Your queries were sent one by one. Activate \"%s\" in the drop-down menu of the Run button to send them as one batch."
 msgstr "Variables in MS SQL only exist within the batch they are declared in. Your queries were sent one by one. Activate \"%s\" in the drop-down menu of the Run button to send them as one batch."
+
+#. RoleManagerPgForm..Caption
+msgid "PostgreSQL role manager"
+msgstr "PostgreSQL role manager"
+
+#. RoleManagerPgForm..tabLogin..Caption
+msgid "Login details"
+msgstr "Login details"
+
+#. RoleManagerPgForm..treeRoles..Header..Column 'Role'
+#. RoleManagerPgForm..treeRoles..Column[0]
+msgid "Role"
+msgstr "Role"
+
+#. RoleManagerPgForm..treeRoles..Column 'Superuser'
+msgid "Superuser"
+msgstr "Superuser"
+
+#. RoleManagerPgForm..treeRoles..Column 'Valid until'
+msgid "Valid until"
+msgstr "Valid until"
+
+#. RoleManagerPgForm..treeRoles..Column 'Conn. limit'
+msgid "Conn. limit"
+msgstr "Conn. limit"
+
+#. RoleManagerPgForm..lblName..Caption
+msgid "Role name:"
+msgstr "Role name:"
+
+#. RoleManagerPgForm..checkGroupAttributes..Caption
+msgid "Role attributes"
+msgstr "Role attributes"
+
+#. RoleManagerPgForm..checkGroupAttributes..Item 'Login allowed'
+msgid "Login allowed"
+msgstr "Login allowed"
+
+#. RoleManagerPgForm..checkGroupAttributes..Item 'Create databases'
+msgid "Create databases"
+msgstr "Create databases"
+
+#. RoleManagerPgForm..checkGroupAttributes..Item 'Create roles'
+msgid "Create roles"
+msgstr "Create roles"
+
+#. RoleManagerPgForm..checkGroupAttributes..Item 'Inherit rights'
+msgid "Inherit rights"
+msgstr "Inherit rights"
+
+#. RoleManagerPgForm..checkGroupAttributes..Item 'Replication'
+msgid "Replication"
+msgstr "Replication"
+
+#. RoleManagerPgForm..checkGroupAttributes..Item 'Bypass row level security'
+msgid "Bypass row level security"
+msgstr "Bypass row level security"
+
+#. RoleManagerPgForm..lblConnLimit..Caption
+msgid "Connection limit:"
+msgstr "Connection limit:"
+
+#. RoleManagerPgForm..editPassword..TextHint
+msgid "Empty = keep current password"
+msgstr "Empty = keep current password"
+
+#. RoleManagerPgForm..chkClearPassword..Caption
+msgid "Clear password"
+msgstr "Clear password"
+
+#. RoleManagerPgForm..lblMembership..Caption
+msgid "Member of:"
+msgstr "Member of:"
+
+#. RoleManagerPgForm..treeMemberships..Column 'Member of'
+msgid "Member of"
+msgstr "Member of"
+
+#. RoleManagerPgForm..chkAdminOption..Caption
+msgid "Grant admin option to selected role"
+msgstr "Grant admin option to selected role"
+
+#. Title of confirmation dialog when switching role or closing with unsaved changes
+msgid "Unsaved changes"
+msgstr "Unsaved changes"
+
+#. Message of confirmation dialog when switching role or closing with unsaved changes
+msgid "Discard unsaved changes on role?"
+msgstr "Discard unsaved changes on role?"
+
+#. Title of delete confirmation dialog in PostgreSQL role manager
+msgid "Delete role"
+msgstr "Delete role"
+
+#. Message of delete confirmation dialog in PostgreSQL role manager
+msgid "Really delete role \"%s\"?"
+msgstr "Really delete role \"%s\"?"
+
+#. Error message when saving a role without a name
+msgid "Please enter a role name."
+msgstr "Please enter a role name."
+
+#. Error message when a role with the same name exists already
+msgid "A role named \"%s\" already exists."
+msgstr "A role named \"%s\" already exists."

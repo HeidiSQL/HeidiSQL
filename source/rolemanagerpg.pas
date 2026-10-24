@@ -1,191 +1,122 @@
 unit rolemanagerpg;
 
-{$mode objfpc}{$H+}
+{$mode delphi}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, StrUtils, Forms, Controls, Dialogs, ComCtrls, StdCtrls,
-  ExtCtrls, Spin, Grids, Buttons, Contnrs,
-  main, dbconnection, dbstructures;
+  Classes, SysUtils, Forms, Controls, StdCtrls, EditBtn, ExtCtrls,
+  ComCtrls, Buttons, Dialogs, Spin, Generics.Collections,
+  laz.VirtualTrees, apphelpers, extra_controls, dbconnection, dbstructures,
+  main;
+
+{$I const.inc}
 
 type
-  TPasswordMode = (pmUnchanged, pmClear, pmSet);
-  TDBObjectKind = (okDatabase, okSchema, okTableView, okSequence, okRoutine);
-  TDefaultPrivKind = (dpTables, dpSequences, dpRoutines);
+  TRoleItem = class(TObject)
+    Name: String;
+    CanLogin, SuperUser, CreateDB, CreateRole, InheritRights, Replication,
+      BypassRLS: Boolean;
+    ConnLimit: Integer;
+    ValidUntil: String;
+  end;
 
-  TMembershipItem = class
-  public
+  TMembership = class(TObject)
     RoleName: String;
-    IsMember: Boolean;
-    AdminOption: Boolean;
-    InheritOption: Boolean;
-    SetOption: Boolean;
-    OriginalIsMember: Boolean;
-    OriginalAdminOption: Boolean;
-    OriginalInheritOption: Boolean;
-    OriginalSetOption: Boolean;
+    IsMember, HasAdmin, OriginalIsMember, OriginalHasAdmin: Boolean;
   end;
 
-  TObjectPrivItem = class
-  public
-    ObjectKind: TDBObjectKind;
-    SchemaName: String;
-    ObjectName: String;
-    ObjectIdentity: String;
-    Privileges: TStringList;
-    OriginalPrivileges: TStringList;
-    Grantable: TStringList;
-    OriginalGrantable: TStringList;
-    constructor Create;
-    destructor Destroy; override;
-  end;
+  { TRoleManagerPgForm }
 
-  TDefaultPrivItem = class
-  public
-    OwnerName: String;
-    SchemaName: String;
-    Kind: TDefaultPrivKind;
-    Grantee: String;
-    Privileges: TStringList;
-    OriginalPrivileges: TStringList;
-    constructor Create;
-    destructor Destroy; override;
-  end;
-
-  TRoleState = class
-  public
-    RoleName: String;
-    OriginalRoleName: String;
-    CanLogin: Boolean;
-    SuperUser: Boolean;
-    CreateDB: Boolean;
-    CreateRole: Boolean;
-    InheritRights: Boolean;
-    Replication: Boolean;
-    BypassRLS: Boolean;
-    ConnectionLimit: Integer;
-    PasswordMode: TPasswordMode;
-    PasswordValue: String;
-    IsNewRole: Boolean;
-    IsCloneRole: Boolean;
-    Memberships: TObjectList;
-    DatabasePrivs: TObjectList;
-    SchemaPrivs: TObjectList;
-    TableViewPrivs: TObjectList;
-    SequencePrivs: TObjectList;
-    RoutinePrivs: TObjectList;
-    DefaultPrivs: TObjectList;
-    constructor Create;
-    destructor Destroy; override;
-    procedure Clear;
-  end;
-
-  TRoleManagerPgForm = class(TForm)
-    btnCancel: TBitBtn;
-    btnClone: TBitBtn;
-    btnDrop: TBitBtn;
-    btnNew: TBitBtn;
+  TRoleManagerPgForm = class(TExtForm)
+    btnAdd: TToolButton;
+    btnClone: TToolButton;
+    btnClose: TBitBtn;
+    btnDelete: TToolButton;
+    btnDiscard: TBitBtn;
     btnSave: TBitBtn;
-    cbBypassRLS: TCheckBox;
-    cbCanLogin: TCheckBox;
-    cbCreateDB: TCheckBox;
-    cbCreateRole: TCheckBox;
-    cbInheritRights: TCheckBox;
-    cbPasswordMode: TComboBox;
-    cbReplication: TCheckBox;
-    cbSuperUser: TCheckBox;
-    cmbRole: TComboBox;
-    edPassword: TEdit;
-    edRoleName: TEdit;
-    gbPassword: TGroupBox;
-    gbRoleAttrs: TGroupBox;
+    chkAdminOption: TCheckBox;
+    chkClearPassword: TCheckBox;
+    checkGroupAttributes: TCheckGroup;
+    editConnLimit: TSpinEdit;
+    editFilter: TEditButton;
+    editName: TEdit;
+    editPassword: TEdit;
     lblConnLimit: TLabel;
-    lblPasswordMode: TLabel;
-    lblRole: TLabel;
-    lblRoleName: TLabel;
-    memoLog: TMemo;
+    lblMembership: TLabel;
+    lblName: TLabel;
+    lblPassword: TLabel;
     PageControl1: TPageControl;
     pnlBottom: TPanel;
-    pnlTop: TPanel;
-    seConnLimit: TSpinEdit;
-    sgDatabasePrivs: TStringGrid;
-    sgDefaultPrivs: TStringGrid;
-    sgRoutinePrivs: TStringGrid;
-    sgSchemaPrivs: TStringGrid;
-    sgSequencesPrivs: TStringGrid;
-    sgTableViewPrivs: TStringGrid;
-    tabDefaultPrivs: TTabSheet;
-    tabMemberships: TTabSheet;
-    tabObjectPrivs: TTabSheet;
-    tabRoles: TTabSheet;
-    tabObjDatabases: TTabSheet;
-    tabObjRoutines: TTabSheet;
-    tabObjSchemas: TTabSheet;
-    tabObjSequences: TTabSheet;
-    tabObjTablesViews: TTabSheet;
-    tabsObjectKinds: TPageControl;
-    vlMemberships: TStringGrid;
-    procedure btnCancelClick(Sender: TObject);
+    pnlLeft: TPanel;
+    pnlMembership: TPanel;
+    pnlMembershipFooter: TPanel;
+    pnlRight: TPanel;
+    splitterLeft: TSplitter;
+    tabAttributes: TTabSheet;
+    tabLogin: TTabSheet;
+    toolbarRoles: TToolBar;
+    treeMemberships: TLazVirtualStringTree;
+    treeRoles: TLazVirtualStringTree;
+    procedure btnAddClick(Sender: TObject);
     procedure btnCloneClick(Sender: TObject);
-    procedure btnDropClick(Sender: TObject);
-    procedure btnNewClick(Sender: TObject);
+    procedure btnCloseClick(Sender: TObject);
+    procedure btnDeleteClick(Sender: TObject);
+    procedure btnDiscardClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
-    procedure cbPasswordModeChange(Sender: TObject);
-    procedure cmbRoleChange(Sender: TObject);
+    procedure checkGroupAttributesItemClick(Sender: TObject; Index: Integer);
+    procedure chkAdminOptionChange(Sender: TObject);
+    procedure editFilterButtonClick(Sender: TObject);
+    procedure editFilterChange(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure vlMembershipsCheckboxToggled(Sender: TObject; aCol, aRow: Integer;
-      aState: TCheckboxState);
+    procedure MarkModified(Sender: TObject);
+    procedure treeMembershipsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure treeMembershipsFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex);
+    procedure treeMembershipsGetNodeDataSize(Sender: TBaseVirtualTree;
+      var NodeDataSize: Integer);
+    procedure treeMembershipsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
+    procedure treeRolesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex);
+    procedure treeRolesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean;
+      var ImageIndex: Integer);
+    procedure treeRolesGetNodeDataSize(Sender: TBaseVirtualTree;
+      var NodeDataSize: Integer);
+    procedure treeRolesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
   private
-    FConn: TDBConnection;
-    FState: TRoleState;
+    FConnection: TDBConnection;
+    FRoles: TObjectList<TRoleItem>;
+    FMemberships: TObjectList<TMembership>;
+    FOwnedRole: TRoleItem;
+    FRole: TRoleItem;
+    FOriginalName: String;
+    FIsNewRole: Boolean;
     FLoading: Boolean;
     FModified: Boolean;
-    procedure InitGrids;
-    procedure ConfigureMembershipColumns;
-    procedure EnsureConnected;
-    procedure LoadRolesList;
-    procedure LoadRole(const ARoleName: String);
-    procedure LoadRoleAttributes(const ARoleName: String);
-    procedure LoadMemberships(const ARoleName: String);
-    procedure LoadObjectPrivileges(const ARoleName: String);
-    procedure LoadDefaultPrivileges(const ARoleName: String);
-    procedure LoadPrivilegeList(AId: TQueryId; const RoleName: String; AKind: TDBObjectKind; AList: TObjectList);
-    procedure PopulateFormFromState;
-    procedure ReadFormToState;
-    procedure SetPasswordModeUI;
-    procedure FillMembershipGrid;
-    procedure FillPrivilegeGrid(AGrid: TStringGrid; AList: TObjectList);
-    procedure FillObjectPrivilegeGrids;
-    procedure FillDefaultPrivilegesGrid;
-    procedure ReadPrivilegeGrid(AGrid: TStringGrid; AList: TObjectList);
-    procedure ReadDefaultPrivilegeGrid;
-    procedure SaveRole;
-    procedure SaveRoleCore;
-    procedure SaveMemberships;
-    procedure SaveObjectPrivileges;
-    procedure SaveDefaultPrivileges;
-    procedure SavePrivilegeList(AList: TObjectList; const ATypeToken: String; const AAllPrivs: array of String);
-    procedure DropRole;
-    procedure CloneRole;
-    procedure MarkModified;
-    function ConfirmDrop: Boolean;
-    function ConfirmRoleSwitch: Boolean;
-    function SelectedRole: String;
+    procedure LoadRoles;
+    procedure LoadMemberships(const RoleName: String);
+    procedure FillMembershipTree;
+    procedure ApplyRoleToEditor;
+    procedure ClearEditor;
+    function SelectRole(Role: TRoleItem): Boolean;
+    procedure UpdateButtons;
+    function ConfirmDiscard: Boolean;
+    function FindRole(const RoleName: String): TRoleItem;
+    function FindRoleNode(const RoleName: String): PVirtualNode;
+    function SelectedRoleItem: TRoleItem;
     function Sql(AId: TQueryId): String; overload;
     function Sql(AId: TQueryId; const Args: array of const): String; overload;
-    function QuoteIdent(const S: String): String;
-    function QuoteLiteral(const S: String): String;
-    function BoolToken(const TrueToken, FalseToken: String; const Value: Boolean): String;
-    function PasswordModeFromIndex(AIndex: Integer): TPasswordMode;
-    function CsvToList(const S: String): TStringList;
-    function NormalizePrivilegeCsv(const S: String): String;
-    function DefaultPrivKindToToken(AKind: TDefaultPrivKind): String;
-    function DefaultPrivKindFromString(const S: String): TDefaultPrivKind;
-    function GridCellChecked(AGrid: TStringGrid; ACol, ARow: Integer): Boolean;
-    procedure SetGridCheckbox(AGrid: TStringGrid; ACol, ARow: Integer; AValue: Boolean);
-    procedure Log(const S: String);
+    function SqlBool(const TrueToken, FalseToken: String; Value: Boolean): String;
+    function PgBool(Value: String): Boolean;
+    procedure SaveRole;
+    procedure SaveMemberships(const RoleName: String);
+    procedure FocusNameEditor;
   public
   end;
 
@@ -194,933 +125,407 @@ implementation
 {$R *.lfm}
 
 const
-  CDbPrivs: array[0..2] of String = ('CREATE', 'CONNECT', 'TEMPORARY');
-  CSchemaPrivs: array[0..1] of String = ('CREATE', 'USAGE');
-  CTablePrivs: array[0..6] of String = ('SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER');
-  CSequencePrivs: array[0..2] of String = ('USAGE', 'SELECT', 'UPDATE');
-  CRoutinePrivs: array[0..0] of String = ('EXECUTE');
-
-{ TObjectPrivItem }
-
-constructor TObjectPrivItem.Create;
-begin
-  inherited Create;
-  Privileges := TStringList.Create;
-  OriginalPrivileges := TStringList.Create;
-  Grantable := TStringList.Create;
-  OriginalGrantable := TStringList.Create;
-  Privileges.StrictDelimiter := True;
-  OriginalPrivileges.StrictDelimiter := True;
-  Grantable.StrictDelimiter := True;
-  OriginalGrantable.StrictDelimiter := True;
-end;
-
-destructor TObjectPrivItem.Destroy;
-begin
-  Grantable.Free;
-  OriginalGrantable.Free;
-  Privileges.Free;
-  OriginalPrivileges.Free;
-  inherited Destroy;
-end;
-
-{ TDefaultPrivItem }
-
-constructor TDefaultPrivItem.Create;
-begin
-  inherited Create;
-  Privileges := TStringList.Create;
-  OriginalPrivileges := TStringList.Create;
-  Privileges.StrictDelimiter := True;
-  OriginalPrivileges.StrictDelimiter := True;
-end;
-
-destructor TDefaultPrivItem.Destroy;
-begin
-  Privileges.Free;
-  OriginalPrivileges.Free;
-  inherited Destroy;
-end;
-
-{ TRoleState }
-
-constructor TRoleState.Create;
-begin
-  inherited Create;
-  Memberships := TObjectList.Create(True);
-  DatabasePrivs := TObjectList.Create(True);
-  SchemaPrivs := TObjectList.Create(True);
-  TableViewPrivs := TObjectList.Create(True);
-  SequencePrivs := TObjectList.Create(True);
-  RoutinePrivs := TObjectList.Create(True);
-  DefaultPrivs := TObjectList.Create(True);
-  Clear;
-end;
-
-destructor TRoleState.Destroy;
-begin
-  DefaultPrivs.Free;
-  RoutinePrivs.Free;
-  SequencePrivs.Free;
-  TableViewPrivs.Free;
-  SchemaPrivs.Free;
-  DatabasePrivs.Free;
-  Memberships.Free;
-  inherited Destroy;
-end;
-
-procedure TRoleState.Clear;
-begin
-  RoleName := '';
-  OriginalRoleName := '';
-  CanLogin := True;
-  SuperUser := False;
-  CreateDB := False;
-  CreateRole := False;
-  InheritRights := True;
-  Replication := False;
-  BypassRLS := False;
-  ConnectionLimit := -1;
-  PasswordMode := pmUnchanged;
-  PasswordValue := '';
-  IsNewRole := False;
-  IsCloneRole := False;
-  Memberships.Clear;
-  DatabasePrivs.Clear;
-  SchemaPrivs.Clear;
-  TableViewPrivs.Clear;
-  SequencePrivs.Clear;
-  RoutinePrivs.Clear;
-  DefaultPrivs.Clear;
-end;
+  idxAttrLogin = 0;
+  idxAttrSuperuser = 1;
+  idxAttrCreateDB = 2;
+  idxAttrCreateRole = 3;
+  idxAttrInherit = 4;
+  idxAttrReplication = 5;
+  idxAttrBypassRLS = 6;
 
 { TRoleManagerPgForm }
 
-
 procedure TRoleManagerPgForm.FormCreate(Sender: TObject);
 begin
-  {$IFDEF DEBUG}
-  memoLog.Visible := True;
-  {$ENDIF}
-  FConn := nil;
-  FState := TRoleState.Create;
-  cbPasswordMode.Items.Text := 'Unchanged' + LineEnding + 'Clear password' + LineEnding + 'Set password';
-  cbPasswordMode.ItemIndex := 0;
-  InitGrids;
+  FRoles := TObjectList<TRoleItem>.Create(False);
+  FMemberships := TObjectList<TMembership>.Create(True);
+  FLoading := False;
   FModified := False;
+  ClearEditor;
+end;
+
+procedure TRoleManagerPgForm.FormDestroy(Sender: TObject);
+var
+  Role: TRoleItem;
+begin
+  for Role in FRoles do
+    Role.Free;
+  FRoles.Free;
+  FMemberships.Free;
+  FOwnedRole.Free;
 end;
 
 procedure TRoleManagerPgForm.FormShow(Sender: TObject);
 begin
-  FConn := MainForm.ActiveConnection;
-  EnsureConnected;
-  ConfigureMembershipColumns;
-  LoadRolesList;
-  if cmbRole.Items.Count > 0 then
-  begin
-    cmbRole.ItemIndex := 0;
-    LoadRole(cmbRole.Text);
-  end else
-    btnNewClick(nil);
-end;
-
-procedure TRoleManagerPgForm.EnsureConnected;
-begin
-  if FConn = nil then
-    raise Exception.Create('No active connection.');
-  if FConn.ServerVersionInt < 120000 then
-    raise Exception.Create('PostgreSQL 12.0 or newer required.');
-end;
-
-procedure TRoleManagerPgForm.InitGrids;
-  procedure InitPrivGrid(AGrid: TStringGrid; const FirstColCaption: String);
-  begin
-    AGrid.ColCount := 4;
-    AGrid.FixedCols := 0;
-    AGrid.RowCount := 1;
-    AGrid.Cells[0,0] := FirstColCaption;
-    AGrid.Cells[1,0] := 'Object';
-    AGrid.Cells[2,0] := 'Privileges';
-    AGrid.Cells[3,0] := 'Grantable';
-    AGrid.Options := AGrid.Options + [goEditing];
+  FConnection := MainForm.ActiveConnection;
+  if FConnection = nil then begin
+    Close;
+    Exit;
   end;
-begin
-  vlMemberships.ColCount := 5;
-  vlMemberships.FixedCols := 0;
-  vlMemberships.RowCount := 1;
-  vlMemberships.Cells[0,0] := 'Role';
-  vlMemberships.Cells[1,0] := 'Member';
-  vlMemberships.Cells[2,0] := 'Admin';
-  vlMemberships.Cells[3,0] := 'Inherit';
-  vlMemberships.Cells[4,0] := 'Set';
-  vlMemberships.Options := vlMemberships.Options + [goEditing];
-
-  InitPrivGrid(sgDatabasePrivs, 'Database');
-  InitPrivGrid(sgSchemaPrivs, 'Schema');
-  InitPrivGrid(sgTableViewPrivs, 'Schema');
-  InitPrivGrid(sgSequencesPrivs, 'Schema');
-  InitPrivGrid(sgRoutinePrivs, 'Schema');
-
-  sgDefaultPrivs.ColCount := 5;
-  sgDefaultPrivs.FixedCols := 0;
-  sgDefaultPrivs.RowCount := 1;
-  sgDefaultPrivs.Cells[0,0] := 'Owner';
-  sgDefaultPrivs.Cells[1,0] := 'Schema';
-  sgDefaultPrivs.Cells[2,0] := 'Kind';
-  sgDefaultPrivs.Cells[3,0] := 'Grantee';
-  sgDefaultPrivs.Cells[4,0] := 'Privileges';
-  sgDefaultPrivs.Options := sgDefaultPrivs.Options + [goEditing];
+  checkGroupAttributes.CheckEnabled[idxAttrBypassRLS] := FConnection.ServerVersionInt >= 90500;
+  LoadRoles;
 end;
 
-procedure TRoleManagerPgForm.ConfigureMembershipColumns;
-var
-  i: Integer;
-begin
-  while vlMemberships.Columns.Count < 5 do
-    vlMemberships.Columns.Add;
-
-  vlMemberships.Columns[0].Title.Caption := 'Role';
-  vlMemberships.Columns[1].Title.Caption := 'Member';
-  vlMemberships.Columns[2].Title.Caption := 'Admin';
-  vlMemberships.Columns[3].Title.Caption := 'Inherit';
-  vlMemberships.Columns[4].Title.Caption := 'Set';
-
-  for i := 1 to 4 do
-  begin
-    vlMemberships.Columns[i].ButtonStyle := cbsCheckboxColumn;
-    vlMemberships.Columns[i].ValueChecked := '1';
-    vlMemberships.Columns[i].ValueUnchecked := '0';
-  end;
-
-  vlMemberships.Columns[2].Visible := True;
-  vlMemberships.Columns[3].Visible := FConn.ServerVersionInt >= 160000;
-  vlMemberships.Columns[4].Visible := FConn.ServerVersionInt >= 160000;
-end;
-
-procedure TRoleManagerPgForm.LoadRolesList;
-var
-  Res: TDBQuery;
-  i: Integer;
-begin
-  cmbRole.Items.BeginUpdate;
-  try
-    cmbRole.Items.Clear;
-    Res := FConn.GetResults(Sql(qPgRolemanRolesList));
-    try
-      for i := 0 to Res.RecordCount - 1 do
-      begin
-        Res.RecNo := i + 1;
-        cmbRole.Items.Add(Res.Col('rolname'));
-      end;
-    finally
-      Res.Free;
-    end;
-  finally
-    cmbRole.Items.EndUpdate;
-  end;
-end;
-
-procedure TRoleManagerPgForm.LoadRole(const ARoleName: String);
+procedure TRoleManagerPgForm.ClearEditor;
 begin
   FLoading := True;
+  FRole := nil;
+  FOwnedRole.Free;
+  FOwnedRole := nil;
+  FIsNewRole := False;
+  FOriginalName := '';
+  FModified := False;
+  editName.Clear;
+  editPassword.Clear;
+  editConnLimit.Value := -1;
+  chkClearPassword.Checked := False;
+  checkGroupAttributes.Checked[idxAttrLogin] := False;
+  checkGroupAttributes.Checked[idxAttrSuperuser] := False;
+  checkGroupAttributes.Checked[idxAttrCreateDB] := False;
+  checkGroupAttributes.Checked[idxAttrCreateRole] := False;
+  checkGroupAttributes.Checked[idxAttrInherit] := False;
+  checkGroupAttributes.Checked[idxAttrReplication] := False;
+  checkGroupAttributes.Checked[idxAttrBypassRLS] := False;
+  PageControl1.Enabled := False;
+  pnlMembership.Enabled := False;
+  FLoading := False;
+  UpdateButtons;
+end;
+
+procedure TRoleManagerPgForm.LoadRoles;
+var
+  Res: TDBQuery;
+  Role: TRoleItem;
+  i: Integer;
+begin
+  FLoading := True;
+  treeRoles.Clear;
+  for Role in FRoles do
+    Role.Free;
+  FRoles.Clear;
+  Res := FConnection.GetResults(Sql(qPgRoleAttributes));
   try
-    FState.Clear;
-    FState.RoleName := ARoleName;
-    FState.OriginalRoleName := ARoleName;
-    LoadRoleAttributes(ARoleName);
-    LoadMemberships(ARoleName);
-    LoadObjectPrivileges(ARoleName);
-    LoadDefaultPrivileges(ARoleName);
-    PopulateFormFromState;
-    FModified := False;
+    for i := 0 to Res.RecordCount - 1 do begin
+      Res.RecNo := i + 1;
+      Role := TRoleItem.Create;
+      Role.Name := Res.Col('rolname');
+      Role.SuperUser := PgBool(Res.Col('rolsuper'));
+      Role.InheritRights := PgBool(Res.Col('rolinherit'));
+      Role.CreateRole := PgBool(Res.Col('rolcreaterole'));
+      Role.CreateDB := PgBool(Res.Col('rolcreatedb'));
+      Role.CanLogin := PgBool(Res.Col('rolcanlogin'));
+      Role.Replication := PgBool(Res.Col('rolreplication'));
+      Role.BypassRLS := PgBool(Res.Col('rolbypassrls')) and (FConnection.ServerVersionInt >= 90500);
+      Role.ConnLimit := StrToIntDef(Res.Col('rolconnlimit'), -1);
+      Role.ValidUntil := Res.Col('rolvaliduntil');
+      FRoles.Add(Role);
+      treeRoles.AddChild(nil, Role);
+    end;
   finally
+    Res.Free;
+  end;
+  FLoading := False;
+end;
+
+procedure TRoleManagerPgForm.LoadMemberships(const RoleName: String);
+var
+  Res: TDBQuery;
+  Membership: TMembership;
+  MemberOf: TStringList;
+  AdminOf: TStringList;
+  Role: TRoleItem;
+  i: Integer;
+begin
+  FMemberships.Clear;
+  MemberOf := TStringList.Create;
+  MemberOf.Duplicates := dupIgnore;
+  AdminOf := TStringList.Create;
+  try
+    if RoleName <> '' then begin
+      Res := FConnection.GetResults(Sql(qPgRoleMemberships, [FConnection.EscapeString(RoleName)]));
+      try
+        for i := 0 to Res.RecordCount - 1 do begin
+          Res.RecNo := i + 1;
+          MemberOf.Add(Res.Col('rolname'));
+          if PgBool(Res.Col('admin_option')) then
+            AdminOf.Add(Res.Col('rolname'));
+        end;
+      finally
+        Res.Free;
+      end;
+    end;
+    for Role in FRoles do begin
+      if SameText(Role.Name, RoleName) then
+        Continue;
+      Membership := TMembership.Create;
+      Membership.RoleName := Role.Name;
+      Membership.IsMember := MemberOf.IndexOf(Role.Name) > -1;
+      Membership.HasAdmin := AdminOf.IndexOf(Role.Name) > -1;
+      Membership.OriginalIsMember := Membership.IsMember;
+      Membership.OriginalHasAdmin := Membership.HasAdmin;
+      FMemberships.Add(Membership);
+    end;
+  finally
+    AdminOf.Free;
+    MemberOf.Free;
+  end;
+end;
+
+procedure TRoleManagerPgForm.FillMembershipTree;
+var
+  Node: PVirtualNode;
+  Membership: TMembership;
+begin
+  FLoading := True;
+  treeMemberships.Clear;
+  for Membership in FMemberships do begin
+    Node := treeMemberships.AddChild(nil, Membership);
+    Node.CheckType := ctCheckBox;
+    if Membership.IsMember then
+      Node.CheckState := csCheckedNormal
+    else
+      Node.CheckState := csUncheckedNormal;
+  end;
+  chkAdminOption.Checked := False;
+  chkAdminOption.Enabled := False;
+  FLoading := False;
+end;
+
+procedure TRoleManagerPgForm.ApplyRoleToEditor;
+begin
+  FLoading := True;
+  editName.Text := FRole.Name;
+  checkGroupAttributes.Checked[idxAttrLogin] := FRole.CanLogin;
+  checkGroupAttributes.Checked[idxAttrSuperuser] := FRole.SuperUser;
+  checkGroupAttributes.Checked[idxAttrCreateDB] := FRole.CreateDB;
+  checkGroupAttributes.Checked[idxAttrCreateRole] := FRole.CreateRole;
+  checkGroupAttributes.Checked[idxAttrInherit] := FRole.InheritRights;
+  checkGroupAttributes.Checked[idxAttrReplication] := FRole.Replication;
+  checkGroupAttributes.Checked[idxAttrBypassRLS] := FRole.BypassRLS;
+  editConnLimit.Value := FRole.ConnLimit;
+  editPassword.Clear;
+  chkClearPassword.Checked := False;
+  PageControl1.Enabled := True;
+  pnlMembership.Enabled := True;
+  FModified := False;
+  FLoading := False;
+  UpdateButtons;
+end;
+
+function TRoleManagerPgForm.SelectRole(Role: TRoleItem): Boolean;
+begin
+  Result := False;
+  if not ConfirmDiscard then
+    Exit;
+  Result := True;
+  FRole := Role;
+  FOwnedRole.Free;
+  FOwnedRole := nil;
+  FIsNewRole := False;
+  FOriginalName := Role.Name;
+  LoadMemberships(Role.Name);
+  FillMembershipTree;
+  ApplyRoleToEditor;
+end;
+
+procedure TRoleManagerPgForm.treeRolesFocusChanged(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex);
+begin
+  if FLoading or (Node = nil) then
+    Exit;
+  if not SelectRole(SelectedRoleItem) then begin
+    // User declined to discard: move focus back to the role being edited
+    FLoading := True;
+    if FIsNewRole then
+      treeRoles.FocusedNode := nil
+    else
+      treeRoles.FocusedNode := FindRoleNode(FOriginalName);
     FLoading := False;
   end;
+  UpdateButtons;
 end;
 
-procedure TRoleManagerPgForm.LoadRoleAttributes(const ARoleName: String);
-var
-  Res: TDBQuery;
+procedure TRoleManagerPgForm.treeRolesGetNodeDataSize(Sender: TBaseVirtualTree;
+  var NodeDataSize: Integer);
 begin
-  Res := FConn.GetResults(Sql(qPgRolemanRoleLoad, [QuoteLiteral(ARoleName)]));
-  try
-    if Res.RecordCount = 0 then Exit;
-    Res.RecNo := 1;
-    FState.RoleName := Res.Col('rolname');
-    FState.OriginalRoleName := Res.Col('rolname');
-    FState.CanLogin := Res.Col('rolcanlogin') = 't';
-    FState.SuperUser := Res.Col('rolsuper') = 't';
-    FState.CreateDB := Res.Col('rolcreatedb') = 't';
-    FState.CreateRole := Res.Col('rolcreaterole') = 't';
-    FState.InheritRights := Res.Col('rolinherit') = 't';
-    FState.Replication := Res.Col('rolreplication') = 't';
-    FState.BypassRLS := Res.Col('rolbypassrls') = 't';
-    FState.ConnectionLimit := StrToIntDef(Res.Col('rolconnlimit'), -1);
-    FState.PasswordMode := pmUnchanged;
-    FState.PasswordValue := '';
-  finally
-    Res.Free;
+  NodeDataSize := SizeOf(Pointer);
+end;
+
+procedure TRoleManagerPgForm.treeRolesGetText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+  var CellText: String);
+var
+  Data: ^TRoleItem;
+begin
+  Data := Sender.GetNodeData(Node);
+  case Column of
+    0: CellText := Data^.Name;
+    1: if Data^.CanLogin then CellText := _('Yes') else CellText := '';
+    2: if Data^.SuperUser then CellText := _('Yes') else CellText := '';
+    3: CellText := Data^.ValidUntil;
+    4: if Data^.ConnLimit = -1 then CellText := '' else CellText := IntToStr(Data^.ConnLimit);
+    else CellText := '';
   end;
 end;
 
-procedure TRoleManagerPgForm.LoadMemberships(const ARoleName: String);
+procedure TRoleManagerPgForm.treeRolesGetImageIndex(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+  var Ghosted: Boolean; var ImageIndex: Integer);
 var
-  Res: TDBQuery;
-  Item: TMembershipItem;
-  i: Integer;
+  Data: ^TRoleItem;
 begin
-  Res := FConn.GetResults(Sql(qPgRolemanMembershipsLoad, [QuoteLiteral(ARoleName)]));
-  try
-    for i := 0 to Res.RecordCount - 1 do
-    begin
-      Res.RecNo := i + 1;
-      Item := TMembershipItem.Create;
-      Item.RoleName := Res.Col('member_of');
-      Item.IsMember := Res.Col('is_member') = 't';
-      Item.AdminOption := Res.Col('admin_option') = 't';
-      Item.InheritOption := not SameText(Res.Col('inherit_option'), 'f');
-      Item.SetOption := not SameText(Res.Col('set_option'), 'f');
-      Item.OriginalIsMember := Item.IsMember;
-      Item.OriginalAdminOption := Item.AdminOption;
-      Item.OriginalInheritOption := Item.InheritOption;
-      Item.OriginalSetOption := Item.SetOption;
-      FState.Memberships.Add(Item);
-    end;
-  finally
-    Res.Free;
-  end;
-end;
-
-procedure TRoleManagerPgForm.LoadPrivilegeList(AId: TQueryId; const RoleName: String;
-  AKind: TDBObjectKind; AList: TObjectList);
-var
-  Res: TDBQuery;
-  Item: TObjectPrivItem;
-  i: Integer;
-begin
-  AList.Clear;
-  Res := FConn.GetResults(Sql(AId, [QuoteLiteral(RoleName)]));
-  try
-    for i := 0 to Res.RecordCount - 1 do
-    begin
-      Res.RecNo := i + 1;
-      Item := TObjectPrivItem.Create;
-      Item.ObjectKind := AKind;
-      Item.SchemaName := Res.Col('schema_name');
-      Item.ObjectName := Res.Col('object_name');
-      Item.ObjectIdentity := Res.Col('object_identity');
-      Item.Privileges.Assign(CsvToList(Res.Col('privileges')));
-      Item.OriginalPrivileges.Assign(Item.Privileges);
-      Item.Grantable.Assign(CsvToList(Res.Col('grantable')));
-      Item.OriginalGrantable.Assign(Item.Grantable);
-      AList.Add(Item);
-    end;
-  finally
-    Res.Free;
-  end;
-end;
-
-procedure TRoleManagerPgForm.LoadObjectPrivileges(const ARoleName: String);
-begin
-  LoadPrivilegeList(qPgRolemanObjPrivsDatabasesLoad, ARoleName, okDatabase, FState.DatabasePrivs);
-  LoadPrivilegeList(qPgRolemanObjPrivsSchemasLoad, ARoleName, okSchema, FState.SchemaPrivs);
-  LoadPrivilegeList(qPgRolemanObjPrivsTablesViewsLoad, ARoleName, okTableView, FState.TableViewPrivs);
-  LoadPrivilegeList(qPgRolemanObjPrivsSequencesLoad, ARoleName, okSequence, FState.SequencePrivs);
-  LoadPrivilegeList(qPgRolemanObjPrivsRoutinesLoad, ARoleName, okRoutine, FState.RoutinePrivs);
-end;
-
-procedure TRoleManagerPgForm.LoadDefaultPrivileges(const ARoleName: String);
-var
-  Res: TDBQuery;
-  Item: TDefaultPrivItem;
-  i: Integer;
-begin
-  FState.DefaultPrivs.Clear;
-  Res := FConn.GetResults(Sql(qPgRolemanDefaultPrivsLoad, [QuoteLiteral(ARoleName)]));
-  try
-    for i := 0 to Res.RecordCount - 1 do
-    begin
-      Res.RecNo := i + 1;
-      Item := TDefaultPrivItem.Create;
-      Item.OwnerName := Res.Col('owner_name');
-      Item.SchemaName := Res.Col('schema_name');
-      Item.Kind := DefaultPrivKindFromString(Res.Col('kind'));
-      Item.Grantee := Res.Col('grantee');
-      Item.Privileges.Assign(CsvToList(Res.Col('privileges')));
-      Item.OriginalPrivileges.Assign(Item.Privileges);
-      FState.DefaultPrivs.Add(Item);
-    end;
-  finally
-    Res.Free;
-  end;
-end;
-
-procedure TRoleManagerPgForm.PopulateFormFromState;
-begin
-  edRoleName.Text := FState.RoleName;
-  cbCanLogin.Checked := FState.CanLogin;
-  cbSuperUser.Checked := FState.SuperUser;
-  cbCreateDB.Checked := FState.CreateDB;
-  cbCreateRole.Checked := FState.CreateRole;
-  cbInheritRights.Checked := FState.InheritRights;
-  cbReplication.Checked := FState.Replication;
-  cbBypassRLS.Checked := FState.BypassRLS;
-  seConnLimit.Value := FState.ConnectionLimit;
-  cbPasswordMode.ItemIndex := Ord(FState.PasswordMode);
-  SetPasswordModeUI;
-  FillMembershipGrid;
-  FillObjectPrivilegeGrids;
-  FillDefaultPrivilegesGrid;
-end;
-
-procedure TRoleManagerPgForm.ReadFormToState;
-var
-  i: Integer;
-  Item: TMembershipItem;
-begin
-  FState.RoleName := Trim(edRoleName.Text);
-  FState.CanLogin := cbCanLogin.Checked;
-  FState.SuperUser := cbSuperUser.Checked;
-  FState.CreateDB := cbCreateDB.Checked;
-  FState.CreateRole := cbCreateRole.Checked;
-  FState.InheritRights := cbInheritRights.Checked;
-  FState.Replication := cbReplication.Checked;
-  FState.BypassRLS := cbBypassRLS.Checked;
-  FState.ConnectionLimit := seConnLimit.Value;
-  FState.PasswordMode := PasswordModeFromIndex(cbPasswordMode.ItemIndex);
-  FState.PasswordValue := edPassword.Text;
-
-  for i := 1 to vlMemberships.RowCount - 1 do
-  begin
-    if i-1 >= FState.Memberships.Count then Break;
-    Item := TMembershipItem(FState.Memberships[i-1]);
-    Item.IsMember := GridCellChecked(vlMemberships, 1, i);
-    Item.AdminOption := GridCellChecked(vlMemberships, 2, i);
-    if FConn.ServerVersionInt >= 160000 then
-    begin
-      Item.InheritOption := GridCellChecked(vlMemberships, 3, i);
-      Item.SetOption := GridCellChecked(vlMemberships, 4, i);
-    end
-    else
-    begin
-      Item.InheritOption := True;
-      Item.SetOption := True;
-    end;
-  end;
-
-  ReadPrivilegeGrid(sgDatabasePrivs, FState.DatabasePrivs);
-  ReadPrivilegeGrid(sgSchemaPrivs, FState.SchemaPrivs);
-  ReadPrivilegeGrid(sgTableViewPrivs, FState.TableViewPrivs);
-  ReadPrivilegeGrid(sgSequencesPrivs, FState.SequencePrivs);
-  ReadPrivilegeGrid(sgRoutinePrivs, FState.RoutinePrivs);
-  ReadDefaultPrivilegeGrid;
-end;
-
-procedure TRoleManagerPgForm.SetPasswordModeUI;
-begin
-  edPassword.Enabled := cbPasswordMode.ItemIndex = Ord(pmSet);
-  if not edPassword.Enabled then
-    edPassword.Clear;
-end;
-
-procedure TRoleManagerPgForm.FillMembershipGrid;
-var
-  i: Integer;
-  Item: TMembershipItem;
-begin
-  vlMemberships.RowCount := FState.Memberships.Count + 1;
-  for i := 0 to FState.Memberships.Count - 1 do
-  begin
-    Item := TMembershipItem(FState.Memberships[i]);
-    vlMemberships.Cells[0, i+1] := Item.RoleName;
-    SetGridCheckbox(vlMemberships, 1, i+1, Item.IsMember);
-    SetGridCheckbox(vlMemberships, 2, i+1, Item.AdminOption);
-    SetGridCheckbox(vlMemberships, 3, i+1, Item.InheritOption);
-    SetGridCheckbox(vlMemberships, 4, i+1, Item.SetOption);
-  end;
-end;
-
-procedure TRoleManagerPgForm.FillPrivilegeGrid(AGrid: TStringGrid; AList: TObjectList);
-var
-  i: Integer;
-  Item: TObjectPrivItem;
-begin
-  AGrid.RowCount := AList.Count + 1;
-  for i := 0 to AList.Count - 1 do
-  begin
-    Item := TObjectPrivItem(AList[i]);
-    AGrid.Cells[0, i+1] := Item.SchemaName;
-    AGrid.Cells[1, i+1] := Item.ObjectName;
-    AGrid.Cells[2, i+1] := Item.Privileges.CommaText;
-    AGrid.Cells[3, i+1] := Item.Grantable.CommaText;
-  end;
-end;
-
-procedure TRoleManagerPgForm.FillObjectPrivilegeGrids;
-begin
-  FillPrivilegeGrid(sgDatabasePrivs, FState.DatabasePrivs);
-  FillPrivilegeGrid(sgSchemaPrivs, FState.SchemaPrivs);
-  FillPrivilegeGrid(sgTableViewPrivs, FState.TableViewPrivs);
-  FillPrivilegeGrid(sgSequencesPrivs, FState.SequencePrivs);
-  FillPrivilegeGrid(sgRoutinePrivs, FState.RoutinePrivs);
-end;
-
-procedure TRoleManagerPgForm.FillDefaultPrivilegesGrid;
-var
-  i: Integer;
-  Item: TDefaultPrivItem;
-begin
-  sgDefaultPrivs.RowCount := FState.DefaultPrivs.Count + 1;
-  for i := 0 to FState.DefaultPrivs.Count - 1 do
-  begin
-    Item := TDefaultPrivItem(FState.DefaultPrivs[i]);
-    sgDefaultPrivs.Cells[0, i+1] := Item.OwnerName;
-    sgDefaultPrivs.Cells[1, i+1] := Item.SchemaName;
-    sgDefaultPrivs.Cells[2, i+1] := DefaultPrivKindToToken(Item.Kind);
-    sgDefaultPrivs.Cells[3, i+1] := Item.Grantee;
-    sgDefaultPrivs.Cells[4, i+1] := Item.Privileges.CommaText;
-  end;
-end;
-
-procedure TRoleManagerPgForm.ReadPrivilegeGrid(AGrid: TStringGrid; AList: TObjectList);
-var
-  i: Integer;
-  Item: TObjectPrivItem;
-  L: TStringList;
-begin
-  for i := 1 to AGrid.RowCount - 1 do
-  begin
-    if i-1 >= AList.Count then Break;
-    Item := TObjectPrivItem(AList[i-1]);
-    L := CsvToList(AGrid.Cells[2, i]);
-    try
-      Item.Privileges.Assign(L);
-    finally
-      L.Free;
-    end;
-    L := CsvToList(AGrid.Cells[3, i]);
-    try
-      Item.Grantable.Assign(L);
-    finally
-      L.Free;
-    end;
-  end;
-end;
-
-procedure TRoleManagerPgForm.ReadDefaultPrivilegeGrid;
-var
-  i: Integer;
-  Item: TDefaultPrivItem;
-  L: TStringList;
-begin
-  for i := 1 to sgDefaultPrivs.RowCount - 1 do
-  begin
-    if i-1 >= FState.DefaultPrivs.Count then Break;
-    Item := TDefaultPrivItem(FState.DefaultPrivs[i-1]);
-    Item.OwnerName := Trim(sgDefaultPrivs.Cells[0, i]);
-    Item.SchemaName := Trim(sgDefaultPrivs.Cells[1, i]);
-    Item.Kind := DefaultPrivKindFromString(sgDefaultPrivs.Cells[2, i]);
-    Item.Grantee := Trim(sgDefaultPrivs.Cells[3, i]);
-    L := CsvToList(sgDefaultPrivs.Cells[4, i]);
-    try
-      Item.Privileges.Assign(L);
-    finally
-      L.Free;
-    end;
-  end;
-end;
-
-procedure TRoleManagerPgForm.SaveRole;
-begin
-  ReadFormToState;
-  SaveRoleCore;
-  SaveMemberships;
-  SaveObjectPrivileges;
-  SaveDefaultPrivileges;
-  LoadRolesList;
-  cmbRole.ItemIndex := cmbRole.Items.IndexOf(FState.RoleName);
-  LoadRole(FState.RoleName);
-  FModified := False;
-end;
-
-procedure TRoleManagerPgForm.SaveRoleCore;
-var
-  OldName, NewName: String;
-begin
-  OldName := FState.OriginalRoleName;
-  NewName := FState.RoleName;
-
-  if FState.IsNewRole then
-    FConn.Query(Sql(qPgRolemanRoleCreate, [
-      QuoteIdent(NewName),
-      BoolToken('LOGIN', 'NOLOGIN', FState.CanLogin),
-      BoolToken('SUPERUSER', 'NOSUPERUSER', FState.SuperUser),
-      BoolToken('CREATEDB', 'NOCREATEDB', FState.CreateDB),
-      BoolToken('CREATEROLE', 'NOCREATEROLE', FState.CreateRole),
-      BoolToken('INHERIT', 'NOINHERIT', FState.InheritRights),
-      BoolToken('REPLICATION', 'NOREPLICATION', FState.Replication),
-      BoolToken('BYPASSRLS', 'NOBYPASSRLS', FState.BypassRLS),
-      FState.ConnectionLimit
-    ]))
+  if (Column <> 0) or not (Kind in [ikNormal, ikSelected]) then
+    Exit;
+  Data := Sender.GetNodeData(Node);
+  if Data^.CanLogin then
+    ImageIndex := ICONINDEX_USER
   else
-    FConn.Query(Sql(qPgRolemanRoleAlter, [
-      QuoteLiteral(OldName),                 // IF %s <> %s
-      QuoteLiteral(NewName),
-      QuoteIdent(OldName),                   // dynamic ALTER ROLE old RENAME TO new
-      QuoteIdent(NewName),
-      QuoteIdent(NewName),                   // final ALTER ROLE %s WITH ...
-      BoolToken('LOGIN', 'NOLOGIN', FState.CanLogin),
-      BoolToken('SUPERUSER', 'NOSUPERUSER', FState.SuperUser),
-      BoolToken('CREATEDB', 'NOCREATEDB', FState.CreateDB),
-      BoolToken('CREATEROLE', 'NOCREATEROLE', FState.CreateRole),
-      BoolToken('INHERIT', 'NOINHERIT', FState.InheritRights),
-      BoolToken('REPLICATION', 'NOREPLICATION', FState.Replication),
-      BoolToken('BYPASSRLS', 'NOBYPASSRLS', FState.BypassRLS),
-      FState.ConnectionLimit
-    ]));
-
-  case FState.PasswordMode of
-    pmClear:
-      FConn.Query(Sql(qPgRolemanRolePasswordClear, [QuoteIdent(NewName)]));
-    pmSet:
-      FConn.Query(Sql(qPgRolemanRolePasswordSet, [QuoteIdent(NewName), QuoteLiteral(FState.PasswordValue)]));
-  end;
+    ImageIndex := ICONINDEX_ROLE;
 end;
 
-procedure TRoleManagerPgForm.SaveMemberships;
+procedure TRoleManagerPgForm.treeMembershipsChecked(Sender: TBaseVirtualTree;
+  Node: PVirtualNode);
 var
-  i: Integer;
-  Item: TMembershipItem;
-  AdminClause: String;
+  Data: ^TMembership;
 begin
-  for i := 0 to FState.Memberships.Count - 1 do
-  begin
-    Item := TMembershipItem(FState.Memberships[i]);
-    AdminClause := IfThen(Item.AdminOption, ' WITH ADMIN OPTION', '');
-
-    if FConn.ServerVersionInt >= 160000 then
-    begin
-      if Item.IsMember <> Item.OriginalIsMember then
-      begin
-        if Item.IsMember then
-          FConn.Query(Sql(qPgRolemanMembershipGrant, [
-            QuoteIdent(Item.RoleName), QuoteIdent(FState.RoleName),
-            BoolToken('ADMIN TRUE', 'ADMIN FALSE', Item.AdminOption),
-            BoolToken('INHERIT TRUE', 'INHERIT FALSE', Item.InheritOption),
-            BoolToken('SET TRUE', 'SET FALSE', Item.SetOption)
-          ]))
-        else
-          FConn.Query(Sql(qPgRolemanMembershipRevoke, [QuoteIdent(Item.RoleName), QuoteIdent(FState.RoleName)]));
-      end
-      else if Item.IsMember and (
-        (Item.AdminOption <> Item.OriginalAdminOption) or
-        (Item.InheritOption <> Item.OriginalInheritOption) or
-        (Item.SetOption <> Item.OriginalSetOption)
-      ) then
-        FConn.Query(Sql(qPgRolemanMembershipRegrant, [
-          QuoteIdent(Item.RoleName), QuoteIdent(FState.RoleName),
-          QuoteIdent(Item.RoleName), QuoteIdent(FState.RoleName),
-          BoolToken('ADMIN TRUE', 'ADMIN FALSE', Item.AdminOption),
-          BoolToken('INHERIT TRUE', 'INHERIT FALSE', Item.InheritOption),
-          BoolToken('SET TRUE', 'SET FALSE', Item.SetOption)
-        ]));
-    end
-    else
-    begin
-      if Item.IsMember <> Item.OriginalIsMember then
-      begin
-        if Item.IsMember then
-          FConn.Query(Sql(qPgRolemanMembershipGrant, [
-            QuoteIdent(Item.RoleName), QuoteIdent(FState.RoleName), AdminClause
-          ]))
-        else
-          FConn.Query(Sql(qPgRolemanMembershipRevoke, [QuoteIdent(Item.RoleName), QuoteIdent(FState.RoleName)]));
-      end
-      else if Item.IsMember and (Item.AdminOption <> Item.OriginalAdminOption) then
-        FConn.Query(Sql(qPgRolemanMembershipRegrant, [
-          QuoteIdent(Item.RoleName), QuoteIdent(FState.RoleName),
-          QuoteIdent(Item.RoleName), QuoteIdent(FState.RoleName),
-          AdminClause
-        ]));
-    end;
-  end;
+  if FLoading or (Node = nil) then
+    Exit;
+  Data := Sender.GetNodeData(Node);
+  Data^.IsMember := Node.CheckState in [csCheckedNormal, csCheckedPressed];
+  MarkModified(Sender);
+  chkAdminOption.Enabled := Data^.IsMember;
+  if not Data^.IsMember then
+    chkAdminOption.Checked := False
+  else
+    chkAdminOption.Checked := Data^.HasAdmin;
 end;
 
-procedure TRoleManagerPgForm.SavePrivilegeList(AList: TObjectList; const ATypeToken: String;
-  const AAllPrivs: array of String);
+procedure TRoleManagerPgForm.treeMembershipsFocusChanged(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex);
 var
-  i, j: Integer;
-  Item: TObjectPrivItem;
-  RevokeAll, GrantPrivs, GrantGrantable: String;
+  Data: ^TMembership;
 begin
-  RevokeAll := '';
-  for j := Low(AAllPrivs) to High(AAllPrivs) do
-  begin
-    if RevokeAll <> '' then RevokeAll := RevokeAll + ', ';
-    RevokeAll := RevokeAll + AAllPrivs[j];
-  end;
-
-  for i := 0 to AList.Count - 1 do
-  begin
-    Item := TObjectPrivItem(AList[i]);
-    if (Item.Privileges.CommaText <> Item.OriginalPrivileges.CommaText) or
-       (Item.Grantable.CommaText <> Item.OriginalGrantable.CommaText) then
-    begin
-      FConn.Query(Sql(qPgRolemanObjPrivRevoke, [RevokeAll, ATypeToken, Item.ObjectIdentity, QuoteIdent(FState.RoleName)]));
-
-      GrantPrivs := NormalizePrivilegeCsv(Item.Privileges.CommaText);
-      if GrantPrivs <> '' then
-        FConn.Query(Sql(qPgRolemanObjPrivGrant, [GrantPrivs, ATypeToken, Item.ObjectIdentity, QuoteIdent(FState.RoleName), '']));
-
-      GrantGrantable := NormalizePrivilegeCsv(Item.Grantable.CommaText);
-      if GrantGrantable <> '' then
-        FConn.Query(Sql(qPgRolemanObjPrivGrant, [GrantGrantable, ATypeToken, Item.ObjectIdentity, QuoteIdent(FState.RoleName), ' WITH GRANT OPTION']));
-    end;
-  end;
+  if FLoading or (Node = nil) then
+    Exit;
+  Data := Sender.GetNodeData(Node);
+  chkAdminOption.Enabled := Data^.IsMember;
+  chkAdminOption.Checked := Data^.HasAdmin;
 end;
 
-procedure TRoleManagerPgForm.SaveObjectPrivileges;
+procedure TRoleManagerPgForm.treeMembershipsGetNodeDataSize(
+  Sender: TBaseVirtualTree; var NodeDataSize: Integer);
 begin
-  SavePrivilegeList(FState.DatabasePrivs, 'DATABASE', CDbPrivs);
-  SavePrivilegeList(FState.SchemaPrivs, 'SCHEMA', CSchemaPrivs);
-  SavePrivilegeList(FState.TableViewPrivs, 'TABLE', CTablePrivs);
-  SavePrivilegeList(FState.SequencePrivs, 'SEQUENCE', CSequencePrivs);
-  SavePrivilegeList(FState.RoutinePrivs, 'FUNCTION', CRoutinePrivs);
+  NodeDataSize := SizeOf(Pointer);
 end;
 
-procedure TRoleManagerPgForm.SaveDefaultPrivileges;
+procedure TRoleManagerPgForm.treeMembershipsGetText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+  var CellText: String);
 var
-  i: Integer;
-  Item: TDefaultPrivItem;
-  AllPrivs, SchemaPart, PrivList: String;
+  Data: ^TMembership;
 begin
-  for i := 0 to FState.DefaultPrivs.Count - 1 do
-  begin
-    Item := TDefaultPrivItem(FState.DefaultPrivs[i]);
-    if Item.Privileges.CommaText = Item.OriginalPrivileges.CommaText then
-      Continue;
-
-    case Item.Kind of
-      dpTables: AllPrivs := 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER';
-      dpSequences: AllPrivs := 'USAGE, SELECT, UPDATE';
-    else
-      AllPrivs := 'EXECUTE';
-    end;
-
-    if Trim(Item.SchemaName) <> '' then
-      SchemaPart := ' IN SCHEMA ' + QuoteIdent(Item.SchemaName)
-    else
-      SchemaPart := '';
-
-    FConn.Query(Sql(qPgRolemanDefaultPrivRevoke, [
-      QuoteIdent(Item.OwnerName), SchemaPart, AllPrivs, DefaultPrivKindToToken(Item.Kind), QuoteIdent(FState.RoleName)
-    ]));
-
-    PrivList := NormalizePrivilegeCsv(Item.Privileges.CommaText);
-    if PrivList <> '' then
-      FConn.Query(Sql(qPgRolemanDefaultPrivGrant, [
-        QuoteIdent(Item.OwnerName), SchemaPart, PrivList, DefaultPrivKindToToken(Item.Kind), QuoteIdent(FState.RoleName), ''
-      ]));
-  end;
+  Data := Sender.GetNodeData(Node);
+  CellText := Data^.RoleName;
 end;
 
-procedure TRoleManagerPgForm.DropRole;
+procedure TRoleManagerPgForm.checkGroupAttributesItemClick(Sender: TObject;
+  Index: Integer);
 begin
-  if not ConfirmDrop then Exit;
-  FConn.Query(Sql(qPgRolemanRoleDrop, [QuoteIdent(FState.RoleName)]));
-  LoadRolesList;
-  if cmbRole.Items.Count > 0 then
-  begin
-    cmbRole.ItemIndex := 0;
-    LoadRole(cmbRole.Text);
-  end else
-    btnNewClick(nil);
+  MarkModified(Sender);
 end;
 
-procedure TRoleManagerPgForm.CloneRole;
+procedure TRoleManagerPgForm.chkAdminOptionChange(Sender: TObject);
 var
-  SrcName: String;
+  Data: ^TMembership;
 begin
-  ReadFormToState;
-  SrcName := FState.RoleName;
-  FState.IsNewRole := True;
-  FState.IsCloneRole := True;
-  FState.OriginalRoleName := '';
-  FState.PasswordMode := pmUnchanged;
-  FState.PasswordValue := '';
-  FState.RoleName := SrcName + '_copy';
-  PopulateFormFromState;
+  if FLoading or (treeMemberships.FocusedNode = nil) then
+    Exit;
+  Data := treeMemberships.GetNodeData(treeMemberships.FocusedNode);
+  Data^.HasAdmin := chkAdminOption.Checked;
+  MarkModified(Sender);
+end;
+
+procedure TRoleManagerPgForm.FocusNameEditor;
+begin
+  PageControl1.ActivePage := tabAttributes;
+  if editName.CanFocus then
+    editName.SetFocus;
+end;
+
+procedure TRoleManagerPgForm.btnAddClick(Sender: TObject);
+begin
+  if not ConfirmDiscard then
+    Exit;
+  FOwnedRole.Free;
+  FOwnedRole := TRoleItem.Create;
+  FRole := FOwnedRole;
+  FRole.Name := '';
+  FRole.CanLogin := True;
+  FRole.InheritRights := True;
+  FIsNewRole := True;
+  FOriginalName := '';
+  LoadMemberships('');
+  FillMembershipTree;
+  ApplyRoleToEditor;
+  FocusNameEditor;
   FModified := True;
-end;
-
-procedure TRoleManagerPgForm.MarkModified;
-begin
-  if not FLoading then
-    FModified := True;
-end;
-
-function TRoleManagerPgForm.ConfirmDrop: Boolean;
-begin
-  Result := MessageDlg('Drop role', 'Really drop role "' + FState.RoleName + '"?',
-    mtConfirmation, [mbYes, mbNo], 0) = mrYes;
-end;
-
-function TRoleManagerPgForm.ConfirmRoleSwitch: Boolean;
-begin
-  if not FModified then Exit(True);
-  Result := MessageDlg('Unsaved changes', 'Discard unsaved changes?',
-    mtConfirmation, [mbYes, mbNo], 0) = mrYes;
-end;
-
-function TRoleManagerPgForm.SelectedRole: String;
-begin
-  Result := Trim(cmbRole.Text);
-end;
-
-function TRoleManagerPgForm.Sql(AId: TQueryId): String;
-begin
-  Result := FConn.SqlProvider.GetSql(AId);
-end;
-
-function TRoleManagerPgForm.Sql(AId: TQueryId; const Args: array of const): String;
-begin
-  Result := FConn.SqlProvider.GetSql(AId, Args);
-end;
-
-function TRoleManagerPgForm.QuoteIdent(const S: String): String;
-begin
-  Result := FConn.QuoteIdent(S);
-end;
-
-function TRoleManagerPgForm.QuoteLiteral(const S: String): String;
-begin
-  Result := FConn.EscapeString(S);
-end;
-
-function TRoleManagerPgForm.BoolToken(const TrueToken, FalseToken: String; const Value: Boolean): String;
-begin
-  if Value then Result := TrueToken else Result := FalseToken;
-end;
-
-function TRoleManagerPgForm.PasswordModeFromIndex(AIndex: Integer): TPasswordMode;
-begin
-  case AIndex of
-    1: Result := pmClear;
-    2: Result := pmSet;
-  else
-    Result := pmUnchanged;
-  end;
-end;
-
-function TRoleManagerPgForm.CsvToList(const S: String): TStringList;
-var
-  Tmp: String;
-  Parts: TStringArray;
-  i: Integer;
-begin
-  Result := TStringList.Create;
-  Result.StrictDelimiter := True;
-  Result.CaseSensitive := False;
-  Result.Duplicates := dupIgnore;
-  Tmp := StringReplace(Trim(S), ', ', ',', [rfReplaceAll]);
-  if Tmp = '' then Exit;
-  Parts := SplitString(Tmp, ',');
-  for i := 0 to High(Parts) do
-    if Trim(Parts[i]) <> '' then
-      Result.Add(UpperCase(Trim(Parts[i])));
-end;
-
-function TRoleManagerPgForm.NormalizePrivilegeCsv(const S: String): String;
-var
-  L: TStringList;
-  i: Integer;
-begin
-  L := CsvToList(S);
-  try
-    Result := '';
-    for i := 0 to L.Count - 1 do
-    begin
-      if Result <> '' then Result := Result + ', ';
-      Result := Result + L[i];
-    end;
-  finally
-    L.Free;
-  end;
-end;
-
-function TRoleManagerPgForm.DefaultPrivKindToToken(AKind: TDefaultPrivKind): String;
-begin
-  case AKind of
-    dpTables: Result := 'TABLES';
-    dpSequences: Result := 'SEQUENCES';
-  else
-    Result := 'ROUTINES';
-  end;
-end;
-
-function TRoleManagerPgForm.DefaultPrivKindFromString(const S: String): TDefaultPrivKind;
-begin
-  if SameText(Trim(S), 'SEQUENCES') then
-    Result := dpSequences
-  else if SameText(Trim(S), 'ROUTINES') then
-    Result := dpRoutines
-  else
-    Result := dpTables;
-end;
-
-function TRoleManagerPgForm.GridCellChecked(AGrid: TStringGrid; ACol, ARow: Integer): Boolean;
-begin
-  Result := SameText(AGrid.Cells[ACol, ARow], '1') or
-    ((ACol < AGrid.Columns.Count) and (AGrid.Cells[ACol, ARow] = AGrid.Columns[ACol].ValueChecked));
-end;
-
-procedure TRoleManagerPgForm.SetGridCheckbox(AGrid: TStringGrid; ACol, ARow: Integer; AValue: Boolean);
-begin
-  if (ACol < AGrid.Columns.Count) then
-  begin
-    if AValue then
-      AGrid.Cells[ACol, ARow] := AGrid.Columns[ACol].ValueChecked
-    else
-      AGrid.Cells[ACol, ARow] := AGrid.Columns[ACol].ValueUnchecked;
-  end else begin
-    if AValue then
-      AGrid.Cells[ACol, ARow] := '1'
-    else
-      AGrid.Cells[ACol, ARow] := '0';
-  end;
-end;
-
-procedure TRoleManagerPgForm.Log(const S: String);
-begin
-  {$IFDEF DEBUG}
-  memoLog.Lines.Add(S);
-  {$ENDIF}
-end;
-
-procedure TRoleManagerPgForm.btnCancelClick(Sender: TObject);
-begin
-  ModalResult := mrCancel;
+  UpdateButtons;
 end;
 
 procedure TRoleManagerPgForm.btnCloneClick(Sender: TObject);
+var
+  Membership: TMembership;
 begin
-  CloneRole;
-end;
-
-procedure TRoleManagerPgForm.btnDropClick(Sender: TObject);
-begin
-  DropRole;
-end;
-
-procedure TRoleManagerPgForm.btnNewClick(Sender: TObject);
-begin
-  if not ConfirmRoleSwitch then Exit;
-  FState.Clear;
-  FState.IsNewRole := True;
-  FState.RoleName := 'new_role';
-  PopulateFormFromState;
-  edRoleName.SetFocus;
+  if FRole = nil then
+    Exit;
+  if not ConfirmDiscard then
+    Exit;
+  FOwnedRole.Free;
+  FOwnedRole := TRoleItem.Create;
+  FOwnedRole.Name := '';
+  FOwnedRole.CanLogin := FRole.CanLogin;
+  FOwnedRole.SuperUser := FRole.SuperUser;
+  FOwnedRole.CreateDB := FRole.CreateDB;
+  FOwnedRole.CreateRole := FRole.CreateRole;
+  FOwnedRole.InheritRights := FRole.InheritRights;
+  FOwnedRole.Replication := FRole.Replication;
+  FOwnedRole.BypassRLS := FRole.BypassRLS;
+  FOwnedRole.ConnLimit := FRole.ConnLimit;
+  FRole := FOwnedRole;
+  FIsNewRole := True;
+  FOriginalName := '';
+  for Membership in FMemberships do begin
+    Membership.OriginalIsMember := False;
+    Membership.OriginalHasAdmin := False;
+  end;
+  FillMembershipTree;
+  ApplyRoleToEditor;
+  FocusNameEditor;
   FModified := True;
+  UpdateButtons;
+end;
+
+procedure TRoleManagerPgForm.btnDeleteClick(Sender: TObject);
+var
+  Role: TRoleItem;
+begin
+  Role := SelectedRoleItem;
+  if Role = nil then
+    Exit;
+  if MessageDlg(_('Delete role'), f_('Really delete role "%s"?', [Role.Name]),
+    mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
+    Exit;
+  try
+    FConnection.Query(Sql(qPgRoleDrop, [FConnection.QuoteIdent(Role.Name)]));
+  except
+    on E: Exception do begin
+      ErrorDialog(E.Message);
+      Exit;
+    end;
+  end;
+  if (FRole <> nil) and SameText(FRole.Name, Role.Name) then
+    ClearEditor;
+  LoadRoles;
 end;
 
 procedure TRoleManagerPgForm.btnSaveClick(Sender: TObject);
@@ -1128,27 +533,248 @@ begin
   SaveRole;
 end;
 
-procedure TRoleManagerPgForm.cbPasswordModeChange(Sender: TObject);
+procedure TRoleManagerPgForm.btnDiscardClick(Sender: TObject);
 begin
-  if FLoading then Exit;
-  SetPasswordModeUI;
-  MarkModified;
+  if FIsNewRole then
+    ClearEditor
+  else if FRole <> nil then begin
+    FRole := FindRole(FOriginalName);
+    FIsNewRole := False;
+    if FRole <> nil then begin
+      FOriginalName := FRole.Name;
+      LoadMemberships(FRole.Name);
+      FillMembershipTree;
+      ApplyRoleToEditor;
+    end else
+      ClearEditor;
+  end else
+    ClearEditor;
 end;
 
-procedure TRoleManagerPgForm.cmbRoleChange(Sender: TObject);
+procedure TRoleManagerPgForm.btnCloseClick(Sender: TObject);
 begin
-  if FLoading then Exit;
-  if not ConfirmRoleSwitch then Exit;
-  if SelectedRole <> '' then
-    LoadRole(SelectedRole);
+  Close;
 end;
 
-procedure TRoleManagerPgForm.vlMembershipsCheckboxToggled(Sender: TObject; aCol,
-  aRow: Integer; aState: TCheckboxState);
+procedure TRoleManagerPgForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
-  if FLoading then Exit;
-  if (aRow > 0) and (aCol >= 1) and (aCol <= 4) then
-    MarkModified;
+  CanClose := ConfirmDiscard;
+end;
+
+procedure TRoleManagerPgForm.editFilterChange(Sender: TObject);
+begin
+  FilterNodesByEdit(editFilter, treeRoles);
+end;
+
+procedure TRoleManagerPgForm.editFilterButtonClick(Sender: TObject);
+begin
+  editFilter.Clear;
+end;
+
+procedure TRoleManagerPgForm.MarkModified(Sender: TObject);
+begin
+  if FLoading then
+    Exit;
+  FModified := True;
+  UpdateButtons;
+end;
+
+procedure TRoleManagerPgForm.UpdateButtons;
+begin
+  btnSave.Enabled := FModified and (FRole <> nil);
+  btnDiscard.Enabled := FModified and (FRole <> nil);
+  btnDelete.Enabled := SelectedRoleItem <> nil;
+  btnClone.Enabled := (FRole <> nil) and not FIsNewRole;
+end;
+
+function TRoleManagerPgForm.ConfirmDiscard: Boolean;
+begin
+  Result := True;
+  if FModified then
+    Result := MessageDlg(_('Unsaved changes'), _('Discard unsaved changes on role?'),
+      mtConfirmation, [mbYes, mbNo], 0) = mrYes;
+end;
+
+function TRoleManagerPgForm.FindRole(const RoleName: String): TRoleItem;
+var
+  Role: TRoleItem;
+begin
+  Result := nil;
+  for Role in FRoles do
+    if SameText(Role.Name, RoleName) then
+      Exit(Role);
+end;
+
+function TRoleManagerPgForm.FindRoleNode(const RoleName: String): PVirtualNode;
+var
+  Node: PVirtualNode;
+  Data: ^TRoleItem;
+begin
+  Result := nil;
+  Node := treeRoles.GetFirst;
+  while Node <> nil do begin
+    Data := treeRoles.GetNodeData(Node);
+    if SameText(Data^.Name, RoleName) then
+      Exit(Node);
+    Node := treeRoles.GetNext(Node);
+  end;
+end;
+
+function TRoleManagerPgForm.SelectedRoleItem: TRoleItem;
+var
+  Data: ^TRoleItem;
+begin
+  Result := nil;
+  if treeRoles.FocusedNode = nil then
+    Exit;
+  Data := treeRoles.GetNodeData(treeRoles.FocusedNode);
+  Result := Data^;
+end;
+
+function TRoleManagerPgForm.Sql(AId: TQueryId): String;
+begin
+  Result := FConnection.SqlProvider.GetSql(AId);
+end;
+
+function TRoleManagerPgForm.Sql(AId: TQueryId; const Args: array of const): String;
+begin
+  Result := FConnection.SqlProvider.GetSql(AId, Args);
+end;
+
+function TRoleManagerPgForm.SqlBool(const TrueToken, FalseToken: String;
+  Value: Boolean): String;
+begin
+  if Value then
+    Result := TrueToken
+  else
+    Result := FalseToken;
+end;
+
+function TRoleManagerPgForm.PgBool(Value: String): Boolean;
+begin
+  Result := (Value = 't') or (Value = 'true') or (Value = '1') or (Value = 'y');
+end;
+
+procedure TRoleManagerPgForm.SaveRole;
+var
+  RoleName, PasswordClause, BypassToken: String;
+begin
+  if FRole = nil then
+    Exit;
+  RoleName := Trim(editName.Text);
+  if RoleName = '' then begin
+    ErrorDialog(_('Please enter a role name.'));
+    Exit;
+  end;
+  if (FIsNewRole or not SameText(RoleName, FOriginalName)) and (FindRole(RoleName) <> nil) then begin
+    ErrorDialog(f_('A role named "%s" already exists.', [RoleName]));
+    Exit;
+  end;
+
+  PasswordClause := '';
+  if chkClearPassword.Checked then
+    PasswordClause := 'PASSWORD NULL'
+  else if editPassword.Text <> '' then
+    PasswordClause := 'PASSWORD ' + FConnection.EscapeString(editPassword.Text);
+
+  if FConnection.ServerVersionInt >= 90500 then
+    BypassToken := SqlBool('BYPASSRLS', 'NOBYPASSRLS',
+      checkGroupAttributes.Checked[idxAttrBypassRLS])
+  else
+    BypassToken := '';
+
+  try
+    if FIsNewRole then
+      FConnection.Query(Sql(qPgRoleCreate, [
+        FConnection.QuoteIdent(RoleName),
+        SqlBool('LOGIN', 'NOLOGIN', checkGroupAttributes.Checked[idxAttrLogin]),
+        SqlBool('SUPERUSER', 'NOSUPERUSER', checkGroupAttributes.Checked[idxAttrSuperuser]),
+        SqlBool('CREATEDB', 'NOCREATEDB', checkGroupAttributes.Checked[idxAttrCreateDB]),
+        SqlBool('CREATEROLE', 'NOCREATEROLE', checkGroupAttributes.Checked[idxAttrCreateRole]),
+        SqlBool('INHERIT', 'NOINHERIT', checkGroupAttributes.Checked[idxAttrInherit]),
+        SqlBool('REPLICATION', 'NOREPLICATION', checkGroupAttributes.Checked[idxAttrReplication]),
+        BypassToken,
+        editConnLimit.Value,
+        PasswordClause
+      ]))
+    else begin
+      if RoleName <> FOriginalName then
+        FConnection.Query(Sql(qPgRoleRename, [
+          FConnection.QuoteIdent(FOriginalName),
+          FConnection.QuoteIdent(RoleName)
+        ]));
+      FConnection.Query(Sql(qPgRoleAlter, [
+        FConnection.QuoteIdent(RoleName),
+        SqlBool('LOGIN', 'NOLOGIN', checkGroupAttributes.Checked[idxAttrLogin]),
+        SqlBool('SUPERUSER', 'NOSUPERUSER', checkGroupAttributes.Checked[idxAttrSuperuser]),
+        SqlBool('CREATEDB', 'NOCREATEDB', checkGroupAttributes.Checked[idxAttrCreateDB]),
+        SqlBool('CREATEROLE', 'NOCREATEROLE', checkGroupAttributes.Checked[idxAttrCreateRole]),
+        SqlBool('INHERIT', 'NOINHERIT', checkGroupAttributes.Checked[idxAttrInherit]),
+        SqlBool('REPLICATION', 'NOREPLICATION', checkGroupAttributes.Checked[idxAttrReplication]),
+        BypassToken,
+        editConnLimit.Value,
+        PasswordClause
+      ]));
+    end;
+    SaveMemberships(RoleName);
+  except
+    on E: Exception do begin
+      ErrorDialog(E.Message);
+      Exit;
+    end;
+  end;
+
+  LoadRoles;
+  FRole := FindRole(RoleName);
+  FIsNewRole := False;
+  if FRole <> nil then begin
+    FOriginalName := RoleName;
+    LoadMemberships(RoleName);
+    FillMembershipTree;
+    ApplyRoleToEditor;
+    treeRoles.FocusedNode := FindRoleNode(RoleName);
+  end else
+    ClearEditor;
+end;
+
+procedure TRoleManagerPgForm.SaveMemberships(const RoleName: String);
+var
+  Membership: TMembership;
+  AdminClause: String;
+begin
+  for Membership in FMemberships do begin
+    if Membership.IsMember and not Membership.OriginalIsMember then begin
+      if Membership.HasAdmin then
+        AdminClause := ' WITH ADMIN OPTION'
+      else
+        AdminClause := '';
+      FConnection.Query(Sql(qPgRoleMembershipGrant, [
+        FConnection.QuoteIdent(Membership.RoleName),
+        FConnection.QuoteIdent(RoleName),
+        AdminClause
+      ]));
+    end
+    else if not Membership.IsMember and Membership.OriginalIsMember then
+      FConnection.Query(Sql(qPgRoleMembershipRevoke, [
+        FConnection.QuoteIdent(Membership.RoleName),
+        FConnection.QuoteIdent(RoleName)
+      ]))
+    else if Membership.IsMember and (Membership.HasAdmin <> Membership.OriginalHasAdmin) then begin
+      FConnection.Query(Sql(qPgRoleMembershipRevoke, [
+        FConnection.QuoteIdent(Membership.RoleName),
+        FConnection.QuoteIdent(RoleName)
+      ]));
+      if Membership.HasAdmin then
+        AdminClause := ' WITH ADMIN OPTION'
+      else
+        AdminClause := '';
+      FConnection.Query(Sql(qPgRoleMembershipGrant, [
+        FConnection.QuoteIdent(Membership.RoleName),
+        FConnection.QuoteIdent(RoleName),
+        AdminClause
+      ]));
+    end;
+  end;
 end;
 
 end.
