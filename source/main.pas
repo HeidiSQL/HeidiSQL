@@ -15,7 +15,7 @@ uses
   SynHighlighterSQL, Vcl.Tabs, SynUnicode, SynRegExpr, Vcl.ExtActns, System.IOUtils, System.Types, Vcl.Themes, System.Win.ComObj,
   Winapi.CommCtrl, System.Contnrs, System.Generics.Collections, System.Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, System.Math, Vcl.ExtDlgs, System.Win.Registry, Vcl.AppEvnts,
   routine_editor, trigger_editor, event_editor, preferences, EditVar, apphelpers, createdatabase, table_editor,
-  TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
+  TableTools, View, Usermanager, Rolemanagerpg, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, csv_detector, Cromis.DirectoryWatch, SyncDB, gnugettext,
   VirtualTrees, VirtualTrees.HeaderPopup, VirtualTrees.Utils, VirtualTrees.Types,
   JumpList, System.Actions, System.UITypes, Vcl.Imaging.pngimage,
@@ -2919,9 +2919,16 @@ end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
 var
-  Dialog: TUserManagerForm;
+  Dialog: TForm;
 begin
-  Dialog := TUserManagerForm.Create(Self);
+  Dialog := nil;
+  case ActiveConnection.Parameters.NetTypeGroup of
+    ngMySQL: Dialog := TUserManagerForm.Create(Self);
+    ngPgSQL: Dialog := TRoleManagerPgForm.Create(Self);
+    else ErrorDialog(ActiveConnection.Parameters.NetTypeName(False) + ' not supported for managing users');
+  end;
+  if Dialog = nil then
+    Exit;
   Dialog.ShowModal;
   Dialog.Free;
 end;

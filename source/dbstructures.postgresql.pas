@@ -743,6 +743,41 @@ begin
       'ORDER BY UPPER(t.typname)',
       '' // ServerVersion < 9
       );
+
+    // PostgreSQL role manager
+    qPgRoleAttributes: Result :=
+      'SELECT rolname, rolsuper, rolinherit, rolcreaterole, rolcreatedb, rolcanlogin, rolreplication, ' +
+      IfThen(FServerVersion >= 90500, 'rolbypassrls', 'FALSE AS rolbypassrls') + ', ' +
+      'rolconnlimit, rolvaliduntil::text AS rolvaliduntil ' +
+      'FROM pg_catalog.pg_roles ' +
+      'ORDER BY LOWER(rolname)';
+
+    qPgRoleMemberships: Result :=
+      'SELECT r.rolname, m.admin_option ' +
+      'FROM pg_catalog.pg_auth_members AS m ' +
+      'JOIN pg_catalog.pg_roles AS r ON r.oid = m.roleid ' +
+      'JOIN pg_catalog.pg_roles AS t ON t.oid = m.member ' +
+      'WHERE t.rolname = %s ' +
+      'ORDER BY LOWER(r.rolname)';
+
+    qPgRoleCreate: Result :=
+      'CREATE ROLE %s WITH %s %s %s %s %s %s %s CONNECTION LIMIT %d %s';
+
+    qPgRoleAlter: Result :=
+      'ALTER ROLE %s WITH %s %s %s %s %s %s %s CONNECTION LIMIT %d %s';
+
+    qPgRoleRename: Result :=
+      'ALTER ROLE %s RENAME TO %s';
+
+    qPgRoleDrop: Result :=
+      'DROP ROLE %s';
+
+    qPgRoleMembershipGrant: Result :=
+      'GRANT %s TO %s%s';
+
+    qPgRoleMembershipRevoke: Result :=
+      'REVOKE %s FROM %s';
+
     qAutoInc: Result := 'SERIAL';
     qCastAsText: Result := '%s::text';
     else Result := inherited;

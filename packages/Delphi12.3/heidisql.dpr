@@ -13,6 +13,7 @@ uses
   connections in '..\..\source\connections.pas' {connform},
   loaddata in '..\..\source\loaddata.pas' {loaddataform},
   usermanager in '..\..\source\usermanager.pas' {UserManagerForm},
+  rolemanagerpg in '..\..\source\rolemanagerpg.pas' {RoleManagerPgForm},
   preferences in '..\..\source\preferences.pas' {frmPreferences},
   tabletools in '..\..\source\tabletools.pas' {frmTableTools},
   printlist in '..\..\source\printlist.pas' {printlistForm},

@@ -161,6 +161,9 @@
         <DCCReference Include="..\..\source\usermanager.pas">
             <Form>UserManagerForm</Form>
         </DCCReference>
+        <DCCReference Include="..\..\source\rolemanagerpg.pas">
+            <Form>RoleManagerPgForm</Form>
+        </DCCReference>
         <DCCReference Include="..\..\source\preferences.pas">
             <Form>frmPreferences</Form>
         </DCCReference>
