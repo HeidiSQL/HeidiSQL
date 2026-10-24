@@ -243,7 +243,8 @@ object RoleManagerPgForm: TRoleManagerPgForm
           Height = 23
           Top = 14
           Width = 90
-          BorderSpacing.Around = 10
+          BorderSpacing.Left = 110
+          BorderSpacing.Top = 14
           MaxValue = 2147483647
           MinValue = -1
           TabOrder = 0
@@ -273,7 +274,9 @@ object RoleManagerPgForm: TRoleManagerPgForm
           Top = 57
           Width = 336
           Anchors = [akTop, akLeft, akRight]
-          BorderSpacing.Around = 10
+          BorderSpacing.Left = 110
+          BorderSpacing.Top = 20
+          BorderSpacing.Right = 10
           EchoMode = emPassword
           PasswordChar = '*'
           TabOrder = 1

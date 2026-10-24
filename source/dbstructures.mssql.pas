@@ -509,6 +509,45 @@ begin
       ''
       );
     qCastAsText: Result := 'CAST(%s AS NVARCHAR('+IntToStr(GRIDMAXDATA)+'))';
+    // MS SQL Server login manager
+    qMssqlLoginAttributes: Result :=
+      'SELECT p.name, p.type_desc, p.is_disabled, p.default_database_name, ' +
+      's.is_policy_checked, s.is_expiration_checked ' +
+      'FROM sys.server_principals AS p ' +
+      'LEFT JOIN sys.sql_logins AS s ON s.principal_id = p.principal_id ' +
+      'WHERE p.type IN (''S'', ''U'', ''G'') ' +
+      'ORDER BY p.name';
+    qMssqlServerRoles: Result :=
+      'SELECT name FROM sys.server_principals WHERE type = ''R'' ORDER BY name';
+    qMssqlLoginMemberships: Result :=
+      'SELECT r.name ' +
+      'FROM sys.server_role_members AS rm ' +
+      'JOIN sys.server_principals AS r ON r.principal_id = rm.role_principal_id ' +
+      'JOIN sys.server_principals AS m ON m.principal_id = rm.member_principal_id ' +
+      'WHERE m.name = %s ' +
+      'ORDER BY r.name';
+    qMssqlDatabases: Result := IfThen(
+      ServerVersion<=899,
+      'SELECT name FROM master..sysdatabases',
+      'SELECT name FROM sys.databases'
+      ) + ' ORDER BY name';
+    qMssqlLoginCreate: Result :=
+      'CREATE LOGIN %s WITH PASSWORD = %s, CHECK_POLICY = %s, CHECK_EXPIRATION = %s%s';
+    qMssqlLoginAlter: Result := 'ALTER LOGIN %s %s';
+    qMssqlLoginRename: Result := 'ALTER LOGIN %s WITH NAME = %s';
+    qMssqlLoginDrop: Result := 'DROP LOGIN %s';
+    qMssqlRoleMembershipGrant: Result :=
+      IfThen(
+        ServerVersion>=1100,
+        'ALTER SERVER ROLE %s ADD MEMBER %s',
+        'EXEC sp_addsrvrolemember %s, %s'
+      );
+    qMssqlRoleMembershipRevoke: Result :=
+      IfThen(
+        ServerVersion>=1100,
+        'ALTER SERVER ROLE %s DROP MEMBER %s',
+        'EXEC sp_dropsrvrolemember %s, %s'
+      );
     else Result := inherited;
   end;
 end;

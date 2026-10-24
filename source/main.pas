@@ -1479,7 +1479,7 @@ implementation
 
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
-  copytable, csv_detector, exportgrid, usermanager, rolemanagerpg, reformatter, connections, sqlhelp, updatecheck,
+  copytable, csv_detector, exportgrid, usermanager, rolemanagerpg, rolemanagermssql, reformatter, connections, sqlhelp, updatecheck,
   insertfiles, texteditor, preferences, table_editor, view, routine_editor, trigger_editor, event_editor, grideditlinks,
   crashdialog, selectdbobject;
 
@@ -2906,6 +2906,7 @@ begin
   case ActiveConnection.Parameters.NetTypeGroup of
     ngMySQL: Dialog := TUserManagerForm.Create(Self);
     ngPgSQL: Dialog := TRoleManagerPgForm.Create(Self);
+    ngMSSQL: Dialog := TRoleManagerMssqlForm.Create(Self);
     else ErrorDialog(ActiveConnection.Parameters.NetTypeName(False) + ' not supported for managing users');
   end;
   if Dialog = nil then

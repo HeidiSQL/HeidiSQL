@@ -468,6 +468,13 @@ if TargetOS=&apos;win64&apos; then
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\rolemanagermssql.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="RoleManagerMssqlForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

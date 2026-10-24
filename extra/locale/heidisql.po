@@ -7011,3 +7011,69 @@ msgstr "Please enter a role name."
 #. Error message when a role with the same name exists already
 msgid "A role named \"%s\" already exists."
 msgstr "A role named \"%s\" already exists."
+
+#. RoleManagerMssqlForm..Caption
+msgid "MS SQL Server login manager"
+msgstr "MS SQL Server login manager"
+
+#. RoleManagerMssqlForm..tabAttributes..lblName..Caption
+msgid "Login name:"
+msgstr "Login name:"
+
+#. RoleManagerMssqlForm..tabAttributes..checkGroupAttributes..Caption
+msgid "Login attributes"
+msgstr "Login attributes"
+
+#. RoleManagerMssqlForm..tabAttributes..checkGroupAttributes..Items[0]
+msgid "Enabled"
+msgstr "Enabled"
+
+#. RoleManagerMssqlForm..tabAttributes..checkGroupAttributes..Items[1]
+msgid "Enforce password policy"
+msgstr "Enforce password policy"
+
+#. RoleManagerMssqlForm..tabAttributes..checkGroupAttributes..Items[2]
+msgid "Enforce password expiration"
+msgstr "Enforce password expiration"
+
+#. RoleManagerMssqlForm..tabLogin..lblDefaultDatabase..Caption
+msgid "Default database:"
+msgstr "Default database:"
+
+#. RoleManagerMssqlForm..treeLogins..Header..Column 'Default database'
+#. RoleManagerMssqlForm..treeLogins..Column[3]
+msgid "Default database"
+msgstr "Default database"
+
+#. RoleManagerMssqlForm..pnlMembership..lblMembership..Caption
+msgid "Member of server roles:"
+msgstr "Member of server roles:"
+
+#. RoleManagerMssqlForm..treeMemberships..Header..Column 'Server role'
+#. RoleManagerMssqlForm..treeMemberships..Column[0]
+msgid "Server role"
+msgstr "Server role"
+
+msgid "Please enter a login name."
+msgstr "Please enter a login name."
+
+msgid "Please enter a password for the new login."
+msgstr "Please enter a password for the new login."
+
+msgid "A login named \"%s\" already exists."
+msgstr "A login named \"%s\" already exists."
+
+msgid "Discard unsaved changes on login?"
+msgstr "Discard unsaved changes on login?"
+
+msgid "Delete login"
+msgstr "Delete login"
+
+msgid "Really delete login \"%s\"?"
+msgstr "Really delete login \"%s\"?"
+
+msgid "Windows"
+msgstr "Windows"
+
+msgid "Windows group"
+msgstr "Windows group"

@@ -58,7 +58,17 @@ type
     qPgRoleRename,
     qPgRoleDrop,
     qPgRoleMembershipGrant,
-    qPgRoleMembershipRevoke
+    qPgRoleMembershipRevoke,
+    qMssqlLoginAttributes,
+    qMssqlServerRoles,
+    qMssqlLoginMemberships,
+    qMssqlDatabases,
+    qMssqlLoginCreate,
+    qMssqlLoginAlter,
+    qMssqlLoginRename,
+    qMssqlLoginDrop,
+    qMssqlRoleMembershipGrant,
+    qMssqlRoleMembershipRevoke
     );
   TSqlProvider = class
     strict protected
