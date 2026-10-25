@@ -177,6 +177,30 @@ jobs:
             name: ${{ matrix.operating-system }}-WIN64-signed
             path: signed/heidisql.exe
 
+        - name: Install Inno Setup
+          if: ${{ matrix.operating-system == 'windows-latest' }}
+          shell: pwsh
+          run: choco install innosetup --no-progress -y
+
+        - name: Build Windows installer
+          if: ${{ matrix.operating-system == 'windows-latest' }}
+          run: |
+            # Prefer the signed binary, fall back to the unsigned one (e.g. fork PRs without SignPath)
+            mkdir -p out
+            if [ -f signed/heidisql.exe ]; then
+              cp signed/heidisql.exe out/heidisql.exe
+            else
+              cp out/win64/heidisql.exe out/heidisql.exe
+            fi
+            "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" create-windows-installer.iss
+
+        - name: Upload Windows installer
+          if: ${{ matrix.operating-system == 'windows-latest' }}
+          uses: actions/upload-artifact@v6
+          with:
+            name: windows-installer
+            path: out/HeidiSQL_*_Setup.exe
+
         - name: Build HeidiSQL (Ubuntu GTK)
           if: ${{ matrix.operating-system == 'ubuntu-latest' }}
           run: |
@@ -530,6 +554,15 @@ jobs:
                 path: dist
             - name: Rename macOS app bundle for release
               run: mv dist/heidisql-macos-app.zip "dist/heidisql_${tag#v}_macos_app.zip"
+
+            # TODO: re-enable once the official installer is built in CI again.
+            # Until then, the official Windows installer is built manually on the maintainer's machine
+            # and must not be attached to the GitHub release.
+            # - name: Download Windows installer
+            #   uses: actions/download-artifact@v7
+            #   with:
+            #     name: windows-installer
+            #     path: dist
 
             - name: List files
               run: |
