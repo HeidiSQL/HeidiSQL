@@ -352,8 +352,9 @@ jobs:
           if [ ! -s "$FIREBIRD_PKG" ]; then
             wget -q "https://github.com/FirebirdSQL/firebird/releases/download/v5.0.4/Firebird-5.0.4.1812-0-macos-arm64.pkg" -O "$FIREBIRD_PKG"
           fi
+          # pkgutil --expand requires its target directory to not exist yet
           rm -rf "$RUNNER_TEMP/firebird-pkg" "$RUNNER_TEMP/firebird-root"
-          mkdir -p "$RUNNER_TEMP/firebird-pkg" "$RUNNER_TEMP/firebird-root"
+          mkdir -p "$RUNNER_TEMP/firebird-root"
           pkgutil --expand "$FIREBIRD_PKG" "$RUNNER_TEMP/firebird-pkg"
           # bsdtar (= /usr/bin/tar on macOS) auto-detects the gzip'ed cpio payload
           (cd "$RUNNER_TEMP/firebird-root" && tar -xf "$RUNNER_TEMP/firebird-pkg/Firebird.pkg/Payload")
