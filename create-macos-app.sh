@@ -275,20 +275,66 @@ else
 fi
 
 # libfbclient.dylib (Firebird/Interbase client; there is no homebrew formula, so use
-# the official Firebird framework from https://firebirdsql.org if installed on the build machine)
+# the official Firebird framework from https://firebirdsql.org, either installed on
+# this machine, or extracted from its macOS pkg and passed via FBCLIENT_ROOT by the
+# CI workflow)
+FBCLIENT_ROOT="${FBCLIENT_ROOT:-}"
 FBCLIENT_CANDIDATES=(
+  "${FBCLIENT_ROOT:+${FBCLIENT_ROOT}/lib/libfbclient.dylib}"
+  "/Library/Frameworks/Firebird.framework/Versions/A/Resources/lib/libfbclient.dylib"
   "/Library/Frameworks/Firebird.framework/Versions/A/Libraries/libfbclient.dylib"
   "${BREW_PREFIX}/opt/firebird/lib/libfbclient.dylib"
 )
 FBCLIENT_SRC=""
 for fbclient_candidate in "${FBCLIENT_CANDIDATES[@]}"; do
+  [[ -n "${fbclient_candidate}" ]] || continue
   if [[ -f "${fbclient_candidate}" ]]; then
     FBCLIENT_SRC="${fbclient_candidate}"
     break
   fi
 done
 if [[ -n "${FBCLIENT_SRC}" ]]; then
-  copy_and_rewrite_dylib "${FBCLIENT_SRC}"
+  # The Firebird client locates its companions relative to itself, detected via
+  # dladdr() in Firebird's config_root.cpp: the root directory is the parent of
+  # the lib directory which contains libfbclient.dylib, and the client loads
+  # its auth/wire-encryption plugins from <root>/plugins. Bundle it under
+  # Contents/Frameworks/lib/ so that root becomes Contents/Frameworks, and make
+  # the executable find it by adding that lib dir to its rpath, also used to
+  # resolve the client libs' "@rpath/lib/..." references to each other.
+  # Rewriting install names like for the Homebrew libraries above would break
+  # these internal references, so the files are copied as they are.
+  FB_ROOT="$(cd -P "$(dirname "${FBCLIENT_SRC}")/.." && pwd)"
+  FB_LIB_DEST="${APP_DIR}/Contents/Frameworks/lib"
+  mkdir -p "${FB_LIB_DEST}"
+  for fb_lib in libfbclient.dylib libtommath.dylib libtomcrypt.dylib; do
+    if [[ -f "${FB_ROOT}/lib/${fb_lib}" ]]; then
+      echo "Copying ${FB_ROOT}/lib/${fb_lib} -> ${FB_LIB_DEST}/"
+      cp "${FB_ROOT}/lib/${fb_lib}" "${FB_LIB_DEST}/"
+      chmod u+w "${FB_LIB_DEST}/${fb_lib}"
+    fi
+  done
+  # Client-side plugins: authentication (Srp, Legacy_Auth) and wire encryption
+  # (ChaCha), loaded from <root>/plugins at runtime
+  if [[ -d "${FB_ROOT}/plugins" ]]; then
+    FB_PLUGINS_DEST="${APP_DIR}/Contents/Frameworks/plugins"
+    mkdir -p "${FB_PLUGINS_DEST}"
+    for fb_plugin in libSrp.dylib libLegacy_Auth.dylib libChaCha.dylib; do
+      if [[ -f "${FB_ROOT}/plugins/${fb_plugin}" ]]; then
+        echo "Copying ${FB_ROOT}/plugins/${fb_plugin} -> ${FB_PLUGINS_DEST}/"
+        cp "${FB_ROOT}/plugins/${fb_plugin}" "${FB_PLUGINS_DEST}/"
+        chmod u+w "${FB_PLUGINS_DEST}/${fb_plugin}"
+      fi
+    done
+  fi
+  # Error message file, expected at <root>/firebird.msg
+  if [[ -f "${FB_ROOT}/firebird.msg" ]]; then
+    echo "Copying ${FB_ROOT}/firebird.msg -> ${APP_DIR}/Contents/Frameworks/"
+    cp "${FB_ROOT}/firebird.msg" "${APP_DIR}/Contents/Frameworks/"
+  fi
+  # Let dlopen() find the bundled client in Contents/Frameworks/lib/, in the same
+  # way the application's rpath resolves the bare "libfbclient.dylib" default name
+  chmod u+w "${EXECUTABLE_TRG}"
+  install_name_tool -add_rpath "@executable_path/../Frameworks/lib" "${EXECUTABLE_TRG}"
 else
   echo "WARNING: No libfbclient.dylib found - Firebird/Interbase connections will need the Firebird client installed by the user" >&2
 fi

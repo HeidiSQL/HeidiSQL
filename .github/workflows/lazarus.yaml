@@ -335,6 +335,32 @@ jobs:
         run: |
           brew install freetds
 
+      # The Firebird macOS pkg is unpacked instead of installed via "installer",
+      # to avoid running a Firebird server on the build runner.
+      # The pkg is cached in ~/firebird-installers, served by actions/cache.
+      # Bump the cache key when changing the pkg URL in this step.
+      - name: Cache Firebird client (macOS)
+        uses: actions/cache@v6
+        with:
+          path: ~/firebird-installers
+          key: firebird-client-macos-arm64-5.0.4
+      - name: Get Firebird client (macOS)
+        run: |
+          INSTALLER_CACHE="$HOME/firebird-installers"
+          mkdir -p "$INSTALLER_CACHE"
+          FIREBIRD_PKG="$INSTALLER_CACHE/Firebird-5.0.4.1812-0-macos-arm64.pkg"
+          if [ ! -s "$FIREBIRD_PKG" ]; then
+            wget -q "https://github.com/FirebirdSQL/firebird/releases/download/v5.0.4/Firebird-5.0.4.1812-0-macos-arm64.pkg" -O "$FIREBIRD_PKG"
+          fi
+          rm -rf "$RUNNER_TEMP/firebird-pkg" "$RUNNER_TEMP/firebird-root"
+          mkdir -p "$RUNNER_TEMP/firebird-pkg" "$RUNNER_TEMP/firebird-root"
+          pkgutil --expand "$FIREBIRD_PKG" "$RUNNER_TEMP/firebird-pkg"
+          # bsdtar (= /usr/bin/tar on macOS) auto-detects the gzip'ed cpio payload
+          (cd "$RUNNER_TEMP/firebird-root" && tar -xf "$RUNNER_TEMP/firebird-pkg/Firebird.pkg/Payload")
+          test -f "$RUNNER_TEMP/firebird-root/Versions/A/Resources/lib/libfbclient.dylib"
+          test -f "$RUNNER_TEMP/firebird-root/Versions/A/Resources/plugins/libSrp.dylib"
+          echo "FBCLIENT_ROOT=$RUNNER_TEMP/firebird-root/Versions/A/Resources" >> "$GITHUB_ENV"
+
       - name: Build HeidiSQL (macOS)
         run: make build-macos
 
