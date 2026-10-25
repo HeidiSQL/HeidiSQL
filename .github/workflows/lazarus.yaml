@@ -163,7 +163,9 @@ jobs:
             api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
             organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
             project-slug: HeidiSQL
-            signing-policy-slug: ${{ github.ref_type == 'tag' && 'release-signing' || 'test-signing' }}
+            # TODO: switch back to github.ref_type == 'tag' && 'release-signing' || 'test-signing'
+            # once the SignPath release certificate is available.
+            signing-policy-slug: test-signing
             github-artifact-id: ${{ steps.upload-unsigned-win64.outputs.artifact-id }}
             wait-for-completion: true
             output-artifact-directory: signed
@@ -527,7 +529,7 @@ jobs:
                 name: macos-app-bundle
                 path: dist
             - name: Rename macOS app bundle for release
-              run: mv dist/heidisql-macos-app.zip "dist/HeidiSQL-macos-${{ env.tag }}.zip"
+              run: mv dist/heidisql-macos-app.zip "dist/heidisql_${tag#v}_macos_app.zip"
 
             - name: List files
               run: |
