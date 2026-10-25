@@ -356,8 +356,8 @@ if [[ -n "${FBCLIENT_SRC}" ]]; then
   if [[ -f "${FB_ROOT}/firebird.msg" ]]; then
     echo "Copying ${FB_ROOT}/firebird.msg -> ${APP_DIR}/Contents/Resources/firebird.msg"
     cp "${FB_ROOT}/firebird.msg" "${APP_DIR}/Contents/Resources/firebird.msg"
-    echo "Linking ../Resources/firebird.msg -> ${APP_DIR}/Contents/firebird.msg"
-    ln -s "../Resources/firebird.msg" "${APP_DIR}/Contents/firebird.msg"
+    echo "Linking Resources/firebird.msg -> ${APP_DIR}/Contents/firebird.msg"
+    ln -s "Resources/firebird.msg" "${APP_DIR}/Contents/firebird.msg"
   fi
 else
   echo "WARNING: No libfbclient.dylib found - Firebird/Interbase connections will need the Firebird client installed by the user" >&2
