@@ -299,15 +299,14 @@ if [[ -n "${FBCLIENT_SRC}" ]]; then
   # the lib directory which contains libfbclient.dylib, and the client loads
   # its auth/wire-encryption plugins from <root>/plugins. The Firebird root is
   # bundled as Contents/Resources/Firebird/, so that root becomes that
-  # directory, and the executable gets it added to its rpath: a bare
-  # "libfbclient.dylib" dlopen() finds the client via .../Resources/Firebird/lib,
-  # and the client libs' "@rpath/lib/..." references to each other resolve via
-  # .../Resources/Firebird. Rewriting install names like for the Homebrew
-  # libraries above would break these internal references, so the files are
-  # copied as they are. The root deliberately lives in Contents/Resources and
-  # not in Contents/Frameworks: codesign expects code only in Contents/Frameworks
-  # and fails on the unsigned firebird.msg data file with "code object is not
-  # signed at all" there.
+  # directory. The root deliberately lives in Contents/Resources and not in
+  # Contents/Frameworks: codesign expects code only in Contents/Frameworks and
+  # fails on the unsigned firebird.msg data file with "code object is not
+  # signed at all" there. The Firebird libraries refer to each other through
+  # "@rpath/lib/...", which the app does not use, so those references are
+  # rewritten to @loader_path below, and the executable gets the lib dir
+  # added to its rpath so that a bare "libfbclient.dylib" dlopen() finds the
+  # client (ibase60dyn's default name on Darwin).
   FB_ROOT="$(cd -P "$(dirname "${FBCLIENT_SRC}")/.." && pwd)"
   FB_BUNDLE_ROOT="${APP_DIR}/Contents/Resources/Firebird"
   FB_LIB_DEST="${FB_BUNDLE_ROOT}/lib"
@@ -317,6 +316,11 @@ if [[ -n "${FBCLIENT_SRC}" ]]; then
       echo "Copying ${FB_ROOT}/lib/${fb_lib} -> ${FB_LIB_DEST}/"
       cp "${FB_ROOT}/lib/${fb_lib}" "${FB_LIB_DEST}/"
       chmod u+w "${FB_LIB_DEST}/${fb_lib}"
+      # Resolve "@rpath/lib/..." deps within the lib dir itself
+      # (tail skips the install name on the first otool line)
+      for fb_dep in $(otool -L "${FB_LIB_DEST}/${fb_lib}" | tail -n +2 | awk '/@rpath\/lib\// {print $1}'); do
+        install_name_tool -change "${fb_dep}" "@loader_path/$(basename "${fb_dep}")" "${FB_LIB_DEST}/${fb_lib}"
+      done
     fi
   done
   # Client-side plugins: authentication (Srp, Legacy_Auth) and wire encryption
@@ -329,6 +333,10 @@ if [[ -n "${FBCLIENT_SRC}" ]]; then
         echo "Copying ${FB_ROOT}/plugins/${fb_plugin} -> ${FB_PLUGINS_DEST}/"
         cp "${FB_ROOT}/plugins/${fb_plugin}" "${FB_PLUGINS_DEST}/"
         chmod u+w "${FB_PLUGINS_DEST}/${fb_plugin}"
+        # Resolve "@rpath/lib/..." deps to the bundled lib dir next to the root
+        for fb_dep in $(otool -L "${FB_PLUGINS_DEST}/${fb_plugin}" | tail -n +2 | awk '/@rpath\/lib\// {print $1}'); do
+          install_name_tool -change "${fb_dep}" "@loader_path/../lib/$(basename "${fb_dep}")" "${FB_PLUGINS_DEST}/${fb_plugin}"
+        done
       fi
     done
   fi
@@ -337,11 +345,10 @@ if [[ -n "${FBCLIENT_SRC}" ]]; then
     echo "Copying ${FB_ROOT}/firebird.msg -> ${FB_BUNDLE_ROOT}/"
     cp "${FB_ROOT}/firebird.msg" "${FB_BUNDLE_ROOT}/"
   fi
-  # Let dlopen() find the bundled client (bare "libfbclient.dylib" via the lib
-  # dir) and let its "@rpath/lib/..." references resolve (via the root)
+  # Let dlopen() find the bundled client by its bare name. The executable has no
+  # header padding for more load commands, so only this single rpath can be added.
   chmod u+w "${EXECUTABLE_TRG}"
   install_name_tool -add_rpath "@executable_path/../Resources/Firebird/lib" "${EXECUTABLE_TRG}"
-  install_name_tool -add_rpath "@executable_path/../Resources/Firebird" "${EXECUTABLE_TRG}"
 else
   echo "WARNING: No libfbclient.dylib found - Firebird/Interbase connections will need the Firebird client installed by the user" >&2
 fi
