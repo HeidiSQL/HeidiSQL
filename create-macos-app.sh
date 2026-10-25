@@ -348,10 +348,16 @@ if [[ -n "${FBCLIENT_SRC}" ]]; then
       fi
     done
   fi
-  # Error message file, expected at <root>/firebird.msg
+  # Error message file, expected at <root>/firebird.msg. Its data must live in
+  # Contents/Resources: a regular data file anywhere else in the bundle makes
+  # codesign fail with "code object is not signed at all", while symlinks are
+  # not treated as code objects, so it is linked from <root> (the zip step
+  # preserves symlinks). Firebird follows it like a regular file.
   if [[ -f "${FB_ROOT}/firebird.msg" ]]; then
-    echo "Copying ${FB_ROOT}/firebird.msg -> ${APP_DIR}/Contents/"
-    cp "${FB_ROOT}/firebird.msg" "${APP_DIR}/Contents/"
+    echo "Copying ${FB_ROOT}/firebird.msg -> ${APP_DIR}/Contents/Resources/firebird.msg"
+    cp "${FB_ROOT}/firebird.msg" "${APP_DIR}/Contents/Resources/firebird.msg"
+    echo "Linking ../Resources/firebird.msg -> ${APP_DIR}/Contents/firebird.msg"
+    ln -s "../Resources/firebird.msg" "${APP_DIR}/Contents/firebird.msg"
   fi
 else
   echo "WARNING: No libfbclient.dylib found - Firebird/Interbase connections will need the Firebird client installed by the user" >&2
