@@ -55,6 +55,19 @@ fi
 LOCALES_ZIP_URL="https://www.heidisql.com/downloads/locale/HeidiSQL-locale.zip"
 
 
+### FUNCTION: collect an essential, missing bundle part
+
+# Client libraries and auth plugins are essential for the app bundle: without
+# them the affected connection types are broken, so the script collects them
+# here and aborts before signing (see check below), instead of quietly
+# producing a crippled bundle.
+MISSING_LIBS=()
+missing_lib() {
+  MISSING_LIBS+=("$1")
+  echo "WARNING: $1" >&2
+}
+
+
 ### FUNCTION: get release version string from Lazarus project file
 
 get_version_from_lpi() {
@@ -228,7 +241,7 @@ if ls "${MYSQL_LIB_DIR}"/libmysqlclient*.dylib >/dev/null 2>&1; then
     copy_and_rewrite_dylib "${f}"
   done
 else
-  echo "WARNING: No libmysqlclient*.dylib found in ${MYSQL_LIB_DIR}" >&2
+  missing_lib "No libmysqlclient*.dylib found in ${MYSQL_LIB_DIR} - MariaDB/MySQL connections would be broken"
 fi
 
 # libpq.dylib
@@ -241,7 +254,7 @@ else
       copy_and_rewrite_dylib "${f}"
     done
   else
-    echo "WARNING: No libpq*.dylib found in ${PG_LIB_DIR}" >&2
+    missing_lib "No libpq*.dylib found in ${PG_LIB_DIR} - PostgreSQL connections would be broken"
   fi
 fi
 
@@ -253,7 +266,7 @@ elif ls "${SQLITE_LIB_DIR}"/libsqlite3*.dylib >/dev/null 2>&1; then
     copy_and_rewrite_dylib "${f}"
   done
 else
-  echo "WARNING: No libsqlite3*.dylib found in ${SQLITE_LIB_DIR}" >&2
+  missing_lib "No libsqlite3*.dylib found in ${SQLITE_LIB_DIR} - SQLite connections would be broken"
 fi
 
 # libmariadb*.dylib (MariaDB Connector/C)
@@ -262,7 +275,7 @@ if ls "${MARIADB_LIB_DIR}"/libmariadb*.dylib >/dev/null 2>&1; then
     copy_and_rewrite_dylib "${f}"
   done
 else
-  echo "WARNING: No libmariadb*.dylib found in ${MARIADB_LIB_DIR}" >&2
+  missing_lib "No libmariadb*.dylib found in ${MARIADB_LIB_DIR} - MariaDB/MySQL connections would be broken"
 fi
 
 # libsybdb.dylib (FreeTDS, for MS SQL Server)
@@ -271,7 +284,7 @@ if ls "${FREETDS_LIB_DIR}"/libsybdb*.dylib >/dev/null 2>&1; then
     copy_and_rewrite_dylib "${f}"
   done
 else
-  echo "WARNING: No libsybdb*.dylib found in ${FREETDS_LIB_DIR}" >&2
+  missing_lib "No libsybdb*.dylib found in ${FREETDS_LIB_DIR} - MS SQL connections would be broken"
 fi
 
 # libfbclient.dylib (Firebird/Interbase client; there is no homebrew formula, so use
@@ -360,7 +373,7 @@ if [[ -n "${FBCLIENT_SRC}" ]]; then
     ln -s "Resources/firebird.msg" "${APP_DIR}/Contents/firebird.msg"
   fi
 else
-  echo "WARNING: No libfbclient.dylib found - Firebird/Interbase connections will need the Firebird client installed by the user" >&2
+  missing_lib "No libfbclient.dylib found - Firebird/Interbase connections would be broken. Set FBCLIENT_ROOT, or install /Library/Frameworks/Firebird.framework"
 fi
 
 # MARIADB PLUGIN .so FILES
@@ -370,7 +383,7 @@ if ls "${MARIADB_PLUGIN_DIR}"/*.so >/dev/null 2>&1; then
     copy_and_rewrite_dylib "${f}"
   done
 else
-  echo "WARNING: MariaDB plugin directory not found: ${MARIADB_PLUGIN_DIR}" >&2
+  missing_lib "MariaDB plugin directory not found: ${MARIADB_PLUGIN_DIR} - MariaDB/MySQL authentication would fail"
 fi
 
 # MYSQL PLUGIN .so FILES
@@ -380,7 +393,7 @@ if ls "${MYSQL_PLUGIN_DIR}"/*.so >/dev/null 2>&1; then
     copy_and_rewrite_dylib "${f}"
   done
 else
-  echo "WARNING: MySQL plugin directory not found: ${MYSQL_PLUGIN_DIR}" >&2
+  missing_lib "MySQL plugin directory not found: ${MYSQL_PLUGIN_DIR} - MySQL/MariaDB authentication would fail"
 fi
 
 # libssl.1.1.dylib and libcrypto.1.1.dylib (names may vary slightly)
@@ -398,6 +411,22 @@ if ls "${OPENSSL11_LIB_DIR}"/libcrypto*.1.1*.dylib >/dev/null 2>&1; then
   done
 else
   echo "WARNING: No libcrypto*.1.1*.dylib found in ${OPENSSL11_LIB_DIR}" >&2
+fi
+
+
+### ABORT ON ESSENTIAL MISSING BUNDLE PARTS
+
+# Fail loudly and completely instead of producing a bundle in which some
+# connection types break at runtime. OpenSSL 1.1 stays a warning above, as it
+# is only needed for the update check and is deprecated in Homebrew anyway.
+if [[ ${#MISSING_LIBS[@]} -gt 0 ]]; then
+  echo "ERROR: ${#MISSING_LIBS[@]} essential bundle part(s) missing, aborting instead of building a crippled app:" >&2
+  for m in "${MISSING_LIBS[@]}"; do
+    echo "  - ${m}" >&2
+  done
+  echo "Hints: brew install mysql-client libpq sqlite mariadb-connector-c freetds; for Firebird, extract the official macOS pkg and pass FBCLIENT_ROOT, or install /Library/Frameworks/Firebird.framework (see .github/workflows/lazarus.yaml)" >&2
+  rm -rf "${APP_DIR}"
+  exit 1
 fi
 
 

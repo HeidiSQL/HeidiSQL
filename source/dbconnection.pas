@@ -3978,11 +3978,14 @@ begin
     QueryResult.SQL.Text := SQL;
     QueryResult.Options := [sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh];
     QueryResult.PacketRecords := 10000;
-    // Prepare explicitly, so the cursor survives ExecSQL and tells us whether a result set came back
+    // Prepare explicitly, so the cursor tells us whether a result set came back.
+    // Read FSelectable before ExecSQL: unlike TSqlSrvConnection, TIBConnection keeps
+    // the default sqCommitEndsPrepared option, so the sqoAutoCommit commit inside
+    // ExecSQL unprepares the statement and frees the cursor. See issue #2527
     QueryResult.Prepare;
+    HasRows := TSQLQueryAccess(QueryResult).Cursor.FSelectable;
     QueryResult.ExecSQL;
     Inc(FRowsAffected, QueryResult.RowsAffected);
-    HasRows := TSQLQueryAccess(QueryResult).Cursor.FSelectable;
     QueryResult.UnPrepare;
     if not HasRows then begin
       // Opening a statement without result set would execute it a second time, and then raise
