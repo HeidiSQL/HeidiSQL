@@ -117,20 +117,26 @@ end;
 
 function TJSONFloatNumberUntouched.GetAsString: TJSONStringType;
 var
-  Val: TJSONFloat;
+  Val, Check: TJSONFloat;
   fs: TFormatSettings;
+  Precision: Integer;
 begin
+  Val := GetAsFloat;
   fs := DefaultFormatSettings;
   fs.DecimalSeparator := '.';
-  Val := GetAsFloat;
-  Result := FloatToStrF(Val, ffFixed, 18, 18, fs);
-
-  // Trim trailing zeros after the decimal point
-  while (Length(Result) > 0) and (Result[High(Result)] = '0') do
-    Delete(Result, High(Result), 1);
-  // Remove trailing decimal separator if no fractional digits left
-  if (Length(Result) > 0) and (Result[High(Result)] = fs.DecimalSeparator) then
-    Delete(Result, High(Result), 1);
+  // Use the shortest representation which parses back to the exact same double,
+  // so values like 2.12 are not reformatted to 2.1200000000000001
+  for Precision := 1 to 15 do begin
+    Result := FloatToStrF(Val, ffGeneral, Precision, 0, fs);
+    if TryStrToFloat(Result, Check, fs) and (Check = Val) then
+      Exit;
+  end;
+  // FPC's FloatToStrF never yields more than ~15 significant digits, so values
+  // like 1.0000000000000002 never round-trip above. Fall back to the exact
+  // 17-digit representation, which is also what plain Str() produces.
+  Str(Val, Result);
+  if (Result <> '') and (Result[1] = ' ') then
+    Delete(Result, 1, 1);
 end;
 
 { TRegExprUmlauts }
