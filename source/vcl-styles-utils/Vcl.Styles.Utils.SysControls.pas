@@ -1,4 +1,4 @@
-// ***************************************************************************************************
+ï»¿// ***************************************************************************************************
 //
 // Unit Vcl.Styles.Utils.SysControls
 // unit for the VCL Styles Utils
@@ -102,11 +102,11 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     /// <summary>
-    /// Event to preventvor allow hook a control.
+    /// Event to preventvor allowÂ hook a control.
     /// </summary>
     class Property OnBeforeHookingControl: TBeforeHookingControl read FBeforeHookingControlProc write FBeforeHookingControlProc;
     /// <summary>
-    /// Notify when a hook foir control is added or removed
+    /// Notify when a hook foirÂ control is added or removed
     /// </summary>
     class Property OnHookNotification: TSysHookNotification read FSysHookNotificationProc write FSysHookNotificationProc;
     /// <summary>
@@ -114,7 +114,7 @@ type
     /// </summary>
     class property Enabled: Boolean read FEnabled write FEnabled;
     /// <summary>
-    /// Allow set the current VCL Style font and background color in  child
+    /// AllowÂ set theÂ current VCL StyleÂ font and background color inÂ  child
     /// controls.
     /// </summary>
     class property UseStyleColorsChildControls: Boolean read FUseStyleColorsChildControls write FUseStyleColorsChildControls;
@@ -131,7 +131,7 @@ type
     /// </summary>
     class property SysStyleHookList: TObjectDictionary<HWND, TSysStyleHook> read FSysStyleHookList;
     /// <summary>
-    /// Collection of Styled Child Controls
+    /// Collection of Styled ChildÂ Controls
     /// </summary>
     class property ChildRegSysStylesList: TObjectDictionary<HWND, TChildControlInfo> read FChildRegSysStylesList;
     class procedure AddControlDirectly(Handle: HWND; const sClassName: string; IncludeChildControls: Boolean = False);

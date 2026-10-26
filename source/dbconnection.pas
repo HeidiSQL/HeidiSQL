@@ -1,4 +1,4 @@
-unit dbconnection;
+ï»¿unit dbconnection;
 
 interface
 
@@ -3103,7 +3103,7 @@ begin
         RawPassword := AnsiString(Parameters.Password);
         FLib.sqlite3_key(FHandle, Pointer(RawPassword), Length(RawPassword));
         // See https://utelle.github.io/SQLite3MultipleCiphers/docs/configuration/config_capi/
-        // "These functions return SQLITE_OK even if the provided key isn’t correct. This is because the key isn’t
+        // "These functions return SQLITE_OK even if the provided key isnâ€™t correct. This is because the key isnâ€™t
         // actually used until a subsequent attempt to read or write the database is made. To check whether the
         // provided key was actually correct, you must execute a simple query like e.g. SELECT * FROM sqlite_master;
         // and check whether that succeeds."
