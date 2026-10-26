@@ -8,6 +8,10 @@ uses
   Winapi.ShLwApi, Vcl.ExtCtrls, VirtualTrees, VirtualTrees.Types, SynRegExpr, Vcl.Controls, Winapi.ShlObj,
   SynEditMiscClasses, SynUnicode, Vcl.Themes, Vcl.GraphUtil, Math;
 
+const
+  // Posted by TExtForm.DeferFreeControl, see there
+  WM_HEIDISQL_DEFERREDFREE = WM_USER + $0D00;
+
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
   TExtForm = class(TForm)
@@ -24,6 +28,8 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       class procedure InheritFont(AFont: TFont);
+      procedure WMDeferredFree(var Message: TMessage); message WM_HEIDISQL_DEFERREDFREE;
+      procedure DeferFreeControl(AControl: TControl);
       property HasSizeGrip: Boolean read GetHasSizeGrip write SetHasSizeGrip default False;
       class procedure FixControls(ParentComp: TComponent);
       class procedure SaveListSetup(List: TVirtualStringTree);
@@ -146,6 +152,21 @@ procedure TExtForm.DoShow;
 begin
   FixControls(Self);
   inherited;
+end;
+
+procedure TExtForm.WMDeferredFree(var Message: TMessage);
+begin
+  TObject(Message.WParam).Free;
+end;
+
+procedure TExtForm.DeferFreeControl(AControl: TControl);
+begin
+  // Free AControl after the current message chain has finished. Needed when
+  // the control's own message handling is on the call stack, e.g. when an
+  // editor control's OnKeyDown event ends a grid edit which destroys the
+  // editor link. Freeing the control synchronously would let the VCL message
+  // dispatch continue on a dead object, see issue #2439.
+  PostMessage(Handle, WM_HEIDISQL_DEFERREDFREE, WPARAM(AControl), 0);
 end;
 
 

@@ -22,7 +22,6 @@ type
 
   TBaseGridEditorLink = class(TInterfacedObject, IVTEditLink)
   private
-    FInstanceId: Integer;
     FParentForm: TWinControl;      // A back reference to the main form
     FTree: TVirtualStringTree;        // A back reference to the tree calling.
     FNode: PVirtualNode;              // The node to be edited.
@@ -39,7 +38,6 @@ type
     FModified: Boolean;
     FAllowEdit: Boolean;
     FBeginEditTime: Cardinal;
-    procedure Log(Msg: String);
     procedure TempWindowProc(var Message: TMessage);
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoEndEdit(Sender: TObject);
@@ -62,6 +60,11 @@ type
     function GetBounds: TRect; virtual; stdcall;     // Normally useless and unused
     procedure ProcessMessage(var Message: TMessage); stdcall;
     procedure SetBounds(R: TRect); virtual; stdcall; abstract;
+    // Called from destructors to free editor controls without crashing:
+    // our destructor regularly runs while such a control is still processing
+    // a message, as its OnKeyDown event ends the edit which destroys us.
+    // Deferring the destruction until that message is done, see issue #2439.
+    procedure ReleaseEditorControl(AControl: TWinControl);
   end;
 
   THexEditorLink = class(TBaseGridEditorLink)
@@ -237,11 +240,6 @@ begin
   Msg.Result := Msg.Result or DLGC_WANTALLKEYS;
 end;
 
-procedure TBaseGridEditorLink.Log(Msg: String);
-begin
-  MainForm.LogSQL('#'+FInstanceId.ToString+': '+Msg, lcDebug);
-end;
-
 
 constructor TBaseGridEditorLink.Create;
 begin
@@ -252,7 +250,6 @@ end;
 constructor TBaseGridEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited Create;
-  FInstanceId := Random(100);
   FTree := Tree;
   // Enable mouse scrolling, plus ensure the editor component
   // is not partly hidden when it pops up in a bottom cell
@@ -373,6 +370,23 @@ begin
     FTree.SetFocus;
 end;
 
+procedure TBaseGridEditorLink.ReleaseEditorControl(AControl: TWinControl);
+begin
+  // Do not free editor controls synchronously here. Our destructor regularly
+  // runs while such a control is still processing a message, as its OnKeyDown
+  // event ends the edit which destroys us. Freeing the control here would let
+  // the VCL message dispatch continue on a dead object, causing the
+  // EAccessViolations reported in issue #2439. Deferring the destruction until
+  // the current message is done keeps the control alive for the rest of the
+  // VCL's key dispatch.
+  if (csDestroying in AControl.ComponentState) or (csCreating in AControl.ControlState) then
+    Exit;
+  if FParentForm is TExtForm then
+    TExtForm(FParentForm).DeferFreeControl(AControl)
+  else
+    AControl.Free;
+end;
+
 procedure TBaseGridEditorLink.TempWindowProc(var Message: TMessage);
 begin
   case Message.Msg of
@@ -381,16 +395,8 @@ begin
         FOldWindowProc(Message);
     WM_GETDLGCODE: // "WantTabs" mode for main control
       Message.Result := Message.Result or DLGC_WANTARROWS or DLGC_WANTALLKEYS or DLGC_WANTTAB;
-    else begin
-      try
-        FOldWindowProc(Message);
-      except
-        // EAccessViolation occurring in some cases
-        on E:Exception do begin
-          Log(E.Message+' Message CharCode:'+TWMChar(Message).CharCode.ToString+' Msg:'+Message.Msg.ToString);
-        end;
-      end;
-    end;
+    else
+      FOldWindowProc(Message);
   end;
 end;
 
@@ -575,9 +581,7 @@ destructor TDateTimeEditorLink.Destroy;
 begin
   AppSettings.WriteInt(asDateTimeEditorCursorPos, FMaskEdit.SelStart, IntToStr(Integer(FTableColumn.DataType.Category)));
   FreeAndNil(FTimer);
-  FreeAndNil(FUpDown);
-  FreeAndNil(FMaskEdit);
-  FreeAndNil(FPanel);
+  ReleaseEditorControl(FPanel);
   inherited;
 end;
 
@@ -927,7 +931,7 @@ end;
 
 destructor TEnumEditorLink.Destroy;
 begin
-  FCombo.Free;
+  ReleaseEditorControl(FCombo);
   inherited;
 end;
 
@@ -1045,7 +1049,7 @@ end;
 
 destructor TSetEditorLink.Destroy;
 begin
-  FreeAndNil(FPanel);
+  ReleaseEditorControl(FPanel);
   inherited;
 end;
 
@@ -1176,11 +1180,7 @@ end;
 
 destructor TInplaceEditorLink.Destroy;
 begin
-  if not ((csDestroying in FPanel.ComponentState) or (csCreating in FPanel.ControlState)) then begin
-    FEdit.Free;
-    FButton.Free;
-    FPanel.Free;
-  end;
+  ReleaseEditorControl(FPanel);
   inherited;
 end;
 
@@ -1424,7 +1424,7 @@ end;
 
 destructor TColumnDefaultEditorLink.Destroy;
 begin
-  FPanel.Free;
+  ReleaseEditorControl(FPanel);
   inherited;
 end;
 
@@ -1675,8 +1675,8 @@ end;
 
 destructor TDataTypeEditorLink.Destroy;
 begin
-  FreeAndNil(FTreeSelect);
-  FreeAndNil(FMemoHelp);
+  ReleaseEditorControl(FTreeSelect);
+  ReleaseEditorControl(FMemoHelp);
   inherited;
 end;
 
