@@ -32,11 +32,8 @@ Name: "{#Copy(FileName, 1, Pos('.isl', FileName) - 1)}"; MessagesFile: "compiler
 #if FindHandle
   #expr FindClose(FindHandle)
 #endif
-; Since Inno Setup 6.4, Icelandic is shipped as "unofficial" (no maintainer)
-; and no longer resides in the Languages folder picked up by the loop above.
-#if FileExists(AddBackslash(CompilerPath) + "Languages\Unofficial\Icelandic.isl")
-Name: "is"; MessagesFile: "compiler:Languages\Unofficial\Icelandic.isl"
-#endif
+; Icelandic is no longer shipped with Inno Setup: since 6.4 it was demoted to
+; "unofficial" (no maintainer), and since 6.7 it isn't installed at all anymore.
 
 [Setup]
 AppId={#ProgName}
