@@ -1,0 +1,53 @@
+--- a/components/virtualtreeview/laz.virtualtrees.pas
++++ b/components/virtualtreeview/laz.virtualtrees.pas
+@@ -32836,6 +32836,32 @@
+ 
+ //----------------------------------------------------------------------------------------------------------------------
+ 
++function VTGetScrollPos(AHandle: HWND; ABar: Integer): Integer;
++
++// Qt applies a clicked line/page step (QAbstractSlider::triggerAction) only after the LM_HSCROLL/LM_VSCROLL handler
++// has returned, so while handling that message value() still holds the old position and GetScrollPos would undo the
++// scroll. SetScrollInfo moves the slider position, so read that back instead.
++
++{$if defined(LCLQt) or defined(LCLQt5) or defined(LCLQt6)}
++var
++  SI: TScrollInfo;
++
++begin
++  SI.cbSize := SizeOf(SI);
++  SI.fMask := SIF_TRACKPOS;
++  if GetScrollInfo(AHandle, ABar, SI) then
++    Result := SI.nTrackPos
++  else
++    Result := GetScrollPos(AHandle, ABar);
++end;
++{$else}
++begin
++  Result := GetScrollPos(AHandle, ABar);
++end;
++{$endif}
++
++//----------------------------------------------------------------------------------------------------------------------
++
+ procedure TBaseVirtualTree.UpdateHorizontalScrollBar(DoRepaint: Boolean);
+ 
+ var
+@@ -32887,7 +32913,7 @@
+ 
+     // Since the position is automatically changed if it doesn't meet the range
+     // we better read the current position back to stay synchronized.
+-    FEffectiveOffsetX := GetScrollPos(Handle, SB_HORZ);
++    FEffectiveOffsetX := VTGetScrollPos(Handle, SB_HORZ);
+     if UseRightToLeftAlignment then
+       SetOffsetX(-Integer(FRangeX) + ClientWidth + FEffectiveOffsetX)
+     else
+@@ -32984,7 +33010,7 @@
+ 
+     // Since the position is automatically changed if it doesn't meet the range
+     // we better read the current position back to stay synchronized.
+-    SetOffsetY(-GetScrollPos(Handle, SB_VERT));
++    SetOffsetY(-VTGetScrollPos(Handle, SB_VERT));
+   end
+   else
+   begin
