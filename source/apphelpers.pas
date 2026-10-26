@@ -2581,7 +2581,7 @@ const
   ShortOpts: String = 'd:n:h:l:u:p:S:P:';
   LongOpts: array[0..24] of String = (
     'description:',
-    'nettype:', 'host:', 'library:', 'user:', 'password:', 'cleartextenabled:', 'socket:', 'port:', 'databases:', 'winauth:',
+    'nettype:', 'host:', 'library:', 'user:', 'password:', 'cleartextenabled::', 'socket:', 'port:', 'databases:', 'winauth:',
     'ssl:', 'sslprivatekey:', 'sslcacertificate:', 'sslcertificate:', 'sslcipher:', 'sslverification:',
     'ssh-executable:', 'ssh-host:', 'ssh-port:', 'ssh-local-port:', 'ssh-user:', 'ssh-password:', 'ssh-key:', 'ssh-timeout:'
   );
@@ -2619,6 +2619,9 @@ begin
   User := Application.GetOptionValue('u', 'user');
   Pass := Application.GetOptionValue('p', 'password');
   CleartextPluginEnabled := StrToIntDef(Application.GetOptionValue('cleartextenabled'), -1);
+  // Also accept value-less "--cleartextenabled", see issue #296
+  if (CleartextPluginEnabled = -1) and Application.HasOption('cleartextenabled') then
+    CleartextPluginEnabled := 1;
   Socket := Application.GetOptionValue('S', 'socket');
   Port := Application.GetOptionValue('P', 'port');
   AllDatabases := Application.GetOptionValue('databases');
