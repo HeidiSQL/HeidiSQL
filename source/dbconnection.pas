@@ -7758,8 +7758,9 @@ begin
       else
         CacheAllTypes.Add(TempList[i]);
     end;
-    // Delete no longer existing
-    for i:=0 to CacheAllTypes.Count-1 do begin
+    // Delete no longer existing. Iterate backwards, as Delete() shrinks the list
+    // and a forward loop then runs out of bounds.
+    for i:=CacheAllTypes.Count-1 downto 0 do begin
       ObjIndex := -1;
       for j:=0 to TempList.Count-1 do begin
         if TempList[j].IsSameAs(CacheAllTypes[i]) then begin
