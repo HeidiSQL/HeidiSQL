@@ -1,4 +1,4 @@
-unit tabletools;
+﻿unit tabletools;
 
 
 // -------------------------------------
@@ -351,6 +351,8 @@ var
   Params: TConnectionParameters;
   Canv: TCanvas;
   ItemImageIndex: Integer;
+  GrayText, NameText: String;
+  NameStart, TextX: Integer;
 begin
   Canv := comboExportOutputType.Canvas;
   if odSelected in State then begin
@@ -374,8 +376,39 @@ begin
     ItemImageIndex := MainForm.actExportTables.ImageIndex;
   end;
 
+  // Sessions: draw the full path from Items[] unchanged, with the folder part
+  // grayed out and path delimiters turned into a visible separator character.
+  GrayText := '';
+  NameText := comboExportOutputType.Items[Index];
+  if Assigned(Params) then begin
+    NameText := Copy(NameText, Length(OUTPUT_SERVER)+1, Length(NameText));
+    NameStart := LastDelimiter('\', NameText) + 1;
+    GrayText := Copy(comboExportOutputType.Items[Index], 1,
+      Length(comboExportOutputType.Items[Index])-Length(NameText)+NameStart-1);
+    GrayText := StringReplace(GrayText, '\', ' › ', [rfReplaceAll]);
+    NameText := Copy(NameText, NameStart, Length(NameText));
+  end;
+
   Canv.FillRect(Rect);
-  Canv.TextRect(Rect, Rect.Left + MainForm.VirtualImageListMain.Width + 4, Rect.Top, comboExportOutputType.Items[Index]);
+  // VCL's TextRect fills the whole Rect with the Brush (ETO_OPAQUE) while
+  // Brush.Style <> bsClear, erasing previously drawn text parts. Draw text
+  // transparently on the FillRect background instead.
+  Canv.Brush.Style := bsClear;
+  TextX := Rect.Left + MainForm.VirtualImageListMain.Width + 4;
+  if GrayText <> '' then begin
+    if odSelected in State then
+      Canv.Font.Color := clHighlightText
+    else
+      Canv.Font.Color := clGray; // not clGrayText: literal color, VCL styles would remap it and may render it invisible
+    Canv.TextRect(Rect, TextX, Rect.Top, GrayText);
+    Inc(TextX, Canv.TextWidth(GrayText));
+  end;
+  if odSelected in State then
+    Canv.Font.Color := clHighlightText
+  else
+    Canv.Font.Color := clWindowText;
+  Canv.TextRect(Rect, TextX, Rect.Top, NameText);
+  Canv.Brush.Style := bsSolid;
   MainForm.VirtualImageListMain.Draw(Canv, Rect.Left + 2, Rect.Top + 2, ItemImageIndex);
 end;
 
