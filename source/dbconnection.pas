@@ -5303,11 +5303,21 @@ end;
 procedure TInterbaseConnection.OnFdError(ASender: TObject; AInitiator: TObject; var AException: Exception);
 var
   oExc: EFDDBEngineException;
+  Msg: String;
 begin
   if AException is EFDDBEngineException then begin
     oExc := EFDDBEngineException(AException);
     FLastErrorCode := oExc.ErrorCode;
     FLastError := oExc.Message;
+  end
+  else if AException is EFDException then begin
+    // Convert non-database FireDAC errors, e.g. "[FireDAC][Stan]-700. Timeout expired.",
+    // so connection attempts and query executions handle them as EDbError with a
+    // clean error dialog instead of an unhandled crash. FireDAC does not free
+    // the replaced exception object, so do that here.
+    Msg := AException.Message;
+    FreeAndNil(AException);
+    AException := EDbError.Create(Msg);
   end;
 end;
 
