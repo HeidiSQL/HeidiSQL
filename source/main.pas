@@ -11005,6 +11005,9 @@ begin
     Exit;
   // Paint a red triangle at the top left corner of the cell
   Results := GridResult(Sender);
+  // Result sets get freed while disconnecting, a paint event may still come through then
+  if not Assigned(Results) then
+    Exit;
   RowNum := Sender.GetNodeData(Node);
   Results.RecNo := RowNum^;
   if Results.Modified(ResultCol) then
