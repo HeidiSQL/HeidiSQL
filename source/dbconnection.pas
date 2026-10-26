@@ -2807,31 +2807,39 @@ begin
     else
       QuotedPassword := '"'+Parameters.Password+'"';
 
-    FAdoHandle.ConnectionString := 'Provider='+Parameters.LibraryOrProvider+';'+
-      'Password='+QuotedPassword+';'+
-      'Persist Security Info=True;'+
-      'User ID='+Parameters.Username+';'+
-      'Network Library='+NetLib+';'+
-      'Data Source='+DataSource+';'+
-      'Application Name='+AppName+';'
-      ;
-    if Parameters.LibraryOrProvider.StartsWith('MSOLEDBSQL', true) then begin
-      // Issue #423: MSOLEDBSQL compatibility with new column types
-      // See https://docs.microsoft.com/en-us/sql/connect/oledb/applications/using-ado-with-oledb-driver-for-sql-server?view=sql-server-2017
-      // Do not use with old driver, see https://www.heidisql.com/forum.php?t=35208
-      FAdoHandle.ConnectionString := FAdoHandle.ConnectionString +
-        'DataTypeCompatibility=80;';
-    end;
+    // An invalid provider or parameter makes the ADO object raise an unhandled
+    // EOleException here, which callers only expect as EDbError. See crash reports
+    // with "Arguments are of the wrong type..." from October 2026.
+    try
+      FAdoHandle.ConnectionString := 'Provider='+Parameters.LibraryOrProvider+';'+
+        'Password='+QuotedPassword+';'+
+        'Persist Security Info=True;'+
+        'User ID='+Parameters.Username+';'+
+        'Network Library='+NetLib+';'+
+        'Data Source='+DataSource+';'+
+        'Application Name='+AppName+';'
+        ;
+      if Parameters.LibraryOrProvider.StartsWith('MSOLEDBSQL', true) then begin
+        // Issue #423: MSOLEDBSQL compatibility with new column types
+        // See https://docs.microsoft.com/en-us/sql/connect/oledb/applications/using-ado-with-oledb-driver-for-sql-server?view=sql-server-2017
+        // Do not use with old driver, see https://www.heidisql.com/forum.php?t=35208
+        FAdoHandle.ConnectionString := FAdoHandle.ConnectionString +
+          'DataTypeCompatibility=80;';
+      end;
 
-    // Pass Database setting to connection string. Required on MS Azure?
-    if (not Parameters.AllDatabasesStr.IsEmpty) and (Pos(';', Parameters.AllDatabasesStr)=0) then
-      FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Database='+Parameters.AllDatabasesStr+';';
+      // Pass Database setting to connection string. Required on MS Azure?
+      if (not Parameters.AllDatabasesStr.IsEmpty) and (Pos(';', Parameters.AllDatabasesStr)=0) then
+        FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Database='+Parameters.AllDatabasesStr+';';
 
-    if Parameters.WindowsAuth then begin
-      if IsOldProvider then
-        FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Integrated Security=SSPI;'
-      else
-        FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Trusted_Connection=yes;'
+      if Parameters.WindowsAuth then begin
+        if IsOldProvider then
+          FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Integrated Security=SSPI;'
+        else
+          FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Trusted_Connection=yes;'
+      end;
+    except
+      on E:EOleException do
+        raise EDbError.Create(E.Message);
     end;
 
     try
