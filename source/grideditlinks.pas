@@ -8,7 +8,7 @@ uses
   Winapi.Windows, Vcl.Forms, Vcl.Graphics, Winapi.Messages, VirtualTrees, VirtualTrees.BaseTree, VirtualTrees.Types, Vcl.ComCtrls, System.SysUtils, System.Classes,
   Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.CheckLst, Vcl.Controls, System.Types, Vcl.Dialogs, Vcl.Menus, Vcl.Mask, System.DateUtils, System.Math,
   dbconnection, dbstructures, apphelpers, texteditor, bineditor, gnugettext,
-  System.StrUtils, System.UITypes, SynRegExpr, Vcl.Themes, extra_controls;
+  System.StrUtils, System.UITypes, SynRegExpr, Vcl.Themes, extra_controls, System.TypInfo;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
@@ -298,10 +298,16 @@ begin
       end;
       if not Assigned(NewNode) then
         Break;
-      if not FTree.CanEdit(NewNode, NewColumn) then
+      // Skip columns which cannot be focused or edited, e.g. the row number
+      // column in data grids, which no editor can be created for.
+      if not FTree.Header.AllowFocus(NewColumn) or not FTree.CanEdit(NewNode, NewColumn) then
         Continue;
       FTree.ClearSelection;
       FTree.Selected[NewNode] := True;
+      // EditNode only sets the focused node, not the focused column, so without
+      // this the cell focus stays on the previous column, visibly wrong when
+      // Tab jumps from the last column back to the first column of a row.
+      FTree.FocusedColumn := NewColumn;
       FTree.EditNode(NewNode, NewColumn);
       Break;
     end;
@@ -371,6 +377,8 @@ begin
 end;
 
 procedure TBaseGridEditorLink.ReleaseEditorControl(AControl: TWinControl);
+var
+  NullMethod: TMethod;
 begin
   // Do not free editor controls synchronously here. Our destructor regularly
   // runs while such a control is still processing a message, as its OnKeyDown
@@ -381,6 +389,13 @@ begin
   // VCL's key dispatch.
   if (csDestroying in AControl.ComponentState) or (csCreating in AControl.ControlState) then
     Exit;
+  // Prevent the deferred control from calling back into this destroyed editor
+  // link. Most importantly, the OnExit event fires on the focus change when
+  // another editor link takes over the focus, e.g. when Tab moves the edit to
+  // the next cell. Without this, the stale handler would end the *new* edit
+  // immediately after it was started, and also run on freed memory.
+  NullMethod := Default(TMethod);
+  SetMethodProp(AControl, 'OnExit', NullMethod);
   if FParentForm is TExtForm then
     TExtForm(FParentForm).DeferFreeControl(AControl)
   else

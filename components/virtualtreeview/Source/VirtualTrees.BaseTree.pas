@@ -9516,7 +9516,11 @@ begin
     if Assigned(FOnEdited) then
       FOnEdited(Self, FFocusedNode, FEditColumn);
   end;
-  TrySetFocus();
+  // A new edit can have been started while releasing the edit link above, e.g.
+  // when the editor link of a grid jumps to the next cell on the Tab key.
+  // Do not steal the focus from that new editor.
+  if not (tsEditing in FStates) then
+    TrySetFocus();
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
