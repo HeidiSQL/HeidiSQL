@@ -6448,7 +6448,7 @@ begin
       ListTables.TrySetFocus
     else if tab = tabData then begin
       DataGrid.TrySetFocus;
-    end else if IsQueryTab(tab.PageIndex, True) then begin
+    end else if IsQueryTab(tab.PageIndex, True) and (QueryTabs.ActiveMemo <> nil) then begin
       QueryTabs.ActiveMemo.TrySetFocus;
       QueryTabs.ActiveMemo.WordWrap := actQueryWordWrap.Checked;
       SynMemoQueryStatusChange(QueryTabs.ActiveMemo, [scCaretX]);
