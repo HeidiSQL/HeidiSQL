@@ -2699,6 +2699,15 @@ var
     end;
   end;
 
+  function GetParamFlag(ShortName, LongName: String): Integer;
+  begin
+    // Return 1 when the switch was passed without a value, e.g. --cleartextenabled instead of --cleartextenabled=1
+    Result := -1;
+    rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')(\s|$)';
+    if rx.Exec(CommandLine) then
+      Result := 1;
+  end;
+
   procedure GetFileNames(Expression: String);
   begin
     rx.Expression := Expression;
@@ -2752,6 +2761,8 @@ begin
   User := GetParamValue('u', 'user');
   Pass := GetParamValue('p', 'password');
   CleartextPluginEnabled := StrToIntDef(GetParamValue('cte', 'cleartextenabled'), -1);
+  if CleartextPluginEnabled = -1 then
+    CleartextPluginEnabled := GetParamFlag('cte', 'cleartextenabled');
   Socket := GetParamValue('S', 'socket');
   Port := GetParamValue('P', 'port');
   AllDatabases := GetParamValue('db', 'databases');
