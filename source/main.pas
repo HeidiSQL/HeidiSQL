@@ -3698,6 +3698,9 @@ var
   ExportDialog: TfrmExportGrid;
 begin
   // Save data in current dataset into various text file formats
+  // ActiveGrid can be nil, e.g. on host tab, which crashed the export dialog
+  if ActiveGrid = nil then
+    Exit;
   ExportDialog := TfrmExportGrid.Create(Self);
   ExportDialog.Grid := ActiveGrid;
   ExportDialog.ShowModal;
@@ -6726,7 +6729,7 @@ begin
   actNextResult.Enabled := actPreviousResult.Enabled;
 
   // Activate export-options if we're in any list control
-  actExportData.Enabled := HasConnection;
+  actExportData.Enabled := HasConnection and (ActiveGrid <> nil);
   actDataSetNull.Enabled := HasConnection and inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
   // Help only supported on regular MySQL and MariaDB servers
