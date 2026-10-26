@@ -2922,7 +2922,11 @@ var
 begin
   // Support multiple filenames, and use first one as main database
   FileNames := Explode(DELIM, Parameters.Hostname);
-  MainFile := IfThen(FileNames.Count>=1, FileNames[0], '');
+  // Do not use IfThen() here, as it evaluates FileNames[0] eagerly, which crashes on an empty list
+  if FileNames.Count >= 1 then
+    MainFile := FileNames[0]
+  else
+    MainFile := '';
 
   if Value then begin
     // Fixes "out of memory" crash in sqlite3_open, see issue #1367
