@@ -13,15 +13,11 @@ uses
   {$IFNDEF FREEBSD}System.UITypes,{$ENDIF} RegExpr, extra_controls, EditBtn, LCLType, LCLIntf, TypInfo;
 
 type
-  // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
-  // so a OnKeyDown event using <Enter> has the chance to end editing.
-  {TAllKeysRadioButton = class(TRadioButton)
-    procedure WMGetDlgCode(var Msg: TMessage); message WM_GETDLGCODE;
-  end;}
+  // Aliases of the radio buttons and checkboxes used in the column default
+  // editor. In trunk these are subclasses reporting DLGC_WANTALLKEYS, so
+  // a OnKeyDown event using <Enter> has the chance to end editing. The LCL
+  // passes <Enter> to OnKeyDown anyway.
   TAllKeysRadioButton = TRadioButton;
-  {TAllKeysCheckBox = class(TCheckBox)
-    procedure WMGetDlgCode(var Msg: TMessage); message WM_GETDLGCODE;
-  end;}
   TAllKeysCheckBox = TCheckBox;
 
   // Captures the state of a Tab key press in a cell editor, to move the edit
@@ -37,7 +33,6 @@ type
 
   TBaseGridEditorLink = class(TInterfacedObject, IVTEditLink)
   private
-    FInstanceId: Integer;
     FParentForm: TWinControl;      // A back reference to the main form
     FTree: TVirtualStringTree;        // A back reference to the tree calling.
     FNode: PVirtualNode;              // The node to be edited.
@@ -49,13 +44,10 @@ type
     FStopping: Boolean;               // Set to True when the edit link requests stopping the edit action.
     FLastKeyDown: Integer;            // Set in OnKeyDown on the editor's main control
     FLastShiftState: TShiftState;
-    FOldWindowProc: TWndMethod;       // Temporary switched to TempWindowProc to be able to catch Tab key
     FTableColumn: TTableColumn;
     FModified: Boolean;
     FAllowEdit: Boolean;
     FBeginEditTime: Cardinal;
-    procedure Log(Msg: String);
-    //procedure TempWindowProc(var Message: TMessage);
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoEndEdit(Sender: TObject);
     procedure AsyncEndEdit(Data: PtrInt);
@@ -247,26 +239,6 @@ uses
   main;
 
 
-{procedure TAllKeysRadioButton.WMGetDlgCode(var Msg: TMessage);
-begin
-  inherited;
-  Msg.Result := Msg.Result or DLGC_WANTALLKEYS;
-end;}
-
-
-{procedure TAllKeysCheckBox.WMGetDlgCode(var Msg: TMessage);
-begin
-  inherited;
-  Msg.Result := Msg.Result or DLGC_WANTALLKEYS;
-end;}
-
-
-procedure TBaseGridEditorLink.Log(Msg: String);
-begin
-  MainForm.LogSQL('#'+FInstanceId.ToString+': '+Msg, lcinfo);
-end;
-
-
 constructor TBaseGridEditorLink.Create;
 begin
   raise Exception.CreateFmt(_('Wrong constructor called: %s.%s. Instead, please call the overloaded version %s.%s.'),
@@ -276,7 +248,6 @@ end;
 constructor TBaseGridEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited Create;
-  FInstanceId := Random(100);
   FTree := Tree;
   // Enable mouse scrolling, plus ensure the editor component
   // is not partly hidden when it pops up in a bottom cell
@@ -300,10 +271,7 @@ begin
   // session rename is active. See issue #2433.
   Application.RemoveAsyncCalls(Self);
   ActiveGridEditor := nil;
-  if Assigned(FMainControl) then begin
-    FMainControl.WindowProc := FOldWindowProc;
-    FMainControl := nil;
-  end;
+  FMainControl := nil;
   if FLastKeyDown = VK_TAB then begin
     // Move the edit to the next cell asynchronously: FPC releases an interface
     // (fpc_intf_assign) *before* clearing the variable, so the tree still holds
@@ -389,10 +357,6 @@ begin
     FCellFont.Color := AppColorSchemes.First.GridTextColors[FTableColumn.DataType.Category];
   end;
   FCellBackground := FTree.Header.Columns[FColumn].Color;
-  if Assigned(FMainControl) then begin
-    FOldWindowProc := FMainControl.WindowProc;
-    //FMainControl.WindowProc := TempWindowProc;
-  end;
   // Adjust editor position and allow repainting mainform
   SetBounds(FCellTextBounds);
   FParentForm.Repaint;
@@ -444,27 +408,6 @@ begin
   else
     AControl.Free;
 end;
-
-{procedure TBaseGridEditorLink.TempWindowProc(var Message: TMessage);
-begin
-  case Message.Msg of
-    WM_CHAR: // Catch hotkeys
-      if not (TWMChar(Message).CharCode = VK_TAB) then
-        FOldWindowProc(Message);
-    WM_GETDLGCODE: // "WantTabs" mode for main control
-      Message.Result := Message.Result or DLGC_WANTARROWS or DLGC_WANTALLKEYS or DLGC_WANTTAB;
-    else begin
-      try
-        FOldWindowProc(Message);
-      except
-        // EAccessViolation occurring in some cases
-        on E:Exception do begin
-          Log(E.Message+' Message CharCode:'+TWMChar(Message).CharCode.ToString+' Msg:'+Message.Msg.ToString);
-        end;
-      end;
-    end;
-  end;
-end;}
 
 procedure TBaseGridEditorLink.ProcessMessage(var Message: TMessage);
 begin
