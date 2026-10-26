@@ -10218,7 +10218,8 @@ begin
   // Check if some editor has unsaved changes
   if Assigned(ActiveObjectEditor) and Assigned(NewNode) and (NewNode <> OldNode) and (not FTreeRefreshInProgress) then begin
     Allowed := not (ActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
-    DBTree.Selected[DBTree.FocusedNode] := not Allowed;
+    if Assigned(DBTree.FocusedNode) then
+      DBTree.Selected[DBTree.FocusedNode] := not Allowed;
   end else
     Allowed := NewNode <> OldNode;
 end;
