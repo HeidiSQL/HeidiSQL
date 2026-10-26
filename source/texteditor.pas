@@ -366,10 +366,10 @@ begin
   WasModified := Modified;
   if MemoText.ScrollBars = ssBoth then begin
     MemoText.ScrollBars := ssVertical;
-    //MemoText.WordWrap := True;
+    ApplySynEditWordWrap(MemoText, True);
   end else begin
     MemoText.ScrollBars := ssBoth;
-    //MemoText.WordWrap := False;
+    ApplySynEditWordWrap(MemoText, False);
   end;
   btnWrap.Down := MemoText.ScrollBars = ssVertical;
   Modified := WasModified;

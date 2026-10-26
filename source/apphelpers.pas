@@ -8,6 +8,7 @@ uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient, IntfGraphics, FPImage,
+  SynEditFoldedView, SynEditWrappedView,
   {$IFDEF WINDOWS} Windows, Registry, uDarkStyleParams, {$ENDIF} DelphiCompat,
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
   IniFiles, GraphType, Sockets, Contnrs, StdCtrls
@@ -448,6 +449,7 @@ type
   function GetApplicationName: String;
   procedure CopyImageList(SourceList, TargetList: TImageList; AppendDisabled: Boolean);
   procedure LightenBitmap(Bmp: Graphics.TBitmap; Amount: Byte);
+  procedure ApplySynEditWordWrap(Editor: TCustomSynEdit; Enable: Boolean);
 
 var
   AppSettings: TAppSettings;
@@ -4735,6 +4737,44 @@ function TUTF8NoBOMEncoding.GetPreamble: TBytes;
 begin
   Result := [];
   SetLength(Result, 0);
+end;
+
+
+procedure ApplySynEditWordWrap(Editor: TCustomSynEdit; Enable: Boolean);
+var
+  i: Integer;
+  WrapPlugin: TLazSynEditLineWrapPlugin;
+  FoldedView: TSynEditFoldedView;
+begin
+  // Lazarus' SynEdit has no WordWrap property. Wrapping is enabled by attaching
+  // the (experimental) TLazSynEditLineWrapPlugin, and disabled by freeing it, see issue #2141.
+  if Editor = nil then
+    Exit;
+  // SynEdit-attached plugins live in the editor's internal plugin list,
+  // not in its Components collection, see TLazSynEditPlugin.Create
+  WrapPlugin := nil;
+  for i:=0 to Editor.PluginCount-1 do begin
+    if Editor.Plugin[i] is TLazSynEditLineWrapPlugin then begin
+      WrapPlugin := TLazSynEditLineWrapPlugin(Editor.Plugin[i]);
+      break;
+    end;
+  end;
+  if Enable then begin
+    if WrapPlugin = nil then begin
+      // Editor not visible yet or without known metrics: the wrap plugin crashes
+      // with negative wrap column when validating long lines, so it gets attached
+      // on a later call of SetupSynEditors instead
+      if Editor.CharsInWindow < 2 then
+        Exit;
+      // The wrap plugin conflicts with the folded view, so disable folding
+      FoldedView := TSynEditFoldedView(Editor.TextViewsManager.SynTextViewByClass[TSynEditFoldedView]);
+      if FoldedView <> nil then
+        FoldedView.FoldProvider.Enabled := False;
+      TLazSynEditLineWrapPlugin.Create(Editor);
+    end;
+  end
+  else if WrapPlugin <> nil then
+    WrapPlugin.Free;
 end;
 
 

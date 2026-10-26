@@ -2874,6 +2874,10 @@ begin
   OnResize := FormResize;
   OnResize(Sender);
 
+  // Attach the word wrap plugin, now that all editors know their metrics, see issue #2141
+  if actQueryWordWrap.Checked then
+    SetupSynEditors;
+
   // Simulated link label, has non inherited blue font color
   lblExplainProcess.Font.Color := clBlue;
 
@@ -6619,7 +6623,7 @@ begin
       DataGrid.TrySetFocus;
     end else if IsQueryTab(tab.PageIndex, True) and (QueryTabs.ActiveMemo <> nil) then begin
       QueryTabs.ActiveMemo.TrySetFocus;
-      //QueryTabs.ActiveMemo.WordWrap := actQueryWordWrap.Checked;
+      ApplySynEditWordWrap(QueryTabs.ActiveMemo, actQueryWordWrap.Checked);
       SynMemoQueryStatusChange(QueryTabs.ActiveMemo, [scCaretX]);
     end;
   end;
@@ -13971,10 +13975,7 @@ begin
   //Editor.Gutter.RightOffset := BaseEditor.Gutter.RightOffset;
   //Editor.Gutter.ShowLineNumbers := BaseEditor.Gutter.ShowLineNumbers;
   if Editor <> SynMemoSQLLog then begin
-    // Probably use TLazSynEditLineWrapPlugin?
-    {Editor.WordWrap := actQueryWordWrap.Checked;
-    // Assignment of OnScanForFoldRanges event is required for UseCodeFolding
-    Editor.OnScanForFoldRanges := BaseEditor.OnScanForFoldRanges;}
+    ApplySynEditWordWrap(Editor, actQueryWordWrap.Checked);
     CodeFoldingPart := Editor.Gutter.CodeFoldPart(0);
     if Assigned(CodeFoldingPart) then begin
       CodeFoldingPart.Visible := actCodeFolding.Checked;
