@@ -8,7 +8,12 @@ uses
   Classes, SysUtils, Forms, Types, StdCtrls, Clipbrd, apphelpers,
   Graphics, Dialogs, ImgList, ComCtrls, Generics.Defaults,
   ExtCtrls, laz.VirtualTrees, RegExpr, Controls, EditBtn, Menus,
-  LCLIntf, Math, LCLType;
+  LCLIntf, Math, LCLType, LMessages;
+
+const
+  // Posted by TExtForm.DeferFreeControl, see there. Value is WM_USER + $0D00,
+  // written explicitly to avoid pulling in the Windows unit here.
+  WM_HEIDISQL_DEFERREDFREE = $1100;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -18,8 +23,10 @@ type
   TExtForm = class(TForm)
     protected
       procedure FilterNodesByEdit(Edit: TEditButton; Tree: TLazVirtualStringTree);
+      procedure WMDeferredFree(var Message: TLMessage); message WM_HEIDISQL_DEFERREDFREE;
     public
       constructor Create(AOwner: TComponent); override;
+      procedure DeferFreeControl(AControl: TControl);
       class procedure InheritFont(AFont: TFont);
       class procedure SaveListSetup(List: TLazVirtualStringTree);
       class procedure RestoreListSetup(List: TLazVirtualStringTree);
@@ -83,6 +90,22 @@ begin
     AFont.Name := Screen.SystemFont.Name;
     AFont.Pitch := Screen.SystemFont.Pitch;
   end;
+end;
+
+procedure TExtForm.WMDeferredFree(var Message: TLMessage);
+begin
+  TObject(Message.WParam).Free;
+end;
+
+procedure TExtForm.DeferFreeControl(AControl: TControl);
+begin
+  // Free AControl after the current message chain has finished. Needed when
+  // the control's own message handling is on the call stack, e.g. when an
+  // editor control's OnKeyDown event ends a grid edit which destroys the
+  // editor link. Also keeps the old editor focused until the new editor link
+  // takes over the focus, avoiding the LCL's focus fallback to the next
+  // control in tab order.
+  PostMessage(Handle, WM_HEIDISQL_DEFERREDFREE, WParam(AControl), 0);
 end;
 
 
