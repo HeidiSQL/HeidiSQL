@@ -1056,10 +1056,22 @@ begin
       UpdateResultGrid;
     end;
 
-    // Activate ansi mode or whatever again, locally
-    Conn.Query('/*!40101 SET SQL_MODE=IFNULL(@OLD_LOCAL_SQL_MODE, '''') */');
+    // Activate ansi mode or whatever again, locally. Some servers or proxies
+    // reject these restore statements, e.g. MySQL error 1298 on the TIME_ZONE one.
+    // Logging instead of raising, as we do not want to abort the export with it.
+    try
+      Conn.Query('/*!40101 SET SQL_MODE=IFNULL(@OLD_LOCAL_SQL_MODE, '''') */');
+    except
+      on E:EDbError do
+        Conn.Log(lcError, E.Message);
+    end;
     // Reset timezone for reading to previous value
-    Conn.Query('/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, ''system'') */');
+    try
+      Conn.Query('/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, ''system'') */');
+    except
+      on E:EDbError do
+        Conn.Log(lcError, E.Message);
+    end;
   end;
   ExportLastDatabase := '';
 
