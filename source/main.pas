@@ -9594,6 +9594,9 @@ begin
   if Sender = ListProcesses then begin
     Idx := Sender.GetNodeData(Node);
     Results := GridResult(Sender);
+    // Result sets get freed while disconnecting, a paint event may still come through then
+    if not Assigned(Results) then
+      Exit;
     if not Results.Connection.Active then
       Exit;
     Results.RecNo := Idx^;
