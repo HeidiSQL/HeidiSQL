@@ -2016,7 +2016,7 @@ begin
   // spltQuery and swallowing its mouse events
   tabsetQuery.BorderSpacing.Top := 6;
   {$ENDIF}
-  //InheritFont(QueryTab.tabsetQuery.Font);
+  InheritFont(QueryTab.tabsetQuery.Font);
   QueryTab.ResultTabs := TResultTabs.Create(True);
 
   QueryTabs := TQueryTabList.Create(True);

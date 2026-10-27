@@ -65,7 +65,7 @@ var
 begin
   inherited;
 
-  //InheritFont(Font);
+  InheritFont(Font);
 end;
 
 
@@ -74,15 +74,13 @@ var
   GUIFontName: String;
 begin
   // Set custom font if set, or default system font.
-  // In high-dpi mode, the font *size* is increased automatically somewhere in the VCL,
-  // caused by a form's .Scaled property. So we don't increase it here again.
-  // To test this, you really need to log off/on Windows!
+  // The font *size* is deliberately not touched here: it is scaled by the LCL
+  // according to the user's DPI (form scaling), and setting it again would
+  // result in double enlargement. See issue #3204.
   GUIFontName := AppSettings.ReadString(asGUIFontName);
   if not GUIFontName.IsEmpty then begin
     // Apply user specified font
     AFont.Name := GUIFontName;
-    // Set size on top of automatic dpi-increased size
-    AFont.Size := AppSettings.ReadInt(asGUIFontSize);
   end else begin
     // Apply system font. See issue #3204.
     AFont.Orientation := Screen.SystemFont.Orientation;

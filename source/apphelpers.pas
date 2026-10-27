@@ -224,7 +224,7 @@ type
     asPromptSaveFileOnTabClose, asRestoreTabs, asTabCloseOnDoubleClick, asTabCloseOnMiddleClick, asTabsInMultipleLines, asTabIconsGrayscaleMode,
     asWarnUnsafeUpdates, asQueryGridLongSortRowNum,
     asCompletionProposal, asCompletionProposalInterval, asCompletionProposalSearchOnMid, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
-    asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
+    asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName,
     asTheme, asThemeMode, asCurrentThemeIsDark, asIconPack, asWebSearchBaseUrl,
     asFindDialogReplaceHistory, asMaxQueryResults, asLogErrors,
     asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asLogScript, asLogTimestamp, asFieldColorNumeric,
@@ -3946,7 +3946,6 @@ begin
   InitSetting(asFindDialogSearchHistory,          'FindDialogSearchHistory',               0, False, '');
   InitSetting(asFindDialogReplaceHistory,         'FindDialogReplaceHistory',              0, False, '');
   InitSetting(asGUIFontName,                      'GUIFontName',                           0, False, '');
-  InitSetting(asGUIFontSize,                      'GUIFontSize',                           8);
   InitSetting(asTheme,                            'Theme',                                 0, False, 'Windows');
   InitSetting(asThemeMode,                        'ThemeMode',                             0);
   InitSetting(asCurrentThemeIsDark,               'CurrentThemeIsDark',                    0, False);

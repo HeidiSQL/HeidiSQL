@@ -68,19 +68,6 @@ object frmPreferences: TfrmPreferences
         BorderSpacing.Around = 5
         Caption = 'GUI font: *'
       end
-      object lblGUIFontSize: TLabel
-        AnchorSideTop.Control = comboAppLanguage
-        AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = tabMisc
-        AnchorSideRight.Side = asrBottom
-        Left = 678
-        Height = 15
-        Top = 264
-        Width = 11
-        Anchors = [akTop, akRight]
-        BorderSpacing.Around = 5
-        Caption = 'pt'
-      end
       object lblTheme: TLabel
         AnchorSideLeft.Control = tabMisc
         AnchorSideTop.Control = comboGUIFont
@@ -254,37 +241,18 @@ object frmPreferences: TfrmPreferences
         Tag = 1
         AnchorSideTop.Control = comboAppLanguage
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = spinGUIFontSize
+        AnchorSideRight.Control = tabMisc
+        AnchorSideRight.Side = asrBottom
         Left = 220
         Height = 23
         Top = 264
-        Width = 368
+        Width = 469
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
         ItemHeight = 15
         Style = csDropDownList
         TabOrder = 10
         OnChange = comboGUIFontChange
-      end
-      object spinGUIFontSize: TSpinEditEx
-        Tag = 1
-        AnchorSideLeft.Control = comboGUIFont
-        AnchorSideLeft.Side = asrBottom
-        AnchorSideTop.Control = comboAppLanguage
-        AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = lblGUIFontSize
-        Left = 593
-        Height = 23
-        Top = 264
-        Width = 80
-        Anchors = [akTop, akRight]
-        BorderSpacing.Around = 5
-        MaxLength = 0
-        SpinButtonWidth = 17
-        TabOrder = 11
-        OnChange = Modified
-        NullValue = 0
-        Value = 8
       end
       object chkWheelZoom: TCheckBox
         AnchorSideTop.Control = chkDoStatistics
