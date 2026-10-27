@@ -1,0 +1,22 @@
+--- a/components/synedit/lazsynedittext.pas
++++ b/components/synedit/lazsynedittext.pas
+@@ -2032,11 +2032,16 @@
+ begin
+   i := FTextViewsList.IndexOf(aTextView);
+   if i >= 0 then begin
++    // Remove the view from the chain first, so ReconnectViews / DoTopViewChanged
++    // can move caret and selections to the new top view, unregistering their
++    // handlers from the old top view while it still has a valid Manager.
++    // Unsetting the Manager (or freeing the view) before ReconnectViews caused
++    // a nil / dangling Manager dereference in those unregistrations.
++    FTextViewsList.Delete(i);
++    ReconnectViews;
+     aTextView.SetManager(nil);
+     if aDestroy then
+-      TSynEditStringsLinked(FTextViewsList[i]).Free;
+-    FTextViewsList.Delete(i);
+-    ReconnectViews
++      aTextView.Free;
+   end;
+ end;
+ 

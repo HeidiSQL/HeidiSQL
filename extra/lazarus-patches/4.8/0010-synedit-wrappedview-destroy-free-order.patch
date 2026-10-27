@@ -1,0 +1,16 @@
+--- a/components/synedit/syneditwrappedview.pp
++++ b/components/synedit/syneditwrappedview.pp
+@@ -1816,7 +1816,12 @@
+   if Editor <> nil then begin
+     TSynEdit(Editor).UnRegisterStatusChangedHandler(@DoWidthChanged);
+     if (FLineMapView <> nil) and not (csDestroying in Editor.Componentstate) then begin
+-      TSynEdit(Editor).TextViewsManager.RemoveSynTextView(FLineMapView, True);
++      // Remove the view from the chain without freeing it. RemoveSynTextView calls
++      // ReconnectViews / DoTopViewChanged, which unregisters handlers from the
++      // previous top view (FLineMapView). Freeing it in the same step left those
++      // handlers unregistering from freed memory (use-after-free).
++      TSynEdit(Editor).TextViewsManager.RemoveSynTextView(FLineMapView, False);
++      FLineMapView.Free;
+       TSynEdit(Editor).Invalidate;
+     end;
+    end;

@@ -15336,7 +15336,13 @@ begin
   if E <> nil then begin
     Report := Report + 'Exception class: ' + E.ClassName + LineEnding + 'Message: ' + E.Message + LineEnding + LineEnding;
   end;
-  Report := Report + 'Callstack:' + LineEnding;
+  // Raw frame addresses first, so a broken heap or failing line info
+  // cannot truncate the callstack completely
+  Report := Report + 'Raw addresses:' + LineEnding + '$' + IntToHex(PtrUInt(ExceptAddr), 16);
+  Frames := ExceptFrames;
+  for I := 0 to ExceptFrameCount - 1 do
+    Report := Report + LineEnding + '$' + IntToHex(PtrUInt(Frames[I]), 16);
+  Report := Report + LineEnding + LineEnding + 'Callstack:' + LineEnding;
   Report := Report + BackTraceStrFunc(ExceptAddr);
   Frames := ExceptFrames;
   for I := 0 to ExceptFrameCount - 1 do
