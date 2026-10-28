@@ -9,7 +9,7 @@ uses
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient, IntfGraphics, FPImage,
   SynEditFoldedView, SynEditWrappedView,
-  {$IFDEF WINDOWS} Windows, Registry, uDarkStyleParams, jwatlhelp32, {$ENDIF} DelphiCompat,
+  {$IFDEF WINDOWS} Windows, Registry, uDarkStyleParams, {$ENDIF} DelphiCompat,
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
   IniFiles, GraphType, Sockets, Contnrs, StdCtrls
   {$IFDEF DARWIN} , MacOSAll {$ENDIF};
@@ -2808,6 +2808,33 @@ begin
   {$ENDIF}
 end;
 
+{$IFDEF WINDOWS}
+const
+  TH32CS_SNAPPROCESS = $00000002;
+
+type
+  // Matches PROCESSENTRY32W, declared statically so the API calls show up
+  // in the import table - deliberately avoiding dynamic API resolution,
+  // which antivirus heuristics tend to flag.
+  TProcessEntry32 = record
+    dwSize: DWORD;
+    cntUsage: DWORD;
+    th32ProcessID: DWORD;
+    th32DefaultHeapID: PtrUInt;
+    th32ModuleID: DWORD;
+    cntThreads: DWORD;
+    th32ParentProcessID: DWORD;
+    pcPriClassBase: LongInt;
+    dwFlags: DWORD;
+    szExeFile: array[0..MAX_PATH-1] of WideChar;
+  end;
+
+function CreateToolhelp32Snapshot(dwFlags, th32ProcessID: DWORD): THandle; stdcall; external 'kernel32' name 'CreateToolhelp32Snapshot';
+function Process32FirstW(hSnapshot: THandle; var lppe: TProcessEntry32): BOOL; stdcall; external 'kernel32' name 'Process32FirstW';
+function Process32NextW(hSnapshot: THandle; var lppe: TProcessEntry32): BOOL; stdcall; external 'kernel32' name 'Process32NextW';
+{$ENDIF}
+
+
 function ProcessExists(pid: Cardinal; ExeNamePattern: String; ExcludePid: Cardinal=0): Boolean;
 {$IFDEF WINDOWS}
 var
@@ -2822,7 +2849,7 @@ begin
   if SnapShot <> INVALID_HANDLE_VALUE then begin
     try
       Proc.dwSize := Sizeof(Proc);
-      ContinueLoop := Process32First(SnapShot, Proc);
+      ContinueLoop := Process32FirstW(SnapShot, Proc);
       while ContinueLoop do begin
         if (Proc.th32ProcessID <> ExcludePid)
           and ((pid = 0) or (Proc.th32ProcessID = pid))
@@ -2830,7 +2857,7 @@ begin
           Result := True;
           Break;
         end;
-        ContinueLoop := Process32Next(SnapShot, Proc);
+        ContinueLoop := Process32NextW(SnapShot, Proc);
       end;
     finally
       CloseHandle(Snapshot);
