@@ -852,7 +852,6 @@ type
       AImageWidth, APPI: Integer; var AResultWidth: Integer);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
-    //procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure AfterFormCreate;
@@ -1423,7 +1422,6 @@ type
     function GetRegKeyTable: String;
     procedure UpdateEditorTab;
     procedure SetWindowCaption;
-    //procedure DefaultHandler(var Message); override;
     procedure SetupSynEditors; overload;
     procedure SetupSynEditors(BaseForm: TComponent); overload;
     procedure SetupSynEditor(Editor: TSynMemo);
@@ -1455,7 +1453,6 @@ type
 
 var
   MainForm: TMainForm;
-  SecondInstMsgId: Cardinal = 0;
   SysLanguage: String;
   MainFormCreated: Boolean = False;
   MainFormAfterCreateDone: Boolean = False;
@@ -14241,40 +14238,6 @@ begin
   FDataGridSortItems.Clear;
   InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
-
-
-{procedure TMainForm.WMCopyData(var Msg: TWMCopyData);
-var
-  i: Integer;
-  Connection: TDBConnection;
-  Tab: TQueryTab;
-  ConnectionParams: TConnectionParameters;
-  FileNames: TStringList;
-  RunFrom: String;
-begin
-  // Probably a second instance is posting its command line parameters here
-  if (Msg.CopyDataStruct.dwData = SecondInstMsgId) and (SecondInstMsgId <> 0) then begin
-    LogSQL(f_('Preventing second application instance - disabled in %s > %s > %s.', [_('Tools'), _('Preferences'), _('General')]), lcInfo);
-    ConnectionParams := nil;
-    ParseCommandLine(ParamBlobToStr(Msg.CopyDataStruct.lpData), ConnectionParams, FileNames, RunFrom);
-    OpenQueryFiles(FileNames, nil, False);
-    if ConnectionParams <> nil then
-      InitConnection(ConnectionParams, True, Connection);
-  end else
-    // Not the right message id
-    inherited;
-end;}
-
-
-{procedure TMainForm.DefaultHandler(var Message);
-begin
-  if TMessage(Message).Msg = SecondInstMsgId then begin
-    // A second instance asked for our handle. Post that into its message queue.
-    PostThreadMessage(TMessage(Message).WParam, SecondInstMsgId, Handle, 0);
-  end else
-    // Otherwise do what would happen without this overridden procedure
-    inherited;
-end;}
 
 
 procedure TMainForm.actBlobAsTextExecute(Sender: TObject);

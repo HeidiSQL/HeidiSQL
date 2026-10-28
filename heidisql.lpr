@@ -48,6 +48,13 @@ begin
 
   AppSettings := TAppSettings.Create;
 
+  // Prevent a second application instance, unless the user allows multiple
+  // ones in the preferences. Simple check for another process with our name.
+  if (not AppSettings.ReadBool(asAllowMultipleInstances)) and CheckForSecondInstance then begin
+    AppSettings.Free;
+    Halt;
+  end;
+
   AppLanguage := AppSettings.ReadString(asAppLanguage);
   // SysLanguage may be zh_CN, while we don't offer such a language, but anyway, this is just the current system language:
   SysLanguage := GetLanguageID.LanguageCode;
