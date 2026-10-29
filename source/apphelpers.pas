@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient, IntfGraphics, FPImage,
-  SynEditFoldedView, SynEditWrappedView,
+  SynEditFoldedView, SynEditWrappedView, ExtCtrls,
   {$IFDEF WINDOWS} Windows, Registry, uDarkStyleParams, {$ENDIF} DelphiCompat,
   dbconnection, dbstructures, jsonregistry, lazaruscompat, fpjson, SynEditKeyCmds, LazFileUtils, gettext, LazUTF8,
   IniFiles, GraphType, Sockets, Contnrs, StdCtrls
@@ -32,6 +32,18 @@ type
   end;
 
   TLineBreaks = (lbsNone, lbsWindows, lbsUnix, lbsMac, lbsWide, lbsMixed);
+
+  { TSecondInstanceDialog }
+  // Simple dialog, shown by a blocked second application instance before it
+  // quits, auto-closing after a few seconds, counting down on the OK button
+  TSecondInstanceDialog = class(TForm)
+    private
+      FButton: TButton;
+      FSecondsLeft: Integer;
+    public
+      constructor Create; reintroduce;
+      procedure AutoClose(Sender: TObject);
+  end;
 
   TUTF8NoBOMEncoding = class(TUTF8Encoding)
     public
@@ -404,6 +416,7 @@ type
   function TruncDef(X: Real; Default: Int64): Int64;
   function GetLightness(AColor: TColor): Byte;
   function CheckForSecondInstance: Boolean;
+  procedure InformAboutSecondInstance;
   function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
   function GeneratePassword(Len: Integer): String;
   procedure InvalidateVT(VT: TLazVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
@@ -2938,9 +2951,87 @@ end;
 function CheckForSecondInstance: Boolean;
 begin
   // Simple approach to detect a running first instance: check if any other
-  // process has a similar name as our own executable. Deliberately without
-  // any message passing between the instances - the second instance just quits.
+  // process has a similar name as our own executable. The second instance
+  // just quits, after informing the user, see InformAboutSecondInstance().
   Result := ProcessExists(0, GetApplicationName, GetProcessId);
+end;
+
+
+procedure InformAboutSecondInstance;
+var
+  Dialog: TSecondInstanceDialog;
+begin
+  // Called by a blocked second instance before it quits, so the user knows
+  // why no new window appeared.
+  Dialog := TSecondInstanceDialog.Create;
+  try
+    Dialog.ShowModal;
+  finally
+    Dialog.Free;
+  end;
+end;
+
+
+{ TSecondInstanceDialog }
+
+constructor TSecondInstanceDialog.Create;
+var
+  lbl: TLabel;
+  btn: TButton;
+  Timer: TTimer;
+begin
+  inherited CreateNew(nil);
+  Caption := APPNAME;
+  Position := poScreenCenter;
+  BorderStyle := bsDialog;
+  AutoSize := True;
+  // Pin the width, so form AutoSize only computes the height from the
+  // word-wrapped label, instead of shrinking to the label's natural width
+  Constraints.MinWidth := 300;
+  Constraints.MaxWidth := 300;
+  ClientWidth := 300;
+  lbl := TLabel.Create(Self);
+  lbl.Parent := Self;
+  lbl.Caption := f_('Preventing second application instance - disabled in %s > %s > %s.', [_('Tools'), _('Preferences'), _('General')]);
+  lbl.WordWrap := True;
+  lbl.Anchors := [akTop, akLeft, akRight];
+  lbl.AnchorSideTop.Control := Self;
+  lbl.AnchorSideTop.Side := asrTop;
+  lbl.AnchorSideLeft.Control := Self;
+  lbl.AnchorSideLeft.Side := asrLeft;
+  lbl.AnchorSideRight.Control := Self;
+  lbl.AnchorSideRight.Side := asrBottom;
+  lbl.BorderSpacing.Around := 16;
+  btn := TButton.Create(Self);
+  btn.Parent := Self;
+  FButton := btn;
+  FSecondsLeft := 5;
+  btn.Caption := Format('%s (%ds)', [_('OK'), FSecondsLeft]);
+  btn.AutoSize := True;
+  btn.Anchors := [akTop, akRight];
+  btn.AnchorSideTop.Control := lbl;
+  btn.AnchorSideTop.Side := asrBottom;
+  btn.AnchorSideRight.Control := Self;
+  btn.AnchorSideRight.Side := asrBottom;
+  btn.BorderSpacing.Top := 12;
+  btn.BorderSpacing.Right := 16;
+  btn.BorderSpacing.Bottom := 16;
+  btn.ModalResult := mrOk;
+  btn.Default := True;
+  btn.Cancel := True;
+  Timer := TTimer.Create(Self);
+  Timer.Interval := 1000;
+  Timer.OnTimer := AutoClose;
+end;
+
+
+procedure TSecondInstanceDialog.AutoClose(Sender: TObject);
+begin
+  Dec(FSecondsLeft);
+  if FSecondsLeft > 0 then
+    FButton.Caption := Format('%s (%ds)', [_('OK'), FSecondsLeft])
+  else
+    ModalResult := mrOk;
 end;
 
 

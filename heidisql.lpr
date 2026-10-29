@@ -48,13 +48,6 @@ begin
 
   AppSettings := TAppSettings.Create;
 
-  // Prevent a second application instance, unless the user allows multiple
-  // ones in the preferences. Simple check for another process with our name.
-  if (not AppSettings.ReadBool(asAllowMultipleInstances)) and CheckForSecondInstance then begin
-    AppSettings.Free;
-    Halt;
-  end;
-
   AppLanguage := AppSettings.ReadString(asAppLanguage);
   // SysLanguage may be zh_CN, while we don't offer such a language, but anyway, this is just the current system language:
   SysLanguage := GetLanguageID.LanguageCode;
@@ -63,6 +56,18 @@ begin
 
   RequireDerivedFormResource:=True;
   Application.Scaled:=True;
+
+  // Prevent a second application instance, unless the user allows multiple
+  // ones in the preferences. Simple check for another process with our name.
+  // Application.Scaled etc. must be set before Initialize, which the dialog
+  // below needs, and which would otherwise run with their default values.
+  if (not AppSettings.ReadBool(asAllowMultipleInstances)) and CheckForSecondInstance then begin
+    // Inform the user with a short-lived dialog, then quit
+    Application.Initialize;
+    InformAboutSecondInstance;
+    AppSettings.Free;
+    Halt;
+  end;
 
   AppColorSchemes := TAppColorSchemes.Create(True);
   {$IFDEF WINDOWS}
