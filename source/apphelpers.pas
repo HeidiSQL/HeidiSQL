@@ -1367,7 +1367,9 @@ begin
   Bytes := Encoding.GetBytes(Text); // Encode text
   Writer := TFileStream.Create(Filename, fmCreate);
   try
-    Writer.WriteBuffer(Bytes[0], Length(Bytes));
+    // Empty file: Bytes is an empty dynarray, Bytes[0] would trigger a range check error
+    if Length(Bytes) > 0 then
+      Writer.WriteBuffer(Bytes[0], Length(Bytes));
   finally
     Writer.Free;
   end;
