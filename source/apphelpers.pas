@@ -4663,8 +4663,13 @@ begin
     repeat
       if (Rec.Name = '.') or (Rec.Name = '..') then
         Continue;
-      if (Rec.Attr and faDirectory) <> 0 then
+      if (Rec.Attr and faDirectory) <> 0 then begin
+        // Don't recurse into junctions and symbolic links, which may point back
+        // to a parent directory and cause endless recursion
+        if (FileGetAttr(SourceDir+Rec.Name) and FILE_ATTRIBUTE_REPARSE_POINT) <> 0 then
+          Continue;
         CopyWinUserAppDataFiles(SourceDir+Rec.Name+PathDelim, TargetDir+Rec.Name+PathDelim, RelativePath+Rec.Name+PathDelim)
+      end
       else begin
         if FileExists(TargetDir+Rec.Name) then
           Continue; // Don't touch file if already there

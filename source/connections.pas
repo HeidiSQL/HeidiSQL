@@ -638,11 +638,16 @@ begin
   btnImportV12.Enabled := False;
   lblImportStatus.Visible := True;
   AppSettings.OnImportStatus := ShowImportStatus;
-  AppSettings.ImportWinRegistrySettings;
-  AppSettings.ImportWinUserAppDataFiles;
-  AppSettings.OnImportStatus := nil;
-  lblImportStatus.Visible := False;
-  btnImportV12.Enabled := True;
+  try
+    AppSettings.ImportWinRegistrySettings;
+    AppSettings.ImportWinUserAppDataFiles;
+  finally
+    // Reset state even when an import failed, e.g. on a locked tabs.ini,
+    // so the user can close the dialog or retry
+    AppSettings.OnImportStatus := nil;
+    lblImportStatus.Visible := False;
+    btnImportV12.Enabled := True;
+  end;
   // Ensure this button is not offered again after the import has run once
   AppSettings.WriteBool(asSessionManagerWinRegistryImport, True);
   UpdateV12ImportControls;
