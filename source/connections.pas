@@ -28,8 +28,9 @@ type
     btnDelete: TBitBtn;
     chkForceUnicode: TCheckBox;
     lblHelpPortable: TLabel;
-    btnImportSessions: TSpeedButton;
-    lblImportSessions: TLabel;
+    btnImportV12: TSpeedButton;
+    lblImportV12: TLabel;
+    lblImportStatus: TLabel;
     lblSshPassHint: TLabel;
     pnlBottom: TPanel;
     popupSessions: TPopupMenu;
@@ -183,7 +184,7 @@ type
     procedure comboNetTypeChange(Sender: TObject);
     procedure splitterMainMoved(Sender: TObject);
     procedure timerSettingsImportTimer(Sender: TObject);
-    procedure btnImportSessionsClick(Sender: TObject);
+    procedure btnImportV12Click(Sender: TObject);
     procedure ListSessionsStructureChange(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Reason: TChangeReason);
     procedure ListSessionsDragOver(Sender: TBaseVirtualTree; Source: TObject;
@@ -223,7 +224,7 @@ type
     FSessionModified, FOnlyPasswordModified: Boolean;
     FServerVersion: String;
     FSettingsImportWaitTime: Cardinal;
-    FWinRegistryRootExists: Boolean;
+    FV12DataExists: Boolean;
     FPopupDatabases: TPopupMenu;
     FPopupCiphers: TPopupMenu;
     FButtonAnimationStep: Integer;
@@ -231,7 +232,8 @@ type
     function GetSelectedNetType: TNetType;
     procedure SetSelectedNetType(Value: TNetType);
     procedure RefreshSessions(ParentNode: PVirtualNode);
-    procedure UpdateWinRegistryImportControls;
+    procedure UpdateV12ImportControls;
+    procedure ShowImportStatus(Status: String);
     function SelectedSessionPath: String;
     function CurrentParams: TConnectionParameters;
     procedure FinalizeModifications(var CanProceed: Boolean);
@@ -290,8 +292,8 @@ begin
   ListSessions.OnHeaderClick := MainForm.AnyGridHeaderClick;
   ListSessions.OnHeaderDraggedOut := MainForm.AnyGridHeaderDraggedOut;
   btnImportSettings.Caption := MainForm.actImportSettings.Caption;
-  btnImportSessions.Caption := _('Import settings from Windows registry');
-  lblImportSessions.Caption := _('Previous versions of HeidiSQL stored your settings and sessions in the Windows registry. Click on the button above to import them, so they will appear in this application. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which imports the same from that file.');
+  btnImportV12.Caption := _('Import settings and files from previous version');
+  lblImportV12.Caption := _('Previous versions of HeidiSQL stored your settings and sessions in the Windows registry, and additional files (logs, backups etc.) in your user profile directory. Click on the button above to import both, so they will appear in this application. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which imports the same from that file.');
   FLoaded := False;
   menuFoldersAtTop.Checked := AppSettings.ReadBool(asSessionManagerListFoldersAtTop);
   FSettingsImportWaitTime := 0;
@@ -418,9 +420,10 @@ var
 begin
   RestoreListSetup(ListSessions);
 
-  // Detect settings stored in the Windows registry by a previous version, once per show
-  FWinRegistryRootExists := AppSettings.WinRegistryExists;
-  UpdateWinRegistryImportControls;
+  // Detect settings and files stored by a previous version, once per show
+  FV12DataExists := AppSettings.WinRegistryExists
+    or AppSettings.WinUserAppDataExists;
+  UpdateV12ImportControls;
 
   // Init sessions tree
   RefreshSessions(nil);
@@ -609,28 +612,45 @@ begin
 end;
 
 
-procedure Tconnform.UpdateWinRegistryImportControls;
+procedure Tconnform.UpdateV12ImportControls;
 begin
-  // Offer the import only if the previous version's registry root key exists,
-  // and if the import was never done before
-  btnImportSessions.Visible := FWinRegistryRootExists
+  // Offer the import only if a previous version stored any data on this machine,
+  // and if the import was never done before. Windows only.
+  {$IFDEF WINDOWS}
+  btnImportV12.Visible := FV12DataExists
     and (not AppSettings.ReadBool(asSessionManagerWinRegistryImport));
-  lblImportSessions.Visible := btnImportSessions.Visible;
+  {$ENDIF}
+  lblImportV12.Visible := btnImportV12.Visible;
 end;
 
-procedure Tconnform.btnImportSessionsClick(Sender: TObject);
+procedure Tconnform.ShowImportStatus(Status: String);
+begin
+  // Live feedback from the import routines, see TAppSettings.OnImportStatus
+  lblImportStatus.Caption := Status;
+  lblImportStatus.Repaint;
+end;
+
+procedure Tconnform.btnImportV12Click(Sender: TObject);
 begin
   // Copy all settings and sessions stored in the Windows registry by a previous
-  // version into the JSON registry. Existing values are left alone.
+  // version into the JSON registry, plus its files from the user profile
+  // directory into this version's user directory. Existing data is left alone.
+  btnImportV12.Enabled := False;
+  lblImportStatus.Visible := True;
+  AppSettings.OnImportStatus := ShowImportStatus;
   AppSettings.ImportWinRegistrySettings;
+  AppSettings.ImportWinUserAppDataFiles;
+  AppSettings.OnImportStatus := nil;
+  lblImportStatus.Visible := False;
+  btnImportV12.Enabled := True;
   // Ensure this button is not offered again after the import has run once
   AppSettings.WriteBool(asSessionManagerWinRegistryImport, True);
-  UpdateWinRegistryImportControls;
+  UpdateV12ImportControls;
   RefreshSessions(nil);
   SelectNode(ListSessions, nil);
   if ListSessions.GetFirst <> nil then
     SelectNode(ListSessions, ListSessions.GetFirst);
-  MessageDialog(_('Imported settings and sessions from the Windows registry.'), mtInformation, [mbOK]);
+  MessageDialog(_('Imported settings, sessions and files from a previous version.'), mtInformation, [mbOK]);
 end;
 
 procedure Tconnform.timerSettingsImportTimer(Sender: TObject);
@@ -1062,7 +1082,7 @@ begin
   menuNewFolderInFolder.Enabled := InFolder;
   FreeAndNil(FPopupDatabases);
   FreeAndNil(FPopupCiphers);
-  UpdateWinRegistryImportControls;
+  UpdateV12ImportControls;
 
   if not SessionFocused then begin
     PageControlDetails.ActivePage := tabStart;

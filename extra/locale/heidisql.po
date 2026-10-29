@@ -5822,16 +5822,24 @@ msgid "More"
 msgstr "More"
 
 #. Session manager > Start tab
-msgid "Import settings from Windows registry"
-msgstr "Import settings from Windows registry"
+msgid "Import settings and files from previous version"
+msgstr "Import settings and files from previous version"
 
 #. Session manager > Start tab
-msgid "Previous versions of HeidiSQL stored your settings and sessions in the Windows registry. Click on the button above to import them, so they will appear in this application. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which imports the same from that file."
-msgstr "Previous versions of HeidiSQL stored your settings and sessions in the Windows registry. Click on the button above to import them, so they will appear in this application. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which imports the same from that file."
+msgid "Previous versions of HeidiSQL stored your settings and sessions in the Windows registry, and additional files (logs, backups etc.) in your user profile directory. Click on the button above to import both, so they will appear in this application. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which imports the same from that file."
+msgstr "Previous versions of HeidiSQL stored your settings and sessions in the Windows registry, and additional files (logs, backups etc.) in your user profile directory. Click on the button above to import both, so they will appear in this application. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which imports the same from that file."
+
+#. Session manager > V12 import status
+msgid "Importing session: %s"
+msgstr "Importing session: %s"
+
+#. Session manager > V12 import status
+msgid "Importing file: %s"
+msgstr "Importing file: %s"
 
 #. Session manager > Start tab
-msgid "Imported settings and sessions from the Windows registry."
-msgstr "Imported settings and sessions from the Windows registry."
+msgid "Imported settings, sessions and files from a previous version."
+msgstr "Imported settings, sessions and files from a previous version."
 
 
 #. MessageDialog()

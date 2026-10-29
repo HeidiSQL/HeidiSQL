@@ -1314,6 +1314,8 @@ type
     //FHelpData: TSimpleKeyValuePairs;
     FMainWinMaximized: Boolean;
     FCurrentPixelsPerInch: Integer;
+    FRestoreTabsDone: Boolean;
+    FCommandLineFileNames: TStringList;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -2236,7 +2238,7 @@ end;
 }
 procedure TMainForm.AfterFormCreate;
 var
-  LastSessions, FileNames: TStringlist;
+  LastSessions: TStringlist;
   Connection: TDBConnection;
   LoadedParams, ConnectionParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
@@ -2312,8 +2314,8 @@ begin
   end;
 
   ConnectionParams := nil;
-  FileNames := nil;
-  ParseCommandLine(ConnectionParams, FileNames);
+  FCommandLineFileNames := nil;
+  ParseCommandLine(ConnectionParams, FCommandLineFileNames);
 
   if ConnectionParams <> nil then begin
     // Minimal parameter for command line mode is hostname
@@ -2345,14 +2347,6 @@ begin
       end;
     end;
   end;
-
-  // Restore backup'ed query tabs
-  if AppSettings.RestoreTabsInitValue then begin
-    TimerStoreTabs.Enabled := RestoreTabs;
-  end;
-
-  // Load SQL file(s) by command line
-  OpenQueryFiles(FileNames, nil, False);
 
   MainFormAfterCreateDone := True;
 end;
@@ -2852,6 +2846,21 @@ begin
       Visible := False;
       Exit;
     end;
+  end;
+
+  // Restore backup'ed query tabs. Moved here from MainFormAfterCreate, after
+  // the initial session manager was closed, so the V12 import there gets a
+  // chance to import the previous tabs.ini before RestoreTabs creates a fresh one.
+  if AppSettings.RestoreTabsInitValue and (not FRestoreTabsDone) then begin
+    FRestoreTabsDone := True;
+    TimerStoreTabs.Enabled := RestoreTabs;
+  end;
+
+  // Load SQL file(s) by command line. Moved here from MainFormAfterCreate,
+  // so they get opened after the restored query tabs, as before.
+  if FCommandLineFileNames <> nil then begin
+    OpenQueryFiles(FCommandLineFileNames, nil, False);
+    FreeAndNil(FCommandLineFileNames);
   end;
 
   // Restore width of columns of all VirtualTrees

@@ -264,6 +264,7 @@ type
     DefaultString, CurrentString: String;
     Synced: Boolean;
   end;
+  TImportStatusProc = procedure(Status: String) of object;
   TAppSettings = class(TObject)
     private
       FReads, FWrites: Integer;
@@ -274,14 +275,18 @@ type
       FRestoreTabsInitValue: Boolean;
       FSettings: Array[TAppSettingIndex] of TAppSetting;
       FDirnameUserAppData: String;
+      FOnImportStatus: TImportStatusProc;
       const FPortableLockFileBase: String='portable.lock';
       procedure InitSetting(Index: TAppSettingIndex; Name: String;
         DefaultInt: Integer=0; DefaultBool: Boolean=False; DefaultString: String='';
         Session: Boolean=False);
       procedure SetSessionPath(Value: String);
       procedure PrepareRegistry;
+      procedure NotifyImportStatus(Status: String);
       {$IFDEF WINDOWS}
       procedure CopyWinRegistryKey(Reg: TRegistry; RegPath, TargetPath: String);
+      function WinUserAppDataDir: String;
+      procedure CopyWinUserAppDataFiles(SourceDir, TargetDir, RelativePath: String);
       {$ENDIF}
       procedure Read(Index: TAppSettingIndex; FormatName: String;
         DataType: TAppSettingDataType; out I: Integer; out B: Boolean; out S: String;
@@ -325,6 +330,11 @@ type
       // Settings stored in the Windows registry by previous versions
       function WinRegistryExists: Boolean;
       function ImportWinRegistrySettings: Boolean;
+      // Files stored by previous versions in the Windows user profile directory
+      function WinUserAppDataExists: Boolean;
+      function ImportWinUserAppDataFiles: Boolean;
+      // Called during imports, with the name of the session or file currently imported
+      property OnImportStatus: TImportStatusProc read FOnImportStatus write FOnImportStatus;
       procedure ImportSettings(Filename: String);
       function ExportSettings(Filename: String): Boolean;
       // Common directories
@@ -4571,6 +4581,9 @@ begin
       // e.g. in a session name "A/B". Replace it by a dash first.
       // Same replacement as in session renaming, see issue #682.
       SubKey := StringReplace(SubKeys[i], PathDelimiter, '-', [rfReplaceAll]);
+      // Report every imported session and folder name to the status callback
+      if Copy(TargetPath, 1, Length(PathDelimiter+'Sessions'+PathDelimiter)) = PathDelimiter+'Sessions'+PathDelimiter then
+        NotifyImportStatus(f_('Importing session: %s', [SubKeys[i]]));
       CopyWinRegistryKey(Reg, RegPath+'\'+SubKeys[i], TargetPath+SubKey+PathDelimiter);
     end;
   finally
@@ -4606,6 +4619,112 @@ end;
 {$ELSE}
 begin
   // No Windows registry on this platform
+  Result := False;
+end;
+{$ENDIF}
+
+procedure TAppSettings.NotifyImportStatus(Status: String);
+begin
+  if Assigned(FOnImportStatus) then
+    FOnImportStatus(Status);
+end;
+
+{$IFDEF WINDOWS}
+function TAppSettings.WinUserAppDataDir: String;
+begin
+  // Directory in which a previous version stored its files (logs, backups,
+  // highlighters etc.), e.g. C:\Users\xyz\AppData\Roaming\HeidiSQL\
+  Result := IncludeTrailingPathDelimiter(SysUtils.GetEnvironmentVariable('APPDATA')) + APPNAME + PathDelim;
+end;
+{$ENDIF}
+
+function TAppSettings.WinUserAppDataExists: Boolean;
+{$IFDEF WINDOWS}
+begin
+  // Detect files stored by a previous version in the user profile directory
+  Result := DirectoryExists(WinUserAppDataDir);
+end;
+{$ELSE}
+begin
+  // No Windows user profile directory on this platform
+  Result := False;
+end;
+{$ENDIF}
+
+{$IFDEF WINDOWS}
+procedure TAppSettings.CopyWinUserAppDataFiles(SourceDir, TargetDir, RelativePath: String);
+var
+  Rec: TSearchRec;
+begin
+  // Recursively copy files from a previous version's user directory into this
+  // version's user directory. Existing files are left alone. SourceDir and
+  // TargetDir are expected to have a trailing path delimiter, RelativePath not.
+  if SysUtils.FindFirst(SourceDir+'*', faAnyFile, Rec) = 0 then begin
+    repeat
+      if (Rec.Name = '.') or (Rec.Name = '..') then
+        Continue;
+      if (Rec.Attr and faDirectory) <> 0 then
+        CopyWinUserAppDataFiles(SourceDir+Rec.Name+PathDelim, TargetDir+Rec.Name+PathDelim, RelativePath+Rec.Name+PathDelim)
+      else begin
+        if FileExists(TargetDir+Rec.Name) then
+          Continue; // Don't touch file if already there
+        SysUtils.ForceDirectories(TargetDir);
+        NotifyImportStatus(f_('Importing file: %s', [RelativePath+Rec.Name]));
+        FileUtil.CopyFile(SourceDir+Rec.Name, TargetDir+Rec.Name, True);
+      end;
+    until SysUtils.FindNext(Rec) <> 0;
+    SysUtils.FindClose(Rec);
+  end;
+end;
+{$ENDIF}
+
+function TAppSettings.ImportWinUserAppDataFiles: Boolean;
+{$IFDEF WINDOWS}
+var
+  SourceDir, TabsIniFilename, Value: String;
+  TabsIni: TIniFile;
+  Sections, Keys: TStringList;
+  i, j: Integer;
+begin
+  // Import all files stored by a previous version in the user profile
+  // directory into this version's user directory. Existing files are left alone.
+  Result := False;
+  SourceDir := WinUserAppDataDir;
+  if not DirectoryExists(SourceDir) then
+    Exit;
+  if SameText(SourceDir, DirnameUserAppData) then
+    Exit; // Source and target are identical, nothing to do
+  CopyWinUserAppDataFiles(SourceDir, DirnameUserAppData, '');
+  // Fix absolute path references in the imported tabs.ini which point into
+  // the previous version's user directory, e.g. query tab backup files
+  TabsIniFilename := DirnameUserAppData + 'tabs.ini';
+  if FileExists(TabsIniFilename) then begin
+    TabsIni := TIniFile.Create(TabsIniFilename);
+    Sections := TStringList.Create;
+    Keys := TStringList.Create;
+    try
+      TabsIni.ReadSections(Sections);
+      for i:=0 to Sections.Count-1 do begin
+        TabsIni.ReadSection(Sections[i], Keys);
+        for j:=0 to Keys.Count-1 do begin
+          Value := TabsIni.ReadString(Sections[i], Keys[j], '');
+          if Pos(SourceDir, Value) > 0 then
+            TabsIni.WriteString(Sections[i], Keys[j],
+              StringReplace(Value, SourceDir, DirnameUserAppData, [rfReplaceAll]));
+        end;
+        Keys.Clear;
+      end;
+    finally
+      Keys.Free;
+      Sections.Free;
+      TabsIni.Free;
+    end;
+  end;
+  Result := True;
+end;
+{$ELSE}
+begin
+  // No Windows user profile directory on this platform
   Result := False;
 end;
 {$ENDIF}

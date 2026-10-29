@@ -88,7 +88,7 @@ object connform: Tconnform
         Visible = False
         WordWrap = True
       end
-      object btnImportSessions: TSpeedButton
+      object btnImportV12: TSpeedButton
         AnchorSideLeft.Control = tabStart
         AnchorSideTop.Control = lblHelpPortable
         AnchorSideTop.Side = asrBottom
@@ -98,15 +98,15 @@ object connform: Tconnform
         Width = 141
         AutoSize = True
         BorderSpacing.Around = 5
-        Caption = 'Import settings from Windows registry'
+        Caption = 'Import settings and files from previous version'
         Images = MainForm.ImageListMain
         ImageIndex = 101
         Visible = False
-        OnClick = btnImportSessionsClick
+        OnClick = btnImportV12Click
       end
-      object lblImportSessions: TLabel
+      object lblImportV12: TLabel
         AnchorSideLeft.Control = tabStart
-        AnchorSideTop.Control = btnImportSessions
+        AnchorSideTop.Control = btnImportV12
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabStart
         AnchorSideRight.Side = asrBottom
@@ -116,7 +116,23 @@ object connform: Tconnform
         Width = 503
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
-        Caption = 'Previous versions of HeidiSQL stored your settings and sessions in the Windows registry. Click on the button above to import them, so they will appear in this application. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which imports the same from that file.'
+        Caption = 'Previous versions of HeidiSQL stored your settings and sessions in the Windows registry, and additional files (logs, backups etc.) in your user profile directory. Click on the button above to import both, so they will appear in this application. This import is only needed once. If you have an exported settings file (.txt), use the top button instead, which imports the same from that file.'
+        Visible = False
+        WordWrap = True
+      end
+      object lblImportStatus: TLabel
+        AnchorSideLeft.Control = tabStart
+        AnchorSideTop.Control = lblImportV12
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabStart
+        AnchorSideRight.Side = asrBottom
+        Left = 5
+        Height = 15
+        Top = 176
+        Width = 503
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 5
+        Caption = 'lblImportStatus'
         Visible = False
         WordWrap = True
       end
