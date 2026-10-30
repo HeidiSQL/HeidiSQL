@@ -4397,9 +4397,11 @@ begin
   for i:=High(FTreeClickHistory) downto Low(FTreeClickHistory) do begin
     if FTreeClickHistory[i] <> nil then begin
       DBObj := DBtree.GetNodeData(FTreeClickHistory[i]);
-      if (DBObj = nil) or (DBObj.Connection = nil) or (not DBObj.Connection.Active) then // Session disconnected
+      // Node data can be nil when the node was freed without triggering OnFreeNode,
+      // which VirtualTrees does not do for uninitialized nodes. See issue #2651
+      if (not Assigned(DBObj^)) or (DBObj^.Connection = nil) or (not DBObj^.Connection.Active) then // Session disconnected
         Break;
-      if DBObj.Connection.Parameters.SessionPath = SessionPath then begin
+      if DBObj^.Connection.Parameters.SessionPath = SessionPath then begin
         Node := FTreeClickHistory[i];
         break;
       end;
@@ -4410,7 +4412,8 @@ begin
     SessionNode := DBtree.GetFirstChild(nil);
     while Assigned(SessionNode) do begin
       DBObj := DBtree.GetNodeData(SessionNode);
-      if DBObj.Connection.Parameters.SessionPath = SessionPath then begin
+      if Assigned(DBObj^) and Assigned(DBObj^.Connection)
+        and (DBObj^.Connection.Parameters.SessionPath = SessionPath) then begin
         Node := SessionNode;
       end;
       SessionNode := DBtree.GetNextSibling(SessionNode);
@@ -10579,6 +10582,11 @@ begin
             DBNode := DBtree.GetNextSibling(DBNode);
           end;
         end;
+        // ResetNode clears vsInitialized, and VirtualTrees does not call OnFreeNode
+        // for uninitialized nodes when they get freed. That would leave dangling node
+        // pointers in FTreeClickHistory. Keep the node initialized, also when collapsed.
+        // See issue #2651
+        DBtree.ValidateNode(SessNode, False);
       end;
     end else begin
       DBNode := FindDbNode(DBtree, FocusNewObject.Connection, FocusNewObject.Database);
