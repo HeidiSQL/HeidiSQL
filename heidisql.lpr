@@ -19,7 +19,7 @@ uses
 
 var
   AppLanguage: String;
-  WasDarkMode, IsDarkMode: Boolean;
+  WasDarkMode, IsDarkMode, FirstRun: Boolean;
 begin
   PostponedLogItems := TDBLogItems.Create(True);
   Application.{%H-}MainFormOnTaskBar := True; // hide warning: Symbol "MainFormOnTaskBar" is not portable
@@ -81,12 +81,17 @@ begin
   if PreferredAppMode = pamForceDark then
     uMetaDarkStyle.ApplyMetaDarkStyle(DefaultDark);
   {$ENDIF}
-  // Switch synedit and grid colors to dark mode and vice versa
+  // Switch synedit and grid colors to dark mode and vice versa.
+  // On a fresh installation, no setting was stored yet, so apply the scheme
+  // matching the current theme once instead of keeping SynEdit's defaults.
+  // Note: a false asCurrentThemeIsDark is never stored, as WriteBool skips
+  // default values, so the flag alone cannot detect the first run.
+  FirstRun := AppSettings.IsEmptyKey;
   WasDarkMode := AppSettings.ReadBool(asCurrentThemeIsDark);
   IsDarkMode := ThemeIsDark;
-  if (not WasDarkMode) and IsDarkMode then
+  if IsDarkMode and (FirstRun or (not WasDarkMode)) then
     AppColorSchemes.ApplyDark
-  else if WasDarkMode and (not IsDarkMode) then
+  else if (not IsDarkMode) and (FirstRun or WasDarkMode) then
     AppColorSchemes.ApplyLight;
   AppSettings.WriteBool(asCurrentThemeIsDark, IsDarkMode);
 
