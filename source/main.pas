@@ -1209,6 +1209,7 @@ type
       var PaintInfo: THeaderPaintInfo; var Elements: THeaderPaintElements);
     procedure AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
       var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
+    function ShortenHeaderCaption(Tree: TVirtualStringTree; Col: TVirtualTreeColumn): String;
     //procedure SynMemoQueryScanForFoldRanges(Sender: TObject;
     //  FoldRanges: TSynFoldRanges; LinesToScan: TStrings; FromLine,
     //  ToLine: Integer);
@@ -3441,14 +3442,20 @@ begin
         col.ImageIndex := ICONINDEX_UNIQUEKEY
       else if NewTab.Results.ColIsKeyPart(i) then
         col.ImageIndex := ICONINDEX_INDEXKEY;
-      HeaderLineBreaks := Max(HeaderLineBreaks, col.text.CountChar(#10));
     end;
     NewTab.Grid.Header.Columns.EndUpdate;
-    NewTab.Grid.Header.Height := GetTextHeight(NewTab.Grid.Font) * (HeaderLineBreaks+1) + HeaderPadding;
     NewTab.Grid.RootNodeCount := NewTab.Results.RecordCount;
     NewTab.Grid.EndUpdate;
     for i:=0 to NewTab.Grid.Header.Columns.Count-1 do
       AutoCalcColWidth(NewTab.Grid, i);
+    // Header height depends on the line breaks in the caption which is actually
+    // visible, i.e. after shortening to the calculated column width. See issue #1566
+    for i:=0 to NewTab.Grid.Header.Columns.Count-1 do begin
+      col := NewTab.Grid.Header.Columns[i];
+      if coVisible in col.Options then
+        HeaderLineBreaks := Max(HeaderLineBreaks, ShortenHeaderCaption(NewTab.Grid, col).CountChar(#10));
+    end;
+    NewTab.Grid.Header.Height := GetTextHeight(NewTab.Grid.Font) * (HeaderLineBreaks+1) + HeaderPadding;
     if Tab.ResultTabs.Count = 1 then begin
       Tab.tabsetQuery.TabIndex := 0;
       Tab.tabsetQuery.OnChange(Tab.tabsetQuery);
@@ -6165,6 +6172,33 @@ begin
       PaintInfo.TargetCanvas.TextRect(SortArea, SortArea.Left+9, SortArea.Top+NumCharTop, SortText, TS);
     end;
   end;
+end;
+
+
+function TMainForm.ShortenHeaderCaption(Tree: TVirtualStringTree; Col: TVirtualTreeColumn): String;
+// Returns the column caption which is actually visible in the header, i.e. shortened
+// to the available column width the same way as AnyGridAdvancedHeaderDraw does at
+// paint time. Callers can base calculations on it, e.g. the header height, so the
+// invisible tail of a too long caption does not affect it. See issue #1566.
+var
+  TextSpace: Integer;
+begin
+  Result := Col.Text;
+  if coWrapCaption in Col.Options then
+    Exit;
+  Tree.Canvas.Font := Tree.Font;
+  TextSpace := Col.Width - Col.Margin*2;
+  if AppSettings.ReadBool(asShowRowId) and (Col.Index > 0) then
+    Dec(TextSpace, Tree.Canvas.TextWidth(Col.Index.ToString) + 5);
+  if Assigned(Tree.Header.Images) then begin
+    if Col.ImageIndex > -1 then
+      Dec(TextSpace, Tree.Header.Images.Width);
+    if (Tree = DataGrid) and Assigned(FDataGridSortItems.FindByColumn(Col.Text)) or
+      (Tree <> DataGrid) and (Tree.Header.SortColumn = Col.Index) then
+      Dec(TextSpace, Tree.Header.Images.Width);
+  end;
+  if Tree.Canvas.TextWidth(Result) > TextSpace then
+    Result := laz.VirtualTrees.ShortenString(Tree.Canvas.Handle, Result, TextSpace);
 end;
 
 
