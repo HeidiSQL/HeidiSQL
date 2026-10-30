@@ -933,7 +933,6 @@ type
       FCurrentResults: TSQLQuery;
       FResultList: TSqlSrvResults;
       procedure SetRecNo(Value: Int64); override;
-      function IsResultAlive: Boolean; override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -945,6 +944,7 @@ type
       function ColIsKeyPart(Column: Integer): Boolean; override;
       function IsNull(Column: Integer): Boolean; overload; override;
       function HasResult: Boolean; override;
+      function IsResultAlive: Boolean; override;
       function DatabaseName: String; override;
       function TableName(Column: Integer): String; overload; override;
   end;
@@ -998,7 +998,6 @@ type
       FCurrentResults: TSQLQuery;
       FResultList: TInterbaseRawResults;
       procedure SetRecNo(Value: Int64); override;
-      function IsResultAlive: Boolean; override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -1010,6 +1009,7 @@ type
       function ColIsKeyPart(Column: Integer): Boolean; override;
       function IsNull(Column: Integer): Boolean; overload; override;
       function HasResult: Boolean; override;
+      function IsResultAlive: Boolean; override;
       function DatabaseName: String; override;
       function TableName(Column: Integer): String; overload; override;
   end;
