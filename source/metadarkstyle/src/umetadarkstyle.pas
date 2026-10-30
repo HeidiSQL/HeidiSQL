@@ -3,6 +3,7 @@
 }
 
 unit uMetaDarkStyle;
+{$mode objfpc}{$H+}
 
 interface
 

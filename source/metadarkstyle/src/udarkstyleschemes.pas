@@ -3,6 +3,7 @@
 }
 
 unit uDarkStyleSchemes;
+{$mode objfpc}{$H+}
 
 interface
 
@@ -169,6 +170,7 @@ begin
   DefaultDark.DrawControl.TreeViewDisableHideSelection:= False;
   DefaultDark.DrawControl.TreeViewExpandSignOverride:=   False;
   DefaultDark.DrawControl.TreeViewExpandSignValue:=      tvestTheme;
+  DefaultDark.DrawControl.BorderStyleOverride:=          True;
   DefaultDark.DrawControl.CustomDrawPushButtons:=        False;
   DefaultDark.DrawControl.CustomDrawComboBoxs:=          False;
   DefaultDark.DrawControl.CustomDrawTreeViews:=          False;
@@ -208,6 +210,7 @@ begin
   DefaultWhite.DrawControl.TreeViewDisableHideSelection:=False;
   DefaultWhite.DrawControl.TreeViewExpandSignOverride:=  False;
   DefaultWhite.DrawControl.TreeViewExpandSignValue:=     tvestTheme;
+  DefaultWhite.DrawControl.BorderStyleOverride:=         False;
   DefaultWhite.DrawControl.CustomDrawPushButtons:=       True;
   DefaultWhite.DrawControl.CustomDrawComboBoxs:=         True;
   DefaultWhite.DrawControl.CustomDrawTreeViews:=         True;

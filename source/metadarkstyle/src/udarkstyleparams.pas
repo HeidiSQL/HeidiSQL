@@ -3,6 +3,7 @@
 }
 
 unit uDarkStyleParams;
+{$mode objfpc}{$H+}
 
 interface
 
@@ -15,6 +16,7 @@ type
     TreeViewDisableHideSelection:Boolean;
     TreeViewExpandSignOverride:Boolean;
     TreeViewExpandSignValue: TTreeViewExpandSignType;
+    BorderStyleOverride:Boolean;
     CustomDrawScrollbars:Boolean;
     CustomDrawPushButtons:Boolean;
     CustomDrawComboBoxs:Boolean;

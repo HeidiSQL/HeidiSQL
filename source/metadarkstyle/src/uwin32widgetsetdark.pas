@@ -220,8 +220,9 @@ end;
 procedure TryEnforceDarkStyleForCtrl(AWinControl:TWinControl);
 begin
   if (AWinControl <> nil) then begin
-     if (AWinControl Is TCustomMemo) then
-        (AWinControl As TCustomMemo).BorderStyle := bsNone;
+     if DrawControl.BorderStyleOverride then
+       if (AWinControl Is TCustomMemo) then
+          (AWinControl As TCustomMemo).BorderStyle := bsNone;
      AWinControl.Color := clWindow;
      EnableDarkStyle(AWinControl.Handle);
   end;
@@ -666,7 +667,8 @@ begin
       end;
     end;
     P.ExStyle:= p.ExStyle and not WS_EX_CLIENTEDGE;
-    TWinControlDark(AWinControl).BorderStyle:= bsNone;
+    if DrawControl.BorderStyleOverride then
+      TWinControlDark(AWinControl).BorderStyle:= bsNone;
   end;
 
   Result:= inherited CreateHandle(AWinControl, P);
@@ -683,6 +685,8 @@ function FormWndProc2(Window: HWnd; Msg: UInt; WParam: Windows.WParam;
 var
   DC: HDC;
   R: TRect;
+  Info: PWin32WindowInfo;
+  Form: TCustomForm;
 begin
   case Msg of
     WM_NCACTIVATE,
@@ -700,6 +704,24 @@ begin
       AllowDarkModeForWindow(Window, True);
       RefreshTitleBarThemeColor(Window);
       Result:= CallWindowProc(CustomFormWndProc, Window, Msg, wParam, lParam);
+    end;
+    WM_THEMECHANGED:
+    begin
+      Result:= CallWindowProc(CustomFormWndProc, Window, Msg, wParam, lParam);
+      AllowDarkModeForWindow(Window, True);
+      RefreshTitleBarThemeColor(Window);
+      Info:= GetWin32WindowInfo(Window);
+      if Assigned(Info) and Assigned(Info^.WinControl) and (Info^.WinControl is TCustomForm) then
+      begin
+        Form:= TCustomForm(Info^.WinControl);
+        if Assigned(Form.Menu) then
+        begin
+          Form.Menu.OwnerDraw:= True;
+          SetMenuBackground(GetMenu(Window));
+          Form.Menu.OwnerDraw:= False;
+        end;
+      end;
+      InvalidateRect(Window, nil, True);
     end
     else begin
       Result:= CallWindowProc(CustomFormWndProc, Window, Msg, wParam, lParam);
@@ -759,7 +781,8 @@ begin
   P:= AParams;
   if not (csDesigning in AWinControl.ComponentState) then begin
     P.ExStyle:= P.ExStyle and not WS_EX_CLIENTEDGE;
-    TCustomListBox(AWinControl).BorderStyle:= bsNone;
+    if DrawControl.BorderStyleOverride then
+      TCustomListBox(AWinControl).BorderStyle:= bsNone;
   end;
 
   Result:= inherited CreateHandle(AWinControl, P);
@@ -806,7 +829,8 @@ var
 begin
   P:= AParams;
   P.ExStyle:= P.ExStyle and not WS_EX_CLIENTEDGE;
-  TCustomListView(AWinControl).BorderStyle:= bsNone;
+  if DrawControl.BorderStyleOverride then
+    TCustomListView(AWinControl).BorderStyle:= bsNone;
   Result:= inherited CreateHandle(AWinControl, P);
   SetWindowSubclass(Result, @ListViewWindowProc, ID_SUB_LISTVIEW, 0);
   if not (csDesigning in AWinControl.ComponentState) then begin
@@ -824,7 +848,8 @@ begin
   P:= AParams;
 
   if not (csDesigning in AWinControl.ComponentState) then begin
-    TCustomEdit(AWinControl).BorderStyle:= bsNone;
+    if DrawControl.BorderStyleOverride then
+      TCustomEdit(AWinControl).BorderStyle:= bsNone;
     P.ExStyle:= P.ExStyle and not WS_EX_CLIENTEDGE;
     AWinControl.Color:= SysColor[COLOR_WINDOW];
     AWinControl.Font.Color:= SysColor[COLOR_WINDOWTEXT];
@@ -906,6 +931,7 @@ var
   Detail:TThemedElementDetails;
   Rect:trect;
   gripSize: TSize;
+  TextCenter:integer;
 begin
   Info:= GetWin32WindowInfo(Window);
   if (Info = nil) or (Info^.WinControl = nil) then
@@ -914,24 +940,28 @@ begin
     Exit;
   end;
 
-  if Msg = WM_ERASEBKGND then
+  {if Msg = WM_ERASEBKGND then
   begin
     StatusBar:= TStatusBar(Info^.WinControl);
     TWin32WSStatusBar.DoUpdate(StatusBar);
-  end;
+  end;}
 
-  if ((Msg = WM_PAINT) Or (Msg = WM_ERASEBKGND) ) then
+  if ((Msg = WM_PAINT) Or (Msg = WM_ERASEBKGND)) then
   begin
     StatusBar:= TStatusBar(Info^.WinControl);
-
     TWin32WSStatusBar.DoUpdate(StatusBar);
+
+    {if Msg<>WM_ERASEBKGND then
+      TWin32WSStatusBar.DoUpdate(StatusBar);
+    Result:= WindowProc(Window, Msg, WParam, LParam);
+    exit;}
 
     DC:= BeginPaint(Window, @ps);
 
     LCanvas:= TCanvas.Create;
     try
       LCanvas.Handle:= DC;
-      LCanvas.Brush.Color:= SysColor[COLOR_MENUHILIGHT];
+      LCanvas.Brush.Color:= SysColor[COLOR_BTNHIGHLIGHT];
       LCanvas.FillRect(ps.rcPaint);
 
       X:= 1;
@@ -939,14 +969,25 @@ begin
       LCanvas.Font := Info^.WinControl.Font;
       LCanvas.Font.Color:= SysColor[COLOR_BTNTEXT];
       LCanvas.Pen.Color:= SysColor[COLOR_GRAYTEXT];
+      TextCenter:= (StatusBar.Height - LCanvas.TextHeight('Ag')) div 2;
       if StatusBar.SimplePanel then
-         LCanvas.TextOut(X+3, (StatusBar.Height - LCanvas.TextHeight('Ag')) div 2, StatusBar.SimpleText)
+         LCanvas.TextOut(X+3, TextCenter, StatusBar.SimpleText)
       else
       for Index:= 0 to StatusBar.Panels.Count - 1 do
       begin
         APanel:= StatusBar.Panels[Index];
+        Rect:=StatusBar.ClientRect;
         if APanel.Width>0 then begin
-          LCanvas.TextOut(X+1, (StatusBar.Height - LCanvas.TextHeight('Ag')) div 2, APanel.Text);
+          case APanel.Style of
+            psText:
+              LCanvas.TextOut(X+1, TextCenter, APanel.Text);
+            psOwnerDraw:begin
+              Rect.Left:=X;
+              Rect.Right:=x+APanel.Width;
+              if Assigned(StatusBar.OnDrawPanel) then
+                StatusBar.OnDrawPanel(StatusBar, APanel, Rect);
+            end;
+          end;
           if Index<>(StatusBar.Panels.Count - 1)then begin
             X+= APanel.Width;
             LCanvas.Line(x-2, ps.rcPaint.Top+3, x-2, ps.rcPaint.Bottom-3);
@@ -1455,15 +1496,18 @@ function _CreateWindowExW(dwExStyle: DWORD; lpClassName: LPCWSTR; lpWindowName: 
 var
   AParams: PNCCreateParams absolute lpParam;
 begin
-  if Assigned(AParams) and (AParams^.WinControl is TCustomForm) then
+  if IsDarkModeEnabled then
   begin
-    if (hWndParent = 0) and AParams^.WinControl.ClassNameIs('TfrmMain') then
-      lpClassName:= ClassNameTC
-    else begin
-      lpClassName:= ClassNameW;
+    if Assigned(AParams) and (AParams^.WinControl is TCustomForm) then
+    begin
+      if (hWndParent = 0) and AParams^.WinControl.ClassNameIs('TfrmMain') then
+        lpClassName:= ClassNameTC
+      else begin
+        lpClassName:= ClassNameW;
+      end;
+    end else begin
+      dwExStyle:= dwExStyle or WS_EX_CONTEXTHELP;
     end;
-  end else begin
-    dwExStyle:= dwExStyle or WS_EX_CONTEXTHELP;
   end;
   Result:= __CreateWindowExW(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 end;
@@ -1623,20 +1667,23 @@ function FormWndProc(Window: HWnd; Msg: UInt; WParam: Windows.WParam;
 var
   Info: PWin32WindowInfo;
 begin
-  if Msg = WM_CREATE then
+  if IsDarkModeEnabled then
   begin
-    AllowDarkModeForWindow(Window, True);
-    RefreshTitleBarThemeColor(Window);
-  end
-  else if (Msg = WM_SETFONT) then
-  begin
-    Info := GetWin32WindowInfo(Window);
-    if Assigned(Info) then
+    if Msg = WM_CREATE then
     begin
-     Info^.DefWndProc:= @WindowProc;
+      AllowDarkModeForWindow(Window, True);
+      RefreshTitleBarThemeColor(Window);
+    end
+    else if (Msg = WM_SETFONT) then
+    begin
+      Info := GetWin32WindowInfo(Window);
+      if Assigned(Info) then
+      begin
+       Info^.DefWndProc:= @WindowProc;
+      end;
+      Result:= CallWindowProc(@WindowProc, Window, Msg, WParam, LParam);
+      Exit;
     end;
-    Result:= CallWindowProc(@WindowProc, Window, Msg, WParam, LParam);
-    Exit;
   end;
   Result:= DefWindowProcW(Window, Msg, WParam, LParam);
 end;
@@ -1807,15 +1854,35 @@ var
   LCanvas: TCanvas;
   AStyle: TTextStyle;
   BtnSym: string;
+  grpRect: TRect; bIsHot, bDarkColors: Boolean;
+  sb_bkgnd, sb_gripbg, sv_gripframe, sb_gripHot, sb_gripHotFrame, sb_ArrDisabled, sb_ArrHotBg, sb_ArrHot : TColor;
 begin
+  bDarkColors := not (SysColor[0] = 13158600);  // Determine whether SysColors 'DefaultDark' or 'DefaultWhite' are used
+  if bDarkColors then begin
+     sb_bkgnd   := SysColor[COLOR_BTNSHADOW];       sb_gripbg := RGBToColor(77, 77, 77);
+     sb_gripHot := RGBToColor(88, 88, 88);          sb_gripHotFrame := SysColor[COLOR_GRAYTEXT];
+     sb_ArrDisabled := RGBToColor(82, 82, 82);      sb_ArrHot := SysColor[COLOR_HIGHLIGHTTEXT];
+     sb_ArrHotBg := SysColor[COLOR_SCROLLBAR];
+  end else begin
+    sb_bkgnd   := SysColor[COLOR_3DLIGHT];          sb_gripbg := RGBToColor(210, 210, 210); //SysColor[COLOR_SCROLLBAR];
+    sb_gripHot := RGBToColor(188, 188, 188);        sb_gripHotFrame := SysColor[COLOR_GRAYTEXT];
+    sb_ArrDisabled := SysColor[COLOR_ACTIVEBORDER]; sb_ArrHot := SysColor[COLOR_WINDOWTEXT];
+    sb_ArrHotBg := RGBToColor(210, 210, 210);
+  end;
   LCanvas:= TCanvas.Create;
   try
+    bIsHot := False;
     LCanvas.Handle:= HDC;
 
     case iPartId of
       SBP_ARROWBTN:begin
-        LCanvas.Brush.Color:= SysColor[COLOR_BTNFACE];
-        LCanvas.FillRect(pRect);
+        LCanvas.Brush.Color:= sb_bkgnd;
+        if iStateId in [ABS_UPHOT,ABS_DOWNHOT, ABS_LEFTHOT,ABS_RIGHTHOT,
+                        ABS_UPPRESSED,ABS_DOWNPRESSED, ABS_LEFTPRESSED,ABS_RIGHTPRESSED] then
+            LCanvas.Brush.Color:= sb_ArrHotBg
+        else
+            LCanvas.Brush.Color:= sb_bkgnd;
+        LCanvas.FillRect(pRect);      // Does mainly affect the background of the arrow btn area
 
         AStyle:= LCanvas.TextStyle;
         AStyle.Alignment:= taCenter;
@@ -1847,12 +1914,12 @@ begin
 
         if iStateId in [ABS_UPDISABLED,ABS_DOWNDISABLED,
                         ABS_LEFTDISABLED,ABS_RIGHTDISABLED] then
-          LCanvas.Font.Color:= SysColor[COLOR_WINDOW]
+          LCanvas.Font.Color:= sb_ArrDisabled
         else if iStateId in [ABS_UPHOT,ABS_DOWNHOT,
                              ABS_LEFTHOT,ABS_RIGHTHOT,
                              ABS_UPPRESSED,ABS_DOWNPRESSED,
                              ABS_LEFTPRESSED,ABS_RIGHTPRESSED] then
-          LCanvas.Font.Color:= SysColor[COLOR_HIGHLIGHT]
+          LCanvas.Font.Color:= sb_ArrHot
         else begin
           LCanvas.Font.Color:= SysColor[COLOR_GRAYTEXT];//RGBToColor(192, 192, 192);
         end;
@@ -1868,13 +1935,39 @@ begin
                              ABS_LEFTPRESSED,ABS_RIGHTPRESSED] then
           LCanvas.Brush.Color:= SysColor[COLOR_HIGHLIGHT]
         else begin
-          LCanvas.Brush.Color:= SysColor[COLOR_GRAYTEXT];//RGBToColor(192, 192, 192);
+          LCanvas.Brush.Color:= SysColor[COLOR_GRAYTEXT];
         end;
-        LCanvas.Pen.Color:=LCanvas.Brush.Color;
-        LCanvas.FrameRect(pRect{, 10, 10});
+        LCanvas.Pen.Color:= LCanvas.Brush.Color;
+
+        // --- Draw the inner gripper:
+        LCanvas.Brush.Color:= sb_gripbg;
+        if iStateId in [ABS_UPHOT,ABS_DOWNHOT, ABS_LEFTHOT,ABS_RIGHTHOT,
+                       ABS_UPPRESSED,ABS_DOWNPRESSED, ABS_LEFTPRESSED,ABS_RIGHTPRESSED] then begin
+           LCanvas.Brush.Color:= sb_gripHot;
+           bIsHot := True;
+        end;
+        grpRect := pRect;
+        if (iPartId = SBP_GRIPPERHORZ) then begin
+           if ((pRect.Bottom - pRect.Top) > 17) then begin
+              Inc(grpRect.Top, 3);
+              Dec(grpRect.Bottom, 3);
+           end;
+        end else begin  // iPartId SBP_GRIPPERVERT
+           if ((pRect.Right - pRect.Left) > 19) then begin
+              Inc(grpRect.Left, 2);
+              if bDarkColors then
+                 Dec(grpRect.Right, 2);
+           end;
+        end;
+        LCanvas.FillRect(grpRect);
+
+        if bIsHot then begin
+           LCanvas.Brush.Color:= sb_gripHotFrame;
+           LCanvas.FrameRect(grpRect);
+        end;
       end;
       else begin
-        LCanvas.Brush.Color:= SysColor[COLOR_BTNFACE];
+        LCanvas.Brush.Color:= sb_bkgnd;
         LCanvas.Pen.Color:=LCanvas.Brush.Color;
         LCanvas.FillRect(pRect);
       end;
@@ -2135,6 +2228,12 @@ begin
   if (hwnd <> 0) then
   begin
     P:= GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+
+    // comctl32 creates some children itself (a list view's header, its tooltips),
+    // bypassing the CreateWindowExW hook that marks windows; they follow their parent.
+    if (P and WS_EX_CONTEXTHELP = 0) and (GetParent(hwnd) <> 0) and
+       (GetWindowLongPtr(GetParent(hwnd), GWL_EXSTYLE) and WS_EX_CONTEXTHELP <> 0) then
+      P:= P or WS_EX_CONTEXTHELP;
 
     if (P and WS_EX_CONTEXTHELP = 0) or (lstrcmpiW(pszClassList, VSCLASS_MONTHCAL) = 0) then
     begin
@@ -2510,7 +2609,18 @@ begin
     begin
       ReplaceImportFunction(pFunction, @_DrawEdge);
     end;
+    // comctl32 reads system colours itself (a list view's gridlines), so it takes
+    // the dark ones the executable's imports already take.
+    pFunction:= FindImportFunction(pLibrary, GetProcAddress(hModule, 'GetSysColor'));
+    if Assigned(pFunction) then
+      ReplaceImportFunction(pFunction, @GetSysColorDark);
   end;
+
+  // Notify the LCL app window that system colors changed, so cached
+  // TBrush GDI handles get invalidated and re-resolved against the
+  // current (now hooked) GetSysColorBrush on next paint.
+  if Application.Handle <> 0 then
+    PostMessage(HWND(Application.Handle), WM_SYSCOLORCHANGE, 0, 0);
 end;
 
 initialization
