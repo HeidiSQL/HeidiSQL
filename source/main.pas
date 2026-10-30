@@ -6096,6 +6096,8 @@ begin
   //PaintInfo.TargetCanvas.Brush.Style := bsClear;
   TS := PaintInfo.TargetCanvas.TextStyle;
   TS.Opaque := False;
+  // Enable line breaks in column captions, see issue #1566
+  TS.SingleLine := False;
 
   // Draw column name. Code taken from TVirtualTreeColumns.DrawButtonText and modified for our needs
   if hpeText in Elements then begin
