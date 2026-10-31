@@ -1,6 +1,6 @@
 unit crashdialog;
 
-{$mode ObjFPC}
+{$mode ObjFPC}{$H+}
 
 interface
 
