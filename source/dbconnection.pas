@@ -8202,7 +8202,7 @@ begin
       DataLenClause := 'NULL';
     // See https://www.heidisql.com/forum.php?t=34635
     if Parameters.FullTableStatus and (ServerVersionInt >= 80100) then
-      IndexLenClause := 'pg_relation_size(format(''%I.%I'', n.nspname, c.relname))::bigint'
+      IndexLenClause := 'pg_indexes_size(format(''%I.%I'', n.nspname, c.relname))::bigint'
     else
       IndexLenClause := 'relpages::bigint * '+SIZE_KB.ToString;
     if ServerVersionInt >= 110000 then
