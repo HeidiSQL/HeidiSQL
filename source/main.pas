@@ -8069,6 +8069,7 @@ begin
   //QueryTabs.ActiveMemo.UndoList.AddGroupBreak;
   src := Source as TControl;
   Text := '';
+  // Adds database.[table.] prefix
   ShiftPressed := ssShift in GetKeyShiftState;
   Tree := QueryTabs.ActiveHelpersTree;
   // Check for allowed controls as source has already
@@ -8077,14 +8078,15 @@ begin
     // Insert table or database name. If a table is dropped and Shift is pressed, prepend the db name.
     case ActiveDbObj.NodeType of
       lntDb: Text := ActiveDbObj.QuotedDatabase(False);
-      lntTable..lntEvent, lntColumn: begin
-        Text := '';
-        if ShiftPressed then begin
-          Text := Text + ActiveDbObj.QuotedDatabase(False) + '.';
-          if ActiveDbObj.NodeType = lntColumn then
-            Text := Text + ActiveDbObj.QuotedName(False) + '.';
-        end;
-        Text := Text + ActiveDbObj.Connection.QuoteIdent(DBtree.Text[DBtree.FocusedNode, DBtree.FocusedColumn], False);
+      lntTable..lntEvent: begin
+        if ShiftPressed then
+          Text := ActiveDbObj.QuotedDatabase(False) + '.';
+        Text := Text + ActiveDbObj.QuotedName(False);
+      end;
+      lntColumn: begin
+        if ShiftPressed then
+          Text := ActiveDbObj.QuotedDatabase(False) + '.' + ActiveDbObj.QuotedName(False) + '.';
+        Text := Text + ActiveDbObj.QuotedColumn(False);
       end;
     end;
   end else if src = Tree then begin
@@ -10056,6 +10058,7 @@ begin
         Item.NodeType := lntColumn;
         Columns := ParentObj.TableColumns;
         Item.Database := ParentObj.Database;
+        Item.Schema := ParentObj.Schema;
         Item.Name := ParentObj.Name;
         Item.Column := Columns[Node.Index].Name;
       end;
