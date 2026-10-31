@@ -469,7 +469,7 @@ type
   // This returns a stable, lowercase name "heidisql", used for configuration files and translations
   function GetApplicationName: String;
   procedure CopyImageList(SourceList, TargetList: TImageList; AppendDisabled: Boolean);
-  procedure LightenBitmap(Bmp: Graphics.TBitmap; Amount: Byte);
+  procedure FadeBitmap(Bmp: Graphics.TBitmap; Amount: Byte);
   procedure ApplySynEditWordWrap(Editor: TCustomSynEdit; Enable: Boolean);
 
 var
@@ -3176,7 +3176,7 @@ begin
         ResWidth := Resolutions[ResIdx];
         TempBitmap := Graphics.TBitmap.Create;
         SourceList.Resolution[ResWidth].GetBitmap(i, TempBitmap, gdeNormal);
-        LightenBitmap(TempBitmap, 140);
+        FadeBitmap(TempBitmap, 140);
         TempBitmapList[ResIdx] := TempBitmap;
       end;
       TargetList.AddMultipleResolutions(TempBitmapList);
@@ -3184,7 +3184,7 @@ begin
   end;
 end;
 
-procedure LightenBitmap(Bmp: Graphics.TBitmap; Amount: Byte);
+procedure FadeBitmap(Bmp: Graphics.TBitmap; Amount: Byte);
 var
   x, y: Integer;
   Img: TLazIntfImage;
@@ -3194,6 +3194,8 @@ begin
   // Was grayscaled before (ImageList.Draw with gdeDisabled effect). But now this is
   // also used for unseen database tree objects, this mechanism looks better.
   // https://www.heidisql.com/forum.php?t=45161
+  // Reduce opacity instead of mixing with white, so the icon blends into the background
+  // like ghosted icons in the Delphi version, and does not get brighter on dark themes.
   Img := TLazIntfImage.Create(0, 0);
   try
     Img.LoadFromBitmap(Bmp.Handle, Bmp.MaskHandle);
@@ -3203,9 +3205,7 @@ begin
       begin
         C := Img.Colors[x, y];
 
-        C.red   := C.red   + ((65535 - C.red)   * Amount) div 255;
-        C.green := C.green + ((65535 - C.green) * Amount) div 255;
-        C.blue  := C.blue  + ((65535 - C.blue)  * Amount) div 255;
+        C.alpha := C.alpha - (C.alpha * Amount) div 255;
 
         Img.Colors[x, y] := C;
       end;
