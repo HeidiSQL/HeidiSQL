@@ -71,7 +71,7 @@ object frmCrashDialog: TfrmCrashDialog
     Anchors = [akRight, akBottom]
     AutoSize = True
     BorderSpacing.Around = 5
-    Caption = 'Abort and exit application'
+    Caption = 'Exit application'
     Default = True
     ModalResult = 3
     Images = MainForm.ImageListMain
