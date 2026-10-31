@@ -11552,6 +11552,9 @@ begin
   else
     ColOptions := ColOptions - [coVisible];
   DBtree.Header.Columns[1].Options := ColOptions;
+  // Resize now, not only on the next node change. Skip when called from FormCreate, to not create the handle too early.
+  if DBtree.HandleAllocated then
+    DBtreeChange(DBtree, DBtree.FocusedNode);
   AppSettings.ResetPath;
   AppSettings.WriteBool(asDisplayObjectSizeColumn, actDisplayObjectSize.Checked);
 end;
