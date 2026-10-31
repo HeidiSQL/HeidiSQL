@@ -30,6 +30,10 @@ implementation
 
 {$R *.lfm}
 
+const
+  // Monospace font candidates; the first one installed on the target system wins
+  MONO_FONTS: array[0..3] of string = ('Consolas', 'Menlo', 'Courier New', 'Monospace');
+
 { TfrmCrashDialog }
 
 procedure TfrmCrashDialog.btnCopyClick(Sender: TObject);
@@ -40,7 +44,17 @@ begin
 end;
 
 procedure TfrmCrashDialog.FormShow(Sender: TObject);
+var
+  I: Integer;
 begin
+  // Monospace font for aligned addresses and callstack lines
+  for I := Low(MONO_FONTS) to High(MONO_FONTS) do
+    if Screen.Fonts.IndexOf(MONO_FONTS[I]) >= 0 then
+    begin
+      memoDetails.Font.Name := MONO_FONTS[I];
+      Break;
+    end;
+  memoDetails.Font.Pitch := fpFixed;
   btnCopy.SetFocus;
 end;
 
