@@ -1549,7 +1549,7 @@ begin
     {$if defined(LCLQt) or defined(LCLQt5) or defined(LCLQt6)}
   if VT is THeidiVirtualStringTree then begin
     VT.LineStyle := lsSolid;
-    VT.Colors.TreeLineColor := ColorAdjustBrightness(VT.Color, 30);
+    VT.Colors.TreeLineColor := ColorAdjustBrightness(clWindow, 30);
 
     if toUseExplorerTheme in VT.TreeOptions.PaintOptions then
       VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
@@ -1563,7 +1563,7 @@ begin
       toShowVertGridLines in VT.TreeOptions.PaintOptions);
     if (toShowHorzGridLines in VT.TreeOptions.PaintOptions) or
       (toShowVertGridLines in VT.TreeOptions.PaintOptions) then
-      VT.Colors.GridLineColor := ColorAdjustBrightness(VT.Color, 30);
+      VT.Colors.GridLineColor := ColorAdjustBrightness(clWindow, 30);
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions -
       [toShowHorzGridLines, toShowVertGridLines];
   end;
@@ -1589,7 +1589,7 @@ begin
   if IsResultGrid then begin
     // Theme-dependent grid lines: slightly darker than the cell background on
     // light themes, slightly brighter on dark themes. Refs #2470
-    VT.Colors.GridLineColor := ColorAdjustBrightness(VT.Color, 30);
+    VT.Colors.GridLineColor := ColorAdjustBrightness(clWindow, 30);
     if AppSettings.ReadBool(asIncrementalSearch) then begin
       // Apply case insensitive incremental search event
       VT.IncrementalSearch := isInitializedOnly;
