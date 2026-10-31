@@ -509,13 +509,18 @@ end;
 
 
 procedure TfrmTableEditor.btnSaveClick(Sender: TObject);
+var
+  ScrollOffset: TPoint;
 begin
   // Save changes, and make it impossible to (accidentally) click the save button twice
   btnSave.Enabled := False;
   btnSave.Repaint;
+  // Remember scroll position, to restore it after re-init. See issue #2578
+  ScrollOffset := listColumns.OffsetXY;
   if ApplyModifications = mrOK then begin
     // Initialize all edit fields with fresh result from SHOW TABLE STATUS row
-    Init(MainForm.ActiveDbObj)
+    Init(MainForm.ActiveDbObj);
+    listColumns.OffsetXY := ScrollOffset;
   end else begin
     // Re-enable save button when something went wrong
     btnSave.Enabled := True;
