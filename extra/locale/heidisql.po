@@ -7085,3 +7085,15 @@ msgstr "Windows"
 
 msgid "Windows group"
 msgstr "Windows group"
+
+#: crashdialog.pas:72
+msgid "Report sent"
+msgstr "Report sent"
+
+#: crashdialog.pas:72
+msgid "The bug report was sent to %s. Thank you!"
+msgstr "The bug report was sent to %s. Thank you!"
+
+#: crashdialog.pas:74
+msgid "Sending the report failed"
+msgstr "Sending the report failed"

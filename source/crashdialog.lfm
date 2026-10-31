@@ -27,7 +27,7 @@ object frmCrashDialog: TfrmCrashDialog
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnIgnore
     Left = 5
-    Height = 285
+    Height = 284
     Top = 40
     Width = 630
     Align = alTop
@@ -41,52 +41,80 @@ object frmCrashDialog: TfrmCrashDialog
     TabOrder = 0
     WordWrap = False
   end
-  object btnIgnore: TButton
+  object btnIgnore: TBitBtn
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 506
-    Height = 25
-    Top = 330
-    Width = 129
+    Left = 486
+    Height = 26
+    Top = 329
+    Width = 149
     Anchors = [akRight, akBottom]
     AutoSize = True
     BorderSpacing.Around = 5
     Cancel = True
     Caption = 'Ignore and proceed'
     ModalResult = 5
-    TabOrder = 2
+    Images = MainForm.ImageListMain
+    ImageIndex = 120
+    TabOrder = 3
   end
-  object btnAbort: TButton
+  object btnAbort: TBitBtn
     AnchorSideRight.Control = btnIgnore
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 339
-    Height = 25
-    Top = 330
-    Width = 162
+    Left = 299
+    Height = 26
+    Top = 329
+    Width = 182
     Anchors = [akRight, akBottom]
     AutoSize = True
     BorderSpacing.Around = 5
     Caption = 'Abort and exit application'
     Default = True
     ModalResult = 3
-    TabOrder = 3
+    Images = MainForm.ImageListMain
+    ImageIndex = 26
+    TabOrder = 4
   end
-  object btnCopy: TButton
+  object btnCopy: TBitBtn
     AnchorSideLeft.Control = Owner
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 5
-    Height = 25
-    Top = 330
-    Width = 91
+    Height = 26
+    Top = 329
+    Width = 111
     Anchors = [akLeft, akBottom]
     AutoSize = True
     BorderSpacing.Around = 5
     Caption = 'Copy details'
+    Images = MainForm.ImageListMain
+    ImageIndex = 3
     TabOrder = 1
     OnClick = btnCopyClick
+  end
+  object btnReport: TBitBtn
+    AnchorSideLeft.Control = btnCopy
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 121
+    Height = 26
+    Top = 329
+    Width = 117
+    Anchors = [akLeft, akBottom]
+    AutoSize = True
+    BorderSpacing.Around = 5
+    Caption = 'Report online'
+    Images = MainForm.ImageListMain
+    ImageIndex = 69
+    TabOrder = 2
+    OnClick = btnReportClick
+  end
+  object tmrReport: TTimer
+    Interval = 30000
+    OnTimer = tmrReportTimer
   end
 end

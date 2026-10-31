@@ -5,19 +5,23 @@ unit crashdialog;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, Buttons;
 
 type
 
   { TfrmCrashDialog }
 
   TfrmCrashDialog = class(TForm)
-    btnIgnore: TButton;
-    btnAbort: TButton;
-    btnCopy: TButton;
+    btnIgnore: TBitBtn;
+    btnAbort: TBitBtn;
+    btnCopy: TBitBtn;
+    btnReport: TBitBtn;
     lblHeader: TLabel;
     memoDetails: TMemo;
+    tmrReport: TTimer;
     procedure btnCopyClick(Sender: TObject);
+    procedure btnReportClick(Sender: TObject);
+    procedure tmrReportTimer(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
 
@@ -27,6 +31,9 @@ type
 
 
 implementation
+
+uses
+  apphelpers;
 
 {$R *.lfm}
 
@@ -41,6 +48,43 @@ begin
   memoDetails.CopyToClipboard;
   btnCopy.Caption := btnCopy.Caption + ' ' + '✓';
   // enable timer which resets the button caption?
+end;
+
+procedure TfrmCrashDialog.btnReportClick(Sender: TObject);
+var
+  HttpReq: THttpDownload;
+  Params, Response: TStringList;
+  OldCaption: string;
+begin
+  OldCaption := btnReport.Caption;
+  btnReport.Caption := OldCaption + '...';
+  btnReport.Enabled := False;
+  tmrReport.Enabled := True; // re-enable the button after 30s as flood protection
+  Application.ProcessMessages;
+  HttpReq := THttpDownload.Create(Self);
+  Params := TStringList.Create;
+  Response := TStringList.Create;
+  try
+    HttpReq.TimeOut := 30;
+    Params.AddPair('report', memoDetails.Text);
+    HttpReq.FormPost(APPDOMAIN + 'bugreport.php', Params, Response);
+    if (HttpReq.ResponseStatusCode >= 200) and (HttpReq.ResponseStatusCode < 300) then
+      MessageDialog(_('Report sent'), f_('The bug report was sent to %s. Thank you!', [APPDOMAIN]), mtInformation, [mbOK])
+    else
+      ErrorDialog(_('Sending the report failed'), f_('Got HTTP status %d from %s', [HttpReq.ResponseStatusCode, APPDOMAIN]) + LineEnding + Response.Text);
+  finally
+    Response.Free;
+    Params.Free;
+    HttpReq.Free;
+    btnReport.Caption := OldCaption;
+    Application.ProcessMessages;
+  end;
+end;
+
+procedure TfrmCrashDialog.tmrReportTimer(Sender: TObject);
+begin
+  tmrReport.Enabled := False;
+  btnReport.Enabled := True;
 end;
 
 procedure TfrmCrashDialog.FormShow(Sender: TObject);

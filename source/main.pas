@@ -15350,7 +15350,10 @@ var
 begin
   Report := '';
   if E <> nil then begin
-    Report := Report + 'Exception class: ' + E.ClassName + LineEnding + 'Message: ' + E.Message + LineEnding + LineEnding;
+    Report := Report + 'Exception class: ' + E.ClassName + LineEnding +
+      'Message: ' + E.Message + LineEnding +
+      APPNAME + ' ' + MainForm.AppVersion + LineEnding +
+      LineEnding;
   end;
   Report := Report + 'Callstack:' + LineEnding;
   Report := Report + BackTraceStrFunc(ExceptAddr);
