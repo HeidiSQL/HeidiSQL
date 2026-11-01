@@ -497,6 +497,12 @@ procedure TfrmExtFileDialog.ShellTreeViewChange(Sender: TObject; Node: TTreeNode
   );
 begin
   lblPath.Caption := ShellTreeView.Path;
+  // Re-apply the current sorting after the list was repopulated: PopulateWithRoot's
+  // internal Sort is skipped while the list view is in BeginUpdate (SetRoot), so a
+  // folder change would leave the items in raw FindFirst order although the header
+  // still shows the sort indicator. OnChange fires after the repopulation, so this
+  // is the right place to sort again.
+  ShellListView.Sort;
 end;
 
 procedure TfrmExtFileDialog.ShellTreeViewChanging(Sender: TObject;
