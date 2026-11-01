@@ -517,6 +517,22 @@ xcrun notarytool submit "${ZIP_PATH}" \
   --wait
 
 echo "Stapling notarization ticket..."
-xcrun stapler staple "${APP_DIR}"
+# Stapling fetches the notarization ticket from Apple's CloudKit endpoint and
+# intermittently fails with NSURLErrorDomain -1005 ("network connection was
+# lost", stapler exit code 68) even though the notarization itself was
+# accepted. Retry a few times before giving up.
+STAPLE_OK=0
+for attempt in 1 2 3 4 5; do
+  if xcrun stapler staple "${APP_DIR}"; then
+    STAPLE_OK=1
+    break
+  fi
+  echo "Staple attempt ${attempt} failed, retrying after a short wait..."
+  sleep $((attempt * 10))
+done
+if [ "${STAPLE_OK}" -ne 1 ]; then
+  echo "Stapling failed after 5 attempts. The notarization itself was accepted; rerun the job to retry stapling."
+  exit 1
+fi
 
 echo "Notarization complete. Distribute: ${APP_DIR}"
