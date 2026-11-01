@@ -81,7 +81,9 @@ get_version_from_lpi() {
   build=$(xmllint --xpath 'string(//CONFIG/ProjectOptions/VersionInfo/BuildNr/@Value)' "$lpi" 2>/dev/null || true)
   # BuildNr=0 means "not committed": derive it from the commit count, so the
   # app bundle version matches what lazbuild-with-buildnr.sh injected into the
-  # lpi while building.
+  # lpi while building. The element can also be missing entirely: the Lazarus
+  # IDE does not write BuildNr=0 (the default) back into the lpi, and then
+  # xmllint yields an empty string here, which this check catches as well.
   if [[ -z "$build" || "$build" == "0" ]]; then
     build=$(git rev-list --count HEAD 2>/dev/null || echo 0)
   fi

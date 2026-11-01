@@ -27,7 +27,6 @@
       <MajorVersionNr Value="12"/>
       <MinorVersionNr Value="22"/>
       <RevisionNr Value="1"/>
-      <BuildNr Value="0"/>
     </VersionInfo>
     <BuildModes>
       <Item Name="Default" Default="True"/>
