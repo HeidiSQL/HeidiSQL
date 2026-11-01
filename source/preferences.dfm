@@ -67,14 +67,6 @@ object frmPreferences: TfrmPreferences
         Height = 14
         Caption = 'GUI font: *'
       end
-      object lblGUIFontSize: TLabel
-        Left = 640
-        Top = 258
-        Width = 12
-        Height = 14
-        Anchors = [akTop, akRight]
-        Caption = 'pt'
-      end
       object lblTheme: TLabel
         Left = 8
         Top = 285
@@ -244,36 +236,12 @@ object frmPreferences: TfrmPreferences
         Tag = 1
         Left = 220
         Top = 255
-        Width = 338
+        Width = 451
         Height = 22
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 13
         OnChange = comboGUIFontChange
-      end
-      object editGUIFontSize: TEdit
-        Tag = 1
-        Left = 565
-        Top = 255
-        Width = 50
-        Height = 22
-        Anchors = [akTop, akRight]
-        TabOrder = 14
-        Text = '8'
-        OnChange = Modified
-      end
-      object updownGUIFontSize: TUpDown
-        Tag = 1
-        Left = 615
-        Top = 255
-        Width = 16
-        Height = 22
-        Anchors = [akTop, akRight]
-        Associate = editGUIFontSize
-        Min = 4
-        Position = 8
-        TabOrder = 15
-        OnChanging = anyUpDownLimitChanging
       end
       object chkWheelZoom: TCheckBox
         Left = 220

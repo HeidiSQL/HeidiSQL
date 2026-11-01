@@ -139,9 +139,6 @@ type
     comboLineBreakStyle: TComboBox;
     lblGUIFont: TLabel;
     comboGUIFont: TComboBox;
-    editGUIFontSize: TEdit;
-    updownGUIFontSize: TUpDown;
-    lblGUIFontSize: TLabel;
     chkHorizontalScrollbar: TCheckBox;
     editQueryHistoryKeepDays: TEdit;
     updownQueryHistoryKeepDays: TUpDown;
@@ -369,7 +366,6 @@ begin
     AppSettings.WriteString(asGUIFontName, '')
   else
     AppSettings.WriteString(asGUIFontName, comboGUIFont.Text);
-  AppSettings.WriteInt(asGUIFontSize, updownGUIFontSize.Position);
   AppSettings.WriteString(asTheme, comboTheme.Text);
   AppSettings.WriteString(asIconPack, comboIconPack.Text);
   AppSettings.WriteString(asWebSearchBaseUrl, comboWebSearchBaseUrl.Text);
@@ -730,7 +726,6 @@ begin
     comboGUIFont.ItemIndex := 0
   else
     comboGUIFont.ItemIndex := comboGUIFont.Items.IndexOf(GUIFont);
-  updownGUIFontSize.Position := AppSettings.ReadInt(asGUIFontSize);
   comboGUIFont.OnChange(comboGUIFont);
   comboTheme.ItemIndex := comboTheme.Items.IndexOf(AppSettings.ReadString(asTheme));
   comboIconPack.ItemIndex := comboIconPack.Items.IndexOf(AppSettings.ReadString(asIconPack));
@@ -1062,14 +1057,7 @@ end;
 
 
 procedure TfrmPreferences.comboGUIFontChange(Sender: TObject);
-var
-  UseCustomFont: Boolean;
 begin
-  // System font selected
-  UseCustomFont := comboGUIFont.ItemIndex > 0;
-  editGUIFontSize.Enabled := UseCustomFont;
-  updownGUIFontSize.Enabled := UseCustomFont;
-  lblGUIFontSize.Enabled := UseCustomFont;
   Modified(Sender);
 end;
 
