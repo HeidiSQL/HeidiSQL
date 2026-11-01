@@ -53,6 +53,7 @@ type
     procedure ShellListViewCompare(Sender: TObject; Item1, Item2: TListItem;
       Data: Integer; var Compare: Integer);
     procedure ShellListViewColumnClick(Sender: TObject; Column: TListColumn);
+    procedure ShellListViewResize(Sender: TObject);
     procedure ShellTreeViewChange(Sender: TObject; Node: TTreeNode);
     procedure ShellTreeViewChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
@@ -148,10 +149,19 @@ begin
   ShellListView.OnCompare := ShellListViewCompare;
   ShellListView.OnColumnClick := ShellListViewColumnClick;
   ShellListView.OnFileAdded := ShellListViewFileAdded;
+  // AutoSizeColumns off: ShellCtrls' AdjustColWidths distributes the client width
+  // over its 3 built-in columns only and would push additional columns out to the
+  // right. Keep fixed widths for the secondary columns instead and let
+  // ShellListViewResize fit the name column into the remaining space.
+  ShellListView.AutoSizeColumns := False;
   with ShellListView.Columns.Add do begin
     Caption := _('Modified');
     Width := 140;
   end;
+  ShellListView.Columns[1].Width := 80; // Size
+  ShellListView.Columns[2].Width := 80; // Type
+  ShellListView.OnResize := ShellListViewResize;
+  ShellListViewResize(ShellListView);
   FSortDirection := sdAscending;
   {$IFDEF WINDOWS}
   ShellListView.OnContextPopup := ShellListViewContextPopup;
@@ -470,6 +480,19 @@ begin
   for i := 0 to ShellListView.Columns.Count-1 do
     ShellListView.Columns[i].SortIndicator := siNone;
   Column.SortIndicator := DirToIndicator[NewDirection];
+end;
+
+procedure TfrmExtFileDialog.ShellListViewResize(Sender: TObject);
+var
+  i, W: Integer;
+begin
+  if ShellListView.Columns.Count > 1 then
+  begin
+    W := ShellListView.ClientWidth;
+    for i := 1 to ShellListView.Columns.Count-1 do
+      Dec(W, ShellListView.Columns[i].Width);
+    ShellListView.Columns[0].Width := Max(50, W);
+  end;
 end;
 
 procedure TfrmExtFileDialog.ShellListViewContextPopup(Sender: TObject;
