@@ -50,6 +50,9 @@ type
       Selected: Boolean);
     procedure ShellListViewContextPopup(Sender: TObject; MousePos: TPoint;
       var Handled: Boolean);
+    procedure ShellListViewCompare(Sender: TObject; Item1, Item2: TListItem;
+      Data: Integer; var Compare: Integer);
+    procedure ShellListViewColumnClick(Sender: TObject; Column: TListColumn);
     procedure ShellTreeViewChange(Sender: TObject; Node: TTreeNode);
     procedure ShellTreeViewChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
@@ -68,6 +71,8 @@ type
     FFiles: TStringList;
     FOnTypeChange: TNotifyEvent;
     FClickedPathPart: String;
+    FSortDirection: TSortDirection; // SortDirection is not published by TShellListView
+    function CompareFileNames(const Name1, Name2: String): Integer;
     {$IFDEF WINDOWS}
     function ShowShellContextMenu(FileName: String; ScreenPos: TPoint): Boolean;
     {$ENDIF}
@@ -113,6 +118,9 @@ implementation
 
 uses main;
 
+{$IFDEF WINDOWS}
+function StrCmpLogicalW(psz1, psz2: PWideChar): Integer; stdcall; external 'shlwapi.dll' name 'StrCmpLogicalW';
+{$ENDIF}
 
 function TfrmExtFileDialog.Execute: Boolean;
 begin
@@ -138,6 +146,9 @@ begin
   ShellListView.SmallImages := MainForm.ImageListMain;
   ShellListView.OnFileAdded := ShellListViewFileAdded;
   {$ENDIF}
+  ShellListView.OnCompare := ShellListViewCompare;
+  ShellListView.OnColumnClick := ShellListViewColumnClick;
+  FSortDirection := sdAscending;
   {$IFDEF WINDOWS}
   ShellListView.OnContextPopup := ShellListViewContextPopup;
   {$ENDIF}
@@ -189,6 +200,10 @@ begin
   LineBreakIndexInt := Integer(FLineBreakIndex)-1; // we skip lbsNone
   if (LineBreakIndexInt >=0) and (LineBreakIndexInt < comboLineBreaks.Items.Count) then
     comboLineBreaks.ItemIndex := LineBreakIndexInt;
+
+  // Show the sort indicator on the initially sorted column
+  if (ShellListView.SortColumn >= 0) and (ShellListView.SortColumn < ShellListView.Columns.Count) then
+    ShellListView.Columns[ShellListView.SortColumn].SortIndicator := siAscending;
 end;
 
 procedure TfrmExtFileDialog.IdleTimerTreeNodeScrolltoviewTimer(Sender: TObject);
@@ -367,6 +382,74 @@ begin
       FFiles.Add(ShellListView.GetPathFromItem(ListItem));
     end;
   end;
+end;
+
+procedure TfrmExtFileDialog.ShellListViewCompare(Sender: TObject; Item1,
+  Item2: TListItem; Data: Integer; var Compare: Integer);
+begin
+  // Folders first
+  if TShellListItem(Item1).isFolder <> TShellListItem(Item2).isFolder then begin
+    if TShellListItem(Item1).isFolder then
+      Compare := -1
+    else
+      Compare := 1;
+    Exit;
+  end;
+  case ShellListView.SortColumn of
+    1: // Size: numeric compare, ShellCtrls stores the raw byte count in Item.Data
+      Compare := CompareValue(Int64(PtrInt(Item1.Data)), Int64(PtrInt(Item2.Data)));
+    2: // Type: by file extension
+      Compare := AnsiCompareText(ExtractFileExt(Item1.Caption), ExtractFileExt(Item2.Caption));
+  else // Name
+    Compare := CompareFileNames(Item1.Caption, Item2.Caption);
+  end;
+  if Compare = 0 then
+    Compare := CompareFileNames(Item1.Caption, Item2.Caption); // deterministic order
+  // TCustomListView reverses the compare result for descending order only when
+  // OnCompare is NOT set (see _CompareListViewItems), so reverse it ourselves.
+  // SortDirection is not published by TShellListView, hence our own FSortDirection.
+  if FSortDirection = sdDescending then
+    Compare := -Compare;
+end;
+
+function TfrmExtFileDialog.CompareFileNames(const Name1, Name2: String): Integer;
+{$IFDEF WINDOWS}
+var
+  W1, W2: WideString;
+{$ENDIF}
+begin
+  {$IFDEF WINDOWS}
+  // Natural sort like in Windows Explorer: "file2" sorts before "file10"
+  W1 := UTF8ToUTF16(Name1);
+  W2 := UTF8ToUTF16(Name2);
+  Result := StrCmpLogicalW(PWideChar(W1), PWideChar(W2));
+  {$ELSE}
+  Result := AnsiCompareText(Name1, Name2);
+  {$ENDIF}
+end;
+
+procedure TfrmExtFileDialog.ShellListViewColumnClick(Sender: TObject;
+  Column: TListColumn);
+const
+  DirToIndicator: array[TSortDirection] of TSortIndicator = (siAscending, siDescending);
+var
+  i: Integer;
+  NewDirection: TSortDirection;
+begin
+  // The list view sorts itself after this event (AutoSort is on), so predict the
+  // resulting direction here and place the indicator on the clicked column.
+  // Note: TCustomListView.AutoSortIndicator is protected and not published by
+  // TShellListView, so we cannot use it and set TColumn.SortIndicator manually.
+  if Column.Index <> ShellListView.SortColumn then
+    FSortDirection := sdAscending
+  else if FSortDirection = sdAscending then
+    FSortDirection := sdDescending
+  else
+    FSortDirection := sdAscending;
+  NewDirection := FSortDirection;
+  for i := 0 to ShellListView.Columns.Count-1 do
+    ShellListView.Columns[i].SortIndicator := siNone;
+  Column.SortIndicator := DirToIndicator[NewDirection];
 end;
 
 procedure TfrmExtFileDialog.ShellListViewContextPopup(Sender: TObject;
