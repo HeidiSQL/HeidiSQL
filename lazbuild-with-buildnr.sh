@@ -48,3 +48,8 @@ fi
 echo "=== Building with BuildNr=$BUILDNR"
 
 "$@"
+
+# Overwrite the exe's manifest resource with res/manifest.xml (adds the
+# DWrite.dll hijacking guard the IDE template cannot emit). No-op when the
+# build did not produce a Windows exe. Must happen before any signing.
+./patch-manifest.sh
