@@ -2933,7 +2933,7 @@ begin
 end;
 {$ELSE}
 var
-  Buffer, Line, ProcName: String;
+  Buffer, Line, TrimmedLine, ProcName: String;
   PidNumber: Cardinal;
   i: Integer;
 begin
@@ -2942,11 +2942,15 @@ begin
   Result := False;
   if RunCommand('ps', ['-axo', 'pid=,comm='], Buffer) then begin
     for Line in Buffer.Split([#10, #13], TStringSplitOptions.ExcludeEmpty) do begin
-      i := Pos(' ', Line);
+      // ps right-aligns the pid column, so lines start with spaces. Without
+      // trimming, Pos(' ', ...) would be 1 and the pid would parse as 0,
+      // which never equals ExcludePid and so matches our own process.
+      TrimmedLine := Trim(Line);
+      i := Pos(' ', TrimmedLine);
       if i > 0 then begin
-        PidNumber := Cardinal(StrToInt64Def(Copy(Line, 1, i-1), 0));
+        PidNumber := Cardinal(StrToInt64Def(Copy(TrimmedLine, 1, i-1), 0));
         if (PidNumber <> ExcludePid) and ((pid = 0) or (PidNumber = pid)) then begin
-          ProcName := Trim(Copy(Line, i+1, MaxInt));
+          ProcName := Trim(Copy(TrimmedLine, i+1, MaxInt));
           if ExeNamePattern.IsEmpty or ContainsText(ProcName, ExeNamePattern) then begin
             Result := True;
             Break;
