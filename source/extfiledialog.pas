@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, LCLType, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls, StdCtrls, ShellCtrls, ComCtrls, apphelpers, extra_controls, Math, generic_types;
+  ExtCtrls, StdCtrls, ShellCtrls, ComCtrls, apphelpers, extra_controls, Math, generic_types
+  {$IFDEF WINDOWS}, Windows, WinDirs, ActiveX, ShlObj, LazUTF8 {$ENDIF};
 
 type
 
@@ -47,6 +48,8 @@ type
     procedure ShellListViewFileAdded(Sender: TObject; Item: TListItem);
     procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure ShellListViewContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
     procedure ShellTreeViewChange(Sender: TObject; Node: TTreeNode);
     procedure ShellTreeViewChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
@@ -65,6 +68,9 @@ type
     FFiles: TStringList;
     FOnTypeChange: TNotifyEvent;
     FClickedPathPart: String;
+    {$IFDEF WINDOWS}
+    function ShowShellContextMenu(FileName: String; ScreenPos: TPoint): Boolean;
+    {$ENDIF}
     procedure SetTitle(AValue: String);
     function GetFileName: String;
     procedure SetFileName(const AValue: String);
@@ -131,6 +137,9 @@ begin
   ShellTreeView.OnGetSelectedIndex := ShellTreeViewGetSelectedIndex;
   ShellListView.SmallImages := MainForm.ImageListMain;
   ShellListView.OnFileAdded := ShellListViewFileAdded;
+  {$ENDIF}
+  {$IFDEF WINDOWS}
+  ShellListView.OnContextPopup := ShellListViewContextPopup;
   {$ENDIF}
   FFilterNames := TStringList.Create;
   FFilterMasks := TStringList.Create;
@@ -360,6 +369,27 @@ begin
   end;
 end;
 
+procedure TfrmExtFileDialog.ShellListViewContextPopup(Sender: TObject;
+  MousePos: TPoint; var Handled: Boolean);
+var
+  {$IFDEF WINDOWS}
+  Item: TListItem;
+  FileName: String;
+  {$ENDIF}
+begin
+  {$IFDEF WINDOWS}
+  Item := ShellListView.GetItemAt(MousePos.X, MousePos.Y);
+  if (Item <> nil) and (not Item.Selected) then
+    ShellListView.Selected := Item; // let the context menu act on the clicked item, like in Explorer
+  if Item <> nil then
+    FileName := ShellListView.GetPathFromItem(Item)
+  else
+    FileName := ShellTreeView.Path; // right-click on empty space: context menu of the current folder
+  if not FileName.IsEmpty then
+    Handled := ShowShellContextMenu(FileName, ShellListView.ClientToScreen(MousePos));
+  {$ENDIF}
+end;
+
 procedure TfrmExtFileDialog.ShellTreeViewChange(Sender: TObject; Node: TTreeNode
   );
 begin
@@ -451,6 +481,64 @@ begin
   end;
 end;
 
+
+{$IFDEF WINDOWS}
+function TfrmExtFileDialog.ShowShellContextMenu(FileName: String;
+  ScreenPos: TPoint): Boolean;
+var
+  DesktopFolder, Folder: IShellFolder;
+  FullPidl: PItemIDList;
+  RelPidl: LPCITEMIDLIST;
+  FolderPtr: Pointer;
+  Eaten, Attrs: ULONG;
+  ContextMenu: IContextMenu;
+  Menu: HMENU;
+  Cmd, CmdFirst: Integer;
+  InvokeInfo: TCMINVOKECOMMANDINFO;
+  Wide: WideString;
+begin
+  Result := False;
+  FileName := ExcludeTrailingPathDelimiter(ExpandFileName(FileName));
+  if not (FileExists(FileName) or DirectoryExists(FileName)) then
+    Exit;
+  if SHGetDesktopFolder(DesktopFolder) <> S_OK then
+    Exit;
+  Attrs := 0;
+  RelPidl := nil;
+  Wide := UTF8ToUTF16(FileName); // strings in this app are UTF-8
+  // Absolute PIDL of the file or folder
+  if DesktopFolder.ParseDisplayName(Handle, nil, PWideChar(Wide), Eaten, FullPidl, Attrs) <> S_OK then
+    Exit;
+  try
+    // Parent folder + relative PIDL, so the menu refers to the item itself
+    if SHBindToParent(FullPidl, IID_IShellFolder, @FolderPtr, RelPidl) <> S_OK then
+      Exit;
+    Folder := IShellFolder(FolderPtr);
+    if Folder.GetUIObjectOf(Handle, 1, RelPidl, IID_IContextMenu, nil, ContextMenu) <> S_OK then
+      Exit;
+    Menu := CreatePopupMenu;
+    try
+      CmdFirst := 1;
+      if ContextMenu.QueryContextMenu(Menu, 0, CmdFirst, $7FFF, CMF_NORMAL or CMF_EXPLORE) < 0 then
+        Exit;
+      Cmd := Integer(TrackPopupMenu(Menu, TPM_RETURNCMD or TPM_NONOTIFY or TPM_LEFTALIGN or TPM_LEFTBUTTON, ScreenPos.X, ScreenPos.Y, 0, Handle, nil));
+      if Cmd <= 0 then
+        Exit;
+      InvokeInfo := Default(TCMINVOKECOMMANDINFO);
+      InvokeInfo.cbSize := SizeOf(InvokeInfo);
+      InvokeInfo.hwnd := Handle;
+      InvokeInfo.lpVerb := PAnsiChar(PtrUInt(Cmd - CmdFirst));
+      InvokeInfo.nShow := SW_SHOWNORMAL;
+      ContextMenu.InvokeCommand(InvokeInfo);
+      Result := True;
+    finally
+      DestroyMenu(Menu);
+    end;
+  finally
+    CoTaskMemFree(FullPidl); // RelPidl points into FullPidl and must not be freed separately
+  end;
+end;
+{$ENDIF}
 
 { TExtFileOpenDialog }
 
