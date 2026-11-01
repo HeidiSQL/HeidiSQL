@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LCLType, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls, StdCtrls, ShellCtrls, ComCtrls, apphelpers, extra_controls, Math, generic_types
+  ExtCtrls, StdCtrls, Buttons, ShellCtrls, ComCtrls, apphelpers, extra_controls, Math, generic_types
   {$IFDEF WINDOWS}, Windows, WinDirs, ActiveX, ShlObj, LazUTF8 {$ENDIF};
 
 type
@@ -16,6 +16,9 @@ type
   TfrmExtFileDialog = class(TExtForm)
     btnCancel: TButton;
     btnOk: TButton;
+    tbViewStyle: TToolBar;
+    tbtnViewIcons: TToolButton;
+    tbtnViewDetails: TToolButton;
     comboLineBreaks: TComboBox;
     comboEncoding: TComboBox;
     comboFileType: TComboBox;
@@ -54,6 +57,8 @@ type
       Data: Integer; var Compare: Integer);
     procedure ShellListViewColumnClick(Sender: TObject; Column: TListColumn);
     procedure ShellListViewResize(Sender: TObject);
+    procedure btnViewIconsClick(Sender: TObject);
+    procedure btnViewDetailsClick(Sender: TObject);
     procedure ShellTreeViewChange(Sender: TObject; Node: TTreeNode);
     procedure ShellTreeViewChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
@@ -74,6 +79,8 @@ type
     FClickedPathPart: String;
     FSortDirection: TSortDirection; // SortDirection is not published by TShellListView
     function CompareFileNames(const Name1, Name2: String): Integer;
+    procedure UpdateViewStyleButton;
+    procedure SetupListViewColumns;
     {$IFDEF WINDOWS}
     function ShowShellContextMenu(FileName: String; ScreenPos: TPoint): Boolean;
     {$ENDIF}
@@ -145,6 +152,7 @@ begin
   ShellTreeView.OnGetImageIndex := ShellTreeViewGetImageIndex;
   ShellTreeView.OnGetSelectedIndex := ShellTreeViewGetSelectedIndex;
   ShellListView.SmallImages := MainForm.ImageListMain;
+  ShellListView.LargeImages := MainForm.ImageListMain;
   {$ENDIF}
   ShellListView.OnCompare := ShellListViewCompare;
   ShellListView.OnColumnClick := ShellListViewColumnClick;
@@ -158,10 +166,13 @@ begin
     Caption := _('Modified');
     Width := 140;
   end;
-  ShellListView.Columns[1].Width := 80; // Size
-  ShellListView.Columns[2].Width := 80; // Type
   ShellListView.OnResize := ShellListViewResize;
-  ShellListViewResize(ShellListView);
+  SetupListViewColumns;
+  if AppSettings.ReadString(asFileDialogViewStyle) = 'icon' then
+    ShellListView.ViewStyle := vsIcon
+  else
+    ShellListView.ViewStyle := vsReport;
+  UpdateViewStyleButton;
   FSortDirection := sdAscending;
   {$IFDEF WINDOWS}
   ShellListView.OnContextPopup := ShellListViewContextPopup;
@@ -202,6 +213,7 @@ begin
     SetInitialDir(GetUserDir);
 
   SetFilterIndex(FFilterIndex);
+  SetupListViewColumns;
 
   comboEncoding.Items.AddStrings(FEncodings, True);
   comboEncoding.AutoSizeItemWidth;
@@ -482,6 +494,19 @@ begin
   Column.SortIndicator := DirToIndicator[NewDirection];
 end;
 
+procedure TfrmExtFileDialog.SetupListViewColumns;
+begin
+  // Fixed widths for the secondary columns; the name column gets the remaining
+  // space (see ShellListViewResize). Re-applied on every show and view change,
+  // because switching the view style resets the native column widths.
+  if ShellListView.Columns.Count > 3 then begin
+    ShellListView.Columns[1].Width := 80; // Size
+    ShellListView.Columns[2].Width := 80; // Type
+    ShellListView.Columns[3].Width := 140; // Modified
+  end;
+  ShellListViewResize(ShellListView);
+end;
+
 procedure TfrmExtFileDialog.ShellListViewResize(Sender: TObject);
 var
   i, W: Integer;
@@ -493,6 +518,36 @@ begin
       Dec(W, ShellListView.Columns[i].Width);
     ShellListView.Columns[0].Width := Max(50, W);
   end;
+end;
+
+procedure TfrmExtFileDialog.btnViewIconsClick(Sender: TObject);
+begin
+  ShellListView.ViewStyle := vsIcon;
+  AppSettings.WriteString(asFileDialogViewStyle, 'icon');
+  // Repopulate so item icons match the new view style (large vs. small icons).
+  // Keeps the current sort order, see ShellTreeViewChange.
+  ShellListView.UpdateView;
+  SetupListViewColumns;
+  UpdateViewStyleButton;
+end;
+
+procedure TfrmExtFileDialog.btnViewDetailsClick(Sender: TObject);
+begin
+  ShellListView.ViewStyle := vsReport;
+  AppSettings.WriteString(asFileDialogViewStyle, 'report');
+  ShellListView.UpdateView;
+  SetupListViewColumns;
+  UpdateViewStyleButton;
+end;
+
+procedure TfrmExtFileDialog.UpdateViewStyleButton;
+begin
+  // The button matching the current view style stays pressed (Down), the other
+  // one is up. Both share GroupIndex 1, so they behave like radio buttons.
+  tbtnViewIcons.Down := ShellListView.ViewStyle = vsIcon;
+  tbtnViewDetails.Down := ShellListView.ViewStyle = vsReport;
+  tbtnViewIcons.Hint := _('Switch to icon view');
+  tbtnViewDetails.Hint := _('Switch to details view');
 end;
 
 procedure TfrmExtFileDialog.ShellListViewContextPopup(Sender: TObject;

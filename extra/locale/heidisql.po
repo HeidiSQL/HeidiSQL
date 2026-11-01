@@ -7101,3 +7101,11 @@ msgstr "The bug report was sent to %s. Thank you!"
 #: crashdialog.pas:74
 msgid "Sending the report failed"
 msgstr "Sending the report failed"
+
+#: extfiledialog.pas
+msgid "Switch to details view"
+msgstr "Switch to details view"
+
+#: extfiledialog.pas
+msgid "Switch to icon view"
+msgstr "Switch to icon view"

@@ -8,6 +8,7 @@ object frmExtFileDialog: TfrmExtFileDialog
   ClientHeight = 435
   ClientWidth = 698
   Position = poOwnerFormCenter
+  ShowHint = True
   LCLVersion = '4.8.0.0'
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -224,6 +225,37 @@ object frmExtFileDialog: TfrmExtFileDialog
     OnClick = lblPathClick
     OnMouseDown = lblPathMouseDown
     OnMouseMove = lblPathMouseMove
+  end
+  object tbViewStyle: TToolBar
+    AnchorSideTop.Control = lblPath
+    AnchorSideTop.Side = asrCenter
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 643
+    Height = 22
+    Top = 1
+    Width = 47
+    Align = alNone
+    Anchors = [akRight]
+    AutoSize = True
+    BorderSpacing.Around = 8
+    EdgeBorders = []
+    Images = MainForm.ImageListMain
+    TabOrder = 4
+    object tbtnViewIcons: TToolButton
+      Left = 1
+      Top = 0
+      Grouped = True
+      ImageIndex = 41
+      OnClick = btnViewIconsClick
+    end
+    object tbtnViewDetails: TToolButton
+      Left = 24
+      Top = 0
+      Grouped = True
+      ImageIndex = 56
+      OnClick = btnViewDetailsClick
+    end
   end
   object IdleTimerTreeNodeScrolltoview: TIdleTimer
     AutoEnabled = True
