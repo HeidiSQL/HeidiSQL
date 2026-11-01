@@ -4973,6 +4973,10 @@ msgstr "Save changes to file %s ?"
 msgid "Save content of tab \"%s\"?"
 msgstr "Save content of tab \"%s\"?"
 
+#: extfiledialog.pas
+msgid "Modified"
+msgstr "Modified"
+
 #: main.pas:9582
 msgid "Modified query"
 msgstr "Modified query"

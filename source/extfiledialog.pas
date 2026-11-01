@@ -144,10 +144,14 @@ begin
   ShellTreeView.OnGetImageIndex := ShellTreeViewGetImageIndex;
   ShellTreeView.OnGetSelectedIndex := ShellTreeViewGetSelectedIndex;
   ShellListView.SmallImages := MainForm.ImageListMain;
-  ShellListView.OnFileAdded := ShellListViewFileAdded;
   {$ENDIF}
   ShellListView.OnCompare := ShellListViewCompare;
   ShellListView.OnColumnClick := ShellListViewColumnClick;
+  ShellListView.OnFileAdded := ShellListViewFileAdded;
+  with ShellListView.Columns.Add do begin
+    Caption := _('Modified');
+    Width := 140;
+  end;
   FSortDirection := sdAscending;
   {$IFDEF WINDOWS}
   ShellListView.OnContextPopup := ShellListViewContextPopup;
@@ -358,16 +362,30 @@ end;
 
 procedure TfrmExtFileDialog.ShellListViewFileAdded(Sender: TObject;
   Item: TListItem);
+{$IFNDEF WINDOWS}
 var
   Ext: String;
+{$ENDIF}
 begin
-  if TShellListItem(Item).IsFolder then
-    Item.ImageIndex := ICONINDEX_FOLDER
+  if TShellListItem(Item).IsFolder then begin
+    {$IFNDEF WINDOWS}
+    Item.ImageIndex := ICONINDEX_FOLDER;
+    {$ENDIF}
+  end
   else begin
+    // Size column: our own formatting instead of ShellCtrls' hardcoded "bytes/kB/MB".
+    // ShellCtrls stores the raw byte count in Item.Data.
+    if Item.SubItems.Count > 0 then
+      Item.SubItems[0] := FormatByteNumber(Int64(PtrInt(Item.Data)));
+    // Additional "Modified" column, see Columns.Add in FormCreate.
+    // Note: TSearchRec.Time is a DOS LongInt, TimeStamp is the TDateTime
+    Item.SubItems.Add(FormatDateTime('yyyy-mm-dd hh:nn:ss', TShellListItem(Item).FileInfo.TimeStamp));
+    {$IFNDEF WINDOWS}
     Ext := ExtractFileExt(ShellListView.GetPathFromItem(Item));
     Item.ImageIndex := GetFileExtImageIndex(Ext);
     if Item.ImageIndex = -1 then
       Item.ImageIndex := 66; // page with question mark
+    {$ENDIF}
   end;
 end;
 
@@ -400,6 +418,8 @@ begin
       Compare := CompareValue(Int64(PtrInt(Item1.Data)), Int64(PtrInt(Item2.Data)));
     2: // Type: by file extension
       Compare := AnsiCompareText(ExtractFileExt(Item1.Caption), ExtractFileExt(Item2.Caption));
+    3: // Modified: numeric compare of the file time
+      Compare := CompareValue(TShellListItem(Item1).FileInfo.TimeStamp, TShellListItem(Item2).FileInfo.TimeStamp);
   else // Name
     Compare := CompareFileNames(Item1.Caption, Item2.Caption);
   end;
