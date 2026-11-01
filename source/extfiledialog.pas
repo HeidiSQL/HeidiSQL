@@ -552,11 +552,11 @@ end;
 
 procedure TfrmExtFileDialog.ShellListViewContextPopup(Sender: TObject;
   MousePos: TPoint; var Handled: Boolean);
+{$IFDEF WINDOWS}
 var
-  {$IFDEF WINDOWS}
   Item: TListItem;
   FileName: String;
-  {$ENDIF}
+{$ENDIF}
 begin
   {$IFDEF WINDOWS}
   Item := ShellListView.GetItemAt(MousePos.X, MousePos.Y);
