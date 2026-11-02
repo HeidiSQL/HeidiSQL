@@ -19,9 +19,12 @@ uses
 
 // Export the callback from unit loginform, so that libmysqlclient's "dialog"
 // authentication plugin can find it in the executable's export table.
-// FPC only allows exports in the main program, not in units.
+// FPC only allows exports in the main program, not in units, and not on macOS
+// (Mach-O does not support an exports section in the main executable).
+{$IFNDEF DARWIN}
 exports
   mysql_authentication_dialog_ask;
+{$ENDIF}
 
 var
   AppLanguage: String;
