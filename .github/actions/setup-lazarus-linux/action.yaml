@@ -1,0 +1,32 @@
+name: Setup Lazarus 4.8 (Linux)
+description: Downloads the Lazarus 4.8 / FPC deb packages from Sourceforge (served by actions/cache) and installs them.
+inputs:
+  arch:
+    description: 'Debian package architecture: amd64 or arm64'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # The installers are downloaded to ~/lazarus-installers, served by actions/cache.
+    # Bump the cache key when changing the installer URLs in this action.
+    - name: Cache Lazarus 4.8 installers
+      uses: actions/cache@v6
+      with:
+        path: ~/lazarus-installers
+        key: lazarus48-installers-linux-${{ inputs.arch }}-fpc-${{ inputs.arch == 'arm64' && '3.2.3-240813' || '3.2.2-210709' }}-ubuntu-26.04
+
+    - name: Install Lazarus 4.8
+      shell: bash
+      run: |
+        sudo apt-get update
+        INSTALLER_CACHE="$HOME/lazarus-installers"
+        mkdir -p "$INSTALLER_CACHE"
+        FPC_VER="${{ inputs.arch == 'arm64' && '3.2.3-240813' || '3.2.2-210709' }}"
+        for pkg in "fpc-laz_${FPC_VER}_${{ inputs.arch }}.deb" "fpc-src_${FPC_VER}_${{ inputs.arch }}.deb" "lazarus-project_4.8.0-0_${{ inputs.arch }}.deb"; do
+          if [ ! -s "$INSTALLER_CACHE/$pkg" ]; then
+            wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20${{ inputs.arch }}%20DEB/Lazarus%204.8/$pkg" -O "$INSTALLER_CACHE/$pkg"
+          fi
+        done
+        sudo apt-get install -y "$INSTALLER_CACHE"/fpc-laz_*.deb "$INSTALLER_CACHE"/fpc-src_*.deb "$INSTALLER_CACHE"/lazarus-project_*.deb
+        echo "/usr/lib/lazarus/4.8" >> "$GITHUB_PATH"

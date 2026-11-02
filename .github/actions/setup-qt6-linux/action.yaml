@@ -1,0 +1,23 @@
+name: Setup Qt6 bindings (Linux)
+description: Installs qt6-base-dev and libqt6pas-dev from the Ubuntu repositories (libqt6pas is in universe since Ubuntu 25.10, no more third-party debs needed) and patches Lazarus 4.8 for Qt6 HiDPI.
+
+runs:
+  using: composite
+  steps:
+    - name: Install Qt6 and libqt6pas
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y qt6-base-dev libqt6pas-dev
+
+    - name: Patch Lazarus 4.8 for QT6
+      shell: bash
+      run: |
+        LAZARUS_DIR="/usr/share/lazarus/4.8.0"
+        test -f "$LAZARUS_DIR/lcl/include/lclintf.inc"
+        for p in "$GITHUB_WORKSPACE"/extra/lazarus-patches/4.8/*.patch; do
+          sudo patch -d "$LAZARUS_DIR" -p1 --dry-run < "$p"
+          sudo patch -d "$LAZARUS_DIR" -p1 < "$p"
+        done
+        grep -Fq "QPaintDevice_devicePixelRatioF" "$LAZARUS_DIR/lcl/interfaces/qt6/qtwscontrols.pp"
+        grep -Fq "LCLIntf.SetCanvasScaleFactor(NodeBitmap.Canvas.Handle, ScaleFactor);" "$LAZARUS_DIR/components/virtualtreeview/laz.virtualtrees.pas"

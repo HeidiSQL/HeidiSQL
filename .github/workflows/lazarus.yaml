@@ -4,9 +4,6 @@ defaults:
     run:
         shell: bash
 
-permissions:
-  contents: write
-
 
 on:
 
@@ -27,8 +24,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                operating-system: [windows-latest, ubuntu-latest, macos-15]
-                lazarus-versions: ["stable"]
+                operating-system: [windows-latest, ubuntu-26.04, macos-15]
 
         steps:
         - name: Checkout source code
@@ -101,31 +97,11 @@ jobs:
             grep -Fq "LCLIntf.SetCanvasScaleFactor(NodeBitmap.Canvas.Handle, ScaleFactor);" "$LAZARUS_DIR/components/virtualtreeview/laz.virtualtrees.pas"
             grep -Fq "CGContextScaleCTM(ctx.CGContext, AScaleRatio, AScaleRatio);" "$LAZARUS_DIR/lcl/interfaces/cocoa/cocoalclintf.inc"
 
-        # The installers are downloaded to ~/lazarus-installers, served by actions/cache.
-        # Bump the cache key when changing the installer URLs in the steps of this job.
-        - name: Cache Lazarus 4.8 installers (Ubuntu)
-          if: ${{ matrix.operating-system == 'ubuntu-latest' }}
-          uses: actions/cache@v6
-          with:
-            path: ~/lazarus-installers
-            key: lazarus48-installers-linux-amd64-fpc-3.2.2-qt6pas-6.2.10
         - name: Install Lazarus 4.8 (Ubuntu)
-          if: ${{ matrix.operating-system == 'ubuntu-latest' }}
-          run: |
-            INSTALLER_CACHE="$HOME/lazarus-installers"
-            mkdir -p "$INSTALLER_CACHE"
-            if [ ! -s "$INSTALLER_CACHE/fpc-laz_3.2.2-210709_amd64.deb" ]; then
-              wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.8/fpc-laz_3.2.2-210709_amd64.deb" -O "$INSTALLER_CACHE/fpc-laz_3.2.2-210709_amd64.deb"
-            fi
-            if [ ! -s "$INSTALLER_CACHE/fpc-src_3.2.2-210709_amd64.deb" ]; then
-              wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.8/fpc-src_3.2.2-210709_amd64.deb" -O "$INSTALLER_CACHE/fpc-src_3.2.2-210709_amd64.deb"
-            fi
-            if [ ! -s "$INSTALLER_CACHE/lazarus-project_4.8.0-0_amd64.deb" ]; then
-              wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20amd64%20DEB/Lazarus%204.8/lazarus-project_4.8.0-0_amd64.deb" -O "$INSTALLER_CACHE/lazarus-project_4.8.0-0_amd64.deb"
-            fi
-            sudo apt-get update
-            sudo apt-get install -y "$INSTALLER_CACHE/fpc-laz_3.2.2-210709_amd64.deb" "$INSTALLER_CACHE/fpc-src_3.2.2-210709_amd64.deb" "$INSTALLER_CACHE/lazarus-project_4.8.0-0_amd64.deb"
-            echo "/usr/lib/lazarus/4.8" >> $GITHUB_PATH
+          if: ${{ matrix.operating-system == 'ubuntu-26.04' }}
+          uses: ./.github/actions/setup-lazarus-linux
+          with:
+            arch: amd64
 
         - name: Build HeidiSQL (Windows)
           if: ${{ matrix.operating-system == 'windows-latest' }}
@@ -150,14 +126,14 @@ jobs:
 
         - name: Upload binaries Windows
           id: upload-unsigned-win64
-          if: ${{ matrix.operating-system == 'windows-latest' && matrix.lazarus-versions == 'stable' }}
+          if: ${{ matrix.operating-system == 'windows-latest' }}
           uses: actions/upload-artifact@v6
           with:
             name: ${{ matrix.operating-system }}-WIN64
             path: out/win64/heidisql.exe
 
         - name: Sign heidisql.exe via SignPath
-          if: ${{ matrix.operating-system == 'windows-latest' && matrix.lazarus-versions == 'stable' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
+          if: ${{ matrix.operating-system == 'windows-latest' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
           uses: signpath/github-action-submit-signing-request@v3
           with:
             api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
@@ -171,7 +147,7 @@ jobs:
             output-artifact-directory: signed
 
         - name: Upload signed Windows binary
-          if: ${{ matrix.operating-system == 'windows-latest' && matrix.lazarus-versions == 'stable' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
+          if: ${{ matrix.operating-system == 'windows-latest' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
           uses: actions/upload-artifact@v6
           with:
             name: ${{ matrix.operating-system }}-WIN64-signed
@@ -201,69 +177,56 @@ jobs:
             name: windows-installer
             path: out/HeidiSQL_*_Setup.exe
 
+        - name: Install GTK2 dev libraries (Ubuntu)
+          if: ${{ matrix.operating-system == 'ubuntu-26.04' }}
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y libgtk2.0-dev
+
         - name: Build HeidiSQL (Ubuntu GTK)
-          if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+          if: ${{ matrix.operating-system == 'ubuntu-26.04' }}
           run: |
             echo Building with GTK2
             make build-gtk2
 
         - name: Upload binaries GTK
-          if: ${{ matrix.operating-system == 'ubuntu-latest' && matrix.lazarus-versions == 'stable' }}
+          if: ${{ matrix.operating-system == 'ubuntu-26.04' }}
           uses: actions/upload-artifact@v6
           with:
             name: ${{ matrix.operating-system }}-GTK
             path: out/gtk2/heidisql
 
-        - name: Getting libqt5pas-dev, libqt6pas-dev
-          if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+        - name: Install libqt5pas-dev (Ubuntu)
+          if: ${{ matrix.operating-system == 'ubuntu-26.04' }}
           run: |
-            sudo apt update
-            sudo apt install -y libqt5pas-dev wget qt6-base-dev
-            INSTALLER_CACHE="$HOME/lazarus-installers"
-            mkdir -p "$INSTALLER_CACHE"
-            LIBQT6PAS_VERSION="6.2.10"
-            if [ ! -s "$INSTALLER_CACHE/libqt6pas6_${LIBQT6PAS_VERSION}-1_amd64.deb" ]; then
-              wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6_${LIBQT6PAS_VERSION}-1_amd64.deb" -O "$INSTALLER_CACHE/libqt6pas6_${LIBQT6PAS_VERSION}-1_amd64.deb"
-            fi
-            sudo dpkg -i "$INSTALLER_CACHE/libqt6pas6_${LIBQT6PAS_VERSION}-1_amd64.deb" || sudo apt-get install -f -y
-            if [ ! -s "$INSTALLER_CACHE/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_amd64.deb" ]; then
-              wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_amd64.deb" -O "$INSTALLER_CACHE/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_amd64.deb"
-            fi
-            sudo dpkg -i "$INSTALLER_CACHE/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_amd64.deb" || sudo apt-get install -f -y
+            sudo apt-get update
+            sudo apt-get install -y libqt5pas-dev
 
         - name: Build HeidiSQL (Ubuntu QT5)
-          if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+          if: ${{ matrix.operating-system == 'ubuntu-26.04' }}
           run: |
             echo Building with QT5
             make build-qt5
 
         - name: Upload binaries QT5
-          if: ${{ matrix.operating-system == 'ubuntu-latest' && matrix.lazarus-versions == 'stable' }}
+          if: ${{ matrix.operating-system == 'ubuntu-26.04' }}
           uses: actions/upload-artifact@v6
           with:
             name: ${{ matrix.operating-system }}-QT5
             path: out/qt5/heidisql
 
-        - name: Patch Lazarus 4.8 for QT6
-          if: ${{ matrix.operating-system == 'ubuntu-latest' }}
-          run: |
-            LAZARUS_DIR="/usr/share/lazarus/4.8.0"
-            test -f "$LAZARUS_DIR/lcl/include/lclintf.inc"
-            for p in "$GITHUB_WORKSPACE"/extra/lazarus-patches/4.8/*.patch; do
-              sudo patch -d "$LAZARUS_DIR" -p1 --dry-run < "$p"
-              sudo patch -d "$LAZARUS_DIR" -p1 < "$p"
-            done
-            grep -Fq "QPaintDevice_devicePixelRatioF" "$LAZARUS_DIR/lcl/interfaces/qt6/qtwscontrols.pp"
-            grep -Fq "LCLIntf.SetCanvasScaleFactor(NodeBitmap.Canvas.Handle, ScaleFactor);" "$LAZARUS_DIR/components/virtualtreeview/laz.virtualtrees.pas"
+        - name: Install Qt6 + libqt6pas and patch Lazarus 4.8 (Ubuntu)
+          if: ${{ matrix.operating-system == 'ubuntu-26.04' }}
+          uses: ./.github/actions/setup-qt6-linux
 
         - name: Build HeidiSQL (Ubuntu QT6)
-          if: ${{ matrix.operating-system == 'ubuntu-latest' }}
+          if: ${{ matrix.operating-system == 'ubuntu-26.04' }}
           run: |
             echo Building with QT6
             make build-qt6
 
         - name: Upload binaries QT6
-          if: ${{ matrix.operating-system == 'ubuntu-latest' && matrix.lazarus-versions == 'stable' }}
+          if: ${{ matrix.operating-system == 'ubuntu-26.04' }}
           uses: actions/upload-artifact@v6
           with:
             name: ${{ matrix.operating-system }}-QT6
@@ -279,7 +242,7 @@ jobs:
           run: make build-macos
 
         - name: Upload binaries macOS
-          if: ${{ matrix.operating-system == 'macos-15' && matrix.lazarus-versions == 'stable' }}
+          if: ${{ matrix.operating-system == 'macos-15' }}
           uses: actions/upload-artifact@v6
           with:
             name: ${{ matrix.operating-system }}
@@ -288,53 +251,21 @@ jobs:
     build-macos-app:
       name: macOS App Bundle
       if: github.repository == 'HeidiSQL/HeidiSQL'
+      # Reuse the binary built by the "build" matrix job on macos-15 instead of
+      # installing Lazarus and building again on this expensive runner.
+      needs: build
       runs-on: macos-15
       env:
         GITHUB: 1
       steps:
       - name: Checkout source code
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
-      # The installers are downloaded to ~/lazarus-installers, served by actions/cache.
-      # Bump the cache key when changing the installer URLs in this step.
-      - name: Cache Lazarus 4.8 installers (macOS)
-        uses: actions/cache@v6
+      - name: Download macOS binary from build matrix
+        uses: actions/download-artifact@v7
         with:
-          path: ~/lazarus-installers
-          key: lazarus48-installers-macos-fpc-3.2.4rc1a
-      - name: Install Lazarus 4.8 (macOS)
-        run: |
-          INSTALLER_CACHE="$HOME/lazarus-installers"
-          mkdir -p "$INSTALLER_CACHE"
-          if [ ! -s "$INSTALLER_CACHE/fpc.dmg" ]; then
-            wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20x86-64/Lazarus%204.8/fpc-3.2.4rc1a.intelarm64-macosx.dmg" -O "$INSTALLER_CACHE/fpc.dmg"
-          fi
-          if [ ! -s "$INSTALLER_CACHE/lazarus.zip" ]; then
-            wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20macOS%20aarch64/Lazarus%204.8/lazarus-darwin-aarch64-4.8.zip" -O "$INSTALLER_CACHE/lazarus.zip"
-          fi
-          sudo hdiutil attach "$INSTALLER_CACHE/fpc.dmg"
-          FPC_VOL=$(ls -d /Volumes/fpc* | head -1)
-          FPC_PKG=$(find "$FPC_VOL" -maxdepth 1 -name "*.pkg" | head -1)
-          sudo installer -package "$FPC_PKG" -target /
-          sudo hdiutil detach "$FPC_VOL"
-          xattr -cr "$INSTALLER_CACHE/lazarus.zip"
-          unzip -q "$INSTALLER_CACHE/lazarus.zip" -d "$RUNNER_TEMP"
-          sed -i '' 's|"/Developer/lazarus/"|"'$RUNNER_TEMP'/lazarus/"|g' "$RUNNER_TEMP/lazarus/config/environmentoptions.xml" 2>/dev/null || true
-          sudo ln -sf "$RUNNER_TEMP/lazarus/lazbuild" /usr/local/bin/lazbuild
-          echo "$RUNNER_TEMP/lazarus" >> $GITHUB_PATH
-
-      - name: Patch Lazarus 4.8 (macOS)
-        run: |
-          LAZARUS_DIR="$RUNNER_TEMP/lazarus"
-          test -f "$LAZARUS_DIR/lcl/include/lclintf.inc"
-          for p in "$GITHUB_WORKSPACE"/extra/lazarus-patches/4.8/*.patch; do
-            patch -d "$LAZARUS_DIR" -p1 --dry-run < "$p"
-            patch -d "$LAZARUS_DIR" -p1 < "$p"
-          done
-          grep -Fq "LCLIntf.SetCanvasScaleFactor(NodeBitmap.Canvas.Handle, ScaleFactor);" "$LAZARUS_DIR/components/virtualtreeview/laz.virtualtrees.pas"
-          grep -Fq "CGContextScaleCTM(ctx.CGContext, AScaleRatio, AScaleRatio);" "$LAZARUS_DIR/lcl/interfaces/cocoa/cocoalclintf.inc"
+          name: macos-15
+          path: out/macos
 
       - name: Import code signing certificate
         env:
@@ -357,14 +288,11 @@ jobs:
           rm -f "$RUNNER_TEMP/certificate.p12"
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
 
-      - name: Install FreeTDS (macOS)
-        run: |
-          brew install freetds
-
       # The Firebird macOS pkg is unpacked instead of installed via "installer",
       # to avoid running a Firebird server on the build runner.
       # The pkg is cached in ~/firebird-installers, served by actions/cache.
       # Bump the cache key when changing the pkg URL in this step.
+      # (FreeTDS is not needed here: create-macos-app.sh brew-installs it itself.)
       - name: Cache Firebird client (macOS)
         uses: actions/cache@v6
         with:
@@ -387,9 +315,6 @@ jobs:
           test -f "$RUNNER_TEMP/firebird-root/Versions/A/Resources/lib/libfbclient.dylib"
           test -f "$RUNNER_TEMP/firebird-root/Versions/A/Resources/plugins/libSrp.dylib"
           echo "FBCLIENT_ROOT=$RUNNER_TEMP/firebird-root/Versions/A/Resources" >> "$GITHUB_ENV"
-
-      - name: Build HeidiSQL (macOS)
-        run: make build-macos
 
       - name: Create, sign and notarize app bundle
         env:
@@ -430,7 +355,7 @@ jobs:
 
     build-qt6arm:
       name: Linux ARM64 QT6
-      runs-on: ubuntu-24.04-arm
+      runs-on: ubuntu-26.04-arm
       env:
         GITHUB: 1
 
@@ -440,56 +365,13 @@ jobs:
           with:
             fetch-depth: 0
 
-        # The installers are downloaded to ~/lazarus-installers, served by actions/cache.
-        # Bump the cache key when changing the installer URLs in the steps of this job.
-        - name: Cache Lazarus 4.8 installers (ARM64)
-          uses: actions/cache@v6
-          with:
-            path: ~/lazarus-installers
-            key: lazarus48-installers-linux-arm64-fpc-3.2.3-qt6pas-6.2.10
         - name: Install Lazarus 4.8 (ARM64)
-          run: |
-            sudo apt-get update
-            INSTALLER_CACHE="$HOME/lazarus-installers"
-            mkdir -p "$INSTALLER_CACHE"
-            if [ ! -s "$INSTALLER_CACHE/fpc-laz_3.2.3-240813_arm64.deb" ]; then
-              wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.8/fpc-laz_3.2.3-240813_arm64.deb" -O "$INSTALLER_CACHE/fpc-laz_3.2.3-240813_arm64.deb"
-            fi
-            if [ ! -s "$INSTALLER_CACHE/fpc-src_3.2.3-240813_arm64.deb" ]; then
-              wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.8/fpc-src_3.2.3-240813_arm64.deb" -O "$INSTALLER_CACHE/fpc-src_3.2.3-240813_arm64.deb"
-            fi
-            if [ ! -s "$INSTALLER_CACHE/lazarus-project_4.8.0-0_arm64.deb" ]; then
-              wget -q "https://sourceforge.net/projects/lazarus/files/Lazarus%20Linux%20arm64%20DEB/Lazarus%204.8/lazarus-project_4.8.0-0_arm64.deb" -O "$INSTALLER_CACHE/lazarus-project_4.8.0-0_arm64.deb"
-            fi
-            sudo apt-get install -y "$INSTALLER_CACHE/fpc-laz_3.2.3-240813_arm64.deb" "$INSTALLER_CACHE/fpc-src_3.2.3-240813_arm64.deb" "$INSTALLER_CACHE/lazarus-project_4.8.0-0_arm64.deb"
-            echo "/usr/lib/lazarus/4.8" >> $GITHUB_PATH
+          uses: ./.github/actions/setup-lazarus-linux
+          with:
+            arch: arm64
 
-        - name: Install Qt6 for ARM64
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y wget qt6-base-dev
-            INSTALLER_CACHE="$HOME/lazarus-installers"
-            mkdir -p "$INSTALLER_CACHE"
-            LIBQT6PAS_VERSION="6.2.10"
-            if [ ! -s "$INSTALLER_CACHE/libqt6pas6_${LIBQT6PAS_VERSION}-1_arm64.deb" ]; then
-              wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6_${LIBQT6PAS_VERSION}-1_arm64.deb" -O "$INSTALLER_CACHE/libqt6pas6_${LIBQT6PAS_VERSION}-1_arm64.deb"
-            fi
-            sudo dpkg -i "$INSTALLER_CACHE/libqt6pas6_${LIBQT6PAS_VERSION}-1_arm64.deb" || sudo apt-get install -f -y
-            if [ ! -s "$INSTALLER_CACHE/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_arm64.deb" ]; then
-              wget -q "https://github.com/davidbannon/libqt6pas/releases/download/v${LIBQT6PAS_VERSION}/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_arm64.deb" -O "$INSTALLER_CACHE/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_arm64.deb"
-            fi
-            sudo dpkg -i "$INSTALLER_CACHE/libqt6pas6-dev_${LIBQT6PAS_VERSION}-1_arm64.deb" || sudo apt-get install -f -y
-
-        - name: Patch Lazarus 4.8 for QT6
-          run: |
-            LAZARUS_DIR="/usr/share/lazarus/4.8.0"
-            test -f "$LAZARUS_DIR/lcl/include/lclintf.inc"
-            for p in "$GITHUB_WORKSPACE"/extra/lazarus-patches/4.8/*.patch; do
-              sudo patch -d "$LAZARUS_DIR" -p1 --dry-run < "$p"
-              sudo patch -d "$LAZARUS_DIR" -p1 < "$p"
-            done
-            grep -Fq "QPaintDevice_devicePixelRatioF" "$LAZARUS_DIR/lcl/interfaces/qt6/qtwscontrols.pp"
-            grep -Fq "LCLIntf.SetCanvasScaleFactor(NodeBitmap.Canvas.Handle, ScaleFactor);" "$LAZARUS_DIR/components/virtualtreeview/laz.virtualtrees.pas"
+        - name: Install Qt6 + libqt6pas and patch Lazarus 4.8 (ARM64)
+          uses: ./.github/actions/setup-qt6-linux
 
         - name: Build HeidiSQL (Linux ARM64 QT6)
           run: |
@@ -499,7 +381,7 @@ jobs:
         - name: Upload binaries QT6 ARM64
           uses: actions/upload-artifact@v6
           with:
-            name: ubuntu-24.04-arm-QT6
+            name: ubuntu-26.04-arm-QT6
             path: out/qt6arm/heidisql
 
     release:
@@ -508,7 +390,9 @@ jobs:
           GITHUB: 1
 
         name: Create GitHub Release
-        runs-on: [ubuntu-latest]
+        runs-on: [ubuntu-26.04]
+        permissions:
+          contents: write
         needs: [build, build-qt6arm, build-macos-app]
 
         steps:
@@ -527,25 +411,25 @@ jobs:
             - name: Download Ubuntu GTK
               uses: actions/download-artifact@v7
               with:
-                name: ubuntu-latest-GTK
+                name: ubuntu-26.04-GTK
                 path: out/gtk2
 
             - name: Download Ubuntu QT5
               uses: actions/download-artifact@v7
               with:
-                name: ubuntu-latest-QT5
+                name: ubuntu-26.04-QT5
                 path: out/qt5
 
             - name: Download Ubuntu QT6
               uses: actions/download-artifact@v7
               with:
-                name: ubuntu-latest-QT6
+                name: ubuntu-26.04-QT6
                 path: out/qt6
 
             - name: Download Ubuntu QT6 ARM64
               uses: actions/download-artifact@v7
               with:
-                name: ubuntu-24.04-arm-QT6
+                name: ubuntu-26.04-arm-QT6
                 path: out/qt6arm
             - name: Download macOS app bundle
               uses: actions/download-artifact@v7
