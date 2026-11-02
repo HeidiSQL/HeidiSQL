@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Generics.Collections, Controls, RegExpr, Math, FileUtil,
-  StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
+  StrUtils, Graphics, GraphUtil, LCLIntf, LCLType, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
   Character, DateUtils, laz.VirtualTrees, SynEdit, SynCompletion, fphttpclient, IntfGraphics, FPImage,
   SynEditFoldedView, SynEditWrappedView, ExtCtrls,
   {$IFDEF WINDOWS} Windows, Registry, uDarkStyleParams, {$ENDIF} DelphiCompat,
