@@ -9,6 +9,7 @@ object frmLogin: TfrmLogin
   ClientWidth = 270
   Color = clBtnFace
   Position = poScreenCenter
+  ShowHint = True
   LCLVersion = '4.8.0.0'
   OnCreate = FormCreate
   OnShow = FormShow
@@ -31,12 +32,8 @@ object frmLogin: TfrmLogin
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     BevelOuter = bvNone
-    Caption = 'pnlBackground'
     ClientHeight = 137
     ClientWidth = 270
-    Color = clWhite
-    ParentBackground = False
-    ParentColor = False
     TabOrder = 0
     object lblPrompt: TLabel
       Left = 38
