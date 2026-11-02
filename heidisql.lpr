@@ -10,12 +10,18 @@ uses
   SysUtils, Dialogs,
   Forms, printer4lazarus, datetimectrls, LCLTranslator, Translations,
   { you can add units after this }
-  main, apphelpers, dbconnection, generic_types, crashdialog, FileInfo
+  main, apphelpers, dbconnection, generic_types, crashdialog, FileInfo, loginform
   {$if defined(LINUX) and (defined(LCLQt5) or defined(LCLQt6))}
   , platformtheme
   {$endif};
 
 {$R *.res}
+
+// Export the callback from unit loginform, so that libmysqlclient's "dialog"
+// authentication plugin can find it in the executable's export table.
+// FPC only allows exports in the main program, not in units.
+exports
+  mysql_authentication_dialog_ask;
 
 var
   AppLanguage: String;
