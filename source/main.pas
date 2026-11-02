@@ -1247,19 +1247,11 @@ type
     procedure menuAlwaysGenerateFilterClick(Sender: TObject);
     procedure SynMemoQueryShowHint(Sender: TObject; HintInfo: PHintInfo);
     procedure actCopyGridNodesExecute(Sender: TObject);
-    procedure ApplicationException(Sender: TObject; E: Exception);
     procedure actQueryTableExecute(Sender: TObject);
     procedure actDisplayLogPanelExecute(Sender: TObject);
     procedure actDisplayTreeFiltersExecute(Sender: TObject);
     procedure actCopyFormattedExecute(Sender: TObject);
   private
-    // Executable file details
-    FAppVerMajor: Integer;
-    FAppVerMinor: Integer;
-    FAppVerRelease: Integer;
-    FAppVerRevision: Integer;
-    FAppVersion: String;
-
     FDelimiter: String;
     FLogToFile: Boolean;
     FFileNameSessionLog: String;
@@ -1395,8 +1387,6 @@ type
     TaskbarList3: ITaskbarList3;
     TaskbarList4: ITaskbarList4;}
 
-    property AppVerRevision: Integer read FAppVerRevision;
-    property AppVersion: String read FAppVersion;
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
     property FocusedTables: TDBObjectList read FFocusedTables;
@@ -1478,10 +1468,10 @@ const
 implementation
 
 uses
-  FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
+  About, data_sorting, column_selection, loaddata, editvar,
   copytable, csv_detector, exportgrid, usermanager, rolemanagerpg, rolemanagermssql, reformatter, connections, sqlhelp, updatecheck,
   insertfiles, texteditor, preferences, table_editor, view, routine_editor, trigger_editor, event_editor, grideditlinks,
-  crashdialog, selectdbobject;
+  selectdbobject;
 
 {$R *.lfm}
 
@@ -1891,7 +1881,6 @@ var
   QueryTab: TQueryTab;
   Action, CopyAsAction: TAction;
   ExportFormat: TGridExportFormat;
-  VI: TVersionInfo;
   CopyAsMenu, CommandMenu, ColorSchemeItem: TMenuItem;
   dti: TDBDatatypeCategoryIndex;
   EditorCommand: TSynEditorCommand;
@@ -1933,23 +1922,6 @@ begin
   for dti:=Low(DatatypeCategories) to High(DatatypeCategories) do begin
     DatatypeCategories[dti].Name := _(DatatypeCategories[dti].Name);
   end;
-
-  // Detect version
-  try
-    VI := TVersionInfo.Create;
-    VI.Load(HINSTANCE);
-    FAppVerMajor := VI.FixedInfo.FileVersion[0];
-    FAppVerMinor := VI.FixedInfo.FileVersion[1];
-    FAppVerRelease := VI.FixedInfo.FileVersion[2];
-    FAppVerRevision := VI.FixedInfo.FileVersion[3];
-    VI.Free;
-  except
-    FAppVerMajor := 0;
-    FAppVerMinor := 0;
-    FAppVerRelease := 0;
-    FAppVerRevision := 0;
-  end;
-  FAppVersion := Format('%d.%d.%d.%d', [FAppVerMajor, FAppVerMinor, FAppVerRelease, FAppVerRevision]);
 
   // Load snippet filenames
   SetSnippetFilenames;
@@ -2078,7 +2050,7 @@ begin
   // Force status bar position to below log memo
   StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
   actDataShowNext.Hint := f_('Show next %s rows ...', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
-  actAboutBox.Caption := f_('About %s', [APPNAME+' '+FAppVersion]);
+  actAboutBox.Caption := f_('About %s', [APPNAME+' '+AppVersion]);
   // Activate logging
   LogToFile := AppSettings.ReadBool(asLogToFile);
   if AppSettings.ReadBool(asLogHorizontalScrollbar) then
@@ -2291,7 +2263,7 @@ begin
         Environment := Environment + 'Portable';
 
       StatsCall := THttpDownload.Create(Self);
-      StatsURL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision) +
+      StatsURL := APPDOMAIN + 'savestats.php?c=' + IntToStr(AppVerRevision) +
         '&bits=' + IntToStr(GetExecutableBits) +
         '&env=' + EncodeURLParam(Environment) +
         '&winver=';
@@ -13695,7 +13667,7 @@ begin
   Cap := DBtree.Path(DBtree.FocusedNode, 0, ttStatic, '\') + ' - ' + APPNAME;
   if AppSettings.PortableMode then
     Cap := Cap + ' Portable';
-  Cap := Cap + ' ' + FAppVersion;
+  Cap := Cap + ' ' + AppVersion;
   Caption := Cap;
   Application.Title := Cap;
 end;
@@ -15344,34 +15316,6 @@ begin
       end;
     end;
   end;
-end;
-
-
-procedure TMainForm.ApplicationException(Sender: TObject; E: Exception);
-var
-  I: Integer;
-  Frames: PPointer;
-  Report: string;
-  CrashDlg: TfrmCrashDialog;
-begin
-  Report := '';
-  if E <> nil then begin
-    Report := Report + 'Exception class: ' + E.ClassName + LineEnding +
-      'Message: ' + E.Message + LineEnding +
-      APPNAME + ' ' + MainForm.AppVersion + LineEnding +
-      LineEnding;
-  end;
-  Report := Report + 'Callstack:' + LineEnding;
-  Report := Report + BackTraceStrFunc(ExceptAddr);
-  Frames := ExceptFrames;
-  for I := 0 to ExceptFrameCount - 1 do
-    Report := Report + LineEnding + BackTraceStrFunc(Frames[I]);
-  CrashDlg := TfrmCrashDialog.Create(Self);
-  CrashDlg.SetDetails(Report);
-  if CrashDlg.ShowModal = mrAbort then begin
-    Halt; // End of program execution
-  end;
-  CrashDlg.Free;
 end;
 
 

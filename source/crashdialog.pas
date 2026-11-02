@@ -5,7 +5,7 @@ unit crashdialog;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, Buttons;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, Buttons, LazVersion;
 
 type
 
@@ -26,9 +26,9 @@ type
   private
 
   public
-    procedure SetDetails(AValue: String);
+    // Global exception handler, assigned to Application.OnException in heidisql.lpr
+    class procedure ShowCrashDialog(Sender: TObject; E: Exception);
   end;
-
 
 implementation
 
@@ -102,9 +102,34 @@ begin
   btnCopy.SetFocus;
 end;
 
-procedure TfrmCrashDialog.SetDetails(AValue: String);
+class procedure TfrmCrashDialog.ShowCrashDialog(Sender: TObject; E: Exception);
+var
+  I: Integer;
+  Frames: PPointer;
+  Header, Report: string;
+  CrashDlg: TfrmCrashDialog;
 begin
-  memoDetails.Text := AValue;
+  Report := 'Callstack:' + LineEnding + BackTraceStrFunc(ExceptAddr);
+  Frames := ExceptFrames;
+  for I := 0 to ExceptFrameCount - 1 do
+    Report := Report + LineEnding + BackTraceStrFunc(Frames[I]);
+  Header := '';
+  if E <> nil then begin
+    Header := Header + 'Exception class: ' + E.ClassName + LineEnding +
+      'Message: ' + E.Message + LineEnding;
+  end;
+  Header := Header +
+    'OS: ' + GetOS + LineEnding +
+    APPNAME + ' version: ' + AppVersion + LineEnding +
+    'Lazarus version: ' + LazVersion.laz_version + LineEnding +
+    'FreePascal version: ' + {$I %FPCVERSION%} + LineEnding +
+    LineEnding;
+  CrashDlg := TfrmCrashDialog.Create(Application.MainForm);
+  CrashDlg.memoDetails.Text := Header + Report;
+  if CrashDlg.ShowModal = mrAbort then begin
+    Halt; // End of program execution
+  end;
+  CrashDlg.Free;
 end;
 
 

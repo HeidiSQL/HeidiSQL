@@ -262,7 +262,7 @@ uses Main, apphelpers, dbstructures.sqlite, grideditlinks;
 
 function Tconnform.GetWindowCaption: String;
 begin
-  Result := APPNAME + ' ' + MainForm.AppVersion + ' - ' + _('Session manager');
+  Result := APPNAME + ' ' + AppVersion + ' - ' + _('Session manager');
   if not SelectedSessionPath.IsEmpty then
     Result := Result + ': ' + SelectedSessionPath;
 end;

@@ -751,7 +751,7 @@ begin
           '<html>' + sLineBreak +
           CodeIndent + '<head>' + sLineBreak +
           CodeIndent(2) + '<title>' + TableName + '</title>' + sLineBreak +
-          CodeIndent(2) + '<meta name="GENERATOR" content="'+ APPNAME+' '+Mainform.AppVersion + '">' + sLineBreak +
+          CodeIndent(2) + '<meta name="GENERATOR" content="'+ APPNAME+' '+AppVersion + '">' + sLineBreak +
           CodeIndent(2) + '<meta http-equiv="Content-Type" content="text/html; charset='+GetHTMLCharsetByEncoding(Encoding)+'" />' + sLineBreak +
           CodeIndent(2) + '<meta name="color-scheme" content="light dark">' + sLineBreak +
           CodeIndent(2) + '<style type="text/css">' + sLineBreak +
@@ -1200,7 +1200,7 @@ begin
           CodeIndent(2) + '</table>' + sLineBreak + sLineBreak +
           CodeIndent(2) + '<p>' + sLineBreak +
           CodeIndent(3) + '<em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
-          CodeIndent(3) + 'by <a href="'+APPDOMAIN+'">' + APPNAME + ' ' + Mainform.AppVersion + '</a></em>' + sLineBreak +
+          CodeIndent(3) + 'by <a href="'+APPDOMAIN+'">' + APPNAME + ' ' + AppVersion + '</a></em>' + sLineBreak +
           CodeIndent(2) + '</p>' + sLineBreak + sLineBreak +
           CodeIndent + '</body>' + sLineBreak +
           '</html>' + sLineBreak;

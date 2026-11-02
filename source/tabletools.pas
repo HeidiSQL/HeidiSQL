@@ -1911,7 +1911,7 @@ begin
         Format('-- %-30s%s', [_('Host')+':', DBObj.Connection.Parameters.HostName]) + CRLF +
         Format('-- %-30s%s', [_('Server version')+':', DBObj.Connection.ServerVersionUntouched]) + CRLF +
         Format('-- %-30s%s', [_('Server OS')+':', DBObj.Connection.ServerOS]) + CRLF +
-        Format('-- %-30s%s', [APPNAME + ' ' + _('Version')+':', Mainform.AppVersion]) + CRLF +
+        Format('-- %-30s%s', [APPNAME + ' ' + _('Version')+':', AppVersion]) + CRLF +
         '-- --------------------------------------------------------' + CRLF + CRLF;
     end;
     Header := Header +
@@ -2140,7 +2140,7 @@ begin
         Data := DBObj.Connection.GetResults(
           DBObj.Connection.ApplyLimitClause(
             'SELECT',
-            '/* '+APPNAME+' '+MainForm.AppVersion+' */ ' + ColumnsForSelect + ' FROM '+DBObj.QuotedDbAndTableName + OrderBy,
+            '/* '+APPNAME+' '+AppVersion+' */ ' + ColumnsForSelect + ' FROM '+DBObj.QuotedDbAndTableName + OrderBy,
             Limit,
             Offset)
           );

@@ -86,7 +86,7 @@ begin
     ReadCheckFile;
     // Developer versions probably have "unknown" (0) as revision,
     // which makes it impossible to compare the revisions.
-    if Mainform.AppVerRevision = 0 then
+    if AppVerRevision = 0 then
       Status(_('Error: Cannot determine current revision. Using a developer version?'))
     else if groupRelease.Enabled then
       Status(_('Updates available.'))
@@ -122,7 +122,7 @@ begin
   // Prepare download
   CheckfileDownload := THttpDownload.Create(Self);
   CheckfileDownload.TimeOut := 5;
-  CheckfileDownload.URL := APPDOMAIN+'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision)+'&bits='+IntToStr(GetExecutableBits)+'&os='+EncodeURLParam(GetOS.ToLower)+'&t='+EncodeURLParam(DateTimeToStr(Now));
+  CheckfileDownload.URL := APPDOMAIN+'updatecheck.php?r='+IntToStr(AppVerRevision)+'&bits='+IntToStr(GetExecutableBits)+'&os='+EncodeURLParam(GetOS.ToLower)+'&t='+EncodeURLParam(DateTimeToStr(Now));
   CheckFilename := GetTempDir + APPNAME + '_updatecheck.ini';
 
   // Download the check file
@@ -138,7 +138,7 @@ begin
       ReleasePackage := 'portable'
     else
       ReleasePackage := {$IFDEF WINDOWS} 'installer' {$ELSE} 'package' {$ENDIF};
-    memoRelease.Lines.Add(f_('Version %s (yours: %s)', [ReleaseVersion, Mainform.AppVersion]));
+    memoRelease.Lines.Add(f_('Version %s (yours: %s)', [ReleaseVersion, AppVersion]));
     memoRelease.Lines.Add(f_('Released: %s', [Ini.ReadString(INISECT_RELEASE, 'Date', '')]));
     Note := Ini.ReadString(INISECT_RELEASE, 'Note', '');
     if Note <> '' then

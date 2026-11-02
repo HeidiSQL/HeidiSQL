@@ -10,7 +10,7 @@ uses
   SysUtils, Dialogs,
   Forms, printer4lazarus, datetimectrls, LCLTranslator, Translations,
   { you can add units after this }
-  main, apphelpers, dbconnection, generic_types
+  main, apphelpers, dbconnection, generic_types, crashdialog, FileInfo
   {$if defined(LINUX) and (defined(LCLQt5) or defined(LCLQt6))}
   , platformtheme
   {$endif};
@@ -20,7 +20,22 @@ uses
 var
   AppLanguage: String;
   WasDarkMode, IsDarkMode, FirstRun: Boolean;
+  VI: TVersionInfo;
 begin
+  // Detect version of the executable file, early so that crash reports can use it.
+  // Create is intentionally outside the try block: an exception there (e.g. out of
+  // memory) must not be swallowed by the except below.
+  VI := TVersionInfo.Create;
+  try
+    // Load can fail on exotic executables; treat that as "no version info"
+    VI.Load(HINSTANCE);
+    AppVerRevision := VI.FixedInfo.FileVersion[3];
+    AppVersion := Format('%d.%d.%d.%d', [VI.FixedInfo.FileVersion[0], VI.FixedInfo.FileVersion[1], VI.FixedInfo.FileVersion[2], VI.FixedInfo.FileVersion[3]]);
+  except
+    // keep the defaults initialized in apphelpers
+  end;
+  VI.Free;
+
   PostponedLogItems := TDBLogItems.Create(True);
   Application.{%H-}MainFormOnTaskBar := True; // hide warning: Symbol "MainFormOnTaskBar" is not portable
 
@@ -102,8 +117,10 @@ begin
   ApplyPlatformTheme(AppSettings.ReadInt(asThemeMode));
   {$endif}
 
+  // Set the crash dialog handler before creating the main form, so that exceptions
+  // in TMainForm.FormCreate are caught as well (Application.MainForm is still nil then)
+  Application.OnException := TfrmCrashDialog.ShowCrashDialog;
   Application.CreateForm(TMainForm, MainForm);
-  Application.OnException := MainForm.ApplicationException;
   MainForm.AfterFormCreate;
   Application.OnDeactivate := MainForm.ApplicationDeActivate;
   Application.OnIdle := MainForm.ApplicationIdle;

@@ -473,6 +473,10 @@ type
   procedure ApplySynEditWordWrap(Editor: TCustomSynEdit; Enable: Boolean);
 
 var
+  // Version of the executable file, detected in the main program (heidisql.lpr).
+  // Initialized here so that crash reports have a sane default even if detection fails.
+  AppVersion: String = '0.0.0.0';
+  AppVerRevision: Integer = 0;
   AppSettings: TAppSettings;
   AppLanguageMoFile: TMOFile;
   AppLanguageMoBasePath: String;
@@ -3102,7 +3106,7 @@ end;
 
 function UserAgent(OwnerComponent: TComponent): String;
 begin
-  Result := APPNAME+'/'+MainForm.AppVersion+' ('+GetOS+'; '+ExtractFilename(Application.ExeName)+'; '+OwnerComponent.Name+')';
+  Result := APPNAME+'/'+AppVersion+' ('+GetOS+'; '+ExtractFilename(Application.ExeName)+'; '+OwnerComponent.Name+')';
 end;
 
 
