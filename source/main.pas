@@ -15,8 +15,16 @@ uses
   LazStringUtils, dbconnection, dbstructures, dbstructures.mysql, generic_types,
   apphelpers, extra_controls, createdatabase, SynEditMarkup, SynEditMarkupBracket,
   searchreplace, ImgList, IniFiles, LazFileUtils, LazUTF8, tabletools,
-  lazaruscompat, extfiledialog, process, SynEditMiscClasses, Contnrs, SynExportHTML;
+  lazaruscompat, extfiledialog, process, SynEditMiscClasses, Contnrs, SynExportHTML
+  {$IFDEF WINDOWS}, ComObj{$ENDIF};
 
+
+{$IFDEF WINDOWS}
+const
+  // Taskbar COM GUIDs from shlobj.h (FPC's ShlObj does not define them)
+  CLSID_TaskbarList: TGUID = '{56FDF344-FD6D-11D0-958A-006097C9A090}';
+  IID_ITaskbarList3: TGUID = '{EA1AFB91-9E28-4B86-90E9-9E9F8A5EEFAF}';
+{$ENDIF}
 
 type
 
@@ -184,33 +192,50 @@ type
     function Compare({$IF FPC_FULLVERSION<30203}constref{$ELSE}const{$ENDIF} Left, Right: TQueryHistoryItem): Integer; override;
   end;
 
-  {ITaskbarList = interface(IUnknown)
-    [SID_ITaskbarList]
-    function HrInit: HRESULT; stdcall;
-    function AddTab(hwnd: HWND): HRESULT; stdcall;
-    function DeleteTab(hwnd: HWND): HRESULT; stdcall;
-    function ActivateTab(hwnd: HWND): HRESULT; stdcall;
-    function SetActiveAlt(hwnd: HWND): HRESULT; stdcall;
+  {$IFDEF WINDOWS}
+  // Taskbar COM interfaces. Only ITaskbarList3 is used (progress in the task button),
+  // but the full vtable chain must be declared for QueryInterface to work.
+  // Win32 types not provided by the LCL are replaced by ABI-identical base types
+  // (HRESULT=LongInt, DWORD=LongWord, ULONGLONG=QWord, LPCWSTR=PWideChar); pulling in
+  // the Windows unit would clash with LCL identifiers (e.g. Beep).
+  TThumbButton = record
+    dwMask: LongWord;
+    iId: UINT;
+    iBitmap: UINT;
+    hIcon: HICON;
+    szTip: array[0..259] of WideChar;
+    dwFlags: LongWord;
+  end;
+  PThumbButton = ^TThumbButton;
+
+  ITaskbarList = interface(IUnknown)
+    ['{56FDF342-FD6D-11D0-958A-006097C9A090}']
+    function HrInit: LongInt; stdcall; // HRESULT
+    function AddTab(hwnd: HWND): LongInt; stdcall;
+    function DeleteTab(hwnd: HWND): LongInt; stdcall;
+    function ActivateTab(hwnd: HWND): LongInt; stdcall;
+    function SetActiveAlt(hwnd: HWND): LongInt; stdcall;
   end;
   ITaskbarList2 = interface(ITaskbarList)
-    [SID_ITaskbarList2]
-    function MarkFullscreenWindow(hwnd: HWND; fFullscreen: BOOL): HRESULT; stdcall;
+    ['{602D4995-B13A-429B-A66E-1935E44F4317}']
+    function MarkFullscreenWindow(hwnd: HWND; fFullscreen: BOOL): LongInt; stdcall;
   end;
   ITaskbarList3 = interface(ITaskbarList2)
-    [SID_ITaskbarList3]
-    function SetProgressValue(hwnd: HWND; ullCompleted: ULONGLONG; ullTotal: ULONGLONG): HRESULT; stdcall;
-    function SetProgressState(hwnd: HWND; tbpFlags: Integer): HRESULT; stdcall;
-    function RegisterTab(hwndTab: HWND; hwndMDI: HWND): HRESULT; stdcall;
-    function UnregisterTab(hwndTab: HWND): HRESULT; stdcall;
-    function SetTabOrder(hwndTab: HWND; hwndInsertBefore: HWND): HRESULT; stdcall;
-    function SetTabActive(hwndTab: HWND; hwndMDI: HWND; tbatFlags: Integer): HRESULT; stdcall;
-    function ThumbBarAddButtons(hwnd: HWND; cButtons: UINT; pButton: PThumbButton): HRESULT; stdcall;
-    function ThumbBarUpdateButtons(hwnd: HWND; cButtons: UINT; pButton: PThumbButton): HRESULT; stdcall;
-    function ThumbBarSetImageList(hwnd: HWND; himl: HIMAGELIST): HRESULT; stdcall;
-    function SetOverlayIcon(hwnd: HWND; hIcon: HICON; pszDescription: LPCWSTR): HRESULT; stdcall;
-    function SetThumbnailTooltip(hwnd: HWND; pszTip: LPCWSTR): HRESULT; stdcall;
-    function SetThumbnailClip(hwnd: HWND; var prcClip: TRect): HRESULT; stdcall;
-  end;}
+    ['{EA1AFB91-9E28-4B86-90E9-9E9F8A5EEFAF}']
+    function SetProgressValue(hwnd: HWND; ullCompleted: QWord; ullTotal: QWord): LongInt; stdcall;
+    function SetProgressState(hwnd: HWND; tbpFlags: Integer): LongInt; stdcall;
+    function RegisterTab(hwndTab: HWND; hwndMDI: HWND): LongInt; stdcall;
+    function UnregisterTab(hwndTab: HWND): LongInt; stdcall;
+    function SetTabOrder(hwndTab: HWND; hwndInsertBefore: HWND): LongInt; stdcall;
+    function SetTabActive(hwndTab: HWND; hwndMDI: HWND; tbatFlags: Integer): LongInt; stdcall;
+    function ThumbBarAddButtons(hwnd: HWND; cButtons: UINT; pButton: PThumbButton): LongInt; stdcall;
+    function ThumbBarUpdateButtons(hwnd: HWND; cButtons: UINT; pButton: PThumbButton): LongInt; stdcall;
+    function ThumbBarSetImageList(hwnd: HWND; himl: HIMAGELIST): LongInt; stdcall;
+    function SetOverlayIcon(hwnd: HWND; hIcon: HICON; pszDescription: PWideChar): LongInt; stdcall;
+    function SetThumbnailTooltip(hwnd: HWND; pszTip: PWideChar): LongInt; stdcall;
+    function SetThumbnailClip(hwnd: HWND; var prcClip: TRect): LongInt; stdcall;
+  end;
+  {$ENDIF}
 
   { TMainForm }
 
@@ -1382,10 +1407,10 @@ type
     FilterPanelManuallyOpened: Boolean;
 
     // Task button interface
-    {TaskbarList: ITaskbarList;
-    TaskbarList2: ITaskbarList2;
+    {$IFDEF WINDOWS}
+    TaskbarList: ITaskbarList;
     TaskbarList3: ITaskbarList3;
-    TaskbarList4: ITaskbarList4;}
+    {$ENDIF}
 
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
@@ -1925,6 +1950,17 @@ begin
 
   // Load snippet filenames
   SetSnippetFilenames;
+
+  {$IFDEF WINDOWS}
+  // Taskbar progress via COM (ITaskbarList3). FPC's ComObj does this without VCL.
+  try
+    TaskbarList := ComObj.CreateComObject(CLSID_TaskbarList) as ITaskbarList;
+    TaskbarList.HrInit;
+    TaskbarList.QueryInterface(IID_ITaskbarList3, TaskbarList3);
+  except
+    on E: Exception do;
+  end;
+  {$ENDIF}
 
   // Dynamically create actions and menuitems in "Copy as" context menu
   for ExportFormat:=Low(TGridExportFormat) to High(TGridExportFormat) do begin
@@ -15375,8 +15411,10 @@ begin
   // Hide global progress bar
   SetProgressPosition(0);
   ProgressBarStatus.Hide;
-  //if Assigned(TaskBarList3) then
-  //  TaskBarList3.SetProgressState(Handle, 0);
+  {$IFDEF WINDOWS}
+  if Assigned(TaskBarList3) then
+    TaskBarList3.SetProgressState(Handle, 0); // TBPF_NOPROGRESS
+  {$ENDIF}
 end;
 
 
@@ -15390,8 +15428,10 @@ begin
     on E:EZeroDivide do;
   end;
   ProgressBarStatus.Repaint;
-  //if Assigned(TaskBarList3) then
-  //  TaskBarList3.SetProgressValue(Handle, Value, ProgressBarStatus.Max);
+  {$IFDEF WINDOWS}
+  if Assigned(TaskBarList3) then
+    TaskBarList3.SetProgressValue(Handle, Value, ProgressBarStatus.Max);
+  {$ENDIF}
 end;
 
 
@@ -15402,21 +15442,32 @@ end;
 
 
 procedure TMainForm.SetProgressState(State: TProgressbarState);
-//var
-//  Flag: Integer;
+{$IFDEF WINDOWS}
+const
+  // Win32 common control message (Vista+), paints the status bar's progress bar
+  PBM_SETSTATE = $0400 + 16; // WM_USER + 16
+  PBST: array[TProgressBarState] of PtrUInt = (1, 2, 3); // PBST_NORMAL, PBST_ERROR, PBST_PAUSED
+var
+  Flag: Integer;
+{$ENDIF}
 begin
   // Set error or pause state in progress bar or task button
-  //ProgressBarStatus.State := State;
+  {$IFDEF WINDOWS}
+  // The LCL TProgressBar has no State property; send PBM_SETSTATE like VCL does
+  LCLIntf.SendMessage(ProgressBarStatus.Handle, PBM_SETSTATE, PBST[State], 0);
+  {$ENDIF}
   ProgressBarStatus.Repaint;
-  {if Assigned(TaskBarList3) then begin
+  {$IFDEF WINDOWS}
+  if Assigned(TaskBarList3) then begin
     case State of
-      pbsNormal: Flag := 2;
-      pbsError: Flag := 4;
-      pbsPaused: Flag := 8;
-      else Flag := 0;
+      pbsNormal: Flag := 2;  // TBPF_NORMAL
+      pbsError: Flag := 4;   // TBPF_ERROR
+      pbsPaused: Flag := 8;  // TBPF_PAUSED
+      else Flag := 0;        // TBPF_NOPROGRESS
     end;
     TaskBarList3.SetProgressState(Handle, Flag);
-  end;}
+  end;
+  {$ENDIF}
 end;
 
 
