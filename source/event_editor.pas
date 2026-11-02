@@ -379,13 +379,8 @@ end;
 procedure TfrmEventEditor.comboEveryIntervalChange(Sender: TObject);
 begin
   // To enter DAY_HOUR values editor has to accept "1-2"
-  {if Pos('_', comboEveryInterval.Text) > 0 then begin
-    udEveryQuantity.Associate := nil;
-    udEveryQuantity.Enabled := False;
-  end else begin
-    udEveryQuantity.Associate := editEveryQuantity;
-    udEveryQuantity.Enabled := True;
-  end;}
+  // Note: trunk additionally disables a TUpDown (udEveryQuantity) here, but that
+  // component does not exist in the LCL form.
   Modification(Sender);
 end;
 
