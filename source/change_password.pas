@@ -7,7 +7,7 @@ interface
 uses
   SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
-  Menus, Clipbrd, ComCtrls, extra_controls, Buttons;
+  Menus, Clipbrd, ComCtrls, extra_controls, Buttons, LCLIntf;
 
 type
   TfrmPasswordChange = class(TExtForm)
@@ -42,6 +42,7 @@ type
   private
     { Private-Deklarationen }
     procedure CheckPasswordStrength;
+    procedure SetStrengthColor(State: TProgressBarState);
   public
     { Public-Deklarationen }
   end;
@@ -164,11 +165,35 @@ begin
   end;
   Inc(Distance, Length(p)*10);
   progressbarPasswordStrength.Position := Round(progressbarPasswordStrength.Max / 500 * Distance);
-  {case progressbarPasswordStrength.Position of
-    0..20: progressbarPasswordStrength.State := pbsError;
-    21..50: progressbarPasswordStrength.State := pbsPaused;
-    51..100: progressbarPasswordStrength.State := pbsNormal;
-  end;}
+  // Colorize by strength. The LCL TProgressBar has no State property (unlike VCL's
+  // pbsError/pbsPaused/pbsNormal used in trunk), so use our helper.
+  case progressbarPasswordStrength.Position of
+    0..20: SetStrengthColor(pbsError);
+    21..50: SetStrengthColor(pbsPaused);
+    51..100: SetStrengthColor(pbsNormal);
+  end;
+end;
+
+
+procedure TfrmPasswordChange.SetStrengthColor(State: TProgressBarState);
+{$IFDEF WINDOWS}
+const
+  // Win32 common control message (Vista+), paints the bar itself green/yellow/red
+  PBM_SETSTATE = $0400 + 16; // WM_USER + 16
+  PBST: array[TProgressBarState] of PtrUInt = (1, 2, 3); // PBST_NORMAL, PBST_ERROR, PBST_PAUSED
+{$ENDIF}
+begin
+  {$IFDEF WINDOWS}
+  // The native win32 progress bar ignores TProgressBar.Color for the bar itself,
+  // so send PBM_SETSTATE like VCL's State property does.
+  LCLIntf.SendMessage(progressbarPasswordStrength.Handle, PBM_SETSTATE, PBST[State], 0);
+  {$ENDIF}
+  // Fallback for other widgetsets: set the control's background color.
+  case State of
+    pbsError: progressbarPasswordStrength.Color := clRed;
+    pbsPaused: progressbarPasswordStrength.Color := clYellow;
+    pbsNormal: progressbarPasswordStrength.Color := clGreen;
+  end;
 end;
 
 
