@@ -7,7 +7,7 @@ interface
 uses
   SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
-  Menus, Clipbrd, ComCtrls, extra_controls, Buttons, LCLIntf;
+  Menus, Clipbrd, ComCtrls, extra_controls, Buttons, LCLIntf, LCLType;
 
 type
   TfrmPasswordChange = class(TExtForm)
@@ -107,7 +107,7 @@ begin
   btnCopyToClipboard.Repaint;
   Sleep(500);
   btnCopyToClipboard.ImageIndex := OldImageIndex;
-  Beep;
+  AppBeep(MB_OK);
 end;
 
 

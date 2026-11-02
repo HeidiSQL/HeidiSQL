@@ -1097,7 +1097,7 @@ begin
     comboShortcut2Key.ItemIndex := GetVKIndexByCode(VK_UNKNOWN);
   end
   else
-    Beep;
+    AppBeep(MB_ICONASTERISK);
 end;
 
 procedure TfrmPreferences.btnRestoreDefaultsClick(Sender: TObject);

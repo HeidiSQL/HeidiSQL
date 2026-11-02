@@ -365,6 +365,9 @@ type
   function HTMLSpecialChars(str: String): String;
   function EncodeURLParam(const Value: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
+  // Play the system sound for the given MB_ICON* constant (from LCLType) on Windows,
+  // like Delphi's MessageBeep. Plain beep on other platforms.
+  procedure AppBeep(uType: Cardinal);
   function _GetFileSize(Filename: String): Int64;
   function DeleteFileWithUndo(sFileName: String): Boolean;
   function MakeInt(Str: String) : Int64;
@@ -774,6 +777,16 @@ begin
   L := Length(utf8);
   if L > 0 then
     S.WriteBuffer(utf8[1], L);
+end;
+
+
+procedure AppBeep(uType: Cardinal);
+begin
+  {$IFDEF WINDOWS}
+  Windows.MessageBeep(uType);
+  {$ELSE}
+  SysUtils.Beep;
+  {$ENDIF}
 end;
 
 
@@ -3715,7 +3728,7 @@ begin
     else
       MainForm.LogSQL(Self.Name + ': either disabled or cannot focus', lcDebug);
   except
-    SysUtils.Beep;
+    AppBeep(MB_ICONWARNING);
   end;
 end;
 

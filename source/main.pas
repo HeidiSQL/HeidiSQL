@@ -1668,7 +1668,7 @@ begin
         if Grid.FocusedNode = nil then
           SelectNode(Grid, 0);
       end else begin
-        Beep;
+        AppBeep(MB_ICONASTERISK);
       end;
     end else begin
       Tab.Memo.TrySetFocus;
@@ -1684,7 +1684,7 @@ begin
       SynMemoFilter.TrySetFocus;
     end;
   end else begin
-    Beep;
+    AppBeep(MB_ICONASTERISK);
   end;
 end;
 
@@ -1696,7 +1696,7 @@ begin
     ToggleFilterPanel(True);
     editFilterSearch.TrySetFocus;
   end else begin
-    Beep;
+    AppBeep(MB_ICONASTERISK);
   end;
 end;
 
@@ -4316,9 +4316,9 @@ begin
         TimeElapsed := GetTickCount64 - StartTime;
         LogSQL(f_('%s file(s) processed, in %s', [FormatNumber(FilesProcessed), FormatTimeNumber(TimeElapsed/1000, True)]));
         if RunSuccess then
-          Beep
+          AppBeep(MB_OK)
         else
-          Beep;
+          AppBeep(MB_ICONERROR);
       end;
       mrNo: Result := False;
       mrCancel: Result := True;
@@ -5141,7 +5141,7 @@ begin
     SynCompletionProposal.Execute(SynCompletionProposal.CurrentString, P.X, P.Y);
   end
   else
-    Beep;
+    AppBeep(MB_ICONEXCLAMATION);
 end;
 
 procedure TMainForm.actSynMoveDownExecute(Sender: TObject);
@@ -5159,7 +5159,7 @@ begin
       Editor.OnChange(Editor);
     Editor.Repaint;
   end else begin
-    Beep;
+    AppBeep(MB_ICONERROR);
   end;
 end;
 
@@ -5177,7 +5177,7 @@ begin
       Editor.OnChange(Editor);
     Editor.Repaint;
   end else begin
-    Beep;
+    AppBeep(MB_ICONERROR);
   end;
 end;
 
@@ -5327,7 +5327,7 @@ begin
     end;
   end;
   if not Handled then begin
-    Beep;
+    AppBeep(MB_ICONASTERISK);
   end;
 
 end;
@@ -12439,7 +12439,7 @@ begin
 
   Screen.Cursor := crDefault;
   LogSQL(f_('%s: %s lines copied to clipboard', [SLogPrefixInfo, FormatNumber(NodesCopied)]), lcInfo);
-  Beep;
+  AppBeep(MB_ICONASTERISK);
 end;
 
 procedure TMainForm.actCopyOrCutExecute(Sender: TObject);
@@ -12537,7 +12537,7 @@ begin
   except
     on E:Exception do begin
       LogSQL(E.ClassName + ': ' + E.Message);
-      Beep;
+      AppBeep(MB_ICONASTERISK);
     end;
   end;
   Screen.Cursor := crDefault;
@@ -12550,14 +12550,14 @@ var
 begin
   // Copy formatted SQL text to clipboard
   if not (Screen.ActiveControl is TSynMemo) then begin
-    Beep;
+    AppBeep(MB_ICONWARNING);
     LogSQL('Active control is not a SynMemo');
     Exit;
   end;
 
   SynMemo := TSynMemo(Screen.ActiveControl);
   if SynMemo.Highlighter = nil then begin
-    Beep;
+    AppBeep(MB_ICONWARNING);
     LogSQL('No highlighter assigned to active SynMemo');
     Exit;
   end;
@@ -12623,7 +12623,7 @@ begin
     end;
   end;
   if not Success then
-    Beep;
+    AppBeep(MB_ICONASTERISK);
 end;
 
 
@@ -12666,7 +12666,7 @@ begin
     end;
   end;
   if not Success then
-    Beep;
+    AppBeep(MB_ICONASTERISK);
 end;
 
 
@@ -12696,7 +12696,7 @@ begin
     end;
   end;
   if not Success then
-    Beep;
+    AppBeep(MB_ICONASTERISK);
 end;
 
 
@@ -12759,7 +12759,7 @@ begin
   else if Sender is TComboBox then
     key := (Sender as TComboBox).ItemIndex+1
   else begin
-    Beep;
+    AppBeep(MB_ICONWARNING);
     LogSQL('Unhandled '+Sender.ClassName+' in LoadRecentFilter');
     Exit;
   end;
@@ -13149,7 +13149,7 @@ begin
   end;
   if not IsQueryTab(PageIndex, True) then begin
     // Action may have been triggered through shortcut, and active tab is not a query tab
-    Beep;
+    AppBeep(MB_ICONASTERISK);
   end else begin
     NewCaption := PageControlMain.Pages[PageIndex].Caption;
     NewCaption := NewCaption.Trim([' ', '*']);
@@ -15536,7 +15536,7 @@ begin
       Tab.tabsetQuery.OnChange(Tab.tabsetQuery);
     end
     else
-      Beep;
+      AppBeep(MB_ICONEXCLAMATION);
   end;
 end;
 
@@ -15553,7 +15553,7 @@ begin
       Tab.tabsetQuery.OnChange(Tab.tabsetQuery);
     end
     else
-      Beep;
+      AppBeep(MB_ICONEXCLAMATION);
   end;
 end;
 
@@ -15594,7 +15594,7 @@ begin
     end;
   end;
   if not SchemeFound then
-    Beep;
+    AppBeep(MB_ICONEXCLAMATION);
 end;
 
 

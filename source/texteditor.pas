@@ -500,11 +500,11 @@ begin
       end;
     end
     else begin
-      Beep;
+      AppBeep(MB_ICONEXCLAMATION);
     end;
   except
     on E:Exception do begin
-      Beep;
+      AppBeep(MB_ICONERROR);
       MainForm.LogSQL(f_('Error in code formatting: %s', [E.Message]));
     end;
   end;

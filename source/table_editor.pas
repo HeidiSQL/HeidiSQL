@@ -1980,7 +1980,7 @@ begin
   ed := Sender as TEdit;
   ShouldBe := CleanupNumber(ed.Text);
   if (ed.Text = ShouldBe) or (ed.Text = '') then Exit;
-  Beep;
+  AppBeep(MB_ICONEXCLAMATION);
   CursorPos := ed.SelStart;
   ed.OnChange := nil;
   ed.Text := ShouldBe;
@@ -2595,7 +2595,7 @@ begin
   IndexNode := nil;
   ColPos := 0;
   if not Assigned(TargetNode) then begin
-    Beep;
+    AppBeep(MB_ICONEXCLAMATION);
     Exit;
   end;
   Mainform.LogSQL('TargetNode.Index: '+TargetNode.Index.ToString, lcDebug);
@@ -2679,7 +2679,7 @@ begin
     treeIndexes.EndEditNode;
   TblKey := FKeys[treeIndexes.FocusedNode.Parent.Index];
   if NewIdx >= Cardinal(TblKey.Columns.Count) then begin
-    Beep;
+    AppBeep(MB_ICONEXCLAMATION);
     Exit;
   end;
   TblKey.Columns.Move(treeIndexes.FocusedNode.Index, NewIdx);
