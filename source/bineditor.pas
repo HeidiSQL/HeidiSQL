@@ -106,8 +106,8 @@ end;
 
 procedure TfrmBinEditor.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteInt(asMemoEditorWidth, Width);
-  AppSettings.WriteInt(asMemoEditorHeight, Height);
+  AppSettings.WriteInt(asMemoEditorWidth, ScaleFormToDesign(Width));
+  AppSettings.WriteInt(asMemoEditorHeight, ScaleFormToDesign(Height));
   AppSettings.WriteBool(asMemoEditorWrap, btnWrap.Down);
 end;
 

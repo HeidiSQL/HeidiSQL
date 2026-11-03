@@ -1854,8 +1854,8 @@ begin
   AppSettings.WriteInt(asMainWinOnMonitor, Monitor.MonitorNum);
   // Window dimensions are only valid when WindowState is normal.
   if WindowState = wsNormal then begin
-    AppSettings.WriteInt(asMainWinLeft, ScaleFormToDesign(Left));
-    AppSettings.WriteInt(asMainWinTop, ScaleFormToDesign(Top));
+    AppSettings.WriteInt(asMainWinLeft, Left);
+    AppSettings.WriteInt(asMainWinTop, Top);
     AppSettings.WriteInt(asMainWinWidth, ScaleFormToDesign(Width));
     AppSettings.WriteInt(asMainWinHeight, ScaleFormToDesign(Height));
   end;

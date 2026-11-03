@@ -112,8 +112,8 @@ end;
 
 procedure TfrmSQLhelp.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteInt(asSQLHelpWindowLeft, ScaleFormToDesign(Left));
-  AppSettings.WriteInt(asSQLHelpWindowTop, ScaleFormToDesign(Top));
+  AppSettings.WriteInt(asSQLHelpWindowLeft, Left);
+  AppSettings.WriteInt(asSQLHelpWindowTop, Top);
   AppSettings.WriteInt(asSQLHelpWindowWidth, ScaleFormToDesign(Width));
   AppSettings.WriteInt(asSQLHelpWindowHeight, ScaleFormToDesign(Height));
   AppSettings.WriteInt(asSQLHelpPnlLeftWidth, ScaleFormToDesign(pnlLeft.Width));

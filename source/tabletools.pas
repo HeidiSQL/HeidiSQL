@@ -571,9 +571,9 @@ begin
     FreeAndNil(FTargetConnection);
   SaveSettings;
   // Save GUI setup
-  AppSettings.WriteInt(asTableToolsWindowWidth, Width);
-  AppSettings.WriteInt(asTableToolsWindowHeight, Height);
-  AppSettings.WriteInt(asTableToolsTreeWidth, pnlLeft.Width);
+  AppSettings.WriteInt(asTableToolsWindowWidth, ScaleFormToDesign(Width));
+  AppSettings.WriteInt(asTableToolsWindowHeight, ScaleFormToDesign(Height));
+  AppSettings.WriteInt(asTableToolsTreeWidth, ScaleFormToDesign(pnlLeft.Width));
 end;
 
 
