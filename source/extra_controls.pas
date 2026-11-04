@@ -16,16 +16,29 @@ const
   WM_HEIDISQL_DEFERREDFREE = $1100;
 
 type
+  TMonitorDpiChangedEvent = procedure(Sender: TObject; OldDPI: Integer; NewDPI: Integer) of object;
+
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
 
   { TExtForm }
 
   TExtForm = class(TForm)
+    private
+      FCurrentPPI: Integer;
+      FOnMonitorDpiChanged: TMonitorDpiChangedEvent;
+      procedure FixTreeFontsOnDPIChange(Owner: TComponent; NewDPI, OldDPI: Integer);
     protected
       procedure FilterNodesByEdit(Edit: TEditButton; Tree: TLazVirtualStringTree);
       procedure WMDeferredFree(var Message: TLMessage); message WM_HEIDISQL_DEFERREDFREE;
+      procedure WMDPIChanged(var Msg: TLMessage); message LM_DPICHANGED;
+      procedure DoShow; override;
+      procedure DoMonitorDpiChanged(OldDPI, NewDPI: Integer); virtual;
     public
       constructor Create(AOwner: TComponent); override;
+      // Applies the tree font/height fixes for the given DPI and fires
+      // OnMonitorDpiChanged if the DPI changed. Called from WMDPIChanged and
+      // once at startup from DoShow.
+      procedure ApplyDPIFix(NewDPI: Integer);
       procedure DeferFreeControl(AControl: TControl);
       class procedure InheritFont(AFont: TFont);
       class procedure SaveListSetup(List: TLazVirtualStringTree);
@@ -37,6 +50,7 @@ type
       function Space(Multiply: Integer=1): Integer;
       class procedure PageControlTabHighlight(PageControl: TPageControl);
       class procedure ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
+      property OnMonitorDpiChanged: TMonitorDpiChangedEvent read FOnMonitorDpiChanged write FOnMonitorDpiChanged;
   end;
 
   TExtComboBox = class(TComboBox)
@@ -63,9 +77,93 @@ constructor TExtForm.Create(AOwner: TComponent);
 var
   OldImageList: TCustomImageList;
 begin
+  FCurrentPPI := 0;
   inherited;
 
   InheritFont(Font);
+end;
+
+procedure TExtForm.WMDPIChanged(var Msg: TLMessage);
+begin
+  // Let the LCL scale fonts and bounds first (AutoAdjustLayout inside
+  // TCustomForm.WMDPIChanged); the new DPI comes directly from the message.
+  inherited;
+  ApplyDPIFix(hi(Cardinal(Msg.wParam)));
+end;
+
+procedure TExtForm.DoShow;
+begin
+  inherited;
+  // Trigger the DPI fix once at startup (and when re-shown on a monitor with a
+  // different DPI): on a high-DPI primary monitor no WM_DPICHANGED is sent at
+  // startup, so without this the tree fonts/heights would not be scaled.
+  ApplyDPIFix(Monitor.PixelsPerInch);
+end;
+
+procedure TExtForm.ApplyDPIFix(NewDPI: Integer);
+var
+  OldDPI: Integer;
+begin
+  OldDPI := FCurrentPPI;
+  if OldDPI <= 0 then
+    OldDPI := 96; // design-time DPI
+  if (NewDPI > 0) and (NewDPI <> FCurrentPPI) then begin
+    // Moving window to a different screen or user changed the DPI setting.
+    FCurrentPPI := NewDPI;
+    FixTreeFontsOnDPIChange(Self, NewDPI, OldDPI);
+    DoMonitorDpiChanged(OldDPI, NewDPI);
+  end;
+end;
+
+procedure TExtForm.FixTreeFontsOnDPIChange(Owner: TComponent; NewDPI, OldDPI: Integer);
+var
+  i: Integer;
+  VT: TLazVirtualStringTree;
+  Node: PVirtualNode;
+begin
+  // Recurse through owned components: query tabs etc. are owned by the form,
+  // but their trees are owned by panels/tabsheets owned by them.
+  for i := 0 to Owner.ComponentCount - 1 do begin
+    if Owner.Components[i] is TLazVirtualStringTree then begin
+      VT := TLazVirtualStringTree(Owner.Components[i]);
+      // VirtualTrees paint into an offscreen bitmap whose canvas font PPI stays
+      // at Screen.PixelsPerInch (primary monitor). TFont.Assign converts via Size
+      // when PPIs differ, which would downconvert the LCL-scaled font back to
+      // 96 dpi, so pin the PPI to the buffer canvas PPI and set the pixel height
+      // for the monitor DPI directly. ParentFont must be set to False explicitly:
+      // assigning Font clears it internally (TControl.FontChanged), and then the
+      // parent font would no longer be copied on the next DPI change.
+      VT.ParentFont := False;
+      VT.Font.PixelsPerInch := Screen.PixelsPerInch;
+      VT.Font.Height := -MulDiv(Font.Size, NewDPI, 72);
+      // The header has its own font (ParentFont default False) which the LCL
+      // does not scale either; apply the same fix.
+      VT.Header.ParentFont := False;
+      VT.Header.Font.PixelsPerInch := Screen.PixelsPerInch;
+      VT.Header.Font.Height := VT.Font.Height;
+      // VT does not scale node/header heights on a DPI change, so scale them by
+      // the DPI ratio (this preserves multiline multipliers set by FixVT).
+      VT.DefaultNodeHeight := MulDiv(VT.DefaultNodeHeight, NewDPI, OldDPI);
+      VT.Header.Height := MulDiv(VT.Header.Height, NewDPI, OldDPI);
+      VT.BeginUpdate;
+      try
+        Node := VT.GetFirstInitialized;
+        while Assigned(Node) do begin
+          VT.NodeHeight[Node] := MulDiv(VT.NodeHeight[Node], NewDPI, OldDPI);
+          Node := VT.GetNextInitialized(Node);
+        end;
+      finally
+        VT.EndUpdate;
+      end;
+    end;
+    FixTreeFontsOnDPIChange(Owner.Components[i], NewDPI, OldDPI);
+  end;
+end;
+
+procedure TExtForm.DoMonitorDpiChanged(OldDPI, NewDPI: Integer);
+begin
+  if Assigned(FOnMonitorDpiChanged) then
+    FOnMonitorDpiChanged(Self, OldDPI, NewDPI);
 end;
 
 

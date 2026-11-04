@@ -1541,6 +1541,11 @@ var
 begin
   // This is called either in some early stage (and probably from preferences/apply button?)
   SingleLineHeight := GetTextHeight(VT.Font) + 7;
+  // GetTextHeight measures on a bitmap canvas with 96 PPI, which rescales the
+  // font back to 96 PPI, so scale the result to the font's own PPI. Needed on
+  // high-DPI monitors and after a per-monitor DPI change.
+  if (VT.Font.PixelsPerInch > 0) and (VT.Font.PixelsPerInch <> 96) then
+    SingleLineHeight := MulDiv(SingleLineHeight, VT.Font.PixelsPerInch, 96);
   // Multiline nodes?
   if IsResultGrid then
     MultiLineCount := AppSettings.ReadInt(asGridRowLineCount)
@@ -1550,6 +1555,15 @@ begin
   // Fixed through form files back at 96 PPI
   VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
   VT.Header.Height := SingleLineHeight;
+  // Existing nodes cache their own height, so update them too.
+  VT.BeginUpdate;
+  Node := VT.GetFirstInitialized;
+  while Assigned(Node) do begin
+    if VT.NodeHeight[Node] <> VT.DefaultNodeHeight then
+      VT.NodeHeight[Node] := VT.DefaultNodeHeight;
+    Node := VT.GetNextInitialized(Node);
+  end;
+  VT.EndUpdate;
   if MultiLineCount > 1 then begin
     VT.BeginUpdate;
     Node := VT.GetFirstInitialized;

@@ -1242,7 +1242,7 @@ type
     procedure actSynMoveUpExecute(Sender: TObject);
     procedure actCopyTabsToSpacesExecute(Sender: TObject);
     procedure actCopyUpdate(Sender: TObject);
-    procedure FormChangeBounds(Sender: TObject);
+    procedure FormMonitorDpiChanged(Sender: TObject; OldDPI, NewDPI: Integer);
     procedure menuToggleAllClick(Sender: TObject);
     procedure menuAutoFitAllClick(Sender: TObject);
     procedure menuCopyColumnNamesClick(Sender: TObject);
@@ -1320,7 +1320,6 @@ type
     FEditorCommandStrings: TStringList;
     //FHelpData: TSimpleKeyValuePairs;
     FMainWinMaximized: Boolean;
-    FCurrentPixelsPerInch: Integer;
     FRestoreTabsDone: Boolean;
     FCommandLineFileNames: TStringList;
 
@@ -1752,20 +1751,13 @@ begin
 end;
 
 
-procedure TMainForm.FormChangeBounds(Sender: TObject);
+procedure TMainForm.FormMonitorDpiChanged(Sender: TObject; OldDPI, NewDPI: Integer);
 var
   Factor: Extended;
-  NewDPI, OldDPI: Integer;
 begin
-  NewDPI := Monitor.PixelsPerInch;
-  OldDPI := FCurrentPixelsPerInch;
-  if NewDPI <> OldDPI then begin
-    // Moving window to different screen or user changed DPI setting for current screen
-    FCurrentPixelsPerInch := NewDPI;
-    Factor := 100 / 96 * NewDPI;
-    LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(Factor)]));
-    //LogSQL('PixelsPerInchDesigned:'+PixelsPerInchDesigned.ToString+' OldDPI:'+OldDPI.ToString+' NewDPI:'+NewDPI.ToString);
-  end;
+  // Tree font fixes are done generically in TExtForm.WMDPIChanged; here we only log.
+  Factor := 100 / 96 * NewDPI;
+  LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(Factor)]));
 end;
 
 
@@ -2211,7 +2203,7 @@ begin
 
   FLastMouseButtonUpOnGrid := mbLeft;
   FLastCaptionChange := 0;
-  FCurrentPixelsPerInch := 0;
+  OnMonitorDpiChanged := FormMonitorDpiChanged;
   FFormatSettings := DefaultFormatSettings;
   FFormatSettings.DecimalSeparator := '.';
   FFormatSettings.ThousandSeparator := ' ';;
