@@ -120,6 +120,7 @@ var
   i: Integer;
   VT: TLazVirtualStringTree;
   Node: PVirtualNode;
+  LineHeight: Integer;
 begin
   // Recurse through owned components: query tabs etc. are owned by the form,
   // but their trees are owned by panels/tabsheets owned by them.
@@ -142,14 +143,15 @@ begin
       VT.Header.Font.PixelsPerInch := Screen.PixelsPerInch;
       VT.Header.Font.Height := VT.Font.Height;
       // VT does not scale node/header heights on a DPI change, so scale them by
-      // the DPI ratio (this preserves multiline multipliers set by FixVT).
-      VT.DefaultNodeHeight := MulDiv(VT.DefaultNodeHeight, NewDPI, OldDPI);
-      VT.Header.Height := MulDiv(VT.Header.Height, NewDPI, OldDPI);
+      // the DPI ratio
+      LineHeight := GetTextHeight(VT.Font) + VT.TextMargin;
+      VT.DefaultNodeHeight := LineHeight;
+      VT.Header.Height := LineHeight;
       VT.BeginUpdate;
       try
         Node := VT.GetFirstInitialized;
         while Assigned(Node) do begin
-          VT.NodeHeight[Node] := MulDiv(VT.NodeHeight[Node], NewDPI, OldDPI);
+          VT.NodeHeight[Node] := VT.DefaultNodeHeight;
           Node := VT.GetNextInitialized(Node);
         end;
       finally

@@ -83,8 +83,6 @@ type
     chkLogEventInfo: TCheckBox;
     chkLogEventDebug: TCheckBox;
     spinGridRowCountStep: TSpinEditEx;
-    lblGridRowsLinecount: TLabel;
-    spinGridRowsLineCount: TSpinEditEx;
     chkColorBars: TCheckBox;
     comboSQLFontName: TComboBox;
     lblFont: TLabel;
@@ -315,7 +313,6 @@ begin
   AppSettings.WriteInt(asMaxColWidth, spinMaxColWidth.Value);
   AppSettings.WriteInt(asDatagridRowsPerStep, spinGridRowCountStep.Value);
   AppSettings.WriteInt(asDatagridMaximumRows, spinGridRowCountMax.Value);
-  AppSettings.WriteInt(asGridRowLineCount, spinGridRowsLineCount.Value);
   AppSettings.WriteString(asDataFontName, comboDataFontName.Text);
   AppSettings.WriteInt(asDataFontSize, spinDataFontSize.Value);
   AppSettings.WriteBool(asLogToFile, chkLogToFile.Checked);
@@ -704,7 +701,6 @@ begin
   spinMaxColWidth.Value := AppSettings.ReadInt(asMaxColWidth);
   spinGridRowCountStep.Value := AppSettings.ReadInt(asDatagridRowsPerStep);
   spinGridRowCountMax.Value := AppSettings.ReadInt(asDatagridMaximumRows);
-  spinGridRowsLineCount.Value := AppSettings.ReadInt(asGridRowLineCount);
 
   // SQL:
   Mainform.SetupSynEditor(SynMemoSQLSample);

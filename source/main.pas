@@ -1843,7 +1843,6 @@ begin
   AppSettings.WriteBool(asSingleQueries, actSingleQueries.Checked);
   AppSettings.WriteBool(asLogHorizontalScrollbar, actLogHorizontalScrollbar.Checked);
   AppSettings.WriteBool(asMainWinMaximized, WindowState=wsMaximized);
-  AppSettings.WriteInt(asMainWinOnMonitor, Monitor.MonitorNum);
   // Window dimensions are only valid when WindowState is normal.
   if WindowState = wsNormal then begin
     AppSettings.WriteInt(asMainWinLeft, Left);
@@ -1883,7 +1882,7 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 var
-  i, j, MonitorIndex: Integer;
+  i, j: Integer;
   QueryTab: TQueryTab;
   Action, CopyAsAction: TAction;
   ExportFormat: TGridExportFormat;
@@ -2030,11 +2029,6 @@ begin
     Width := AppSettings.ReadInt(asMainWinWidth);
     Height := AppSettings.ReadInt(asMainWinHeight);
   end;
-  // ... and monitor placement
-  MonitorIndex := AppSettings.ReadInt(asMainWinOnMonitor);
-  MonitorIndex := Max(0, MonitorIndex);
-  MonitorIndex := Min(Screen.MonitorCount-1, MonitorIndex);
-  MakeFullyVisible(Screen.Monitors[MonitorIndex]);
 
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
@@ -6601,14 +6595,6 @@ procedure TMainForm.AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode, Node: 
 var
   Idx: PInt64;
 begin
-  // Display multiline grid rows
-  // Mark all nodes as multiline capable. Fixes painting issues with long lines. (?)
-  // See issue #1897 and https://www.heidisql.com/forum.php?t=41502
-  // Laggy performance with large grid contents (?)
-  if AppSettings.ReadInt(asGridRowLineCount) = 1 then
-    Exclude(Node.States, vsMultiLine)
-  else
-    Include(Node.States, vsMultiLine);
   // Node may have data already, if added via InsertRow
   if not (vsOnFreeNodeCallRequired in Node.States) then begin
     Idx := Sender.GetNodeData(Node);
@@ -11607,8 +11593,6 @@ begin
     //       here if the query or connection dies.
     Rect := Tree.GetDisplayRect(Node, Column, True, True);
     ContentTextWidth := Rect.Right - Rect.Left;
-    //if vsMultiLine in Node.States then
-    //  ContentTextWidth := Max(ContentTextWidth, Tree.Canvas.TextWidth(Tree.Text[Node, Column]));
     ColTextWidth := Max(ColTextWidth, ContentTextWidth);
     inc(i);
     if i > 100 then break;

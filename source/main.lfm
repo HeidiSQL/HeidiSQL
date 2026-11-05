@@ -8,7 +8,6 @@ object MainForm: TMainForm
   ClientHeight = 380
   ClientWidth = 798
   Menu = MainMenu1
-  Position = poMainFormCenter
   ShowHint = True
   LCLVersion = '4.8.0.0'
   OnActivate = FormActivate
