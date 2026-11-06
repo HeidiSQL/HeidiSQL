@@ -1638,6 +1638,9 @@ var
 begin
   Bmp := Graphics.TBitmap.Create;
   try
+    // Measure at the source font's PPI, otherwise TFont.Assign converts via Size
+    // and returns the pixel height at the canvas PPI instead of the font PPI.
+    Bmp.Canvas.Font.PixelsPerInch := Font.PixelsPerInch;
     Bmp.Canvas.Font.Assign(Font);
     Result := Bmp.Canvas.TextHeight('Tg');
   finally

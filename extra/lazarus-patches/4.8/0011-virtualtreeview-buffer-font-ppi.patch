@@ -1,0 +1,25 @@
+diff --git a/components/virtualtreeview/laz.virtualtrees.pas b/components/virtualtreeview/laz.virtualtrees.pas
+--- a/components/virtualtreeview/laz.virtualtrees.pas
++++ b/components/virtualtreeview/laz.virtualtrees.pas
+@@ -9268,6 +9268,11 @@
+     LCLIntf.SetCanvasScaleFactor(FHeaderBitmap.Canvas.Handle, sc);
+   end;
+ 
++  // Keep the buffer canvas font at the header font PPI so TFont.Assign copies
++  // the pixel height instead of converting via Size (multi-monitor high DPI),
++  // and image resolution lookups see the right PPI.
++  FHeaderBitmap.Canvas.Font.PixelsPerInch := FHeader.Font.PixelsPerInch;
++
+   VisibleFixedWidth := GetVisibleFixedWidth;
+ 
+   // Consider right-to-left directionality.
+@@ -30738,6 +30743,9 @@
+         SetMapMode(NodeBitmap.Canvas.Handle, GetMapMode(TargetCanvas.Handle));
+         {$endif}
+         PaintInfo.Canvas := NodeBitmap.Canvas;
++        // Keep the buffer canvas font at the tree font PPI so TFont.Assign copies
++        // the pixel height instead of converting via Size (multi-monitor high DPI).
++        NodeBitmap.Canvas.Font.PixelsPerInch := Font.PixelsPerInch;
+       end
+       else
+       begin

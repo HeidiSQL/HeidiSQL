@@ -127,20 +127,21 @@ begin
   for i := 0 to Owner.ComponentCount - 1 do begin
     if Owner.Components[i] is TLazVirtualStringTree then begin
       VT := TLazVirtualStringTree(Owner.Components[i]);
-      // VirtualTrees paint into an offscreen bitmap whose canvas font PPI stays
-      // at Screen.PixelsPerInch (primary monitor). TFont.Assign converts via Size
-      // when PPIs differ, which would downconvert the LCL-scaled font back to
-      // 96 dpi, so pin the PPI to the buffer canvas PPI and set the pixel height
-      // for the monitor DPI directly. ParentFont must be set to False explicitly:
-      // assigning Font clears it internally (TControl.FontChanged), and then the
-      // parent font would no longer be copied on the next DPI change.
+      // Keep the tree font's PPI at the monitor DPI, not at the buffer canvas PPI:
+      // with the VirtualTreeView buffer font PPI fix (extra/lazarus-patches/4.8/
+      // 0011-virtualtreeview-buffer-font-ppi.patch) the offscreen buffers follow
+      // the control font, so TFont.Assign copies the pixel height 1:1, and image
+      // resolution lookups in TBaseVirtualTree.PaintImage pick the right PPI.
+      // ParentFont must be False explicitly: assigning Font clears it internally
+      // (TControl.FontChanged), and then the parent font would no longer be
+      // copied on the next DPI change.
       VT.ParentFont := False;
-      VT.Font.PixelsPerInch := Screen.PixelsPerInch;
+      VT.Font.PixelsPerInch := NewDPI;
       VT.Font.Height := -MulDiv(Font.Size, NewDPI, 72);
       // The header has its own font (ParentFont default False) which the LCL
       // does not scale either; apply the same fix.
       VT.Header.ParentFont := False;
-      VT.Header.Font.PixelsPerInch := Screen.PixelsPerInch;
+      VT.Header.Font.PixelsPerInch := NewDPI;
       VT.Header.Font.Height := VT.Font.Height;
       // VT does not scale node/header heights on a DPI change, so scale them by
       // the DPI ratio
