@@ -22,6 +22,7 @@ object MainForm: TMainForm
     Top = 357
     Width = 798
     AutoHint = True
+    AutoSize = False
     Panels = <    
       item
         Width = 120
@@ -20228,7 +20229,7 @@ object MainForm: TMainForm
     OnExecute = SynCompletionProposalExecute
     OnPaintItem = SynCompletionProposalPaintItem
     OnMeasureItem = SynCompletionProposalMeasureItem
-    Position = 0
+    Position = -1
     LinesInWindow = 6
     OnSearchPosition = SynCompletionProposalSearchPosition
     SelectedColor = clHighlight

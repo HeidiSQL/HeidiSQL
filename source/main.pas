@@ -1541,6 +1541,7 @@ var
   ImageIndex: Integer;
   Conn: TDBConnection;
   TS: TTextStyle;
+  ContentTop, ContentHeight: Integer;
 begin
   // Refresh one status bar panel, probably with icon
   ImageIndex := -1;
@@ -1563,8 +1564,27 @@ begin
   end;
   PanelRect := Rect;
   //StatusBar.Canvas.FillRect(PanelRect);
+  // TWinControl.FontChanged syncs the font to the native handle only, not to
+  // Canvas.Font (that is TCustomControl.FontChanged), so the canvas font would
+  // stay at 96 DPI and TextRect would draw unscaled text. Sync it here, with
+  // PixelsPerInch set first so the Assign below copies Height 1:1 instead of
+  // converting via point Size.
+  StatusBar.Canvas.Font.BeginUpdate;
+  try
+    StatusBar.Canvas.Font.PixelsPerInch := StatusBar.Font.PixelsPerInch;
+    StatusBar.Canvas.Font := StatusBar.Font;
+  finally
+    StatusBar.Canvas.Font.EndUpdate;
+  end;
+  // Vertically center icon and text. StatusBar.Height is scaled manually on DPI
+  // changes in FormMonitorDpiChanged (the LCL does not scale it, AutoSize=False),
+  // so a fixed +2 offset would pin the content to the top of the panel.
+  ContentHeight := StatusBar.Canvas.TextHeight('Wy');
+  if ImageIndex > -1 then
+    ContentHeight := Max(ContentHeight, ImageListMain.HeightForPPI[16, StatusBar.Canvas.Font.PixelsPerInch]);
+  ContentTop := PanelRect.Top + Max(2, (PanelRect.Height - ContentHeight) div 2);
   if ImageIndex > -1 then begin
-    ImageListMain.DrawForControl(StatusBar.Canvas, PanelRect.Left, PanelRect.Top+2, ImageIndex, ImageListMain.Width, StatusBar);
+    ImageListMain.DrawForControl(StatusBar.Canvas, PanelRect.Left, ContentTop, ImageIndex, ImageListMain.Width, StatusBar);
     OffsetRect(PanelRect, Scale96ToForm(ImageListMain.Width)+4, 0);
   end;
   // Enable clipping, so a longer text does not get written into the panel right besides this one
@@ -1572,7 +1592,7 @@ begin
   TS := StatusBar.Canvas.TextStyle;  // get record copy
   TS.Clipping := True;               // modify
   StatusBar.Canvas.TextStyle := TS;  // write back
-  StatusBar.Canvas.TextRect(PanelRect, PanelRect.Left, PanelRect.Top+2, Panel.Text);
+  StatusBar.Canvas.TextRect(PanelRect, PanelRect.Left, ContentTop, Panel.Text);
 end;
 
 
@@ -1758,6 +1778,10 @@ begin
   // Tree font fixes are done generically in TExtForm.WMDPIChanged; here we only log.
   Factor := 100 / 96 * NewDPI;
   LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(Factor)]));
+  // The LCL does not scale TStatusBar.Height on a DPI change (and with
+  // AutoSize=true it would even reset it to the unscaled system height of
+  // 23px at 96 DPI), so set it manually from the design height in the lfm.
+  StatusBar.Height := MulDiv(23, NewDPI, 96);
 end;
 
 
