@@ -145,11 +145,12 @@ begin
       VT.Header.ParentFont := False;
       VT.Header.Font.PixelsPerInch := NewDPI;
       VT.Header.Font.Height := VT.Font.Height;
-      // VT does not scale node/header heights on a DPI change, so scale them by
-      // the DPI ratio
+      // The header height is recalculated by TVTHeader.FontChanged
+      // automatically after the header font assignment above, and scaled by
+      // TVTHeader.ChangeScale (toAutoChangeScale) on DPI changes.
+      // VT does not scale node heights on a DPI change, so scale them manually.
       LineHeight := GetTextHeight(VT.Font) + VT.TextMargin;
       VT.DefaultNodeHeight := LineHeight;
-      VT.Header.Height := LineHeight;
       VT.BeginUpdate;
       try
         Node := VT.GetFirstInitialized;
