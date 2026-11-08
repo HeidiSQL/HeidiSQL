@@ -6,7 +6,6 @@ object frmRoutineEditor: TfrmRoutineEditor
   ClientHeight = 500
   ClientWidth = 700
   LCLVersion = '4.8.0.0'
-  ParentFont = False
   TabOrder = 0
   object lblSQLcode: TLabel
     Left = 5
@@ -101,7 +100,6 @@ object frmRoutineEditor: TfrmRoutineEditor
     Font.Pitch = fpFixed
     Font.Quality = fqNonAntialiased
     ParentColor = False
-    ParentFont = False
     TabOrder = 1
     OnDragDrop = SynMemoBodyDragDrop
     OnDragOver = SynMemoBodyDragOver
@@ -536,7 +534,6 @@ object frmRoutineEditor: TfrmRoutineEditor
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
         ParentColor = False
-        ParentFont = False
         TabOrder = 0
         Gutter.Width = 57
         Gutter.MouseActions = <>

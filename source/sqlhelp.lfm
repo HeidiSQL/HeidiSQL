@@ -174,7 +174,6 @@ object frmSQLhelp: TfrmSQLhelp
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
         ParentColor = False
-        ParentFont = False
         TabOrder = 0
         OnKeyDown = memosKeyDown
         Gutter.Visible = False
@@ -265,7 +264,6 @@ object frmSQLhelp: TfrmSQLhelp
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
         ParentColor = False
-        ParentFont = False
         TabOrder = 1
         OnKeyDown = memosKeyDown
         Gutter.Visible = False

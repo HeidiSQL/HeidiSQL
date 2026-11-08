@@ -6,7 +6,6 @@ object frmView: TfrmView
   ClientHeight = 500
   ClientWidth = 700
   LCLVersion = '4.8.0.0'
-  ParentFont = False
   TabOrder = 0
   object lblSelect: TLabel
     Left = 3
@@ -53,7 +52,6 @@ object frmView: TfrmView
     Font.Pitch = fpFixed
     Font.Quality = fqNonAntialiased
     ParentColor = False
-    ParentFont = False
     TabOrder = 1
     Gutter.LeftOffset = 2
     Gutter.Width = 59
@@ -362,7 +360,6 @@ object frmView: TfrmView
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
         ParentColor = False
-        ParentFont = False
         TabOrder = 0
         Gutter.Width = 57
         Gutter.MouseActions = <>

@@ -36,7 +36,6 @@ object frmCsvDetector: TfrmCsvDetector
     Font.Pitch = fpFixed
     Font.Quality = fqNonAntialiased
     ParentColor = False
-    ParentFont = False
     TabOrder = 0
     Gutter.Width = 57
     Gutter.MouseActions = <>

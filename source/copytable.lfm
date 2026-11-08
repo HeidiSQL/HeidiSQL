@@ -160,7 +160,6 @@ object CopyTableForm: TCopyTableForm
     Font.Pitch = fpFixed
     Font.Quality = fqNonAntialiased
     ParentColor = False
-    ParentFont = False
     TabOrder = 3
     Gutter.Width = 0
     Gutter.MouseActions = <>

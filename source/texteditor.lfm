@@ -177,7 +177,6 @@ object frmTextEditor: TfrmTextEditor
     Font.Pitch = fpFixed
     Font.Quality = fqCleartypeNatural
     ParentColor = False
-    ParentFont = False
     PopupMenu = popupEditor
     TabOrder = 1
     OnClick = MemoTextClick

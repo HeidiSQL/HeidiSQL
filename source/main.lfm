@@ -280,7 +280,6 @@ object MainForm: TMainForm
     Font.Pitch = fpFixed
     Font.Quality = fqCleartypeNatural
     ParentColor = False
-    ParentFont = False
     PopupMenu = popupSqlLog
     TabOrder = 2
     Gutter.Width = 13
@@ -1383,7 +1382,6 @@ object MainForm: TMainForm
                   Font.Pitch = fpFixed
                   Font.Quality = fqNonAntialiased
                   ParentColor = False
-                  ParentFont = False
                   TabOrder = 1
                   Gutter.Width = 0
                   Gutter.MouseActions = <>
@@ -2395,7 +2393,6 @@ object MainForm: TMainForm
               Font.Pitch = fpFixed
               Font.Quality = fqNonAntialiased
               ParentColor = False
-              ParentFont = False
               PopupMenu = popupFilter
               TabOrder = 4
               Gutter.Width = 0
@@ -3003,7 +3000,6 @@ object MainForm: TMainForm
               Font.Pitch = fpFixed
               Font.Quality = fqNonAntialiased
               ParentColor = False
-              ParentFont = False
               PopupMenu = popupQuery
               TabOrder = 2
               OnDragDrop = SynMemoQueryDragDrop

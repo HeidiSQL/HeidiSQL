@@ -905,7 +905,6 @@ object frmPreferences: TfrmPreferences
         Font.Pitch = fpFixed
         Font.Quality = fqNonAntialiased
         ParentColor = False
-        ParentFont = False
         TabOrder = 15
         OnClick = SynMemoSQLSampleClick
         Gutter.Visible = False

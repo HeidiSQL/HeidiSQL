@@ -147,7 +147,6 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Font.Pitch = fpFixed
     Font.Quality = fqCleartypeNatural
     ParentColor = False
-    ParentFont = False
     TabOrder = 4
     Gutter.Visible = False
     Gutter.Width = 57
