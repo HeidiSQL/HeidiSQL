@@ -133,17 +133,13 @@ begin
   for i := 0 to Owner.ComponentCount - 1 do begin
     if Owner.Components[i] is TLazVirtualStringTree then begin
       VT := TLazVirtualStringTree(Owner.Components[i]);
-      // Keep the tree font's PPI at the monitor DPI, not at the buffer canvas PPI:
-      // with the VirtualTreeView buffer font PPI fix (extra/lazarus-patches/4.8/
-      // 0011-virtualtreeview-buffer-font-ppi.patch) the offscreen buffers follow
-      // the control font, so TFont.Assign copies the pixel height 1:1, and image
-      // resolution lookups in TBaseVirtualTree.PaintImage pick the right PPI.
-      // ParentFont must be False explicitly: assigning Font clears it internally
-      // (TControl.FontChanged), and then the parent font would no longer be
-      // copied on the next DPI change.
-      VT.ParentFont := False;
-      VT.Font.PixelsPerInch := NewDPI;
-      VT.Font.Height := -MulDiv(Font.Size, NewDPI, 72);
+      // VT.Font needs no manual scaling anymore: the LCL keeps it correct via
+      // the ParentFont chain (the .lfm files no longer set ParentFont=False),
+      // and node text renders at the right PPI thanks to the VirtualTreeView
+      // buffer font PPI fix in
+      // extra/lazarus-patches/4.8/0011-virtualtreeview-buffer-font-ppi.patch,
+      // which is equivalent to upstream fix 4ca245a455 for
+      // https://gitlab.com/freepascal.org/lazarus/lazarus/-/work_items/42702
       // The header has its own font (ParentFont default False) which the LCL
       // does not scale either; apply the same fix.
       VT.Header.ParentFont := False;
