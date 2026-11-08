@@ -26,7 +26,6 @@ type
     private
       FCurrentPPI: Integer;
       FOnMonitorDpiChanged: TMonitorDpiChangedEvent;
-      procedure FixTreeFontsOnDPIChange(Owner: TComponent; NewDPI, OldDPI: Integer);
     protected
       procedure FilterNodesByEdit(Edit: TEditButton; Tree: TLazVirtualStringTree);
       procedure WMDeferredFree(var Message: TLMessage); message WM_HEIDISQL_DEFERREDFREE;
@@ -39,6 +38,13 @@ type
       // OnMonitorDpiChanged if the DPI changed. Called from WMDPIChanged and
       // once at startup from DoShow.
       procedure ApplyDPIFix(NewDPI: Integer);
+      // Same font/header/height fix as ApplyDPIFix, but for an arbitrary
+      // component subtree. Public so lazily created TFrames (the object editor
+      // frames created in TMainForm.PlaceObjectEditor) can be fixed right
+      // away after parenting: they do not pass through their host form's
+      // DoShow, and no WM_DPICHANGED fires when the app started on a
+      // high-DPI monitor already.
+      procedure FixTreeFontsOnDPIChange(Owner: TComponent; NewDPI: Integer);
       procedure DeferFreeControl(AControl: TControl);
       class procedure InheritFont(AFont: TFont);
       class procedure SaveListSetup(List: TLazVirtualStringTree);
@@ -110,12 +116,12 @@ begin
   if (NewDPI > 0) and (NewDPI <> FCurrentPPI) then begin
     // Moving window to a different screen or user changed the DPI setting.
     FCurrentPPI := NewDPI;
-    FixTreeFontsOnDPIChange(Self, NewDPI, OldDPI);
+    FixTreeFontsOnDPIChange(Self, NewDPI);
     DoMonitorDpiChanged(OldDPI, NewDPI);
   end;
 end;
 
-procedure TExtForm.FixTreeFontsOnDPIChange(Owner: TComponent; NewDPI, OldDPI: Integer);
+procedure TExtForm.FixTreeFontsOnDPIChange(Owner: TComponent; NewDPI: Integer);
 var
   i: Integer;
   VT: TLazVirtualStringTree;
@@ -159,7 +165,7 @@ begin
         VT.EndUpdate;
       end;
     end;
-    FixTreeFontsOnDPIChange(Owner.Components[i], NewDPI, OldDPI);
+    FixTreeFontsOnDPIChange(Owner.Components[i], NewDPI);
   end;
 end;
 

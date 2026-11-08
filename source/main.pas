@@ -12769,6 +12769,11 @@ begin
       ActiveObjectEditor := EditorClass.Create(tabEditor);
       ActiveObjectEditor.Parent := tabEditor;
       SetupSynEditors(ActiveObjectEditor);
+      // The frame was created lazily, after the startup DPI fix in
+      // TExtForm.DoShow has already run, and no WM_DPICHANGED fires when the
+      // app started on a high-DPI monitor. Apply the tree/header font fix
+      // here, or the VT headers stay unscaled until the first monitor switch.
+      FixTreeFontsOnDPIChange(ActiveObjectEditor, Monitor.PixelsPerInch);
     end;
     ActiveObjectEditor.Init(Obj);
     buttonedEditClear(editFilterVT);
