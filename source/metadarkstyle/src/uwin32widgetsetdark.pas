@@ -980,6 +980,11 @@ begin
         APanel:= StatusBar.Panels[Index];
         Rect:=StatusBar.ClientRect;
         if APanel.Width>0 then begin
+          // Local patch, reported upstream as zamtmn/metadarkstyle#93:
+          // the original psText/psOwnerDraw drawing in here did not clip
+          // panel texts to the panel bounds, nor route OnDrawPanel through
+          // the paint DC. Drop this patch when updating the vendored sources
+          // with an upstream fix.
           case APanel.Style of
             psText:begin
               // Clip the text to the panel, so long texts do not get painted
