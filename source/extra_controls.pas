@@ -14,6 +14,15 @@ const
   // Posted by TExtForm.DeferFreeControl, see there. Value is WM_USER + $0D00,
   // written explicitly to avoid pulling in the Windows unit here.
   WM_HEIDISQL_DEFERREDFREE = $1100;
+  // Style and index constants from winuser.h, same reason as above.
+  WS_EX_COMPOSITED = $02000000;
+  GWL_EXSTYLE = -20;
+
+{$IFDEF WINDOWS}
+// user32 imports, same reason as above.
+function GetWindowLongPtrA(hWnd: THandle; nIndex: Integer): PtrInt; stdcall; external 'user32';
+function SetWindowLongPtrA(hWnd: THandle; nIndex: Integer; dwNewLong: PtrInt): PtrInt; stdcall; external 'user32';
+{$ENDIF}
 
 type
   TMonitorDpiChangedEvent = procedure(Sender: TObject; OldDPI: Integer; NewDPI: Integer) of object;
@@ -32,6 +41,12 @@ type
       procedure WMDPIChanged(var Msg: TLMessage); message LM_DPICHANGED;
       procedure DoShow; override;
       procedure DoMonitorDpiChanged(OldDPI, NewDPI: Integer); virtual;
+      // Applies WS_EX_COMPOSITED to every TStatusBar owned by the form, so
+      // Windows paints the bar through a composition buffer instead of
+      // erasing and repainting it directly on screen: the panel texts don't
+      // flicker on live window resizes. Re-applied on each show and DPI
+      // change, as the bit is lost when a handle was recreated.
+      procedure PreventStatusbarFlicker;
     public
       constructor Create(AOwner: TComponent); override;
       // Applies the tree font/height fixes for the given DPI and fires
@@ -95,6 +110,8 @@ begin
   // TCustomForm.WMDPIChanged); the new DPI comes directly from the message.
   inherited;
   ApplyDPIFix(hi(Cardinal(Msg.wParam)));
+  // A DPI change can recreate window handles, re-apply, see PreventStatusbarFlicker
+  PreventStatusbarFlicker;
 end;
 
 procedure TExtForm.DoShow;
@@ -104,6 +121,29 @@ begin
   // different DPI): on a high-DPI primary monitor no WM_DPICHANGED is sent at
   // startup, so without this the tree fonts/heights would not be scaled.
   ApplyDPIFix(Monitor.PixelsPerInch);
+  // Not to be called in a constructor or OnCreate: forcing the window handle
+  // there crashes on unready menus/tabs, see PreventStatusbarFlicker
+  PreventStatusbarFlicker;
+end;
+
+procedure TExtForm.PreventStatusbarFlicker;
+var
+  i: Integer;
+  SB: TStatusBar;
+{$IFDEF WINDOWS}
+  ExStyle: PtrInt;
+{$ENDIF}
+begin
+  for i := 0 to ComponentCount - 1 do begin
+    if Components[i] is TStatusBar then begin
+      SB := TStatusBar(Components[i]);
+      {$IFDEF WINDOWS}
+      ExStyle := GetWindowLongPtrA(SB.Handle, GWL_EXSTYLE);
+      if ExStyle and WS_EX_COMPOSITED = 0 then
+        SetWindowLongPtrA(SB.Handle, GWL_EXSTYLE, ExStyle or WS_EX_COMPOSITED);
+      {$ENDIF}
+    end;
+  end;
 end;
 
 procedure TExtForm.ApplyDPIFix(NewDPI: Integer);
@@ -527,7 +567,5 @@ begin
     Change;
   end;
 end;
-
-
 
 end.

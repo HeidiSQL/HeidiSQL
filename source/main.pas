@@ -2798,6 +2798,10 @@ begin
   w6 := CalcPanelWidth('DummyDummyDummyDummyDummy', 20);
   w0 := StatusBar.Width - w1 - w2 - w3 - w4 - w5 - w6;
   //logsql(format('IconWidth:%d 0:%d 1:%d 2:%d 3:%d 4:%d 5:%d 6:%d', [ImageListMain.Width, w0, w1, w2, w3, w4, w5, w6]));
+  // Batch these 7 updates, so EndUpdate repains the bar once instead of
+  // having every single width assignment invalidate the whole statusbar,
+  // which made the panel texts flicker heavily while resizing the window
+  StatusBar.BeginUpdate;
   StatusBar.Panels[0].Width := w0;
   StatusBar.Panels[1].Width := w1;
   StatusBar.Panels[2].Width := w2;
@@ -2805,6 +2809,7 @@ begin
   StatusBar.Panels[4].Width := w4;
   StatusBar.Panels[5].Width := w5;
   StatusBar.Panels[6].Width := w6;
+  StatusBar.EndUpdate;
 
   // Retreive the rectancle of the statuspanel (in our case the fifth panel)
   {if not IsWine then begin
@@ -2821,9 +2826,8 @@ begin
   for i:=0 to 4 do begin
     Inc(ProgressBarLeft, StatusBar.Panels.Items[i].Width);
   end;
-  ProgressBarStatus.Left := ProgressBarLeft;
-  ProgressBarStatus.Top := StatusBar.Top;
-  ProgressBarStatus.Width := StatusBar.Panels[5].Width;
+  ProgressBarStatus.SetBounds(ProgressBarLeft, StatusBar.Top,
+    StatusBar.Panels[5].Width, ProgressBarStatus.Height);
 
   //lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
   FixQueryTabCloseButtons;
