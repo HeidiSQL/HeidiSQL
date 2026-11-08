@@ -1541,7 +1541,7 @@ var
   ImageIndex: Integer;
   Conn: TDBConnection;
   TS: TTextStyle;
-  ContentTop, ContentHeight: Integer;
+  TextX, ContentTop, ContentHeight: Integer;
 begin
   // Refresh one status bar panel, probably with icon
   ImageIndex := -1;
@@ -1583,16 +1583,22 @@ begin
   if ImageIndex > -1 then
     ContentHeight := Max(ContentHeight, ImageListMain.HeightForPPI[16, StatusBar.Canvas.Font.PixelsPerInch]);
   ContentTop := PanelRect.Top + Max(2, (PanelRect.Height - ContentHeight) div 2);
+  TextX := PanelRect.Left;
   if ImageIndex > -1 then begin
     ImageListMain.DrawForControl(StatusBar.Canvas, PanelRect.Left, ContentTop, ImageIndex, ImageListMain.Width, StatusBar);
-    OffsetRect(PanelRect, Scale96ToForm(ImageListMain.Width)+4, 0);
+    // Draw the text behind the icon, but keep PanelRect as clipping bounds.
+    // OffsetRect(PanelRect, ...) instead would move the clip rect's right
+    // edge as well and allow text to bleed into the panel right of this one.
+    Inc(TextX, Scale96ToForm(ImageListMain.Width)+4);
   end;
   // Enable clipping, so a longer text does not get written into the panel right besides this one
   // If we'd write StatusBar.Canvas.TextStyle.Clipping := True;, we only modify the temporary copy and the change is lost immediately
   TS := StatusBar.Canvas.TextStyle;  // get record copy
   TS.Clipping := True;               // modify
   StatusBar.Canvas.TextStyle := TS;  // write back
-  StatusBar.Canvas.TextRect(PanelRect, PanelRect.Left, ContentTop, Panel.Text);
+  // Keep a minimal gap between text and the separator to the next panel
+  Dec(PanelRect.Right, Scale96ToForm(3));
+  StatusBar.Canvas.TextRect(PanelRect, TextX, ContentTop, Panel.Text);
 end;
 
 

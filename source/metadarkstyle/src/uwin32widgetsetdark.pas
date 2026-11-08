@@ -932,6 +932,8 @@ var
   Rect:trect;
   gripSize: TSize;
   TextCenter:integer;
+  TS: TTextStyle;
+  OldCanvasHandle: HDC;
 begin
   Info:= GetWin32WindowInfo(Window);
   if (Info = nil) or (Info^.WinControl = nil) then
@@ -979,13 +981,31 @@ begin
         Rect:=StatusBar.ClientRect;
         if APanel.Width>0 then begin
           case APanel.Style of
-            psText:
-              LCanvas.TextOut(X+1, TextCenter, APanel.Text);
+            psText:begin
+              // Clip the text to the panel, so long texts do not get painted
+              // over the separator/border into the panel right to it
+              Rect.Left:=X;
+              Rect.Right:=X+APanel.Width;
+              TS:= LCanvas.TextStyle;
+              TS.Clipping:= True;
+              LCanvas.TextRect(Rect, X+1, TextCenter, APanel.Text, TS);
+            end;
             psOwnerDraw:begin
               Rect.Left:=X;
               Rect.Right:=x+APanel.Width;
-              if Assigned(StatusBar.OnDrawPanel) then
+              if Assigned(StatusBar.OnDrawPanel) then begin
+                // Route the OnDrawPanel drawing into this paint DC, the same way
+                // TStatusBar.LMDrawItem does for WM_DRAWITEM. A plain
+                // StatusBar.Canvas would get its own DC over the whole statusbar
+                // instead, leaking and flickering on every paint cycle.
+                if StatusBar.Canvas.HandleAllocated then
+                  OldCanvasHandle:= StatusBar.Canvas.Handle
+                else
+                  OldCanvasHandle:= 0;
+                StatusBar.Canvas.Handle:= DC;
                 StatusBar.OnDrawPanel(StatusBar, APanel, Rect);
+                StatusBar.Canvas.Handle:= OldCanvasHandle;
+              end;
             end;
           end;
           if Index<>(StatusBar.Panels.Count - 1)then begin
