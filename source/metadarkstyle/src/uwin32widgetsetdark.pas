@@ -980,15 +980,10 @@ begin
         APanel:= StatusBar.Panels[Index];
         Rect:=StatusBar.ClientRect;
         if APanel.Width>0 then begin
-          // Local patch, reported upstream as zamtmn/metadarkstyle#93:
-          // the original psText/psOwnerDraw drawing in here did not clip
-          // panel texts to the panel bounds, nor route OnDrawPanel through
-          // the paint DC. Drop this patch when updating the vendored sources
-          // with an upstream fix.
           case APanel.Style of
             psText:begin
-              // Clip the text to the panel, so long texts do not get painted
-              // over the separator/border into the panel right to it
+              // Clip the text to the panel, so a longer text does not get
+              // painted over the separator into the panel right to it
               Rect.Left:=X;
               Rect.Right:=X+APanel.Width;
               TS:= LCanvas.TextStyle;
@@ -999,10 +994,11 @@ begin
               Rect.Left:=X;
               Rect.Right:=x+APanel.Width;
               if Assigned(StatusBar.OnDrawPanel) then begin
-                // Route the OnDrawPanel drawing into this paint DC, the same way
-                // TStatusBar.LMDrawItem does for WM_DRAWITEM. A plain
-                // StatusBar.Canvas would get its own DC over the whole statusbar
-                // instead, leaking and flickering on every paint cycle.
+                // Route the OnDrawPanel drawing into this paint DC, the same
+                // way TStatusBar.LMDrawItem does for WM_DRAWITEM. A plain
+                // StatusBar.Canvas would get its own DC over the whole
+                // statusbar window instead, cached and reused across paint
+                // cycles, and its state would not match the dark painting.
                 if StatusBar.Canvas.HandleAllocated then
                   OldCanvasHandle:= StatusBar.Canvas.Handle
                 else
