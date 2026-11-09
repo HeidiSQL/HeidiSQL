@@ -31,6 +31,15 @@ type
     procedure Run(Data: PtrInt);
   end;
 
+  // VirtualTree's default inplace editor, with its font following the tree's
+  // font. Used in all trees which have no own OnCreateEditor, see FixVT.
+  TTreeFontStringEditLink = class(TStringEditLink)
+  public
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override; stdcall;
+    class procedure CreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; out EditLink: IVTEditLink);
+  end;
+
   TBaseGridEditorLink = class(TInterfacedObject, IVTEditLink)
   private
     FParentForm: TWinControl;      // A back reference to the main form
@@ -54,6 +63,7 @@ type
     procedure DoCancelEdit(Sender: TObject);
     procedure AsyncCancelEdit(Data: PtrInt);
     function GetCellRect(InnerTextBounds: Boolean): TRect;
+    procedure AssignCellFont(Target: TFont);
   public
     // The table column of the cell being edited. Mostly used in data grids.
     property TableColumn: TTableColumn read FTableColumn;
@@ -239,6 +249,38 @@ uses
   main;
 
 
+function TTreeFontStringEditLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
+var
+  TreeFont: TFont;
+  Style: TFontStyles;
+begin
+  Result := inherited PrepareEdit(Tree, Node, Column);
+  if (not Result) or (not (Tree is TLazVirtualStringTree)) then
+    Exit;
+  // LCL's GetTextInfo does not initialize the passed font with the tree's font,
+  // so the edit has the unscaled default font here, plus changes from
+  // OnPaintText. PixelsPerInch is set first, so Assign copies the scaled
+  // Height 1:1 instead of converting via point Size.
+  TreeFont := TLazVirtualStringTree(Tree).Font;
+  Style := Edit.Font.Style;
+  Edit.Font.BeginUpdate;
+  try
+    Edit.Font.PixelsPerInch := TreeFont.PixelsPerInch;
+    Edit.Font.Assign(TreeFont);
+    Edit.Font.Style := Style;
+    Edit.Font.Color := clWindowText;
+  finally
+    Edit.Font.EndUpdate;
+  end;
+end;
+
+class procedure TTreeFontStringEditLink.CreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; out EditLink: IVTEditLink);
+begin
+  EditLink := TTreeFontStringEditLink.Create;
+end;
+
+
 constructor TBaseGridEditorLink.Create;
 begin
   raise Exception.CreateFmt(_('Wrong constructor called: %s.%s. Instead, please call the overloaded version %s.%s.'),
@@ -344,6 +386,12 @@ begin
   FNode := Node;
   FColumn := Column;
   FCellFont := TFont.Create;
+  // Start with the tree's font, so the editor follows its DPI scaling. LCL's
+  // GetTextInfo does not initialize the passed font, it only applies changes
+  // from OnPaintText to it. PixelsPerInch is set first, so Assign copies the
+  // Height 1:1 instead of converting via point Size.
+  FCellFont.PixelsPerInch := FTree.Font.PixelsPerInch;
+  FCellFont.Assign(FTree.Font);
   FCellTextBounds := Rect(0, 0, 0, 0);
   FTree.GetTextInfo(FNode, FColumn, FCellFont, FCellTextBounds, FCellText);
   HasNulls := False;
@@ -360,6 +408,20 @@ begin
   // Adjust editor position and allow repainting mainform
   SetBounds(FCellTextBounds);
   FParentForm.Repaint;
+end;
+
+procedure TBaseGridEditorLink.AssignCellFont(Target: TFont);
+begin
+  // Editor controls are created at runtime with a 96 PPI font. Take over the
+  // PPI of the cell font first, so Assign copies its scaled Height 1:1 instead
+  // of converting via point Size, which would end up unscaled.
+  Target.BeginUpdate;
+  try
+    Target.PixelsPerInch := FCellFont.PixelsPerInch;
+    Target.Assign(FCellFont);
+  finally
+    Target.EndUpdate;
+  end;
 end;
 
 function TBaseGridEditorLink.BeginEdit: Boolean;
@@ -672,7 +734,7 @@ begin
   end;
   FMaskEdit.Text := FCellText;
   FModified := False;
-  FMaskEdit.Font.Assign(FCellFont);
+  AssignCellFont(FMaskEdit.Font);
   FPanel.Color := FCellBackground;
   // Auto-enlarge current tree column so the text in the edit is not cut
   MinColWidth := FTree.Canvas.TextWidth(FCellText) + FTree.TextMargin + FUpDown.Width + 5;
@@ -1117,7 +1179,7 @@ begin
   if not Result then
     Exit;
 
-  FCheckList.Font.Assign(FCellFont);
+  AssignCellFont(FCheckList.Font);
   FCheckList.Items.Assign(ValueList);
   SelValues := TStringList.Create;
   SelValues.Delimiter := ',';
@@ -1297,7 +1359,7 @@ begin
     Exit;
 
   FEdit.ReadOnly := not FAllowEdit;
-  FEdit.Font.Assign(FCellFont);
+  AssignCellFont(FEdit.Font);
   FEdit.Font.Color := GetThemeColor(clWindowText);
   FPanel.Color := FCellBackground;
   FEdit.Text := FCellText;
@@ -1739,8 +1801,12 @@ begin
   if not Result then
     Exit;
   // Just use font name and size, avoid bold style and white color
+  // PixelsPerInch first, so the scaled Height is taken over 1:1
+  FTreeSelect.Font.PixelsPerInch := FCellFont.PixelsPerInch;
   FTreeSelect.Font.Name := FCellFont.Name;
-  FTreeSelect.Font.Size := FCellFont.Size;
+  FTreeSelect.Font.Height := FCellFont.Height;
+  // Node heights were calculated in the constructor, with the unscaled font
+  FixVT(FTreeSelect);
 
   // Find and select current datatype in tree
   dt := FTableColumn.Connection.GetDataTypeByName(FCellText, False, FTableColumn.Name);

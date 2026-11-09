@@ -493,7 +493,7 @@ var
 
 implementation
 
-uses main
+uses main, grideditlinks
 {$if defined(LINUX) and (defined(LCLQt5) or defined(LCLQt6))}
   , platformtheme
 {$endif};
@@ -1554,6 +1554,9 @@ begin
   end;
   VT.EndUpdate;
   VT.DefaultText := '-'; // "Node" by default
+  // Trees without own editors get the default inplace editor with DPI scaled font
+  if not Assigned(VT.OnCreateEditor) then
+    VT.OnCreateEditor := TTreeFontStringEditLink.CreateEditor;
 
   {$IFDEF LINUX}
     {$if defined(LCLQt) or defined(LCLQt5) or defined(LCLQt6)}
