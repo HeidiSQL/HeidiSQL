@@ -205,7 +205,6 @@ var
 
 var
   TrampolineOpenThemeData: function(hwnd: HWND; pszClassList: LPCWSTR): HTHEME; stdcall =  nil;
-  TrampolineOpenThemeDataForDpi: function(hwnd: HWND; pszClassList: LPCWSTR; dpi: UINT): HTHEME; stdcall =  nil;
   TrampolineOpenNCThemeData: function(hwnd: HWND; pszClassList: LPCWSTR): HTHEME; stdcall =  nil;
   TrampolineDrawThemeText: function(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; pszText: LPCWSTR; iCharCount: Integer;
                                     dwTextFlags, dwTextFlags2: DWORD; const pRect: TRect): HRESULT; stdcall = nil;
@@ -1047,7 +1046,6 @@ end;
   Forward declared functions
 }
 function InterceptOpenThemeData(hwnd: hwnd; pszClassList: LPCWSTR): hTheme; stdcall; forward;
-function InterceptOpenThemeDataForDpi(hwnd: hwnd; pszClassList: LPCWSTR; dpi: UINT): hTheme; stdcall; forward;
 procedure DrawButton(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; const pRect: TRect; pClipRect: PRECT); forward;
 procedure DrawEdit(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; const pRect: TRect; pClipRect: PRECT); forward;
 procedure DrawReBar(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; const pRect: TRect; pClipRect: PRECT); forward;
@@ -1059,7 +1057,7 @@ procedure DrawTreeView(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; con
   (Win32Theme.Theme[Element]) this also recognizes the per-DPI handles the LCL
   uses on monitors with another DPI (per-monitor v2, e.g. the main menu bar at
   DPI > 96): ThemeForPPI caches one handle per PPI, and the LCL menu code
-  requests it with the DPI of the form's monitor. Used only for teMenu.
+  requests it with the DPI of the form's monitor.
 }
 function IsTheme(hTheme: HTHEME; Element: TThemedElement): Boolean;
 {$IF LCL_FULLVERSION >= 3000000}
@@ -1067,9 +1065,9 @@ var
   i: Integer;
 {$ENDIF}
 begin
-  Result:= (Win32Theme <> nil) and (hTheme = Win32Theme.Theme[Element]);
+  Result:= (hTheme = Win32Theme.Theme[Element]);
   {$IF LCL_FULLVERSION >= 3000000}
-  if not Result and (Win32Theme <> nil) then
+  if not Result then
     for i:= 0 to Screen.MonitorCount - 1 do
       if hTheme = Win32Theme.ThemeForPPI[Element, Screen.Monitors[i].PixelsPerInch] then
         Exit(True);
@@ -1093,7 +1091,7 @@ var
   OldColor: COLORREF;
 begin
   OldColor:= GetTextColor(hdc);
-  if (Win32Theme <> nil) and (hTheme = Win32Theme.Theme[teToolTip]) then
+  if (hTheme = Win32Theme.Theme[teToolTip]) then
     OldColor:= SysColor[COLOR_INFOTEXT]
   else if IsTheme(hTheme, teMenu) then begin
     if needMenuGrayText(iPartId, iStateId) then
@@ -1133,12 +1131,9 @@ var
   LCanvas: TCanvas;
   AStyle: TTextStyle;
 begin
-  // Scrollbar: only swallow the base handle. Matching by class name here (IsTheme)
-  // would also swallow the dark-class handles opened per window, and this branch
-  // draws nothing, so scrollbars would end up unpainted/light.
-  if (Win32Theme <> nil) and (hTheme = Win32Theme.Theme[teScrollBar]) then begin
+  if (hTheme = Win32Theme.Theme[teScrollBar]) then begin
 
-  end else if (Win32Theme <> nil) and (hTheme = Win32Theme.Theme[teHeader]) then begin
+  end else if (hTheme = Win32Theme.Theme[teHeader]) then begin
     if iPartId in [HP_HEADERITEM, HP_HEADERITEMRIGHT] then
     begin
       LCanvas:= TCanvas.Create;
@@ -1170,7 +1165,7 @@ begin
         LCanvas.Free;
       end;
     end;
-  end else if (Win32Theme <> nil) and (hTheme = Win32Theme.Theme[teListView]) then begin
+  end else if (hTheme = Win32Theme.Theme[teListView]) then begin
     if iPartId in [HP_HEADERITEM, HP_HEADERITEMRIGHT] then
     begin
       LCanvas:= TCanvas.Create;
@@ -1292,7 +1287,7 @@ begin
         LCanvas.Free;
       end;
     end;
-  end else if (Win32Theme <> nil) and (hTheme = Win32Theme.Theme[teToolBar]) then begin
+  end else if (hTheme = Win32Theme.Theme[teToolBar]) then begin
     if iPartId in [TP_BUTTON, TP_SPLITBUTTON, TP_SPLITBUTTONDROPDOWN] then
     begin
       LCanvas:= TCanvas.Create;
@@ -1380,14 +1375,14 @@ begin
         LCanvas.Free;
       end;
     end;
-  end else if (Win32Theme <> nil) and (hTheme = Win32Theme.Theme[teButton]) then
+  end else if (hTheme = Win32Theme.Theme[teButton]) then
     DrawButton(hTheme, hdc, iPartId, iStateId, pRect, pClipRect)
-  else if (Win32Theme <> nil) and (hTheme = Win32Theme.Theme[teEdit]) then
+  else if (hTheme = Win32Theme.Theme[teEdit]) then
     DrawEdit(hTheme,hdc,iPartId,iStateId,pRect,pClipRect)
-  else if (Win32Theme <> nil) and (hTheme = Win32Theme.Theme[teRebar]) then
+  else if (hTheme = Win32Theme.Theme[teRebar]) then
     DrawRebar(hTheme,hdc,iPartId,iStateId,pRect,pClipRect)
 
-  else if (Win32Theme <> nil) and (hTheme = Win32Theme.Theme[teTreeview]) and DrawControl.CustomDrawTreeViews then
+  else if (hTheme = Win32Theme.Theme[teTreeview]) and DrawControl.CustomDrawTreeViews then
     DrawTreeView(hTheme,hdc,iPartId,iStateId,pRect,pClipRect)
   else
     TrampolineDrawThemeBackground(hTheme, hdc, iPartId, iStateId, pRect, pClipRect);
@@ -2269,20 +2264,10 @@ begin
   hwnd:=hwnd;
 end;
 
-{
-  Applies the dark class rewrite to pszClassList. Returns False when the caller
-  should use the plain trampoline without registering the handle in ThemeClass
-  (unmarked window, or monthcal which must stay light).
-  hwnd is a var parameter on purpose: AllowDarkStyle resets it to 0, so a
-  rewritten dark class (e.g. DarkMode_Explorer::ScrollBar) is opened without
-  window binding, as in the original InterceptOpenThemeData. Opening it with
-  the real hwnd yields light, unthemed scrollbars.
-}
-function PrepareThemeClass(var hwnd: hwnd; var pszClassList: LPCWSTR): Boolean;
+function InterceptOpenThemeData(hwnd: hwnd; pszClassList: LPCWSTR): hTheme; stdcall;
 var
   P: LONG_PTR;
 begin
-  Result:= True;
   if (hwnd <> 0) then
   begin
     P:= GetWindowLongPtr(hwnd, GWL_EXSTYLE);
@@ -2294,7 +2279,10 @@ begin
       P:= P or WS_EX_CONTEXTHELP;
 
     if (P and WS_EX_CONTEXTHELP = 0) or (lstrcmpiW(pszClassList, VSCLASS_MONTHCAL) = 0) then
-      Exit(False);
+    begin
+      Result:= TrampolineOpenThemeData(hwnd, pszClassList);
+      Exit;
+    end;
   end;
 
   if lstrcmpiW(pszClassList, VSCLASS_TAB) = 0 then
@@ -2330,28 +2318,8 @@ begin
     AllowDarkStyle(hwnd);
     pszClassList:= PWideChar(VSCLASS_DARK_SCROLLBAR);
   end;
-end;
 
-
-function InterceptOpenThemeData(hwnd: hwnd; pszClassList: LPCWSTR): hTheme; stdcall;
-begin
-  if not PrepareThemeClass(hwnd, pszClassList) then
-    Exit(TrampolineOpenThemeData(hwnd, pszClassList));
   Result:= TrampolineOpenThemeData(hwnd, pszClassList);
-  ThemeClass.Insert(Result, pszClassList);
-end;
-
-{
-  Same as InterceptOpenThemeData, but for per-DPI theme handles that comctl32
-  opens through OpenThemeDataForDpi (per-monitor v2).
-}
-function InterceptOpenThemeDataForDpi(hwnd: hwnd; pszClassList: LPCWSTR; dpi: UINT): hTheme; stdcall;
-begin
-  if not Assigned(TrampolineOpenThemeDataForDpi) then
-    Exit(InterceptOpenThemeData(hwnd, pszClassList));
-  if not PrepareThemeClass(hwnd, pszClassList) then
-    Exit(TrampolineOpenThemeDataForDpi(hwnd, pszClassList, dpi));
-  Result:= TrampolineOpenThemeDataForDpi(hwnd, pszClassList, dpi);
   ThemeClass.Insert(Result, pszClassList);
 end;
 
@@ -2652,19 +2620,11 @@ begin
     hUxTheme:= GetModuleHandle(themelib);
     Pointer(TrampolineOpenNCThemeData):= GetProcAddress(hUxTheme, MAKEINTRESOURCEA(49));
     Pointer(TrampolineOpenThemeData):= GetProcAddress(hUxTheme, 'OpenThemeData');
-    Pointer(TrampolineOpenThemeDataForDpi):= GetProcAddress(hUxTheme, 'OpenThemeDataForDpi');
     Pointer(TrampolineDrawThemeText):= GetProcAddress(hUxTheme, 'DrawThemeText');
     Pointer(TrampolineDrawThemeBackground):= GetProcAddress(hUxTheme, 'DrawThemeBackground');
 
     ReplaceDelayImportFunctionByOrdinal(hModule, pImpDesc, 49, @InterceptOpenNCThemeData);
     ReplaceDelayImportFunction(hModule, pImpDesc, 'OpenThemeData', @InterceptOpenThemeData);
-    // Per-DPI variant (used by comctl32 at per-monitor DPI > 96, e.g. for native
-    // scrollbars): route it through our intercept as well, by name and by ordinal.
-    if Assigned(TrampolineOpenThemeDataForDpi) then
-    begin
-      ReplaceDelayImportFunction(hModule, pImpDesc, 'OpenThemeDataForDpi', @InterceptOpenThemeDataForDpi);
-      ReplaceDelayImportFunctionByOrdinal(hModule, pImpDesc, 194, @InterceptOpenThemeDataForDpi);
-    end;
     ReplaceDelayImportFunction(hModule, pImpDesc, 'DrawThemeText', @InterceptDrawThemeText);
     ReplaceDelayImportFunction(hModule, pImpDesc, 'DrawThemeBackground', @InterceptDrawThemeBackground);
 
