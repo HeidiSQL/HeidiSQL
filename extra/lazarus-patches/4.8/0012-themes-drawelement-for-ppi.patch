@@ -1,0 +1,73 @@
+diff --git a/lcl/themes.pas b/lcl/themes.pas
+--- a/lcl/themes.pas
++++ b/lcl/themes.pas
+@@ -491,6 +491,7 @@
+     procedure DrawEdge(DC: HDC; Details: TThemedElementDetails; const R: TRect; Edge, Flags: Cardinal;
+       AContentRect: PRect = nil); virtual;
+     procedure DrawElement(DC: HDC; Details: TThemedElementDetails; const R: TRect; ClipRect: PRect = nil); virtual;
++    procedure DrawElementForPPI(DC: HDC; Details: TThemedElementDetails; const R: TRect; PPI: Integer; ClipRect: PRect = nil); virtual;
+     procedure DrawIcon(DC: HDC; Details: TThemedElementDetails; const R: TRect; himl: HIMAGELIST; Index: Integer); virtual; overload;
+     procedure DrawIcon(ACanvas: TPersistent; Details: TThemedElementDetails; const P: TPoint; AImageList: TPersistent; Index: Integer;
+       AImageWidth: Integer = 0; ARefControl: TPersistent = nil); virtual; overload;
+@@ -2276,6 +2277,17 @@
+ end;
+
+ //----------------------------------------------------------------------------------------------------------------------
++
++procedure TThemeServices.DrawElementForPPI(DC: HDC; Details: TThemedElementDetails; const R: TRect; PPI: Integer;
++  ClipRect: PRect = nil);
++// Draws the element for the given PPI. Elements with a fixed native size (check boxes, radio buttons, tree
++// glyphs etc.) are then drawn at the size GetDetailSizeForPPI returns for the same PPI.
++// Widgetsets without per-PPI theme data draw the element like DrawElement does.
++begin
++  DrawElement(DC, Details, R, ClipRect);
++end;
++
++//----------------------------------------------------------------------------------------------------------------------
+
+ procedure TThemeServices.DrawIcon(DC: HDC; Details: TThemedElementDetails; const R: TRect; himl: HIMAGELIST;
+   Index: Integer);
+diff --git a/lcl/interfaces/win32/win32themes.pas b/lcl/interfaces/win32/win32themes.pas
+--- a/lcl/interfaces/win32/win32themes.pas
++++ b/lcl/interfaces/win32/win32themes.pas
+@@ -55,6 +55,8 @@
+
+     procedure DrawElement(DC: HDC; Details: TThemedElementDetails; const R: TRect;
+       ClipRect: PRect = nil); override;
++    procedure DrawElementForPPI(DC: HDC; Details: TThemedElementDetails; const R: TRect; PPI: Integer;
++      ClipRect: PRect = nil); override;
+     procedure DrawEdge(DC: HDC; Details: TThemedElementDetails; const R: TRect; Edge, Flags: Cardinal;
+       AContentRect: PRect = nil); override;
+     procedure DrawIcon(DC: HDC; Details: TThemedElementDetails; const R: TRect;
+@@ -490,6 +492,18 @@
+   end;
+ end;
+
++procedure TWin32ThemeServices.DrawElementForPPI(DC: HDC; Details: TThemedElementDetails; const R: TRect;
++  PPI: Integer; ClipRect: PRect = nil);
++begin
++  // Theme data for another PPI exists only on Windows 10 and later (GetThemeForPPI),
++  // where the pre-Vista special cases of DrawElement do not apply.
++  if ThemesEnabled and (WindowsVersion >= wv10) and (PPI > 0) and (PPI <> ScreenInfo.PixelsPerInchX) then
++    with Details do
++      DrawThemeBackground(GetThemeForPPI(Element, PPI), DC, Part, State, R, ClipRect)
++  else
++    DrawElement(DC, Details, R, ClipRect);
++end;
++
+ procedure TWin32ThemeServices.DrawIcon(DC: HDC; Details: TThemedElementDetails;
+   const R: TRect; himl: HIMAGELIST; Index: Integer);
+ begin
+diff --git a/components/virtualtreeview/laz.virtualtrees.pas b/components/virtualtreeview/laz.virtualtrees.pas
+--- a/components/virtualtreeview/laz.virtualtrees.pas
++++ b/components/virtualtreeview/laz.virtualtrees.pas
+@@ -24423,7 +24423,8 @@
+           Details.Part := 0;
+           Details.State := 0;
+         end;
+-        ThemeServices.DrawElement(Canvas.Handle, Details, R);
++        // Draw for the same PPI as checkSize, the glyph is not stretched to R.
++        ThemeServices.DrawElementForPPI(Canvas.Handle, Details, R, Font.PixelsPerInch);
+         {$ifdef USE_DELPHICOMPAT}
+         if Index in [21..24] then
+           with UtilityImages do

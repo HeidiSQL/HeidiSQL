@@ -1375,7 +1375,7 @@ begin
         LCanvas.Free;
       end;
     end;
-  end else if (hTheme = Win32Theme.Theme[teButton]) then
+  end else if IsTheme(hTheme, teButton) then
     DrawButton(hTheme, hdc, iPartId, iStateId, pRect, pClipRect)
   else if (hTheme = Win32Theme.Theme[teEdit]) then
     DrawEdit(hTheme,hdc,iPartId,iStateId,pRect,pClipRect)
