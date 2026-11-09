@@ -10403,7 +10403,7 @@ begin
   end;
   Row.Inserted := True;
   // Find highest unused recno of inserted rows and use that for this row
-  // Important: do not raise higher than what TVirtualStringTree.RootNodeCount can hold!
+  // Important: do not raise higher than what TLazVirtualStringTree.RootNodeCount can hold!
   Result := High(Cardinal);
   while True do begin
     InUse := False;

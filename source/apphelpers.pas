@@ -55,7 +55,7 @@ type
       FModified: Boolean;
       procedure SetModified(Value: Boolean);
     protected
-      FMainSynMemo: TSynMemo; // Main editor in case of routine, view, trigger or event
+      FMainSynMemo: TSynEdit; // Main editor in case of routine, view, trigger or event
       FMainSynMemoPreviousTopLine: Integer;
       function ObjectExists: Boolean;
     public
@@ -412,7 +412,7 @@ type
   procedure StreamToClipboard(Text, HTML: TStream);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
-  procedure FixVT(VT: TVirtualStringTree; IsResultGrid: Boolean=False);
+  procedure FixVT(VT: TLazVirtualStringTree; IsResultGrid: Boolean=False);
   // Returns the maximum possible height of text on a canvas
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
@@ -420,8 +420,8 @@ type
   function FindNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
   function SelectNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
   function SelectNode(VT: TLazVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True): Boolean; overload;
-  procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
-  procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
+  procedure GetVTSelection(VT: TLazVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
+  procedure SetVTSelection(VT: TLazVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
   function GetNextNode(Tree: TLazVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function GetPreviousNode(Tree: TLazVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function DateBackFriendlyCaption(d: TDateTime): String;
@@ -1534,7 +1534,7 @@ begin
 end;
 
 
-procedure FixVT(VT: TVirtualStringTree; IsResultGrid: Boolean=False);
+procedure FixVT(VT: TLazVirtualStringTree; IsResultGrid: Boolean=False);
 var
   LineHeight: Integer;
   Node: PVirtualNode;
@@ -1745,7 +1745,7 @@ begin
 end;
 
 
-procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
+procedure GetVTSelection(VT: TLazVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
 var
   Node: PVirtualNode;
   InvalidationTag: Integer;
@@ -1766,7 +1766,7 @@ begin
 end;
 
 
-procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
+procedure SetVTSelection(VT: TLazVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
 var
   Node: PVirtualNode;
   idx: Integer;
@@ -1814,7 +1814,7 @@ begin
 end;
 
 
-function GetPreviousNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
+function GetPreviousNode(Tree: TLazVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
 begin
   // Get previous visible + selected node.
   Result := CurrentNode;
@@ -2031,7 +2031,7 @@ end;
 procedure TDBObjectEditor.Init(Obj: TDBObject);
 var
   editName: TWinControl;
-  SynMemo: TSynMemo;
+  SynMemo: TSynEdit;
   popup: TPopupMenu;
   Item: TMenuItem;
   i: Integer;
@@ -2056,10 +2056,10 @@ begin
   end;
 
   for i:=0 to ComponentCount-1 do begin
-    if not(Components[i] is TSynMemo) then
+    if not(Components[i] is TSynEdit) then
       Continue;
 
-    SynMemo := Components[i] as TSynMemo;
+    SynMemo := Components[i] as TSynEdit;
     if (not Assigned(SynMemo)) or Assigned(SynMemo.PopupMenu) then
       Continue;
 

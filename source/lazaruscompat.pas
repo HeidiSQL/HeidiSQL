@@ -19,10 +19,6 @@ uses
 
 type
 
-  // Delphi type aliases
-  TSynMemo = TSynEdit;
-  TVirtualStringTree = TLazVirtualStringTree;
-
   // VirtualTreeView fixes for Linux Qt.
   THeidiVirtualStringTree = class(TLazVirtualStringTree)
   {$IFDEF HEIDI_LINUX_QT}
@@ -91,7 +87,7 @@ type
       function IsEmpty: Boolean;
   end;
 
-function CreateVirtualStringTree(AOwner: TComponent): TVirtualStringTree;
+function CreateVirtualStringTree(AOwner: TComponent): TLazVirtualStringTree;
 
 const
 {$IFDEF SYN_CodeFolding}
@@ -481,12 +477,12 @@ begin
 end;
 {$ENDIF}
 
-function CreateVirtualStringTree(AOwner: TComponent): TVirtualStringTree;
+function CreateVirtualStringTree(AOwner: TComponent): TLazVirtualStringTree;
 begin
   {$IFDEF HEIDI_LINUX_QT}
   Result := THeidiVirtualStringTree.Create(AOwner);
   {$ELSE}
-  Result := TVirtualStringTree.Create(AOwner);
+  Result := TLazVirtualStringTree.Create(AOwner);
   {$ENDIF}
 end;
 

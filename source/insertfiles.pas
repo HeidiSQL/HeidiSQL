@@ -80,7 +80,7 @@ type
       Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
     procedure GridClick(Sender: TObject);
     procedure GridKeyPress(Sender: TObject; var Key: Char);
-    procedure GridHandleClickOrKeyPress(Sender: TVirtualStringTree;
+    procedure GridHandleClickOrKeyPress(Sender: TLazVirtualStringTree;
       Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
     procedure ListColumnsEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       var Allowed: Boolean);
@@ -205,12 +205,12 @@ procedure TfrmInsertFiles.GridAfterCellPaint(Sender: TBaseVirtualTree; TargetCan
   Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
 var
   ImageIndex, X, Y: Integer;
-  Grid: TVirtualStringTree;
+  Grid: TLazVirtualStringTree;
   FileInfo: PFileInfo;
   PaintCheckbox, CheckState: Boolean;
 begin
   // Paint checkbox image in certain columns
-  Grid := Sender as TVirtualStringTree;
+  Grid := Sender as TLazVirtualStringTree;
   PaintCheckbox := False;
   CheckState := False;
   if (Grid = listFiles) and (Column = ColBinary) then begin
@@ -241,10 +241,10 @@ end;
 
 procedure TfrmInsertFiles.GridKeyPress(Sender: TObject; var Key: Char);
 var
-  Grid: TVirtualStringTree;
+  Grid: TLazVirtualStringTree;
 begin
   // Space/click on checkbox column
-  Grid := Sender as TVirtualStringTree;
+  Grid := Sender as TLazVirtualStringTree;
   if Ord(Key) = VK_SPACE then
     GridHandleClickOrKeyPress(Grid, Grid.FocusedNode, Grid.FocusedColumn, []);
 end;
@@ -252,11 +252,11 @@ end;
 
 procedure TfrmInsertFiles.GridClick(Sender: TObject);
 var
-  Grid: TVirtualStringTree;
+  Grid: TLazVirtualStringTree;
   Click: THitInfo;
 begin
   // Handle click event
-  Grid := Sender as TVirtualStringTree;
+  Grid := Sender as TLazVirtualStringTree;
   Grid.GetHitTestInfoAt(Mouse.CursorPos.X-Grid.ClientOrigin.X, Mouse.CursorPos.Y-Grid.ClientOrigin.Y, True, {%H-}Click);
   GridHandleClickOrKeyPress(Grid, Click.HitNode, Click.HitColumn, Click.HitPositions);
 end;
@@ -265,11 +265,11 @@ end;
 procedure TfrmInsertFiles.ListColumnsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; out EditLink: IVTEditLink);
 var
-  Grid: TVirtualStringTree;
+  Grid: TLazVirtualStringTree;
   EnumEditor: TEnumEditorLink;
 begin
   // Start cell editor
-  Grid := Sender as TVirtualStringTree;
+  Grid := Sender as TLazVirtualStringTree;
   if Column = ColValue then begin
     EnumEditor := TEnumEditorLink.Create(Grid, True, nil);
     EnumEditor.AllowCustomText := True;
@@ -304,16 +304,16 @@ begin
 end;
 
 
-procedure TfrmInsertFiles.GridHandleClickOrKeyPress(Sender: TVirtualStringTree;
+procedure TfrmInsertFiles.GridHandleClickOrKeyPress(Sender: TLazVirtualStringTree;
   Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
 var
   FileInfo: PFileInfo;
-  Grid: TVirtualStringTree;
+  Grid: TLazVirtualStringTree;
 begin
   // "quote" checkbox, cell editor disabled, instead toggle its state
   if (not Assigned(Node)) or (Column = NoColumn) then
     Exit;
-  Grid := Sender as TVirtualStringTree;
+  Grid := Sender as TLazVirtualStringTree;
   if (Grid = listFiles) and (Column = ColBinary) then begin
     FileInfo := Grid.GetNodeData(Node);
     FileInfo.IsBinary := not FileInfo.IsBinary;
@@ -433,7 +433,7 @@ end;
 procedure TfrmInsertFiles.ListFilesStructureChange(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Reason: TChangeReason);
 begin
-  (Sender as TVirtualStringTree).OnChange(Sender, Node);
+  (Sender as TLazVirtualStringTree).OnChange(Sender, Node);
 end;
 
 
@@ -441,13 +441,13 @@ procedure TfrmInsertFiles.ListFilesChange(Sender: TBaseVirtualTree; Node: PVirtu
 var
   FileInfo: PFileInfo;
   Bytes: Int64;
-  Grid: TVirtualStringTree;
+  Grid: TLazVirtualStringTree;
   LNode: PVirtualNode;
   Binaries: Int64;
   CheckState: TCheckState;
 begin
   // Node focus or selection has changed
-  Grid := Sender as TVirtualStringTree;
+  Grid := Sender as TLazVirtualStringTree;
   btnRemoveFiles.Enabled := Grid.SelectedCount > 0;
   btnClearFiles.Enabled := Grid.RootNodeCount > 0;
   LNode := Grid.GetFirst;
@@ -521,9 +521,9 @@ procedure TfrmInsertFiles.ListFilesGetImageIndex(Sender: TBaseVirtualTree; Node:
   Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
 var
   FileInfo: PFileInfo;
-  Grid: TVirtualStringTree;
+  Grid: TLazVirtualStringTree;
 begin
-  Grid := Sender as TVirtualStringTree;
+  Grid := Sender as TLazVirtualStringTree;
   if not (Kind in [ikNormal, ikSelected]) then
     Exit;
   if Column <> Grid.Header.MainColumn then

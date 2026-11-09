@@ -132,10 +132,10 @@ procedure TfrmSQLhelp.treeTopicsFocusChanged(Sender: TBaseVirtualTree; Node: PVi
   Column: TColumnIndex);
 var
   Results: TDBQuery;
-  VT: TVirtualStringTree;
+  VT: TLazVirtualStringTree;
 begin
   // Topic selected
-  VT := Sender as TVirtualStringTree;
+  VT := Sender as TLazVirtualStringTree;
   if not Assigned(VT.FocusedNode) then
     Exit;
   if VT.HasChildren[VT.FocusedNode] then
@@ -230,10 +230,10 @@ procedure TfrmSQLhelp.treeTopicsInitChildren(Sender: TBaseVirtualTree; Node: PVi
   var ChildCount: Cardinal);
 var
   Results: PDBQuery;
-  VT: TVirtualStringTree;
+  VT: TLazVirtualStringTree;
 begin
   // Return number of children for folder
-  VT := Sender as TVirtualStringTree;
+  VT := Sender as TLazVirtualStringTree;
   Results := VT.GetNodeData(Node);
   Results^ := FConnection.GetResults(FConnection.SqlProvider.GetSql(qHelpKeyword, [FConnection.EscapeString(VT.Text[Node, VT.Header.MainColumn])]));
   ChildCount := Results.RecordCount;
@@ -246,11 +246,11 @@ var
   Results: TDBQuery;
   ThisFolder, PrevFolder: String;
   N: PVirtualNode;
-  VT: TVirtualStringTree;
+  VT: TLazVirtualStringTree;
   RecursionAlarm: Boolean;
 begin
   // Display plus button for nodes which are folders
-  VT := Sender as TVirtualStringTree;
+  VT := Sender as TLazVirtualStringTree;
   Results := GetHelpResult(Node);
   Results.RecNo := Node.Index;
   if Results.Col('is_it_category', True) = 'Y' then begin
@@ -310,7 +310,7 @@ end;
 
 procedure TfrmSQLhelp.SetKeyword(Value: string);
 var
-  VT: TVirtualStringTree;
+  VT: TLazVirtualStringTree;
   Node: PVirtualNode;
   Results: TDBQuery;
   SearchNoInit: Boolean;

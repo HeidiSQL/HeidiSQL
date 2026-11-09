@@ -941,7 +941,7 @@ end;
 procedure Tconnform.ListSessionsCompareNodes(Sender: TBaseVirtualTree; Node1,
   Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 var
-  VT: TVirtualStringTree;
+  VT: TLazVirtualStringTree;
   DirectionMarker: Integer;
 begin
   VT := Sender as TLazVirtualStringTree;
@@ -961,7 +961,7 @@ procedure Tconnform.ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVi
   Column: TColumnIndex; out EditLink: IVTEditLink);
 begin
   // Use our own text editor to rename a session
-  EditLink := TInplaceEditorLink.Create(Sender as TVirtualStringTree, True, nil);
+  EditLink := TInplaceEditorLink.Create(Sender as TLazVirtualStringTree, True, nil);
 end;
 
 

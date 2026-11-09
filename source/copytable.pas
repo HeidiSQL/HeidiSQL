@@ -97,7 +97,7 @@ var
   Obj: PDBObject;
   i: Integer;
   Item: TMenuItem;
-  Tree: TVirtualStringTree;
+  Tree: TLazVirtualStringTree;
 begin
   // On macOS the tree does not have Focused=True even when it is. See issue #2502
   if Mainform.ListTables.Focused then
@@ -308,7 +308,7 @@ begin
         Node.States := Node.States + [vsDisabled]
       else if AppSettings.ReadBool(Option) then
         Node.CheckState := csCheckedNormal;
-      (Sender as TVirtualStringTree).OnChecked(Sender, Node);
+      (Sender as TLazVirtualStringTree).OnChecked(Sender, Node);
     end;
 
     1: if Node.Parent.CheckState in CheckedStates then

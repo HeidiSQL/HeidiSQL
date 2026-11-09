@@ -24,7 +24,7 @@ type
   // to the next editable cell after the current editor link was released,
   // see TBaseGridEditorLink.Destroy.
   TTabNextCellInfo = class
-    Tree: TVirtualStringTree;
+    Tree: TLazVirtualStringTree;
     Node: PVirtualNode;
     Column: TColumnIndex;
     Prev: Boolean;
@@ -34,7 +34,7 @@ type
   TBaseGridEditorLink = class(TInterfacedObject, IVTEditLink)
   private
     FParentForm: TWinControl;      // A back reference to the main form
-    FTree: TVirtualStringTree;        // A back reference to the tree calling.
+    FTree: TLazVirtualStringTree;        // A back reference to the tree calling.
     FNode: PVirtualNode;              // The node to be edited.
     FColumn: TColumnIndex;            // The column of the node.
     FCellText: String;            // Original cell text value
@@ -60,9 +60,9 @@ type
     // The original constructor, not used any more, throws an exception if you do
     constructor Create; overload;
     // The right constructor, we need the Tree reference
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); overload; virtual;
+    constructor Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); overload; virtual;
     destructor Destroy; override;
-    property Tree: TVirtualStringTree read FTree;
+    property Tree: TLazVirtualStringTree read FTree;
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
     function BeginEdit: Boolean; virtual; stdcall;
     function CancelEdit: Boolean; virtual; stdcall;
@@ -84,7 +84,7 @@ type
   public
     MaxLength: Int64;
     TitleText: String;
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
+    constructor Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function CancelEdit: Boolean; override;
@@ -111,7 +111,7 @@ type
     procedure TextChange(Sender: TObject);
     function MicroSecondsPrecision: Integer;
   public
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
+    constructor Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function EndEdit: Boolean; override;
@@ -128,7 +128,7 @@ type
     ValueList, DisplayList: TStringList;
     AllowCustomText: Boolean;
     ItemMustExist: Boolean;
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
+    constructor Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function EndEdit: Boolean; override;
@@ -146,7 +146,7 @@ type
     procedure BtnCancelClick(Sender: TObject);
   public
     ValueList: TStringList;
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
+    constructor Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function EndEdit: Boolean; override;
@@ -166,7 +166,7 @@ type
   public
     ButtonVisible: Boolean;
     TitleText: String;
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
+    constructor Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function EndEdit: Boolean; override;
@@ -195,7 +195,7 @@ type
   public
     DefaultType, OnUpdateType: TColumnDefaultType;
     DefaultText, OnUpdateText: String;
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
+    constructor Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function EndEdit: Boolean; override;
@@ -205,7 +205,7 @@ type
 
   TDataTypeEditorLink = class(TBaseGridEditorLink)
   private
-    FTreeSelect: TVirtualStringTree;
+    FTreeSelect: TLazVirtualStringTree;
     FMemoHelp: TMemo;
     procedure DoTreeSelectGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
@@ -221,7 +221,7 @@ type
         PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
     procedure DoTreeSelectFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
   public
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
+    constructor Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function EndEdit: Boolean; override;
@@ -245,7 +245,7 @@ begin
     [Self.ClassName, 'Create', Self.ClassName, 'Create(VirtualStringTree)']);
 end;
 
-constructor TBaseGridEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
+constructor TBaseGridEditorLink.Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited Create;
   FTree := Tree;
@@ -494,7 +494,7 @@ end;
 
 procedure TBaseGridEditorLink.AsyncEndEdit(Data: PtrInt);
 begin
-  TVirtualStringTree(Data).EndEditNode;
+  TLazVirtualStringTree(Data).EndEditNode;
 end;
 
 procedure TBaseGridEditorLink.DoCancelEdit(Sender: TObject);
@@ -504,12 +504,12 @@ end;
 
 procedure TBaseGridEditorLink.AsyncCancelEdit(Data: PtrInt);
 begin
-  TVirtualStringTree(Data).CancelEditNode;
+  TLazVirtualStringTree(Data).CancelEditNode;
 end;
 
 
 
-constructor THexEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
+constructor THexEditorLink.Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited;
 end;
@@ -571,7 +571,7 @@ end;
 
 { DateTime editor }
 
-constructor TDateTimeEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
+constructor TDateTimeEditorLink.Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited;
 
@@ -938,7 +938,7 @@ end;
 
 { Enum editor }
 
-constructor TEnumEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
+constructor TEnumEditorLink.Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited;
   AllowCustomText := False;
@@ -1042,7 +1042,7 @@ end;
 
 { SET editor }
 
-constructor TSetEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
+constructor TSetEditorLink.Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited;
   ValueList := TStringList.Create;
@@ -1178,7 +1178,7 @@ end;
 
 { TInplaceEditorLink }
 
-constructor TInplaceEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
+constructor TInplaceEditorLink.Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited;
   ButtonVisible := false;
@@ -1317,7 +1317,7 @@ end;
 
 { Column default editor }
 
-constructor TColumnDefaultEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
+constructor TColumnDefaultEditorLink.Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 var
   m: Integer;
 begin
@@ -1670,7 +1670,7 @@ end;
 
 
 { Datatype selector }
-constructor TDataTypeEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
+constructor TDataTypeEditorLink.Create(Tree: TLazVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited;
 

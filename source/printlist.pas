@@ -72,7 +72,7 @@ end;
 
 procedure TprintlistForm.btnPrintClick(Sender: TObject);
 var
-  list: TVirtualStringTree;
+  list: TLazVirtualStringTree;
 begin
   // print!
   Screen.Cursor := crHourglass;
