@@ -2607,7 +2607,7 @@ begin
 
     // Tell server who we are
     if Assigned(FLib.mysql_optionsv) then
-      FLib.mysql_optionsv(FHandle, FLib.MYSQL_OPT_CONNECT_ATTR_ADD, 'program_name', APPNAME);
+      FLib.mysql_optionsv(FHandle, FLib.MYSQL_OPT_CONNECT_ATTR_ADD, 'program_name', PAnsiChar(UTF8Encode(AppClientName)));
 
     // Seems to be still required on some systems, for importing CSV files
     SetOption(FLib.MYSQL_OPT_LOCAL_INFILE, @(FLib.MYBOOL_TRUE));
@@ -2820,7 +2820,7 @@ begin
         'User ID='+Parameters.Username+';'+
         'Network Library='+NetLib+';'+
         'Data Source='+DataSource+';'+
-        'Application Name='+AppName+';'
+        'Application Name='+AppClientName+';'
         ;
       if Parameters.LibraryOrProvider.StartsWith('MSOLEDBSQL', true) then begin
         // Issue #423: MSOLEDBSQL compatibility with new column types
@@ -2954,7 +2954,7 @@ begin
       .AddPair('port', IntToStr(FinalPort))
       .AddPair('user', FParameters.Username)
       .AddPair('password', FParameters.Password)
-      .AddPair('application_name', APPNAME)
+      .AddPair('application_name', AppClientName)
       .AddPair('sslmode', 'disable');
     if not FParameters.AllDatabasesStr.IsEmpty then
       ConnectOptions.AddPair('dbname', FParameters.AllDatabasesStr);

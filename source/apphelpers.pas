@@ -438,6 +438,8 @@ type
   function DirSep: Char;
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
   function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
+  function GetOS: String;
+  function AppClientName: String;
   function UserAgent(OwnerComponent: TComponent): String;
   function CodeIndent(Steps: Integer=1): String;
   function EscapeHotkeyPrefix(Text: String): String;
@@ -3206,6 +3208,19 @@ begin
   end;
 end;
 
+function GetOS: String;
+begin
+  if IsWine then
+    Result := 'Linux/Wine'
+  else
+    Result := 'Windows';
+end;
+
+function AppClientName: String;
+begin
+  // Program name sent to database servers, visible in their process lists. See issue #2019
+  Result := APPNAME+' '+MainForm.AppVersion+' ('+GetOS+')';
+end;
 
 function UserAgent(OwnerComponent: TComponent): String;
 var
