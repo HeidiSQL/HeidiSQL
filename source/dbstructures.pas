@@ -42,6 +42,7 @@ type
     qEmptyTable, qRenameTable, qRenameView, qCurrentUserHost, qLikeCompare,
     qAddColumn, qChangeColumn, qRenameColumn, qSetColumnComment, qForeignKeyEventAction,
     qGlobalStatus, qCommandsCounters, qSessionVariables, qGlobalVariables,
+    qProcessList, qProcessListProgram,
     qISSchemaCol,
     qUSEQuery, qKillQuery, qKillProcess,
     qFuncLength, qFuncCeil, qFuncLeft, qFuncNow, qFuncLastAutoIncNumber,

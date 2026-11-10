@@ -9382,12 +9382,12 @@ begin
   NodeFocused := Assigned(Node);
   SQL := '';
   if NodeFocused then begin
-    SQL := ListProcesses.Text[Node, 7];
+    SQL := ListProcesses.Text[Node, 8];
   end;
   EnableControls := not SQL.IsEmpty;
   if EnableControls then begin
     SynMemoProcessView.Highlighter := SynSQLSynUsed;
-    SynMemoProcessView.Text := ListProcesses.Text[Node, 7];
+    SynMemoProcessView.Text := SQL;
     SynMemoProcessView.Color := clWindow;
   end else begin
     SynMemoProcessView.Highlighter := nil;
@@ -9770,6 +9770,13 @@ begin
     except
       CellText := '';
     end;
+
+  end else if (Sender = ListProcesses) and (Results.ColumnCount <= 8) and (Column >= 7) then begin
+    // SHOW FULL PROCESSLIST on old servers: no program column, Info in 7 instead of 8
+    if Column = 8 then
+      CellText := StrEllipsis(Results.Col(7, True), SIZE_KB*50)
+    else
+      CellText := '';
 
   end else begin
     // Values directly from a query result
@@ -12054,11 +12061,7 @@ var
   Results, Variables: TDBQuery;
   i: Integer;
   SelectedCaptions: TStringList;
-  IS_objects: TDBObjectList;
-  Obj: TDBObject;
-  ProcessColumns: TTableColumnList;
-  Columns, FocusedCaption, CleanTabCaption: String;
-  Col: TVirtualTreeColumn;
+  FocusedCaption, CleanTabCaption, ProgramColumn: String;
   LeaveEnabled: Boolean;
   ActiveNetType: String;
 begin
@@ -12138,76 +12141,24 @@ begin
       Results := Conn.GetResults(Conn.SqlProvider.GetSql(qGlobalStatus));
       FStatusServerUptime := Conn.ServerUptime;
     end else if vt = ListProcesses then begin
-      case Conn.Parameters.NetTypeGroup of
-        ngMySQL: begin
-          if Conn.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
-            // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
-            Columns := Conn.QuoteIdent('ID')+', '+
-              Conn.QuoteIdent('USER')+', '+
-              Conn.QuoteIdent('HOST')+', '+
-              Conn.QuoteIdent('DB')+', '+
-              Conn.QuoteIdent('COMMAND')+', '+
-              Conn.QuoteIdent('TIME')+', '+
-              Conn.QuoteIdent('STATE')+', '+
-              'LEFT('+Conn.QuoteIdent('INFO')+', '+IntToStr(SIZE_KB*50)+') AS '+Conn.QuoteIdent('Info');
-            // Get additional column names into SELECT query and ListProcesses tree
-            IS_objects := Conn.GetDBObjects(Conn.InfSch);
-            for Obj in IS_objects do begin
-              if Obj.Name = 'PROCESSLIST' then begin
-                ProcessColumns := Obj.TableColumns;
-                for i:=8 to ProcessColumns.Count-1 do begin
-                  Columns := Columns + ', '+Conn.QuoteIdent(ProcessColumns[i].Name);
-                  if ListProcesses.Header.Columns.Count <= i then
-                    Col := ListProcesses.Header.Columns.Add
-                  else
-                    Col := ListProcesses.Header.Columns[i];
-                  Col.Options := Col.Options + [coVisible];
-                  Col.Text := ProcessColumns[i].Name;
-                end;
-                // Hide unused tree columns
-                for i:=ListProcesses.Header.Columns.Count-1 downto ProcessColumns.Count do
-                  ListProcesses.Header.Columns[i].Options := ListProcesses.Header.Columns[i].Options - [coVisible];
-                ProcessColumns.Free;
-                break;
-              end;
-            end;
-            Results := Conn.GetResults('SELECT '+Columns+' FROM '+
-              Conn.QuoteIdent(Conn.InfSch)+'.'+Conn.QuoteIdent('PROCESSLIST'));
-          end else begin
-            // Older servers fetch the whole query length, but at least we cut them off below, so a high memory usage is just a peak
-            Results := Conn.GetResults('SHOW FULL PROCESSLIST');
-          end;
-        end;
-        ngMSSQL: begin
-          Results := Conn.GetResults('SELECT '+
-            Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('spid')+
-            ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('loginame')+') AS '+Conn.QuoteIdent('loginname')+
-            ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('hostname')+') AS '+Conn.QuoteIdent('hostname')+
-            ', '+Conn.QuoteIdent('d')+'.'+Conn.QuoteIdent('name')+
-            ', '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('cmd')+
-            ', '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('waittime')+
-            ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('status')+'), '+
-            'NULL AS '+Conn.QuoteIdent('Info')+' '+
-            'FROM '+Conn.QuoteIdent('sys')+'.'+Conn.QuoteIdent('sysprocesses')+' AS '+Conn.QuoteIdent('p')+
-            ', '+Conn.SqlProvider.GetSql(qDatabaseTable)+' AS '+Conn.QuoteIdent('d')+
-            ' WHERE '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('dbid')+'='+Conn.QuoteIdent('d')+'.'+Conn.SqlProvider.GetSql(qDatabaseTableId)
-            );
-        end;
-        ngPgSQL: begin
-          Results := Conn.GetResults('SELECT '+
-            Conn.QuoteIdent('pid')+
-            ', '+Conn.QuoteIdent('usename')+
-            ', '+Conn.QuoteIdent('client_addr')+
-            ', '+Conn.QuoteIdent('datname')+
-            ', application_name '+
-            ', EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - '+Conn.QuoteIdent('query_start')+')::INTEGER'+
-            ', '+Conn.QuoteIdent('state')+
-            ', '+Conn.QuoteIdent('query')+
-            ' FROM '+Conn.QuoteIdent('pg_stat_activity')
-            );
-        end;
-        else begin
-          raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Conn.Parameters.NetType)]);
+      if not Conn.SqlProvider.Has(qProcessList) then
+        raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Conn.Parameters.NetType)]);
+      // Client program name, sent as connection attribute by HeidiSQL, MySQL Workbench and others. See issue #2019
+      ProgramColumn := 'NULL';
+      if Conn.SqlProvider.Has(qProcessListProgram)
+        and (not Conn.ConnectAttrsQueryFailed)
+        and SameText(Conn.GetSessionVariable('performance_schema'), 'ON') then
+        ProgramColumn := Conn.SqlProvider.GetSql(qProcessListProgram);
+      try
+        Results := Conn.GetResults(Conn.SqlProvider.GetSql(qProcessList, [ProgramColumn]));
+      except
+        on E:EDbError do begin
+          // Most likely missing SELECT privilege on performance_schema. Do not try again on this connection.
+          if ProgramColumn = 'NULL' then
+            raise;
+          Conn.ConnectAttrsQueryFailed := True;
+          Conn.Log(lcError, 'Detection of client program names in process list disabled due to error in query');
+          Results := Conn.GetResults(Conn.SqlProvider.GetSql(qProcessList, ['NULL']));
         end;
       end;
       FProcessListMaxTime := 1;

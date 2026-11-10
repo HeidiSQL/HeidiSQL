@@ -643,7 +643,7 @@ object MainForm: TMainForm
                 Width = 676
                 Height = 122
                 Align = alClient
-                Header.AutoSizeIndex = 7
+                Header.AutoSizeIndex = 8
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
                 Header.PopupMenu = popupListHeader
@@ -710,6 +710,11 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 7
+                    Text = 'Program'
+                    Width = 100
+                  end
+                  item
+                    Position = 8
                     Text = 'Info'
                     Width = 182
                   end>

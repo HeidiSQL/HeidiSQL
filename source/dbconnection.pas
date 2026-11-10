@@ -441,7 +441,7 @@ type
     frCreateEvent,
     frInvisibleColumns,
     frCompressedColumns
-    );
+    ) deprecated 'Use TQueryId and TSqlProvider instead';
 
   TDBConnection = class(TComponent)
     private
@@ -493,6 +493,7 @@ type
       FFavorites: TStringList;
       FPrefetchResults: TDBQueryList;
       FForeignKeyQueriesFailed: Boolean;
+      FConnectAttrsQueryFailed: Boolean;
       FInfSch: String;
       FIdentCharsNoQuote: TSysCharSet;
       FMaxRowsPerInsert: Int64;
@@ -626,6 +627,7 @@ type
       property Datatypes: TDBDataTypeArray read FDatatypes;
       property Favorites: TStringList read FFavorites;
       property InfSch: String read FInfSch;
+      property ConnectAttrsQueryFailed: Boolean read FConnectAttrsQueryFailed write FConnectAttrsQueryFailed;
       function GetLockedTableCount(db: String): Integer;
       function IdentifierEquals(Ident1, Ident2: String): Boolean;
       function GetTableColumns(Table: TDBObject): TTableColumnList; virtual;
@@ -636,7 +638,7 @@ type
       property SQLFunctions: TSQLFunctionList read FSQLFunctions;
       function IsNumeric(Text: String): Boolean;
       function IsHex(Text: String): Boolean;
-      function Has(Item: TFeatureOrRequirement): Boolean;
+      function Has(Item: TFeatureOrRequirement): Boolean; deprecated 'Use SqlProvider.Has(TQueryId) instead';
       property SqlProvider: TSqlProvider read FSqlProvider;
       property NamedEnums: TStringList read FNamedEnums;
       procedure GetColumnDefaultExpressions(Items: TStrings); virtual;
@@ -2167,6 +2169,7 @@ begin
   FKeepAliveTimer := TTimer.Create(Self);
   FFavorites := TStringList.Create;
   FForeignKeyQueriesFailed := False;
+  FConnectAttrsQueryFailed := False;
   // System database/schema, should be uppercase on MSSQL only, see #855
   FInfSch := 'information_schema';
   FInformationSchemaObjects := TStringList.Create;

@@ -1391,6 +1391,10 @@ msgstr "Time"
 msgid "Info"
 msgstr "Info"
 
+#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
+msgid "Program"
+msgstr "Program"
+
 #. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..pnlProcessViewBox..pnlProcessView..Caption
 #: main.dfm:916
 msgid "Process SQL:"
