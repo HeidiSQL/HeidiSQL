@@ -609,6 +609,11 @@ begin
     qForeignKeyEventAction: Result := 'RESTRICT,CASCADE,SET NULL,NO ACTION,SET DEFAULT';
     qSessionVariables: Result := 'SHOW ALL';
     qGlobalVariables: Result := 'SHOW ALL';
+    // Columns: id, user, host, db, command, time, state, program, info
+    qProcessList: Result := 'SELECT pid, usename, client_addr, datname, '+
+      IfThen(FServerVersion >= 100000, 'backend_type', 'NULL AS backend_type')+
+      ', EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - query_start)::INTEGER AS time, state, application_name, query'+
+      ' FROM pg_stat_activity';
     qISSchemaCol: Result := '%s_schema';
     qUSEQuery: Result := 'SET search_path TO %s';
     qKillQuery: Result := 'SELECT pg_cancel_backend(%d)';

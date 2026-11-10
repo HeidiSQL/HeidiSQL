@@ -484,6 +484,11 @@ begin
       'END';
     qSessionVariables: Result := 'SELECT comment, value FROM master.dbo.syscurconfigs ORDER BY comment';
     qGlobalVariables: Result := 'SELECT comment, value FROM master.dbo.syscurconfigs ORDER BY comment';
+    // Columns: id, user, host, db, command, time, state, program, info
+    qProcessList: Result := 'SELECT p.spid, RTRIM(p.loginame) AS loginname, RTRIM(p.hostname) AS hostname,'+
+      ' d.name, p.cmd, p.waittime, RTRIM(p.status) AS status, RTRIM(p.program_name) AS program_name, NULL AS Info'+
+      ' FROM sys.sysprocesses AS p, '+GetSql(qDatabaseTable)+' AS d'+
+      ' WHERE p.dbid=d.'+GetSql(qDatabaseTableId);
     qISSchemaCol: Result := '%s_CATALOG';
     qUSEQuery: Result := 'USE %s';
     qKillQuery: Result := 'KILL %d';

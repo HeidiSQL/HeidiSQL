@@ -1842,7 +1842,7 @@ object MainForm: TMainForm
                 Width = 607
                 Align = alClient
                 DefaultText = 'Node'
-                Header.AutoSizeIndex = 7
+                Header.AutoSizeIndex = 8
                 Header.Columns = <                
                   item
                     Alignment = taRightJustify
@@ -1880,6 +1880,11 @@ object MainForm: TMainForm
                   end                
                   item
                     Position = 7
+                    Text = 'Program'
+                    Width = 100
+                  end
+                  item
+                    Position = 8
                     Text = 'Info'
                     Width = 191
                   end>

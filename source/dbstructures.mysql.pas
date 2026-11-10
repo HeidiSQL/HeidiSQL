@@ -3276,6 +3276,22 @@ begin
       'SHOW GLOBAL VARIABLES',
       ''
       );
+    // Columns: id, user, host, db, command, time, state, program, info. %s = expression for program column
+    qProcessList: Result := IfThen(
+      (FNetType <> ntMySQL_ProxySQLAdmin) and (FServerVersion >= 50107),
+      // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
+      'SELECT ID, USER, HOST, DB, COMMAND, TIME, STATE, %s AS Program, LEFT(INFO, 50000) AS Info'+
+        ' FROM information_schema.PROCESSLIST AS p',
+      // Older servers fetch the whole query length, but at least we cut them off later, so a high memory usage is just a peak
+      'SHOW FULL PROCESSLIST'
+      );
+    // Client program name from connection attributes, used in qProcessList. See issue #2019
+    qProcessListProgram: Result := IfThen(
+      (FNetType <> ntMySQL_ProxySQLAdmin) and (IsMariaDB or (FServerVersion >= 50606)),
+      '(SELECT a.ATTR_VALUE FROM performance_schema.session_connect_attrs AS a'+
+        ' WHERE a.PROCESSLIST_ID=p.ID AND a.ATTR_NAME=''program_name'')',
+      ''
+      );
     qISSchemaCol: Result := '%s_SCHEMA';
     qUSEQuery: Result := 'USE %s';
     qKillQuery: Result := IfThen(
