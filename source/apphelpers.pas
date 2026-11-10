@@ -464,6 +464,7 @@ type
   function PopupComponent(Sender: TObject): TComponent;
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TComponentList);
   function GetOS: String;
+  function AppClientName: String;
   function UserAgent(OwnerComponent: TComponent): String;
   function CodeIndent(Steps: Integer=1): String;
   function EscapeHotkeyPrefix(Text: String): String;
@@ -3114,6 +3115,12 @@ begin
   {$IfDef DARWIN}
   Result := 'macOS';
   {$EndIf}
+end;
+
+function AppClientName: String;
+begin
+  // Program name sent to database servers, visible in their process lists. See issue #2019
+  Result := APPNAME+' '+AppVersion+' ('+GetOS+')';
 end;
 
 function UserAgent(OwnerComponent: TComponent): String;

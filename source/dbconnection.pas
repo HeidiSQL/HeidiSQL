@@ -2525,7 +2525,7 @@ begin
 
     // Tell server who we are
     if Assigned(FLib.mysql_optionsv) then
-      FLib.mysql_optionsv(FHandle, FLib.MYSQL_OPT_CONNECT_ATTR_ADD, 'program_name', APPNAME);
+      FLib.mysql_optionsv(FHandle, FLib.MYSQL_OPT_CONNECT_ATTR_ADD, 'program_name', PAnsiChar(UTF8Encode(AppClientName)));
 
     // Seems to be still required on some systems, for importing CSV files
     SetOption(FLib.MYSQL_OPT_LOCAL_INFILE, @(FLib.MYBOOL_TRUE));
@@ -2705,7 +2705,7 @@ begin
     FHandle.Password := Parameters.Password;
     FHandle.DatabaseName := 'master';
     FHandle.Params.Values['AutoCommit'] := 'true';
-    FHandle.Params.Values['ApplicationName'] := APPNAME;
+    FHandle.Params.Values['ApplicationName'] := AppClientName;
     // See http://www.heidisql.com/forum.php?t=19779
     FHandle.Params.Values['TextSize'] := '2147483647';
 
@@ -2811,7 +2811,7 @@ begin
       .AddPair('port', IntToStr(FinalPort))
       .AddPair('user', FParameters.Username)
       .AddPair('password', FParameters.Password)
-      .AddPair('application_name', APPNAME)
+      .AddPair('application_name', AppClientName)
       .AddPair('sslmode', 'disable');
     if not FParameters.AllDatabasesStr.IsEmpty then
       ConnectOptions.AddPair('dbname', FParameters.AllDatabasesStr);
