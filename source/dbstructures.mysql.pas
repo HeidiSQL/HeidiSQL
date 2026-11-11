@@ -3276,11 +3276,14 @@ begin
       'SHOW GLOBAL VARIABLES',
       ''
       );
-    // Columns: id, user, host, db, command, time, state, program, info. %s = expression for program column
+    // Columns: id, user, host, db, command, time, state, program, memory, progress, info. %s = expression for program column
     qProcessList: Result := IfThen(
       (FNetType <> ntMySQL_ProxySQLAdmin) and (FServerVersion >= 50107),
       // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
-      'SELECT ID, USER, HOST, DB, COMMAND, TIME, STATE, %s AS Program, LEFT(INFO, 50000) AS Info'+
+      'SELECT ID, USER, HOST, DB, COMMAND, TIME, STATE, %s AS Program, '+
+        IfThen(IsMariaDB, 'MEMORY_USED', 'NULL')+' AS Memory, '+
+        IfThen(IsMariaDB, 'ROUND(NULLIF(PROGRESS, 0), 1)', 'NULL')+' AS Progress, '+
+        'LEFT(INFO, 50000) AS Info'+
         ' FROM information_schema.PROCESSLIST AS p',
       // Older servers fetch the whole query length, but at least we cut them off later, so a high memory usage is just a peak
       'SHOW FULL PROCESSLIST'

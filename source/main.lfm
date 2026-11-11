@@ -1835,15 +1835,15 @@ object MainForm: TMainForm
                 Align = alBottom
                 ResizeAnchor = akBottom
               end
-              object ListProcesses: TLazVirtualStringTree
+              object ListProcessList: TLazVirtualStringTree
                 Left = 0
                 Height = 116
                 Top = 0
                 Width = 607
                 Align = alClient
                 DefaultText = 'Node'
-                Header.AutoSizeIndex = 8
-                Header.Columns = <                
+                Header.AutoSizeIndex = 10
+                Header.Columns = <
                   item
                     Alignment = taRightJustify
                     Position = 0
@@ -1884,7 +1884,17 @@ object MainForm: TMainForm
                     Width = 100
                   end
                   item
+                    Alignment = taRightJustify
                     Position = 8
+                    Text = 'Memory'
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Position = 9
+                    Text = 'Progress'
+                  end
+                  item
+                    Position = 10
                     Text = 'Info'
                     Width = 191
                   end>
@@ -1907,7 +1917,7 @@ object MainForm: TMainForm
                 OnBeforeCellPaint = HostListBeforeCellPaint
                 OnBeforePaint = HostListBeforePaint
                 OnCompareNodes = AnyGridCompareNodes
-                OnFocusChanged = ListProcessesFocusChanged
+                OnFocusChanged = ListProcessListFocusChanged
                 OnGetText = HostListGetText
                 OnGetImageIndex = HostListGetImageIndex
                 OnGetHint = AnyGridGetHint

@@ -206,7 +206,7 @@ msgstr "Session name"
 
 #. connform..ListSessions......WideText
 #. MainForm..panelTop..pnlRight..PageControlMain..tabHost..Caption
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
+#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcessList......WideText
 #. UserManagerForm..pnlLeft..listUsers......WideText
 #: connections.dfm:128 main.dfm:601 main.dfm:874 usermanager.dfm:136
 #: tabletools.pas:1197
@@ -214,7 +214,7 @@ msgid "Host"
 msgstr "Host"
 
 #. connform..ListSessions......WideText
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
+#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcessList......WideText
 #: connections.dfm:133 main.dfm:869
 msgid "User"
 msgstr "User"
@@ -691,7 +691,7 @@ msgid "Drop event after expiration"
 msgstr "Drop event after expiration"
 
 #. frmEventEditor..PageControlMain..tabSettings..grpState..Caption
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
+#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcessList......WideText
 #: event_editor.dfm:150 main.dfm:892
 msgid "State"
 msgstr "State"
@@ -1373,30 +1373,38 @@ msgstr "Avg per second"
 msgid "Processes"
 msgstr "Processes"
 
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
+#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcessList......WideText
 #: main.dfm:879
 msgid "DB"
 msgstr "DB"
 
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
+#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcessList......WideText
 #: main.dfm:884
 msgid "Command"
 msgstr "Command"
 
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
+#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcessList......WideText
 #. Data grid > Insert value
 #: main.dfm:888
 msgid "Time"
 msgstr "Time"
 
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
+#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcessList......WideText
 #: main.dfm:897
 msgid "Info"
 msgstr "Info"
 
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
+#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcessList......WideText
 msgid "Program"
 msgstr "Program"
+
+#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcessList......WideText
+msgid "Memory"
+msgstr "Memory"
+
+#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcessList......WideText
+msgid "Progress"
+msgstr "Progress"
 
 #. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..pnlProcessViewBox..pnlProcessView..Caption
 #: main.dfm:916

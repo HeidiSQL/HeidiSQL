@@ -83,7 +83,7 @@ begin
       0: list := Mainform.ListDatabases;
       1: list := Mainform.ListVariables;
       2: list := Mainform.ListStatus;
-      3: list := Mainform.ListProcesses;
+      3: list := Mainform.ListProcessList;
       else list := Mainform.ListCommandStats;
       end;
     1: list := Mainform.ListTables;

@@ -390,7 +390,7 @@ type
     tabVariables: TTabSheet;
     tabProcesslist: TTabSheet;
     ListVariables: TLazVirtualStringTree;
-    ListProcesses: TLazVirtualStringTree;
+    ListProcessList: TLazVirtualStringTree;
     popupHost: TPopupMenu;
     Kill1: TMenuItem;
     ListTables: TLazVirtualStringTree;
@@ -1020,7 +1020,7 @@ type
     procedure ListTablesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
       var ContentRect: TRect);
-    procedure ListProcessesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
+    procedure ListProcessListFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure editFilterVTChange(Sender: TObject);
     procedure ListVariablesDblClick(Sender: TObject);
     procedure menuEditVariableClick(Sender: TObject);
@@ -1883,7 +1883,7 @@ begin
   SaveListSetup(ListDatabases);
   SaveListSetup(ListVariables);
   SaveListSetup(ListStatus);
-  SaveListSetup(ListProcesses);
+  SaveListSetup(ListProcessList);
   SaveListSetup(ListCommandStats);
   SaveListSetup(ListTables);
 
@@ -2216,7 +2216,7 @@ begin
   FixVT(ListDatabases);
   FixVT(ListVariables);
   FixVT(ListStatus);
-  FixVT(ListProcesses);
+  FixVT(ListProcessList);
   FixVT(ListCommandStats);
   FixVT(ListTables);
   FixVT(DataGrid, True);
@@ -2885,7 +2885,7 @@ begin
   RestoreListSetup(ListDatabases);
   RestoreListSetup(ListVariables);
   RestoreListSetup(ListStatus);
-  RestoreListSetup(ListProcesses);
+  RestoreListSetup(ListProcessList);
   RestoreListSetup(ListCommandStats);
   RestoreListSetup(ListTables);
 
@@ -5075,7 +5075,7 @@ begin
     else if tab2 = tabStatus then
       List := ListStatus
     else if tab2 = tabProcessList then
-      List := ListProcesses
+      List := ListProcessList
     else
       List := ListCommandStats;
     InvalidateVT(List, VTREE_NOTLOADED_PURGECACHE, True);
@@ -6712,7 +6712,7 @@ begin
   if tab = tabDatabases then list := ListDatabases
   else if tab = tabVariables then list := ListVariables
   else if tab = tabStatus then list := ListStatus
-  else if tab = tabProcesslist then list := ListProcesses
+  else if tab = tabProcesslist then list := ListProcessList
   else if tab = tabCommandStats then list := ListCommandStats
   else Exit; // Silence compiler warning
   list.TrySetFocus;
@@ -7046,13 +7046,13 @@ var
   Conn: TDBConnection;
 begin
   t := TimerRefresh.Enabled;
-  TimerRefresh.Enabled := false; // prevent av (ListProcesses.selected...)
+  TimerRefresh.Enabled := false; // prevent av (ListProcessList.selected...)
   Conn := ActiveConnection;
-  if MessageDialog('Kill '+IntToStr(ListProcesses.SelectedCount)+' Process(es)?', mtConfirmation, [mbok,mbcancel]) = mrok then
+  if MessageDialog('Kill '+IntToStr(ListProcessList.SelectedCount)+' Process(es)?', mtConfirmation, [mbok,mbcancel]) = mrok then
   begin
-    Node := GetNextNode(ListProcesses, nil, True);
+    Node := GetNextNode(ListProcessList, nil, True);
     while Assigned(Node) do begin
-      pid := StrToInt64Def(ListProcesses.Text[Node, ListProcesses.Header.MainColumn], 0);
+      pid := StrToInt64Def(ListProcessList.Text[Node, ListProcessList.Header.MainColumn], 0);
       // Don't kill own process
       if pid = Conn.ThreadId then
         LogSQL(f_('Ignoring own process id #%d when trying to kill it.', [pid]))
@@ -7065,9 +7065,9 @@ begin
               break;
         end;
       end;
-      Node := GetNextNode(ListProcesses, Node, True);
+      Node := GetNextNode(ListProcessList, Node, True);
     end;
-    InvalidateVT(ListProcesses, VTREE_NOTLOADED, True);
+    InvalidateVT(ListProcessList, VTREE_NOTLOADED, True);
   end;
   TimerRefresh.Enabled := t; // re-enable autorefresh timer
 end;
@@ -8169,7 +8169,7 @@ end;
 procedure TMainForm.popupHostPopup(Sender: TObject);
 begin
   menuFetchDBitems.Enabled := (PageControlHost.ActivePage = tabDatabases) and (ListDatabases.SelectedCount > 0);
-  Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and (ListProcesses.SelectedCount > 0);
+  Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and (ListProcessList.SelectedCount > 0);
   menuEditVariable.Enabled := False;
   if ActiveConnection.Has(frEditVariables) then
     menuEditVariable.Enabled := (PageControlHost.ActivePage = tabVariables) and Assigned(ListVariables.FocusedNode)
@@ -9353,7 +9353,7 @@ end;
   A row in the process list was selected. Fill SynMemoProcessView with
   the SQL of that row.
 }
-procedure TMainForm.ListProcessesFocusChanged(Sender: TBaseVirtualTree;
+procedure TMainForm.ListProcessListFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
   NodeFocused, EnableControls: Boolean;
@@ -9362,7 +9362,7 @@ begin
   NodeFocused := Assigned(Node);
   SQL := '';
   if NodeFocused then begin
-    SQL := ListProcesses.Text[Node, 8];
+    SQL := ListProcessList.Text[Node, 10];
   end;
   EnableControls := not SQL.IsEmpty;
   if EnableControls then begin
@@ -9440,7 +9440,7 @@ begin
     VT := ListStatus;
     FFilterTextStatus := editFilterVT.Text;
   end else if tab = tabProcesslist then begin
-    VT := ListProcesses;
+    VT := ListProcessList;
     FFilterTextProcessList := editFilterVT.Text;
   end else if tab = tabCommandStats then begin
     VT := ListCommandStats;
@@ -9618,7 +9618,7 @@ var
 begin
   if (Column <> (Sender as TLazVirtualStringTree).Header.MainColumn) then
     exit;
-  if Sender = ListProcesses then begin
+  if Sender = ListProcessList then begin
     Idx := Sender.GetNodeData(Node);
     Results := GridResult(Sender);
     // Result sets get freed while disconnecting, a paint event may still come through then
@@ -9751,12 +9751,18 @@ begin
       CellText := '';
     end;
 
-  end else if (Sender = ListProcesses) and (Results.ColumnCount <= 8) and (Column >= 7) then begin
-    // SHOW FULL PROCESSLIST on old servers: no program column, Info in 7 instead of 8
-    if Column = 8 then
+  end else if (Sender = ListProcessList) and (Results.ColumnCount <= 8) and (Column >= 7) then begin
+    // SHOW FULL PROCESSLIST on old servers: no program, memory and progress columns, Info in 7 instead of 10
+    if Column = 10 then
       CellText := StrEllipsis(Results.Col(7, True), SIZE_KB*50)
     else
       CellText := '';
+
+  end else if (Sender = ListProcessList) and (Column = 8) then begin
+    // Memory in bytes
+    CellText := Results.Col(Column, True);
+    if not CellText.IsEmpty then
+      CellText := FormatByteNumber(CellText);
 
   end else begin
     // Values directly from a query result
@@ -10234,7 +10240,7 @@ begin
     InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
     InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
     InvalidateVT(ListStatus, VTREE_NOTLOADED, False);
-    InvalidateVT(ListProcesses, VTREE_NOTLOADED, False);
+    InvalidateVT(ListProcessList, VTREE_NOTLOADED, False);
     InvalidateVT(ListCommandstats, VTREE_NOTLOADED, False);
     InvalidateVT(ListTables, VTREE_NOTLOADED, False);
     ValidateQueryControls(Self);
@@ -12067,7 +12073,7 @@ begin
       LeaveEnabled := Conn.Parameters.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL]
     else if vt = ListStatus then
       LeaveEnabled := Conn.Parameters.NetTypeGroup in [ngMySQL]
-    else if vt = ListProcesses then
+    else if vt = ListProcessList then
       LeaveEnabled := Conn.Parameters.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL]
     else if vt = ListCommandStats then
       LeaveEnabled := Conn.Parameters.NetTypeGroup in [ngMySQL];
@@ -12126,7 +12132,7 @@ begin
     end else if vt = ListStatus then begin
       Results := Conn.GetResults(Conn.SqlProvider.GetSql(qGlobalStatus));
       FStatusServerUptime := Conn.ServerUptime;
-    end else if vt = ListProcesses then begin
+    end else if vt = ListProcessList then begin
       if not Conn.SqlProvider.Has(qProcessList) then
         raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Conn.Parameters.NetType)]);
       // Client program name, sent as connection attribute by HeidiSQL, MySQL Workbench and others. See issue #2019
@@ -12221,7 +12227,7 @@ begin
 
   // Nothing special on Status tab
 
-  if (Column = 5) and (vt = ListProcesses) then begin
+  if (Column = 5) and (vt = ListProcessList) then begin
     PaintColorBar(MakeFloat(vt.Text[Node, Column]), FProcessListMaxTime, TargetCanvas, CellRect);
   end;
 
@@ -14270,7 +14276,7 @@ begin
   Conn := ActiveConnection;
   actNewQueryTabExecute(Sender);
   Tab := QueryTabs[QueryTabs.Count-1];
-  UsedDatabase := listProcesses.Text[listProcesses.FocusedNode, 3];
+  UsedDatabase := ListProcessList.Text[ListProcessList.FocusedNode, 3];
   if not UsedDatabase.IsEmpty then begin
     Tab.Memo.Lines.Add(Conn.SqlProvider.GetSql(qUSEQuery, [Conn.QuoteIdent(UsedDatabase)]) + ';');
   end;
