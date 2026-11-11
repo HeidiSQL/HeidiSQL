@@ -2052,6 +2052,8 @@ begin
     Width := AppSettings.ReadInt(asMainWinWidth);
     Height := AppSettings.ReadInt(asMainWinHeight);
   end;
+  // Saved position may lie on a monitor which is no longer attached
+  MoveIntoVisibleArea;
 
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);

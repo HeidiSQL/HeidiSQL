@@ -69,6 +69,9 @@ type
       class function ScaleFromDesign(x: Extended; Control: TControl): Integer; overload;
       // Returns a PPI-aware width of a space character
       function Space(Multiply: Integer=1): Integer;
+      // Moves the form to the nearest monitor when a restored position is no longer reachable,
+      // e.g. because the monitor it was saved on has been detached. Call after setting bounds.
+      procedure MoveIntoVisibleArea;
       class procedure PageControlTabHighlight(PageControl: TPageControl);
       class procedure ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
       property OnMonitorDpiChanged: TMonitorDpiChangedEvent read FOnMonitorDpiChanged write FOnMonitorDpiChanged;
@@ -468,6 +471,28 @@ begin
   CurPpi := GetCurrentPPI(Self);
   if CurPpi <> Canvas.Font.PixelsPerInch then
     Result := MulDiv(Result, CurPpi, Canvas.Font.PixelsPerInch);
+end;
+
+
+procedure TExtForm.MoveIntoVisibleArea;
+var
+  TitleBarRect, VisibleRect, WorkArea: TRect;
+  WinMonitor: TMonitor;
+  i: Integer;
+begin
+  // Require a reasonable part of the title bar to be on some monitor, so the user can grab it
+  TitleBarRect := Rect(Left, Top, Left + Width, Top + Scale96ToForm(30));
+  for i:=0 to Screen.MonitorCount-1 do begin
+    if IntersectRect(VisibleRect, TitleBarRect, Screen.Monitors[i].WorkareaRect)
+      and (VisibleRect.Width >= Scale96ToForm(100)) then
+      Exit;
+  end;
+  WinMonitor := Screen.MonitorFromRect(BoundsRect, mdNearest);
+  if not Assigned(WinMonitor) then
+    Exit;
+  WorkArea := WinMonitor.WorkareaRect;
+  Left := Max(WorkArea.Left, Min(Left, WorkArea.Right - Width));
+  Top := Max(WorkArea.Top, Min(Top, WorkArea.Bottom - Height));
 end;
 
 
