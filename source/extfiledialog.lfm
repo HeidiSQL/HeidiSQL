@@ -168,11 +168,10 @@ object frmExtFileDialog: TfrmExtFileDialog
     end
   end
   object ShellTreeView: TShellTreeView
-    AnchorSideTop.Control = lblPath
     AnchorSideTop.Side = asrBottom
     Left = 8
-    Height = 332
-    Top = 31
+    Height = 323
+    Top = 40
     Width = 209
     Align = alLeft
     BorderSpacing.Left = 8
@@ -187,19 +186,20 @@ object frmExtFileDialog: TfrmExtFileDialog
   end
   object splitterMain: TSplitter
     Left = 217
-    Height = 332
-    Top = 31
+    Height = 323
+    Top = 40
     Width = 5
   end
   object ShellListView: TShellListView
-    AnchorSideTop.Control = lblPath
     AnchorSideTop.Side = asrBottom
     Left = 222
-    Height = 332
-    Top = 31
+    Height = 323
+    Top = 40
     Width = 468
     Align = alClient
     BorderSpacing.Right = 8
+    Constraints.MinHeight = 150
+    Constraints.MinWidth = 250
     Color = clDefault
     RowSelect = True
     SortColumn = 0
@@ -211,50 +211,84 @@ object frmExtFileDialog: TfrmExtFileDialog
     OnDblClick = ShellListViewDblClick
     OnSelectItem = ShellListViewSelectItem
   end
-  object lblPath: TLabel
-    Cursor = crHandPoint
+  object pnlTopBar: TPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 8
-    Height = 15
+    Height = 24
     Top = 8
     Width = 682
     Align = alTop
-    BorderSpacing.Around = 8
-    Caption = 'lblPath'
-    ParentShowHint = False
-    ShowHint = True
-    OnClick = lblPathClick
-    OnMouseDown = lblPathMouseDown
-    OnMouseMove = lblPathMouseMove
-  end
-  object tbViewStyle: TToolBar
-    AnchorSideTop.Control = lblPath
-    AnchorSideTop.Side = asrCenter
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 643
-    Height = 22
-    Top = 1
-    Width = 47
-    Align = alNone
-    Anchors = [akRight]
     AutoSize = True
     BorderSpacing.Around = 8
-    EdgeBorders = []
-    Images = MainForm.ImageListMain
+    BevelOuter = bvNone
+    ClientHeight = 24
+    ClientWidth = 682
     TabOrder = 4
-    object tbtnViewIcons: TToolButton
-      Left = 1
-      Top = 0
-      Grouped = True
-      ImageIndex = 41
-      OnClick = btnViewIconsClick
+    object tbViewStyle: TToolBar
+      AnchorSideTop.Control = pnlTopBar
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = pnlTopBar
+      AnchorSideRight.Side = asrBottom
+      Left = 635
+      Height = 22
+      Top = 1
+      Width = 47
+      Align = alNone
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      EdgeBorders = []
+      Images = MainForm.ImageListMain
+      TabOrder = 0
+      Wrapable = False
+      object tbtnViewIcons: TToolButton
+        Left = 1
+        Top = 0
+        Grouped = True
+        ImageIndex = 41
+        OnClick = btnViewIconsClick
+      end
+      object tbtnViewDetails: TToolButton
+        Left = 24
+        Top = 0
+        Grouped = True
+        ImageIndex = 56
+        OnClick = btnViewDetailsClick
+      end
     end
-    object tbtnViewDetails: TToolButton
-      Left = 24
-      Top = 0
-      Grouped = True
-      ImageIndex = 56
-      OnClick = btnViewDetailsClick
+    object comboRecentFolders: TComboBox
+      AnchorSideLeft.Control = pnlTopBar
+      AnchorSideTop.Control = pnlTopBar
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Side = asrBottom
+      Left = 0
+      Height = 23
+      Top = 1
+      Width = 208
+      ItemHeight = 15
+      Style = csDropDownList
+      TabOrder = 1
+    end
+    object editSearch: TEditButton
+      AnchorSideTop.Control = pnlTopBar
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = tbViewStyle
+      Left = 470
+      Height = 23
+      Top = 1
+      Width = 155
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 10
+      ButtonWidth = 23
+      Images = MainForm.ImageListMain
+      ImageIndex = 193
+      MaxLength = 0
+      NumGlyphs = 1
+      PasswordChar = #0
+      TabOrder = 2
+      TextHint = 'Search files'
     end
   end
   object IdleTimerTreeNodeScrolltoview: TIdleTimer

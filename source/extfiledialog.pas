@@ -5,9 +5,10 @@ unit extfiledialog;
 interface
 
 uses
-  Classes, SysUtils, LCLType, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls, StdCtrls, Buttons, ShellCtrls, ComCtrls, apphelpers, extra_controls, Math, generic_types, Masks
-  {$IFDEF WINDOWS}, Windows, WinDirs, ActiveX, ShlObj, LazUTF8 {$ENDIF};
+  Classes, SysUtils, LCLType, Forms, Controls, Graphics, Dialogs, ExtCtrls,
+  StdCtrls, Buttons, ShellCtrls, ComCtrls, EditBtn, apphelpers, extra_controls,
+  Math, generic_types, Masks, LazUTF8
+  {$IFDEF WINDOWS}, Windows, WinDirs, ActiveX, ShlObj {$ENDIF};
 
 type
 
@@ -19,12 +20,14 @@ type
     tbViewStyle: TToolBar;
     tbtnViewIcons: TToolButton;
     tbtnViewDetails: TToolButton;
+    comboRecentFolders: TComboBox;
+    editSearch: TEditButton;
+    pnlTopBar: TPanel;
     comboLineBreaks: TComboBox;
     comboEncoding: TComboBox;
     comboFileType: TComboBox;
     editFilename: TEdit;
     IdleTimerTreeNodeScrolltoview: TIdleTimer;
-    lblPath: TLabel;
     lblLinebreaks: TLabel;
     lblEncoding: TLabel;
     lblFilename: TLabel;
@@ -41,11 +44,6 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure IdleTimerTreeNodeScrolltoviewTimer(Sender: TObject);
-    procedure lblPathClick(Sender: TObject);
-    procedure lblPathMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure lblPathMouseMove(Sender: TObject; Shift: TShiftState; X,
-      Y: Integer);
     procedure ShellListViewClick(Sender: TObject);
     procedure ShellListViewDblClick(Sender: TObject);
     procedure ShellListViewFileAdded(Sender: TObject; Item: TListItem);
@@ -66,6 +64,11 @@ type
       var AllowChange: Boolean);
     procedure ShellTreeViewGetImageIndex(Sender: TObject; Node: TTreeNode);
     procedure ShellTreeViewGetSelectedIndex(Sender: TObject; Node: TTreeNode);
+    procedure comboRecentFoldersDropDown(Sender: TObject);
+    procedure comboRecentFoldersCloseUp(Sender: TObject);
+    procedure ShellTreeViewResize(Sender: TObject);
+    procedure editSearchChange(Sender: TObject);
+    procedure editSearchButtonClick(Sender: TObject);
   private
     FInitialDir: String;
     FFilterNames: TStringList;
@@ -78,9 +81,12 @@ type
     FOptions: TOpenOptions;
     FFiles: TStringList;
     FOnTypeChange: TNotifyEvent;
-    FClickedPathPart: String;
     FSortDirection: TSortDirection; // SortDirection is not published by TShellListView
+    FRecentFoldersHintShown: Boolean;
     function CompareFileNames(const Name1, Name2: String): Integer;
+    procedure AddRecentFolder(const Folder: String);
+    procedure ShowRecentFoldersHint;
+    procedure UpdateFormMinSize;
     procedure UpdateViewStyleButton;
     procedure SetupListViewColumns;
     {$IFDEF WINDOWS}
@@ -91,7 +97,6 @@ type
     procedure SetFileName(const AValue: String);
     procedure SetInitialDir(const AValue: String);
     procedure SetFilterIndex(AValue: Integer);
-    function GetPathPartAt(X: Integer): String;
     procedure SetOptions(AValue: TOpenOptions);
   public
     property OnTypeChange: TNotifyEvent read FOnTypeChange write FOnTypeChange;
@@ -182,6 +187,12 @@ begin
   else
     FSortDirection := sdAscending;
   ShellListView.OnAddItem := ShellListViewAddItem;
+  comboRecentFolders.OnDropDown := comboRecentFoldersDropDown;
+  comboRecentFolders.OnCloseUp := comboRecentFoldersCloseUp;
+  ShowRecentFoldersHint;
+  ShellTreeView.OnResize := ShellTreeViewResize;
+  editSearch.OnChange := editSearchChange;
+  editSearch.OnButtonClick := editSearchButtonClick;
   {$IFDEF WINDOWS}
   ShellListView.OnContextPopup := ShellListViewContextPopup;
   {$ENDIF}
@@ -222,6 +233,8 @@ begin
 
   SetFilterIndex(FFilterIndex);
   SetupListViewColumns;
+  comboRecentFolders.Enabled := not (ofNoChangeDir in FOptions);
+  ShellTreeViewResize(ShellTreeView);
 
   comboEncoding.Items.AddStrings(FEncodings, True);
   comboEncoding.AutoSizeItemWidth;
@@ -255,52 +268,6 @@ begin
   IdleTimerTreeNodeScrolltoview.Enabled := False;
 end;
 
-procedure TfrmExtFileDialog.lblPathClick(Sender: TObject);
-begin
-  if (not FClickedPathPart.IsEmpty) and DirectoryExists(FClickedPathPart) then begin
-    if ofNoChangeDir in FOptions then
-      ErrorDialog('You cannot change the directory in this context.')
-    else
-      ShellTreeView.Path := FClickedPathPart;
-  end;
-end;
-
-procedure TfrmExtFileDialog.lblPathMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  FClickedPathPart := GetPathPartAt(X);
-end;
-
-function TfrmExtFileDialog.GetPathPartAt(X: Integer): String;
-var
-  i, CharIndex, CurrentWidth: Integer;
-  TextWidth: Integer;
-begin
-  CharIndex := -1;
-  CurrentWidth := 0;
-  Result := '';
-
-  lblPath.Canvas.Font := lblPath.Font;
-  for i := 1 to Length(lblPath.Caption) do
-  begin
-    TextWidth := lblPath.Canvas.TextWidth(Copy(lblPath.Caption, i, 1));
-    if (X >= CurrentWidth) and (X < CurrentWidth + TextWidth) then
-    begin
-      CharIndex := i; // 1-based character index clicked
-      Break;
-    end;
-    Inc(CurrentWidth, TextWidth);
-  end;
-  if CharIndex > 0 then begin
-    i := 0;
-    for i:=CharIndex to Length(lblPath.Caption) do begin
-      if Copy(lblPath.Caption, i, 1) = PathDelim then
-        break;
-    end;
-    Result := Copy(lblPath.Caption, 1, i);
-  end;
-end;
-
 procedure TfrmExtFileDialog.SetOptions(AValue: TOpenOptions);
 begin
   if FOptions = AValue then
@@ -310,12 +277,6 @@ begin
     // This would crash if we would do it in FormShow. See issue #2410
     ShellListView.MultiSelect := ofAllowMultiSelect in FOptions;
   end;
-end;
-
-procedure TfrmExtFileDialog.lblPathMouseMove(Sender: TObject;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  lblPath.Hint := GetPathPartAt(X);
 end;
 
 procedure TfrmExtFileDialog.comboFileTypeChange(Sender: TObject);
@@ -376,6 +337,98 @@ begin
     ErrorDialog(f_('File does not exist: %s', [FileName]));
     CanClose := False;
   end;
+
+  if CanClose then
+    AddRecentFolder(ShellTreeView.Path);
+end;
+
+procedure TfrmExtFileDialog.AddRecentFolder(const Folder: String);
+const
+  MaxRecentFolders = 20;
+var
+  Recent: TStringList;
+  i: Integer;
+  Dir: String;
+begin
+  // Most recent first, without duplicates, limited to MaxRecentFolders
+  if Folder.IsEmpty then
+    Exit;
+  Dir := IncludeTrailingPathDelimiter(Folder);
+  Recent := Explode(DELIM, AppSettings.ReadString(asFileDialogRecentFolders));
+  try
+    for i:=Recent.Count-1 downto 0 do begin
+      if SameFileName(IncludeTrailingPathDelimiter(Recent[i]), Dir) then
+        Recent.Delete(i);
+    end;
+    Recent.Insert(0, Dir);
+    while Recent.Count > MaxRecentFolders do
+      Recent.Delete(Recent.Count-1);
+    AppSettings.WriteString(asFileDialogRecentFolders, Implode(DELIM, Recent));
+  finally
+    Recent.Free;
+  end;
+end;
+
+procedure TfrmExtFileDialog.ShowRecentFoldersHint;
+begin
+  // A csDropDownList combo box does not display its TextHint. Show the hint as the
+  // only, selected item instead. comboRecentFoldersDropDown replaces it by the
+  // folder list, so it never appears in the drop down list itself.
+  comboRecentFolders.Items.Text := _('Recent folders');
+  comboRecentFolders.ItemIndex := 0;
+  FRecentFoldersHintShown := True;
+end;
+
+procedure TfrmExtFileDialog.comboRecentFoldersDropDown(Sender: TObject);
+var
+  Recent: TStringList;
+begin
+  // Reload on every drop down, another dialog may have added folders meanwhile
+  Recent := Explode(DELIM, AppSettings.ReadString(asFileDialogRecentFolders));
+  try
+    comboRecentFolders.Items.Assign(Recent);
+  finally
+    Recent.Free;
+  end;
+  comboRecentFolders.ItemIndex := -1;
+  FRecentFoldersHintShown := False;
+end;
+
+procedure TfrmExtFileDialog.comboRecentFoldersCloseUp(Sender: TObject);
+var
+  Folder: String;
+begin
+  // Navigate on close up, not on select: OnSelect also fires while moving through
+  // the dropped down list with the arrow keys. Escape leaves ItemIndex at -1.
+  if FRecentFoldersHintShown or (comboRecentFolders.ItemIndex < 0) then begin
+    ShowRecentFoldersHint;
+    Exit;
+  end;
+  Folder := comboRecentFolders.Items[comboRecentFolders.ItemIndex];
+  // Back to the hint, the tree shows the current folder anyway
+  ShowRecentFoldersHint;
+  if ofNoChangeDir in FOptions then
+    ErrorDialog(_('You cannot change the directory in this context.'))
+  else if not DirectoryExists(Folder) then
+    ErrorDialog(f_('Folder does not exist: %s', [Folder]))
+  else begin
+    // The tree is connected to the list view, which follows the path change.
+    // ShellTreeViewChange re-applies the sorting.
+    ShellTreeView.Path := Folder;
+  end;
+end;
+
+procedure TfrmExtFileDialog.editSearchChange(Sender: TObject);
+begin
+  // Repopulate, ShellListViewAddItem applies the search text
+  ShellListView.UpdateView;
+  ShellListView.Sort;
+end;
+
+procedure TfrmExtFileDialog.editSearchButtonClick(Sender: TObject);
+begin
+  editSearch.Clear; // triggers editSearchChange
+  editSearch.SetFocus;
 end;
 
 procedure TfrmExtFileDialog.comboEncodingChange(Sender: TObject);
@@ -519,6 +572,10 @@ begin
   // through. Re-check the long file name strictly against the current mask.
   if CanAdd and ((AFileInfo.Attr and faDirectory) = 0) and (not ShellListView.Mask.Trim.IsEmpty) then
     CanAdd := MatchesWindowsMaskList(AFileInfo.Name, ShellListView.Mask.Trim, ';', FileNameCaseSensitive);
+  // Additional search filter, case-insensitive substring match on files only.
+  // Folders stay visible for navigation.
+  if CanAdd and ((AFileInfo.Attr and faDirectory) = 0) and (editSearch.Text <> '') then
+    CanAdd := Pos(UTF8LowerCase(editSearch.Text), UTF8LowerCase(AFileInfo.Name)) > 0;
 end;
 
 procedure TfrmExtFileDialog.SetupListViewColumns;
@@ -601,13 +658,33 @@ end;
 procedure TfrmExtFileDialog.ShellTreeViewChange(Sender: TObject; Node: TTreeNode
   );
 begin
-  lblPath.Caption := ShellTreeView.Path;
   // Re-apply the current sorting after the list was repopulated: PopulateWithRoot's
   // internal Sort is skipped while the list view is in BeginUpdate (SetRoot), so a
   // folder change would leave the items in raw FindFirst order although the header
   // still shows the sort indicator. OnChange fires after the repopulation, so this
   // is the right place to sort again.
   ShellListView.Sort;
+end;
+
+procedure TfrmExtFileDialog.ShellTreeViewResize(Sender: TObject);
+begin
+  // Keep the recent folders combo as wide as the tree below it, also when the user
+  // drags the splitter. Both have the same left border spacing. Anchoring is not
+  // possible here, as the combo box lives on pnlTopBar and is no sibling of the tree.
+  comboRecentFolders.Width := ShellTreeView.Width;
+  UpdateFormMinSize;
+end;
+
+procedure TfrmExtFileDialog.UpdateFormMinSize;
+begin
+  // The splitter respects ShellListView.Constraints by itself, but resizing the form
+  // would just clip the alClient list view. Derive the minimum form size from the
+  // list view's minimum, plus everything around it (tree, splitter, panels, borders).
+  // Re-calculated whenever the tree width changes.
+  if (ShellListView.Width <= 0) or (ShellListView.Height <= 0) then
+    Exit;
+  Constraints.MinWidth := Width - ShellListView.Width + ShellListView.Constraints.MinWidth;
+  Constraints.MinHeight := Height - ShellListView.Height + ShellListView.Constraints.MinHeight;
 end;
 
 procedure TfrmExtFileDialog.ShellTreeViewChanging(Sender: TObject;

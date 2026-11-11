@@ -4289,6 +4289,15 @@ msgstr "File exists"
 msgid "File does not exist: %s"
 msgstr "File does not exist: %s"
 
+msgid "Folder does not exist: %s"
+msgstr "Folder does not exist: %s"
+
+msgid "Recent folders"
+msgstr "Recent folders"
+
+msgid "You cannot change the directory in this context."
+msgstr "You cannot change the directory in this context."
+
 #: exportgrid.pas:422
 msgid "Overwrite file %s?"
 msgstr "Overwrite file %s?"
