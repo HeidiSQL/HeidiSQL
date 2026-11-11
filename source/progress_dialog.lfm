@@ -1,0 +1,80 @@
+object frmProgress: TfrmProgress
+  Left = 0
+  Height = 215
+  Top = 0
+  Width = 480
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsDialog
+  ClientHeight = 215
+  ClientWidth = 480
+  Position = poOwnerFormCenter
+  LCLVersion = '4.8.0.0'
+  OnCloseQuery = FormCloseQuery
+  object lblLine1: TLabel
+    Left = 10
+    Height = 15
+    Top = 10
+    Width = 460
+    Align = alTop
+    BorderSpacing.Left = 10
+    BorderSpacing.Top = 10
+    BorderSpacing.Right = 10
+    ShowAccelChar = False
+  end
+  object lblLine2: TLabel
+    Left = 10
+    Height = 15
+    Top = 30
+    Width = 460
+    Align = alTop
+    BorderSpacing.Left = 10
+    BorderSpacing.Top = 5
+    BorderSpacing.Right = 10
+    ShowAccelChar = False
+  end
+  object progressBar: TProgressBar
+    Left = 10
+    Height = 18
+    Top = 55
+    Width = 460
+    Align = alTop
+    BorderSpacing.Left = 10
+    BorderSpacing.Top = 10
+    BorderSpacing.Right = 10
+    Max = 1000
+    TabOrder = 1
+  end
+  object paintSpeed: TPaintBox
+    Left = 10
+    Height = 70
+    Top = 78
+    Width = 460
+    Align = alTop
+    BorderSpacing.Left = 10
+    BorderSpacing.Top = 5
+    BorderSpacing.Right = 10
+    OnPaint = paintSpeedPaint
+  end
+  object lblTime: TLabel
+    Left = 10
+    Height = 15
+    Top = 153
+    Width = 460
+    Align = alTop
+    BorderSpacing.Left = 10
+    BorderSpacing.Top = 5
+    BorderSpacing.Right = 10
+    ShowAccelChar = False
+  end
+  object btnCancel: TButton
+    Left = 374
+    Height = 25
+    Top = 180
+    Width = 96
+    Anchors = [akRight, akBottom]
+    Cancel = True
+    Caption = 'Cancel'
+    TabOrder = 0
+    OnClick = btnCancelClick
+  end
+end

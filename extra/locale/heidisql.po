@@ -5920,6 +5920,22 @@ msgid "Position in file: %s / %s. Affected rows: %s."
 msgstr "Position in file: %s / %s. Affected rows: %s."
 
 #. RunQueryFile
+msgid "Cancelled by user"
+msgstr "Cancelled by user"
+
+#. Progress dialog
+msgid "Elapsed time: %s"
+msgstr "Elapsed time: %s"
+
+#. Progress dialog
+msgid "Elapsed time: %s, remaining: approx. %s"
+msgstr "Elapsed time: %s, remaining: approx. %s"
+
+#. Progress dialog, throughput graph
+msgid "Peak: %s"
+msgstr "Peak: %s"
+
+#. RunQueryFile
 msgid "Error while reading file \"%s\""
 msgstr "Error while reading file \"%s\""
 

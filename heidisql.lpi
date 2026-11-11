@@ -230,6 +230,13 @@ if TargetOS=&apos;win64&apos; then
         <ResourceBaseClass Value="Form"/>
       </Unit>
       <Unit>
+        <Filename Value="source\progress_dialog.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmProgress"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
         <Filename Value="source\const.inc"/>
         <IsPartOfProject Value="True"/>
       </Unit>
