@@ -280,6 +280,7 @@ object MainForm: TMainForm
     Font.Pitch = fpFixed
     Font.Quality = fqCleartypeNatural
     ParentColor = False
+    ParentFont = False
     PopupMenu = popupSqlLog
     TabOrder = 2
     Gutter.Width = 13
@@ -1382,6 +1383,7 @@ object MainForm: TMainForm
                   Font.Pitch = fpFixed
                   Font.Quality = fqNonAntialiased
                   ParentColor = False
+                  ParentFont = False
                   TabOrder = 1
                   Gutter.Width = 0
                   Gutter.MouseActions = <>
@@ -1843,7 +1845,7 @@ object MainForm: TMainForm
                 Align = alClient
                 DefaultText = 'Node'
                 Header.AutoSizeIndex = 10
-                Header.Columns = <
+                Header.Columns = <                
                   item
                     Alignment = taRightJustify
                     Position = 0
@@ -1882,21 +1884,21 @@ object MainForm: TMainForm
                     Position = 7
                     Text = 'Program'
                     Width = 100
-                  end
+                  end                
                   item
                     Alignment = taRightJustify
                     Position = 8
                     Text = 'Memory'
-                  end
+                  end                
                   item
                     Alignment = taRightJustify
                     Position = 9
                     Text = 'Progress'
-                  end
+                  end                
                   item
                     Position = 10
                     Text = 'Info'
-                    Width = 191
+                    Width = 10
                   end>
                 Header.Height = 16
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
@@ -2408,6 +2410,7 @@ object MainForm: TMainForm
               Font.Pitch = fpFixed
               Font.Quality = fqNonAntialiased
               ParentColor = False
+              ParentFont = False
               PopupMenu = popupFilter
               TabOrder = 4
               Gutter.Width = 0
@@ -3015,6 +3018,7 @@ object MainForm: TMainForm
               Font.Pitch = fpFixed
               Font.Quality = fqNonAntialiased
               ParentColor = False
+              ParentFont = False
               PopupMenu = popupQuery
               TabOrder = 2
               OnDragDrop = SynMemoQueryDragDrop
@@ -20240,7 +20244,7 @@ object MainForm: TMainForm
     OnExecute = SynCompletionProposalExecute
     OnPaintItem = SynCompletionProposalPaintItem
     OnMeasureItem = SynCompletionProposalMeasureItem
-    Position = -1
+    Position = 0
     LinesInWindow = 6
     OnSearchPosition = SynCompletionProposalSearchPosition
     SelectedColor = clHighlight
