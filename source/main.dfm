@@ -637,13 +637,13 @@ object MainForm: TMainForm
                 Align = alBottom
                 ResizeStyle = rsUpdate
               end
-              object ListProcesses: TVirtualStringTree
+              object ListProcessList: TVirtualStringTree
                 Left = 0
                 Top = 0
                 Width = 676
                 Height = 122
                 Align = alClient
-                Header.AutoSizeIndex = 8
+                Header.AutoSizeIndex = 10
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
                 Header.PopupMenu = popupListHeader
@@ -663,7 +663,7 @@ object MainForm: TMainForm
                 OnBeforeCellPaint = HostListBeforeCellPaint
                 OnBeforePaint = HostListBeforePaint
                 OnCompareNodes = AnyGridCompareNodes
-                OnFocusChanged = ListProcessesFocusChanged
+                OnFocusChanged = ListProcessListFocusChanged
                 OnGetText = HostListGetText
                 OnGetImageIndex = HostListGetImageIndex
                 OnGetHint = AnyGridGetHint
@@ -714,7 +714,17 @@ object MainForm: TMainForm
                     Width = 100
                   end
                   item
+                    Alignment = taRightJustify
                     Position = 8
+                    Text = 'Memory'
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Position = 9
+                    Text = 'Progress'
+                  end
+                  item
+                    Position = 10
                     Text = 'Info'
                     Width = 182
                   end>

@@ -482,11 +482,14 @@ begin
       'END';
     qSessionVariables: Result := 'SELECT comment, value FROM master.dbo.syscurconfigs ORDER BY comment';
     qGlobalVariables: Result := 'SELECT comment, value FROM master.dbo.syscurconfigs ORDER BY comment';
-    // Columns: id, user, host, db, command, time, state, program, info
+    // Columns: id, user, host, db, command, time, state, program, memory, progress, info
     qProcessList: Result := 'SELECT p.spid, RTRIM(p.loginame) AS loginname, RTRIM(p.hostname) AS hostname,'+
-      ' d.name, p.cmd, p.waittime, RTRIM(p.status) AS status, RTRIM(p.program_name) AS program_name, NULL AS Info'+
-      ' FROM sys.sysprocesses AS p, '+GetSql(qDatabaseTable)+' AS d'+
-      ' WHERE p.dbid=d.'+GetSql(qDatabaseTableId);
+      ' d.name, p.cmd, p.waittime, RTRIM(p.status) AS status, RTRIM(p.program_name) AS program_name,'+
+      ' s.memory_usage*8192 AS memory, ROUND(NULLIF(r.percent_complete, 0), 1) AS progress, NULL AS Info'+
+      ' FROM sys.sysprocesses AS p'+
+      ' INNER JOIN '+GetSql(qDatabaseTable)+' AS d ON p.dbid=d.'+GetSql(qDatabaseTableId)+
+      ' LEFT JOIN sys.dm_exec_sessions AS s ON s.session_id=p.spid'+
+      ' LEFT JOIN sys.dm_exec_requests AS r ON r.session_id=p.spid';
     qISSchemaCol: Result := '%s_CATALOG';
     qUSEQuery: Result := 'USE %s';
     qKillQuery: Result := 'KILL %d';

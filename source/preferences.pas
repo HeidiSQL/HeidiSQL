@@ -464,7 +464,7 @@ begin
   Mainform.DataGrid.Repaint;
   Mainform.QueryGrid.Repaint;
   Mainform.ListTables.Invalidate;
-  Mainform.ListProcesses.Invalidate;
+  Mainform.ListProcessList.Invalidate;
   Mainform.ListCommandStats.Invalidate;
 
 
