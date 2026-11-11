@@ -33,6 +33,17 @@ type
       MatchingBraceForeground: TColor;
       MatchingBraceBackground: TColor;
       HightlightSameTextBackground: TColor; // This is for grids only, and there's no foreground setting.
+      // Special lines in SQL log and query editor. Subtle tints, so a quickly
+      // scrolling log with many info lines does not flicker. clNone as
+      // foreground keeps the syntax highlighting.
+      ErrorLineForeground: TColor;
+      ErrorLineBackground: TColor;
+      WarningLineForeground: TColor;
+      WarningLineBackground: TColor;
+      NoteLineForeground: TColor;
+      NoteLineBackground: TColor;
+      InfoLineForeground: TColor;
+      InfoLineBackground: TColor;
       const GridNullBrightness = 20;
       constructor Create;
       destructor Destroy; override;
@@ -174,6 +185,14 @@ begin
   MatchingBraceBackground := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceBackground));
   MatchingBraceForeground := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceForeground));
   HightlightSameTextBackground := AppSettings.ReadInt(asHightlightSameTextBackground);
+  ErrorLineForeground := StringToColor(AppSettings.ReadString(asSQLColErrorLineForeground));
+  ErrorLineBackground := StringToColor(AppSettings.ReadString(asSQLColErrorLineBackground));
+  WarningLineForeground := StringToColor(AppSettings.ReadString(asSQLColWarningLineForeground));
+  WarningLineBackground := StringToColor(AppSettings.ReadString(asSQLColWarningLineBackground));
+  NoteLineForeground := StringToColor(AppSettings.ReadString(asSQLColNoteLineForeground));
+  NoteLineBackground := StringToColor(AppSettings.ReadString(asSQLColNoteLineBackground));
+  InfoLineForeground := StringToColor(AppSettings.ReadString(asSQLColInfoLineForeground));
+  InfoLineBackground := StringToColor(AppSettings.ReadString(asSQLColInfoLineBackground));
 
   GridTextColors[dtcInteger] := AppSettings.ReadInt(asFieldColorNumeric);
   GridTextColors[dtcReal] := AppSettings.ReadInt(asFieldColorReal);
@@ -211,6 +230,14 @@ begin
   AppSettings.WriteString(asSQLColActiveLine, ColorToString(ActiveLineBackground));
   AppSettings.WriteString(asSQLColMatchingBraceForeground, ColorToString(MatchingBraceForeground));
   AppSettings.WriteString(asSQLColMatchingBraceBackground, ColorToString(MatchingBraceBackground));
+  AppSettings.WriteString(asSQLColErrorLineForeground, ColorToString(ErrorLineForeground));
+  AppSettings.WriteString(asSQLColErrorLineBackground, ColorToString(ErrorLineBackground));
+  AppSettings.WriteString(asSQLColWarningLineForeground, ColorToString(WarningLineForeground));
+  AppSettings.WriteString(asSQLColWarningLineBackground, ColorToString(WarningLineBackground));
+  AppSettings.WriteString(asSQLColNoteLineForeground, ColorToString(NoteLineForeground));
+  AppSettings.WriteString(asSQLColNoteLineBackground, ColorToString(NoteLineBackground));
+  AppSettings.WriteString(asSQLColInfoLineForeground, ColorToString(InfoLineForeground));
+  AppSettings.WriteString(asSQLColInfoLineBackground, ColorToString(InfoLineBackground));
   // Grid data type colors
   AppSettings.WriteInt(asHightlightSameTextBackground, HightlightSameTextBackground);
   AppSettings.WriteInt(asFieldColorNumeric, GridTextColors[dtcInteger]);
@@ -261,6 +288,14 @@ begin
   Scheme.GridTextColors[dtcTemporal] := $007373C9;
   Scheme.GridTextColors[dtcSpatial] := $00CECE73;
   Scheme.GridTextColors[dtcOther] := $0073C1C1;
+  Scheme.ErrorLineForeground := clNone;
+  Scheme.ErrorLineBackground := $00282654;
+  Scheme.WarningLineForeground := clNone;
+  Scheme.WarningLineBackground := $001E3A4E;
+  Scheme.NoteLineForeground := clNone;
+  Scheme.NoteLineBackground := $00223A3E;
+  Scheme.InfoLineForeground := clNone;
+  Scheme.InfoLineBackground := $00282E24;
   Add(Scheme);
 
   Scheme := TAppColorScheme.Create;
@@ -286,6 +321,14 @@ begin
   Scheme.GridTextColors[dtcTemporal] := $00000080;
   Scheme.GridTextColors[dtcSpatial] := $00808000;
   Scheme.GridTextColors[dtcOther] := $00008080;
+  Scheme.ErrorLineForeground := clNone;
+  Scheme.ErrorLineBackground := $00DEDEFF;
+  Scheme.WarningLineForeground := clNone;
+  Scheme.WarningLineBackground := $00D0EAFF;
+  Scheme.NoteLineForeground := clNone;
+  Scheme.NoteLineBackground := $00D4F7FF;
+  Scheme.InfoLineForeground := clNone;
+  Scheme.InfoLineBackground := $00F1F7EE;
   Add(Scheme);
 
   Scheme := TAppColorScheme.Create;
@@ -311,6 +354,14 @@ begin
   Scheme.GridTextColors[dtcTemporal] := $00000000;
   Scheme.GridTextColors[dtcSpatial] := $00000000;
   Scheme.GridTextColors[dtcOther] := $00000000;
+  Scheme.ErrorLineForeground := clNone;
+  Scheme.ErrorLineBackground := $00DEDEFF;
+  Scheme.WarningLineForeground := clNone;
+  Scheme.WarningLineBackground := $00D0EAFF;
+  Scheme.NoteLineForeground := clNone;
+  Scheme.NoteLineBackground := $00D4F7FF;
+  Scheme.InfoLineForeground := clNone;
+  Scheme.InfoLineBackground := $00F1F7EE;
   Add(Scheme);
 
   Scheme := TAppColorScheme.Create;
@@ -336,6 +387,14 @@ begin
   Scheme.GridTextColors[dtcTemporal] := $00FFFFFF;
   Scheme.GridTextColors[dtcSpatial] := $00FFFFFF;
   Scheme.GridTextColors[dtcOther] := $00FFFFFF;
+  Scheme.ErrorLineForeground := clNone;
+  Scheme.ErrorLineBackground := $00282654;
+  Scheme.WarningLineForeground := clNone;
+  Scheme.WarningLineBackground := $001E3A4E;
+  Scheme.NoteLineForeground := clNone;
+  Scheme.NoteLineBackground := $00223A3E;
+  Scheme.InfoLineForeground := clNone;
+  Scheme.InfoLineBackground := $00282E24;
   Add(Scheme);
 end;
 

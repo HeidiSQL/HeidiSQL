@@ -1467,14 +1467,6 @@ var
 
 const
   CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
-  ErrorLineForeground: TColor = $00000000;
-  ErrorLineBackground: TColor = $00D2B7FF;
-  WarningLineForeground: TColor = $00000000;
-  WarningLineBackground: TColor = $00B7CDFF;
-  NoteLineForeground: TColor = $00000000;
-  NoteLineBackground: TColor = $00D3F7FF;
-  InfoLineForeground: TColor = $00000000;
-  InfoLineBackground: TColor = $00C6FFEC;
 
 {$I const.inc}
 
@@ -7579,8 +7571,8 @@ begin
     Exit;
   if Line = Tab.ErrorLine then begin
     Special := True;
-    Markup.Foreground := ErrorLineForeground;
-    Markup.Background := ErrorLineBackground;
+    Markup.Foreground := AppColorSchemes.First.ErrorLineForeground;
+    Markup.Background := AppColorSchemes.First.ErrorLineBackground;
   end;
 end;
 
@@ -7590,32 +7582,34 @@ procedure TMainForm.SynMemoSQLLogSpecialLineMarkup(Sender: TObject;
 var
   Edit: TSynEdit;
   LineText, Search: String;
+  Scheme: TAppColorScheme;
 begin
   // Paint error line with red background, or warning in orange
   Edit := Sender as TSynEdit;
+  Scheme := AppColorSchemes.First;
   LineText := Copy(Edit.Lines[Line-1], 1, 100);
   Search := _(MsgSQLError);
   Search := Copy(Search, 1, Pos('%', Search)-1);
   //Logsql(LineText+' ::: '+Search);
   if LineText.Contains(Search) then begin
     Special := True;
-    Markup.Foreground := ErrorLineForeground;
-    Markup.Background := ErrorLineBackground;
+    Markup.Foreground := Scheme.ErrorLineForeground;
+    Markup.Background := Scheme.ErrorLineBackground;
   end
   else if LineText.Contains(_(SLogPrefixWarning)+':') then begin
     Special := True;
-    Markup.Foreground := WarningLineForeground;
-    Markup.Background := WarningLineBackground;
+    Markup.Foreground := Scheme.WarningLineForeground;
+    Markup.Background := Scheme.WarningLineBackground;
   end
   else if LineText.Contains(_(SLogPrefixNote)+':') then begin
     Special := True;
-    Markup.Foreground := NoteLineForeground;
-    Markup.Background := NoteLineBackground;
+    Markup.Foreground := Scheme.NoteLineForeground;
+    Markup.Background := Scheme.NoteLineBackground;
   end
   else if LineText.Contains(_(SLogPrefixInfo)+':') then begin
     Special := True;
-    Markup.Foreground := InfoLineForeground;
-    Markup.Background := InfoLineBackground;
+    Markup.Foreground := Scheme.InfoLineForeground;
+    Markup.Background := Scheme.InfoLineBackground;
   end;
 end;
 

@@ -198,6 +198,10 @@ type
     asShowRowId,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
     asSQLColMatchingBraceForeground, asSQLColMatchingBraceBackground,
+    asSQLColErrorLineForeground, asSQLColErrorLineBackground,
+    asSQLColWarningLineForeground, asSQLColWarningLineBackground,
+    asSQLColNoteLineForeground, asSQLColNoteLineBackground,
+    asSQLColInfoLineForeground, asSQLColInfoLineBackground,
     asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asColumnHeaderClick, asReuseEditorConfiguration,
     asLogToFile, asMainWinMaximized, asMainWinLeft, asMainWinTop, asMainWinWidth,
     asMainWinHeight, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asToolbarShowCaptions, asQuerymemoheight, asDbtreewidth,
@@ -3839,7 +3843,7 @@ begin
   InitSetting(asLowercaseHex,                     'LowercaseHex',                          0, True);
   InitSetting(asHintsOnResultTabs,                'HintsOnResultTabs',                     0, True);
   InitSetting(asShowRowId,                        'ShowRowId',                             0, True);
-  InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          GetThemeColor(NoteLineBackground));
+  InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          $00D3F7FF);
   InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
   InitSetting(asLogsqlwidth,                      'logsqlwidth',                           2000);
   InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs' + PathDelim);
@@ -3847,6 +3851,15 @@ begin
   InitSetting(asSQLColActiveLine,                 'SQLColActiveLine',                      0, False, 'clNone');
   InitSetting(asSQLColMatchingBraceForeground,    'SQLColMatchingBraceForeground',         0, False, 'clBlack');
   InitSetting(asSQLColMatchingBraceBackground,    'SQLColMatchingBraceBackground',         0, False, 'clAqua');
+  // Special lines in SQL log and query editor. Defaults match the light scheme
+  InitSetting(asSQLColErrorLineForeground,        'SQLColErrorLineForeground',             0, False, 'clNone');
+  InitSetting(asSQLColErrorLineBackground,        'SQLColErrorLineBackground',             0, False, '$00DEDEFF');
+  InitSetting(asSQLColWarningLineForeground,      'SQLColWarningLineForeground',           0, False, 'clNone');
+  InitSetting(asSQLColWarningLineBackground,      'SQLColWarningLineBackground',           0, False, '$00D0EAFF');
+  InitSetting(asSQLColNoteLineForeground,         'SQLColNoteLineForeground',              0, False, 'clNone');
+  InitSetting(asSQLColNoteLineBackground,         'SQLColNoteLineBackground',              0, False, '$00D4F7FF');
+  InitSetting(asSQLColInfoLineForeground,         'SQLColInfoLineForeground',              0, False, 'clNone');
+  InitSetting(asSQLColInfoLineBackground,         'SQLColInfoLineBackground',              0, False, '$00F1F7EE');
   InitSetting(asMaxColWidth,                      'MaxColWidth',                           300);
   InitSetting(asDatagridMaximumRows,              'DatagridMaximumRows',                   100000);
   InitSetting(asDatagridRowsPerStep,              'DatagridRowsPerStep',                   1000);

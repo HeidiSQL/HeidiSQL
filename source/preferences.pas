@@ -969,6 +969,14 @@ begin
   FAppColorScheme.ActiveLineBackground := ColorScheme.ActiveLineBackground;
   FAppColorScheme.MatchingBraceForeground := ColorScheme.MatchingBraceForeground;
   FAppColorScheme.MatchingBraceBackground := ColorScheme.MatchingBraceBackground;
+  FAppColorScheme.ErrorLineForeground := ColorScheme.ErrorLineForeground;
+  FAppColorScheme.ErrorLineBackground := ColorScheme.ErrorLineBackground;
+  FAppColorScheme.WarningLineForeground := ColorScheme.WarningLineForeground;
+  FAppColorScheme.WarningLineBackground := ColorScheme.WarningLineBackground;
+  FAppColorScheme.NoteLineForeground := ColorScheme.NoteLineForeground;
+  FAppColorScheme.NoteLineBackground := ColorScheme.NoteLineBackground;
+  FAppColorScheme.InfoLineForeground := ColorScheme.InfoLineForeground;
+  FAppColorScheme.InfoLineBackground := ColorScheme.InfoLineBackground;
   comboSQLColElementChange(comboSQLColElement);
   Modified(Sender);
 end;
