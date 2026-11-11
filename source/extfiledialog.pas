@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, LCLType, Forms, Controls, Graphics, Dialogs,
-  ExtCtrls, StdCtrls, Buttons, ShellCtrls, ComCtrls, apphelpers, extra_controls, Math, generic_types
+  ExtCtrls, StdCtrls, Buttons, ShellCtrls, ComCtrls, apphelpers, extra_controls, Math, generic_types, Masks
   {$IFDEF WINDOWS}, Windows, WinDirs, ActiveX, ShlObj, LazUTF8 {$ENDIF};
 
 type
@@ -49,6 +49,8 @@ type
     procedure ShellListViewClick(Sender: TObject);
     procedure ShellListViewDblClick(Sender: TObject);
     procedure ShellListViewFileAdded(Sender: TObject; Item: TListItem);
+    procedure ShellListViewAddItem(Sender: TObject; const ABasePath: String;
+      const AFileInfo: TSearchRec; var CanAdd: Boolean);
     procedure ShellListViewSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure ShellListViewContextPopup(Sender: TObject; MousePos: TPoint;
@@ -173,7 +175,13 @@ begin
   else
     ShellListView.ViewStyle := vsReport;
   UpdateViewStyleButton;
-  FSortDirection := sdAscending;
+  // Restore the sorting from the last use of any file dialog
+  ShellListView.SortColumn := EnsureRange(AppSettings.ReadInt(asFileDialogSortColumn), 0, ShellListView.Columns.Count-1);
+  if AppSettings.ReadBool(asFileDialogSortDescending) then
+    FSortDirection := sdDescending
+  else
+    FSortDirection := sdAscending;
+  ShellListView.OnAddItem := ShellListViewAddItem;
   {$IFDEF WINDOWS}
   ShellListView.OnContextPopup := ShellListViewContextPopup;
   {$ENDIF}
@@ -228,8 +236,12 @@ begin
     comboLineBreaks.ItemIndex := LineBreakIndexInt;
 
   // Show the sort indicator on the initially sorted column
-  if (ShellListView.SortColumn >= 0) and (ShellListView.SortColumn < ShellListView.Columns.Count) then
-    ShellListView.Columns[ShellListView.SortColumn].SortIndicator := siAscending;
+  if (ShellListView.SortColumn >= 0) and (ShellListView.SortColumn < ShellListView.Columns.Count) then begin
+    if FSortDirection = sdDescending then
+      ShellListView.Columns[ShellListView.SortColumn].SortIndicator := siDescending
+    else
+      ShellListView.Columns[ShellListView.SortColumn].SortIndicator := siAscending;
+  end;
 end;
 
 procedure TfrmExtFileDialog.IdleTimerTreeNodeScrolltoviewTimer(Sender: TObject);
@@ -318,6 +330,9 @@ begin
   if ShellListView.Items.Count > 0 then
     ShellListView.Items[0].MakeVisible(false);
   ShellListView.Mask := FileMask;
+  // SetMask repopulates the list, but PopulateWithRoot's Sort is skipped inside
+  // Items.BeginUpdate, see ShellTreeViewChange. Re-apply the current sorting.
+  ShellListView.Sort;
   if Assigned(FOnTypeChange) then
     FOnTypeChange(Self);
 end;
@@ -492,6 +507,18 @@ begin
   for i := 0 to ShellListView.Columns.Count-1 do
     ShellListView.Columns[i].SortIndicator := siNone;
   Column.SortIndicator := DirToIndicator[NewDirection];
+  AppSettings.WriteInt(asFileDialogSortColumn, Column.Index);
+  AppSettings.WriteBool(asFileDialogSortDescending, NewDirection = sdDescending);
+end;
+
+procedure TfrmExtFileDialog.ShellListViewAddItem(Sender: TObject;
+  const ABasePath: String; const AFileInfo: TSearchRec; var CanAdd: Boolean);
+begin
+  // With a single mask, ShellCtrls leaves the matching to FindFirst. On Windows,
+  // FindFirstFile also matches the 8.3 short names, so "*.txt" lets "file.txtfoo"
+  // through. Re-check the long file name strictly against the current mask.
+  if CanAdd and ((AFileInfo.Attr and faDirectory) = 0) and (not ShellListView.Mask.Trim.IsEmpty) then
+    CanAdd := MatchesWindowsMaskList(AFileInfo.Name, ShellListView.Mask.Trim, ';', FileNameCaseSensitive);
 end;
 
 procedure TfrmExtFileDialog.SetupListViewColumns;

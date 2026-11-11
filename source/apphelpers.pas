@@ -254,6 +254,7 @@ type
     asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail, asFavoriteObjects, asFavoriteObjectsOnly, asFullTableStatus, asLineBreakStyle,
     asPreferencesWindowWidth, asPreferencesWindowHeight,
     asFileDialogEncoding, asFileDialogPreviousDir, asFileDialogViewStyle,
+    asFileDialogSortColumn, asFileDialogSortDescending,
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asCreateDbCollation, asRealTrailingZeros,
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
@@ -4141,6 +4142,8 @@ begin
   InitSetting(asFileDialogEncoding,               'FileDialogEncoding_%s',                 0);
   InitSetting(asFileDialogPreviousDir,            'FileDialogPreviousDir',                 0, False, '');
   InitSetting(asFileDialogViewStyle,              'FileDialogViewStyle',                   0, False, 'report');
+  InitSetting(asFileDialogSortColumn,             'FileDialogSortColumn',                  0);
+  InitSetting(asFileDialogSortDescending,         'FileDialogSortDescending',              0, False);
   InitSetting(asThemePreviewWidth,                'ThemePreviewWidth',                     300);
   InitSetting(asThemePreviewHeight,               'ThemePreviewHeight',                    200);
   InitSetting(asThemePreviewTop,                  'ThemePreviewTop',                       300);
