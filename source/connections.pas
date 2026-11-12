@@ -221,6 +221,7 @@ type
   private
     { Private declarations }
     FLoaded: Boolean;
+    FPathVariablesHint: String;
     FSessionModified, FOnlyPasswordModified: Boolean;
     FServerVersion: String;
     FSettingsImportWaitTime: Cardinal;
@@ -321,7 +322,13 @@ begin
     FilenameHint := FilenameHint + CRLF + '%' + Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
   end;
   Placeholders.Free;
-  editLogFilePath.Hint := FilenameHint;
+  FPathVariablesHint := _('Environment variables like %USERPROFILE% are resolved when connecting. %APPDIR% is the application directory.');
+  editLogFilePath.Hint := FPathVariablesHint + CRLF + CRLF + FilenameHint;
+  editStartupScript.Hint := FPathVariablesHint;
+  editSSHPrivateKey.Hint := FPathVariablesHint;
+  editSSLPrivateKey.Hint := FPathVariablesHint;
+  editSSLCertificate.Hint := FPathVariablesHint;
+  editSSLCACertificate.Hint := FPathVariablesHint;
 
   // Populate dropdown with supported SSH executables
   {$IFDEF WINDOWS}
@@ -1710,6 +1717,10 @@ begin
         end
       end;
       editHost.Button.Enabled := Params.IsAnySQLite;
+      if Params.IsAnySQLite then
+        editHost.Hint := FPathVariablesHint
+      else
+        editHost.Hint := '';
       chkLoginPrompt.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL];
       chkWindowsAuth.Enabled := Params.IsAnyMSSQL or Params.IsAnyMySQL;
       lblUsername.Enabled := (Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase])
@@ -1838,6 +1849,7 @@ var
   i: Integer;
   Control: TControl;
   FileNames: TStringList;
+  OldDirRaw, OldDirExpanded, FileDir: String;
 begin
   // Select startup SQL file, SSL file or whatever button clicked
   Edit := Sender as TEditButton;
@@ -1864,14 +1876,27 @@ begin
       break;
     end;
   end;
-  // Set initial directory to the one from the edit's file
-  Selector.InitialDir := ExtractFilePath(Edit.Text);
+  // Set initial directory to the one from the edit's (first) file, with variables resolved
+  FileNames := Explode(DELIM, Edit.Text);
+  if FileNames.Count > 0 then begin
+    OldDirRaw := ExtractFilePath(FileNames[0]);
+    OldDirExpanded := ExtractFilePath(ExpandFilePathVariables(FileNames[0]));
+  end else begin
+    OldDirRaw := '';
+    OldDirExpanded := '';
+  end;
+  FileNames.Free;
+  Selector.InitialDir := OldDirExpanded;
   if Selector.Execute then begin
     FileNames := TStringList.Create;
     FileNames.Assign(Selector.Files);
     for i:=0 to FileNames.Count-1 do begin
-      // Remove path if it's the application directory
-      if ExtractFilePath(FileNames[i]) = GetAppDir then
+      FileDir := ExtractFilePath(FileNames[i]);
+      if (not OldDirRaw.IsEmpty) and (OldDirRaw <> OldDirExpanded) and SameFileName(FileDir, OldDirExpanded) then
+        // Keep variables like %USERPROFILE% from the previous value, if the folder did not change
+        FileNames[i] := OldDirRaw + ExtractFileName(FileNames[i])
+      else if SameFileName(FileDir, GetAppDir) then
+        // Remove path if it's the application directory
         FileNames[i] := ExtractFileName(FileNames[i]);
     end;
     Edit.Text := Implode(DELIM, FileNames);

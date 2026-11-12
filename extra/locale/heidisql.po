@@ -5777,6 +5777,9 @@ msgstr "Find some help on this error"
 msgid "Allows the following replacement patterns:"
 msgstr "Allows the following replacement patterns:"
 
+msgid "Environment variables like %USERPROFILE% are resolved when connecting. %APPDIR% is the application directory."
+msgstr "Environment variables like %USERPROFILE% are resolved when connecting. %APPDIR% is the application directory."
+
 #. Table tools
 #. Data grid > Insert value
 msgid "Date and time"
