@@ -45,6 +45,7 @@ type
   private
     { Private declarations }
     function ComposeCreateStatement: String;
+    function InitFromShowTriggers(CreateCode: String; out Body: String): Boolean;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -88,7 +89,7 @@ procedure TfrmTriggerEditor.Init(Obj: TDBObject);
 var
   DBObjects: TDBObjectList;
   i: Integer;
-  Body, QuoteCharsRx, QuotedWordRx: String;
+  Body, CreateCode, QuoteCharsRx, QuotedWordRx, IdentRx, QualifiedIdentRx: String;
   rx: TRegExpr;
 begin
   inherited;
@@ -126,11 +127,15 @@ begin
     rx.ModifierI := True;
     QuoteCharsRx := QuoteRegExprMetaChars(DBObject.Connection.QuoteChars);
     QuotedWordRx := '['+QuoteCharsRx+']?[^'+QuoteCharsRx+']+['+QuoteCharsRx+']?';
+    // Trigger and table name may be prefixed with a database name, e.g. `db`.`tbl`, which the server
+    // keeps as is in the original statement. See issue #2577
+    IdentRx := '(?:['+QuoteCharsRx+'][^'+QuoteCharsRx+']+['+QuoteCharsRx+']|[^\s.'+QuoteCharsRx+']+)';
+    QualifiedIdentRx := '(?:'+IdentRx+'\s*\.\s*)?';
     rx.Expression := '(\sDEFINER=('+QuotedWordRx+'@'+QuotedWordRx+'))?' +
-      '\s+TRIGGER\s+(IF\s+NOT\s+EXISTS\s+)?'+QuotedWordRx +
+      '\s+TRIGGER\s+(IF\s+NOT\s+EXISTS\s+)?'+QualifiedIdentRx+IdentRx +
       '\s+('+Implode('|', comboTiming.Items)+')' +
       '\s+('+Implode('|', comboEvent.Items)+')' +
-      '\s+ON\s+('+QuotedWordRx+')' +
+      '\s+ON\s+'+QualifiedIdentRx+'('+IdentRx+')' +
       '\s+FOR\s+EACH\s+ROW\s+(.+)$';
     try
       Body := DBObject.Connection.GetCreateCode(DBObject);
@@ -141,8 +146,14 @@ begin
         comboTable.ItemIndex := comboTable.Items.IndexOf(DBObject.Connection.DeQuoteIdent(Trim(rx.Match[6])));
         Body := rx.Match[7];
       end
-      else
-        raise EDbError.CreateFmt(_('Result from previous query does not contain expected pattern: %s'), [rx.Expression]);
+      else begin
+        DBObject.Connection.Log(lcError, f_('Result from previous query does not contain expected pattern: %s', [rx.Expression]));
+        // Fall back to trigger attributes from SHOW TRIGGERS, so the user does not
+        // accidentally recreate the trigger with default attributes. See issue #2577
+        CreateCode := Body;
+        if not InitFromShowTriggers(CreateCode, Body) then
+          raise EDbError.Create(_('Trigger definition not found!'));
+      end;
     except
       on E:EDbError do begin
         DBObject.Connection.Log(lcError, E.Message);
@@ -177,6 +188,51 @@ begin
   Mainform.ShowStatusMsg;
   TExtForm.PageControlTabHighlight(PageControlMain);
   Screen.Cursor := crDefault;
+end;
+
+
+function TfrmTriggerEditor.InitFromShowTriggers(CreateCode: String; out Body: String): Boolean;
+var
+  Conn: TDBConnection;
+  Definitions: TDBQuery;
+  rx: TRegExpr;
+begin
+  // Fallback for MySQL and MariaDB, if the CREATE code could not be parsed
+  Result := False;
+  Body := '';
+  Conn := DBObject.Connection;
+  if not Conn.SqlProvider.Has(qShowTriggers) then
+    Exit;
+  Definitions := Conn.GetResults(Conn.SqlProvider.GetSql(qShowTriggers, [Conn.QuoteIdent(DBObject.Database)]));
+  try
+    while not Definitions.Eof do begin
+      if Definitions.Col('Trigger') = DBObject.Name then begin
+        // "Definer" column available since MySQL 5.0.17
+        comboDefiner.Text := Definitions.Col('Definer', True);
+        comboTable.ItemIndex := comboTable.Items.IndexOf(Definitions.Col('Table'));
+        comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(Definitions.Col('Timing')));
+        comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(Definitions.Col('Event')));
+        // Prefer the body from the CREATE code, as the "Statement" column from SHOW TRIGGERS
+        // does not escape single quotes where required. See http://www.heidisql.com/forum.php?t=16501
+        rx := TRegExpr.Create;
+        try
+          rx.ModifierI := True;
+          rx.Expression := '\sFOR\s+EACH\s+ROW\s+(.+)$';
+          if rx.Exec(CreateCode) then
+            Body := rx.Match[1]
+          else
+            Body := Definitions.Col('Statement');
+        finally
+          rx.Free;
+        end;
+        Result := True;
+        Break;
+      end;
+      Definitions.Next;
+    end;
+  finally
+    Definitions.Free;
+  end;
 end;
 
 
