@@ -363,6 +363,10 @@ type
   function GetTempDir: String;
   // Return directory of running executable, including a trailing path delimiter
   function GetAppDir: String;
+  // Resolve %APPDIR% and %ENVVAR% in a user-entered path
+  function ExpandPathVariables(const Path: String): String;
+  // Same, plus resolve a relative path against the application directory
+  function ExpandFilePathVariables(const Path: String): String;
   // Return directory with dlls or dylibs, or empty string for auto-detection
   function GetLibDir: String;
   // Return directory with MySQL plugin files. Empty on Linux inidicating auto-detection.
@@ -1316,6 +1320,53 @@ end;
 function GetAppDir: String;
 begin
   Result := ExtractFilePath(Application.ExeName);
+end;
+
+function ExpandPathVariables(const Path: String): String;
+const
+  VarNameChars = ['A'..'Z', 'a'..'z', '0'..'9', '_', '(', ')'];
+var
+  i, j: Integer;
+  Name, Value: String;
+  Found: Boolean;
+begin
+  // Variables are only resolved if they exist, everything else stays untouched. This keeps
+  // literal % characters in filenames, and placeholders like %db or %y%m%d in the log file path.
+  Result := '';
+  i := 1;
+  while i <= Length(Path) do begin
+    Found := False;
+    if Path[i] = '%' then begin
+      j := i + 1;
+      Name := '';
+      while (j <= Length(Path)) and CharInSet(Path[j], VarNameChars) do begin
+        Name := Name + Path[j];
+        Inc(j);
+      end;
+      if (not Name.IsEmpty) and (j <= Length(Path)) and (Path[j] = '%') then begin
+        if SameText(Name, 'APPDIR') then
+          Value := ExcludeTrailingPathDelimiter(GetAppDir)
+        else
+          Value := System.SysUtils.GetEnvironmentVariable(Name);
+        if not Value.IsEmpty then begin
+          Result := Result + Value;
+          i := j + 1;
+          Found := True;
+        end;
+      end;
+    end;
+    if not Found then begin
+      Result := Result + Path[i];
+      Inc(i);
+    end;
+  end;
+end;
+
+function ExpandFilePathVariables(const Path: String): String;
+begin
+  Result := ExpandPathVariables(Path);
+  if (not Result.IsEmpty) and TPath.IsRelativePath(Result) then
+    Result := ExpandFileName(GetAppDir + Result);
 end;
 
 function GetLibDir: String;

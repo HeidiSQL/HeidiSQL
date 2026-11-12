@@ -1109,7 +1109,7 @@ end;
 
 procedure TSecureShellCmd.Connect;
 var
-  SshCmd, SshCmdDisplay, DialogTitle: String;
+  SshCmd, SshExe, SshCmdDisplay, DialogTitle: String;
   OutText, ErrorText, AllPipesText, UserInput: String;
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
@@ -1132,11 +1132,12 @@ begin
 
   // Build SSH command line
   // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
-  IsPlink := ExecRegExprI('([pk]link|putty)', FConnection.Parameters.SSHExe);
-  SshCmd := FConnection.Parameters.SSHExe;
+  SshExe := ExpandPathVariables(FConnection.Parameters.SSHExe);
+  IsPlink := ExecRegExprI('([pk]link|putty)', SshExe);
+  SshCmd := SshExe;
   if IsPlink then begin
     SshCmd := SshCmd + ' -ssh';
-    GetExecutableVersion(FConnection.Parameters.SSHExe, PlinkVerMajor, PlinkVerMinor, PlinkVerRelease, PlinkVerRevision);
+    GetExecutableVersion(SshExe,PlinkVerMajor, PlinkVerMinor, PlinkVerRelease, PlinkVerRevision);
     if (PlinkVerMajor = 0) and (PlinkVerMinor >= 82) then
       SshCmd := SshCmd + ' -legacy-stdio-prompts';
   end;
@@ -1154,7 +1155,7 @@ begin
   if FConnection.Parameters.SSHPort > 0 then
     SshCmd := SshCmd + IfThen(IsPlink, ' -P ', ' -p ') + IntToStr(FConnection.Parameters.SSHPort);
   if FConnection.Parameters.SSHPrivateKey <> '' then
-    SshCmd := SshCmd + ' -i "' + FConnection.Parameters.SSHPrivateKey + '"';
+    SshCmd := SshCmd + ' -i "' + ExpandFilePathVariables(FConnection.Parameters.SSHPrivateKey) + '"';
   if not IsPlink then
     SshCmd := SshCmd + ' -o StrictHostKeyChecking=no';
   SshCmd := SshCmd + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port);
@@ -1994,11 +1995,11 @@ begin
   if WantSSL then
     Args.Add('--ssl');
   if not SSLPrivateKey.IsEmpty then
-    Args.Add('--ssl-key="'+SSLPrivateKey+'"');
+    Args.Add('--ssl-key="'+ExpandFilePathVariables(SSLPrivateKey)+'"');
   if not SSLCertificate.IsEmpty then
-    Args.Add('--ssl-cert="'+SSLCertificate+'"');
+    Args.Add('--ssl-cert="'+ExpandFilePathVariables(SSLCertificate)+'"');
   if not SSLCACertificate.IsEmpty then
-    Args.Add('--ssl-ca="'+SSLCACertificate+'"');
+    Args.Add('--ssl-ca="'+ExpandFilePathVariables(SSLCACertificate)+'"');
 
   case NetType of
     ntMySQL_NamedPipe: begin
@@ -2519,11 +2520,11 @@ begin
         SetOption(FLib.MARIADB_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
       SetOption(FLib.MYSQL_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
       if FParameters.SSLPrivateKey <> '' then
-        SetOption(FLib.MYSQL_OPT_SSL_KEY, PAnsiChar(AnsiString(FParameters.SSLPrivateKey)));
+        SetOption(FLib.MYSQL_OPT_SSL_KEY, PAnsiChar(AnsiString(ExpandFilePathVariables(FParameters.SSLPrivateKey))));
       if FParameters.SSLCertificate <> '' then
-        SetOption(FLib.MYSQL_OPT_SSL_CERT, PAnsiChar(AnsiString(FParameters.SSLCertificate)));
+        SetOption(FLib.MYSQL_OPT_SSL_CERT, PAnsiChar(AnsiString(ExpandFilePathVariables(FParameters.SSLCertificate))));
       if FParameters.SSLCACertificate <> '' then
-        SetOption(FLib.MYSQL_OPT_SSL_CA, PAnsiChar(AnsiString(FParameters.SSLCACertificate)));
+        SetOption(FLib.MYSQL_OPT_SSL_CA, PAnsiChar(AnsiString(ExpandFilePathVariables(FParameters.SSLCACertificate))));
       if FParameters.SSLCipher <> '' then
         SetOption(FLib.MYSQL_OPT_SSL_CIPHER, PAnsiChar(AnsiString(FParameters.SSLCipher)));
       if not FLib.IsLibMariadb then begin
@@ -2966,11 +2967,11 @@ begin
         2: ConnectOptions.Values['sslmode'] := 'verify-full';
       end;
       if FParameters.SSLPrivateKey <> '' then
-        ConnectOptions.AddPair('sslkey', FParameters.SSLPrivateKey);
+        ConnectOptions.AddPair('sslkey', ExpandFilePathVariables(FParameters.SSLPrivateKey));
       if FParameters.SSLCertificate <> '' then
-        ConnectOptions.AddPair('sslcert', FParameters.SSLCertificate);
+        ConnectOptions.AddPair('sslcert', ExpandFilePathVariables(FParameters.SSLCertificate));
       if FParameters.SSLCACertificate <> '' then
-        ConnectOptions.AddPair('sslrootcert', FParameters.SSLCACertificate);
+        ConnectOptions.AddPair('sslrootcert', ExpandFilePathVariables(FParameters.SSLCACertificate));
       //if FParameters.SSLCipher <> '' then ??
     end;
     ConnectionString := '';
@@ -3057,6 +3058,8 @@ var
 begin
   // Support multiple filenames, and use first one as main database
   FileNames := Explode(DELIM, Parameters.Hostname);
+  for i:=0 to FileNames.Count-1 do
+    FileNames[i] := ExpandFilePathVariables(FileNames[i]);
   // Do not use IfThen() here, as it evaluates FileNames[0] eagerly, which crashes on an empty list
   if FileNames.Count >= 1 then
     MainFile := FileNames[0]
@@ -3239,7 +3242,12 @@ begin
       end;
     end;
 
-    FFDHandle.Params.Values['Database'] := Parameters.AllDatabasesStr;
+    // Variables are resolved on the client, which is only valid for a local server.
+    // Relative values stay untouched, they may be aliases from databases.conf.
+    if Parameters.NetType in [ntInterbase_Local, ntFirebird_Local] then
+      FFDHandle.Params.Values['Database'] := ExpandPathVariables(Parameters.AllDatabasesStr)
+    else
+      FFDHandle.Params.Values['Database'] := Parameters.AllDatabasesStr;
     FFDHandle.Params.Values['User_Name'] := Parameters.Username;
     FFDHandle.Params.Values['Password'] := Parameters.Password;
     FFDHandle.Params.Values['CharacterSet'] := 'UTF8';
@@ -3575,7 +3583,7 @@ begin
   // Process startup script
   StartupScript := Trim(FParameters.StartupScriptFilename);
   if StartupScript <> '' then begin
-    StartupScript := ExpandFileName(StartupScript);
+    StartupScript := ExpandFilePathVariables(StartupScript);
     if not FileExists(StartupScript) then
       Log(lcError, f_('Startup script file not found: %s', [StartupScript]))
     else begin
@@ -5769,7 +5777,7 @@ begin
       // Log DDL queries to migration file
       DbObj := TDBObject.Create(Self);
       DbObj.Database := IfThen(FDatabase.IsEmpty, 'nodb', FDatabase);
-      FilePath := GetOutputFilename(Parameters.LogFilePath, DbObj);
+      FilePath := GetOutputFilename(ExpandFilePathVariables(Parameters.LogFilePath), DbObj);
       DbObj.Free;
       try
         ForceDirectories(ExtractFileDir(FilePath));
