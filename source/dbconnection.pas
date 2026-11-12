@@ -5634,7 +5634,11 @@ begin
       try
         ForceDirectories(ExtractFileDir(FilePath));
         AssignFile(LogFile, FilePath); // TStreamWriter.Create(FilePath, True, UTF8NoBOMEncoding);
-        Append(LogFile);
+        // Append fails on a non-existent file in FPC
+        if FileExists(FilePath) then
+          Append(LogFile)
+        else
+          Rewrite(LogFile);
         WriteLn(LogFile, Msg + ';');
         Close(LogFile);
       except
