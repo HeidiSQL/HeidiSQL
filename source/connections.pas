@@ -271,7 +271,7 @@ end;
 
 procedure Tconnform.FormCreate(Sender: TObject);
 var
-  NetTypeStr, FilenameHint, ExePath, ExeFile: String;
+  NetTypeStr, FilenameHint, PlaceholderLine, ExePath, ExeFile: String;
   nt: TNetType;
   ntg: TNetTypeGroup;
   Params: TConnectionParameters;
@@ -316,14 +316,19 @@ begin
   Params.Free;
 
   // Create filename placeholders hint
+  // Plain file paths support %APPDIR% and environment variables, the log file also the prefix-only placeholders
   Placeholders := GetOutputFilenamePlaceholders;
-  FilenameHint := _('Allows the following replacement patterns:');
+  FPathVariablesHint := f_('Environment variables like %s are resolved when connecting. %s is the application directory.', ['%USERPROFILE%', '%APPDIR%'])
+    + sLineBreak + sLineBreak + _('Allows the following replacement patterns:');
+  FilenameHint := FPathVariablesHint;
   for i:=0 to Placeholders.Count-1 do begin
-    FilenameHint := FilenameHint + CRLF + '%' + Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
+    PlaceholderLine := sLineBreak + Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
+    FilenameHint := FilenameHint + PlaceholderLine;
+    if Placeholders.Names[i].EndsWith('%') then
+      FPathVariablesHint := FPathVariablesHint + PlaceholderLine;
   end;
   Placeholders.Free;
-  FPathVariablesHint := f_('Environment variables like %s are resolved when connecting. %s is the application directory.', ['%USERPROFILE%', '%APPDIR%']);
-  editLogFilePath.Hint := FPathVariablesHint + sLineBreak + sLineBreak + FilenameHint;
+  editLogFilePath.Hint := FilenameHint;
   editStartupScript.Hint := FPathVariablesHint;
   editSSHPrivateKey.Hint := FPathVariablesHint;
   editSSLPrivateKey.Hint := FPathVariablesHint;

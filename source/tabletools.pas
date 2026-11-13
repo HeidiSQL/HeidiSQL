@@ -1588,7 +1588,7 @@ begin
   Placeholders := GetOutputFilenamePlaceholders;
   FilenameHint := _('Allows the following replacement patterns:');
   for i:=0 to Placeholders.Count-1 do begin
-    FilenameHint := FilenameHint + CRLF + '%' + Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
+    FilenameHint := FilenameHint + sLineBreak + Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
   end;
   Placeholders.Free;
 
