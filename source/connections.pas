@@ -320,8 +320,7 @@ begin
   // Create filename placeholders hint
   // Plain file paths support %APPDIR% and environment variables, the log file also the prefix-only placeholders
   Placeholders := GetOutputFilenamePlaceholders;
-  FPathVariablesHint := f_('Environment variables like %s are resolved when connecting. %s is the application directory.', ['%USERPROFILE%', '%APPDIR%'])
-    + sLineBreak + sLineBreak + _('Allows the following replacement patterns:');
+  FPathVariablesHint := _('Allows the following replacement patterns:');
   FilenameHint := FPathVariablesHint;
   for i:=0 to Placeholders.Count-1 do begin
     PlaceholderLine := sLineBreak + Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
