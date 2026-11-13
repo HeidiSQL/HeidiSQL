@@ -2885,9 +2885,12 @@ begin
 end;
 
 
-function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject; ResolveRelative: Boolean=True): String;
 const
-  VarNameChars = ['A'..'Z', 'a'..'z', '0'..'9', '_', '(', ')'];
+  // Allowed characters in environment variable names, including ProgramFiles(x86)
+  EnvVarNameChars = ['A'..'Z', 'a'..'z', '0'..'9', '_', '(', ')'];
+
+
+function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject; ResolveRelative: Boolean=True): String;
 var
   PrefixOnlyArgs: TExtStringList;
   Year, Month, Day, Hour, Min, Sec, MSec: Word;
@@ -2926,7 +2929,7 @@ begin
       // Environment variable or %APPDIR%
       j := i + 1;
       Name := '';
-      while (j <= Length(Path)) and CharInSet(Path[j], VarNameChars) do begin
+      while (j <= Length(Path)) and CharInSet(Path[j], EnvVarNameChars) do begin
         Name := Name + Path[j];
         Inc(j);
       end;
@@ -2970,20 +2973,61 @@ end;
 
 
 function GetOutputFilenamePlaceholders: TStringList;
+var
+  EnvVars: TStringList;
+  EnvBlock, EnvEntry: PChar;
+  p: Integer;
+  Entry, Name, Value: String;
+  ValidName: Boolean;
+  c: Char;
 begin
-  // Return a list with valid placeholder=>description pairs
+  // Return a list with valid placeholder=>description pairs. Names include the full syntax,
+  // e.g. "%db" for prefix-only placeholders and "%USERPROFILE%" for environment variables.
   Result := TStringList.Create;
-  Result.Values['session'] := _('Session name');
-  Result.Values['host'] := _('Hostname');
-  Result.Values['u'] := _('Username');
-  Result.Values['db'] := _('Database');
-  Result.Values['date'] := _('Date and time');
-  Result.Values['d'] := _('Day of month');
-  Result.Values['m'] := _('Month');
-  Result.Values['y'] := _('Year');
-  Result.Values['h'] := _('Hour');
-  Result.Values['i'] := _('Minute');
-  Result.Values['s'] := _('Second');
+  Result.Values['%session'] := _('Session name');
+  Result.Values['%host'] := _('Hostname');
+  Result.Values['%u'] := _('Username');
+  Result.Values['%db'] := _('Database');
+  Result.Values['%date'] := _('Date and time');
+  Result.Values['%d'] := _('Day of month');
+  Result.Values['%m'] := _('Month');
+  Result.Values['%y'] := _('Year');
+  Result.Values['%h'] := _('Hour');
+  Result.Values['%i'] := _('Minute');
+  Result.Values['%s'] := _('Second');
+  Result.Values['%APPDIR%'] := ExcludeTrailingPathDelimiter(GetAppDir);
+
+  // Environment variables containing a path to an existing directory, sorted by name.
+  // Lists like PATH are excluded, as their value is not a valid directory.
+  EnvVars := TStringList.Create;
+  EnvVars.CaseSensitive := False;
+  EnvVars.Sorted := True;
+  EnvVars.Duplicates := dupIgnore;
+  EnvBlock := GetEnvironmentStrings;
+  if EnvBlock <> nil then try
+    EnvEntry := EnvBlock;
+    while EnvEntry^ <> #0 do begin
+      Entry := EnvEntry;
+      Inc(EnvEntry, StrLen(EnvEntry) + 1);
+      p := Pos('=', Entry);
+      if p < 2 then
+        Continue; // Also skips hidden entries like "=C:=C:\dir"
+      Name := Copy(Entry, 1, p-1);
+      Value := Copy(Entry, p+1, Length(Entry));
+      ValidName := True;
+      for c in Name do
+        ValidName := ValidName and CharInSet(c, EnvVarNameChars);
+      if ValidName
+        and (not Value.IsEmpty)
+        and (not TPath.IsRelativePath(Value))
+        and DirectoryExists(Value) then
+        EnvVars.Add('%'+Name+'%' + EnvVars.NameValueSeparator + ExcludeTrailingPathDelimiter(Value));
+    end;
+  finally
+    FreeEnvironmentStrings(EnvBlock);
+  end;
+  Result.AddStrings(EnvVars);
+  EnvVars.Free;
 end;
 
 

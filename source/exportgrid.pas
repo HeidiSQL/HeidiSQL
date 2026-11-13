@@ -447,8 +447,8 @@ begin
   for i:=0 to Placeholders.Count-1 do begin
     Item := TMenuItem.Create(Menu);
     Menu.Items.Add(Item);
-    Item.Caption := '%' + Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
-    Item.Hint := '%' + Placeholders.Names[i];
+    Item.Caption := Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
+    Item.Hint := Placeholders.Names[i];
     Item.OnClick := PutFilenamePlaceholder;
   end;
 
