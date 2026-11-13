@@ -41,6 +41,7 @@ type
     radioOutputCopyToClipboard: TRadioButton;
     radioOutputFile: TRadioButton;
     editFilename: TEditButton;
+    btnRecentFiles: TButton;
     grpOptions: TGroupBox;
     chkIncludeColumnNames: TCheckBox;
     editSeparator: TEditButton;
@@ -83,6 +84,7 @@ type
     procedure editFilenameChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure popupRecentFilesPopup(Sender: TObject);
+    procedure btnRecentFilesClick(Sender: TObject);
     procedure menuCSVClick(Sender: TObject);
     procedure editCSVRightButtonClick(Sender: TObject);
     procedure editCSVChange(Sender: TObject);
@@ -405,6 +407,12 @@ begin
     SetExportFormatByFilename;
   end;
   Dialog.Free;
+end;
+
+
+procedure TfrmExportGrid.btnRecentFilesClick(Sender: TObject);
+begin
+  ShowPopup(btnRecentFiles, popupRecentFiles);
 end;
 
 

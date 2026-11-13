@@ -133,10 +133,11 @@ object frmExportGrid: TfrmExportGrid
     object editFilename: TEditButton
       AnchorSideTop.Control = radioOutputCopyToClipboard
       AnchorSideTop.Side = asrBottom
+      AnchorSideRight.Control = btnRecentFiles
       Left = 76
       Height = 23
       Top = 29
-      Width = 401
+      Width = 371
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 5
       ButtonWidth = 23
@@ -151,6 +152,21 @@ object frmExportGrid: TfrmExportGrid
       OnChange = editFilenameChange
       OnDblClick = editFilenameRightButtonClick
     end
+    object btnRecentFiles: TButton
+      AnchorSideTop.Control = editFilename
+      AnchorSideTop.Side = asrCenter
+      AnchorSideRight.Control = grpOutput
+      AnchorSideRight.Side = asrBottom
+      Left = 452
+      Height = 25
+      Top = 28
+      Width = 25
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 5
+      Caption = '⏷'
+      TabOrder = 3
+      OnClick = btnRecentFilesClick
+    end
     object comboEncoding: TComboBox
       AnchorSideTop.Control = editFilename
       AnchorSideTop.Side = asrBottom
@@ -162,7 +178,7 @@ object frmExportGrid: TfrmExportGrid
       BorderSpacing.Around = 5
       ItemHeight = 15
       Style = csDropDownList
-      TabOrder = 3
+      TabOrder = 4
     end
   end
   object grpOptions: TGroupBox
@@ -242,8 +258,7 @@ object frmExportGrid: TfrmExportGrid
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 5
       ButtonWidth = 23
-      Images = MainForm.ImageListMain
-      ImageIndex = 108
+      ButtonCaption = '⏷'
       MaxLength = 0
       NumGlyphs = 1
       PasswordChar = #0
@@ -262,8 +277,7 @@ object frmExportGrid: TfrmExportGrid
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 5
       ButtonWidth = 23
-      Images = MainForm.ImageListMain
-      ImageIndex = 108
+      ButtonCaption = '⏷'
       MaxLength = 0
       NumGlyphs = 1
       PasswordChar = #0
@@ -281,8 +295,7 @@ object frmExportGrid: TfrmExportGrid
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 5
       ButtonWidth = 23
-      Images = MainForm.ImageListMain
-      ImageIndex = 108
+      ButtonCaption = '⏷'
       MaxLength = 0
       NumGlyphs = 1
       PasswordChar = #0
@@ -327,8 +340,7 @@ object frmExportGrid: TfrmExportGrid
       Anchors = [akTop, akLeft, akRight]
       BorderSpacing.Around = 5
       ButtonWidth = 23
-      Images = MainForm.ImageListMain
-      ImageIndex = 108
+      ButtonCaption = '⏷'
       MaxLength = 0
       NumGlyphs = 1
       PasswordChar = #0
