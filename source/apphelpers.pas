@@ -363,10 +363,6 @@ type
   function GetTempDir: String;
   // Return directory of running executable, including a trailing path delimiter
   function GetAppDir: String;
-  // Resolve %APPDIR% and %ENVVAR% in a user-entered path
-  function ExpandPathVariables(const Path: String): String;
-  // Same, plus resolve a relative path against the application directory
-  function ExpandFilePathVariables(const Path: String): String;
   // Return directory with dlls or dylibs, or empty string for auto-detection
   function GetLibDir: String;
   // Return directory with MySQL plugin files. Empty on Linux inidicating auto-detection.
@@ -420,7 +416,8 @@ type
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
   procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
   function f_(const Pattern: string; const Args: array of const): string;
-  function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
+  // Resolve placeholders, %APPDIR% and environment variables in a user-entered path
+  function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject; ResolveRelative: Boolean=True): String;
   function GetOutputFilenamePlaceholders: TStringList;
   function GetSystemImageList: TImageList;
   function GetSystemImageIndex(Filename: String): Integer;
@@ -1322,52 +1319,6 @@ begin
   Result := ExtractFilePath(Application.ExeName);
 end;
 
-function ExpandPathVariables(const Path: String): String;
-const
-  VarNameChars = ['A'..'Z', 'a'..'z', '0'..'9', '_', '(', ')'];
-var
-  i, j: Integer;
-  Name, Value: String;
-  Found: Boolean;
-begin
-  // Variables are only resolved if they exist, everything else stays untouched. This keeps
-  // literal % characters in filenames, and placeholders like %db or %y%m%d in the log file path.
-  Result := '';
-  i := 1;
-  while i <= Length(Path) do begin
-    Found := False;
-    if Path[i] = '%' then begin
-      j := i + 1;
-      Name := '';
-      while (j <= Length(Path)) and CharInSet(Path[j], VarNameChars) do begin
-        Name := Name + Path[j];
-        Inc(j);
-      end;
-      if (not Name.IsEmpty) and (j <= Length(Path)) and (Path[j] = '%') then begin
-        if SameText(Name, 'APPDIR') then
-          Value := ExcludeTrailingPathDelimiter(GetAppDir)
-        else
-          Value := System.SysUtils.GetEnvironmentVariable(Name);
-        if not Value.IsEmpty then begin
-          Result := Result + Value;
-          i := j + 1;
-          Found := True;
-        end;
-      end;
-    end;
-    if not Found then begin
-      Result := Result + Path[i];
-      Inc(i);
-    end;
-  end;
-end;
-
-function ExpandFilePathVariables(const Path: String): String;
-begin
-  Result := ExpandPathVariables(Path);
-  if (not Result.IsEmpty) and TPath.IsRelativePath(Result) then
-    Result := ExpandFileName(GetAppDir + Result);
-end;
 
 function GetLibDir: String;
 begin
@@ -2934,35 +2885,87 @@ begin
 end;
 
 
-function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
+function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject; ResolveRelative: Boolean=True): String;
+const
+  VarNameChars = ['A'..'Z', 'a'..'z', '0'..'9', '_', '(', ')'];
 var
-  Arguments: TExtStringList;
+  PrefixOnlyArgs: TExtStringList;
   Year, Month, Day, Hour, Min, Sec, MSec: Word;
-  i: Integer;
+  i, j, k, Best: Integer;
+  Path, Name, Value: String;
+  Found: Boolean;
 begin
   // Rich format output filename, replace certain markers. See issue #2622
-  Arguments := TExtStringList.Create;
+  // Placeholders like %db or %y%m%d have only a prefix %, without a closing one.
+  // %APPDIR% and environment variables require the closing %. They are only resolved
+  // if they exist, so literal % characters and prefix-only placeholders stay untouched.
+  PrefixOnlyArgs := TExtStringList.Create;
 
   if Assigned(DBObj) then begin
-    Arguments.Values['session'] := ValidFilename(DBObj.Connection.Parameters.SessionName);
-    Arguments.Values['host'] := ValidFilename(DBObj.Connection.Parameters.Hostname);
-    Arguments.Values['u'] := ValidFilename(DBObj.Connection.Parameters.Username);
-    Arguments.Values['db'] := ValidFilename(DBObj.Database);
+    PrefixOnlyArgs.Values['session'] := ValidFilename(DBObj.Connection.Parameters.SessionName);
+    PrefixOnlyArgs.Values['host'] := ValidFilename(DBObj.Connection.Parameters.Hostname);
+    PrefixOnlyArgs.Values['u'] := ValidFilename(DBObj.Connection.Parameters.Username);
+    PrefixOnlyArgs.Values['db'] := ValidFilename(DBObj.Database);
   end;
-  Arguments.Values['date'] := ValidFilename(DateTimeToStr(Now));
+  PrefixOnlyArgs.Values['date'] := ValidFilename(DateTimeToStr(Now));
   DecodeDateTime(Now, Year, Month, Day, Hour, Min, Sec, MSec);
-  Arguments.Values['d'] := Format('%.2d', [Day]);
-  Arguments.Values['m'] := Format('%.2d', [Month]);
-  Arguments.Values['y'] := Format('%.4d', [Year]);
-  Arguments.Values['h'] := Format('%.2d', [Hour]);
-  Arguments.Values['i'] := Format('%.2d', [Min]);
-  Arguments.Values['s'] := Format('%.2d', [Sec]);
+  PrefixOnlyArgs.Values['d'] := Format('%.2d', [Day]);
+  PrefixOnlyArgs.Values['m'] := Format('%.2d', [Month]);
+  PrefixOnlyArgs.Values['y'] := Format('%.4d', [Year]);
+  PrefixOnlyArgs.Values['h'] := Format('%.2d', [Hour]);
+  PrefixOnlyArgs.Values['i'] := Format('%.2d', [Min]);
+  PrefixOnlyArgs.Values['s'] := Format('%.2d', [Sec]);
 
-  Result := FilenameWithPlaceholders;
-  for i:=0 to Arguments.Count-1 do begin
-    Result := StringReplace(Result, '%'+Arguments.Names[i], Arguments.ValueFromIndex[i], [rfReplaceAll]);
+  // Single pass, so values inserted from variables or placeholders are not processed again
+  Path := FilenameWithPlaceholders;
+  Result := '';
+  i := 1;
+  while i <= Length(Path) do begin
+    Found := False;
+    if Path[i] = '%' then begin
+      // Environment variable or %APPDIR%
+      j := i + 1;
+      Name := '';
+      while (j <= Length(Path)) and CharInSet(Path[j], VarNameChars) do begin
+        Name := Name + Path[j];
+        Inc(j);
+      end;
+      if (not Name.IsEmpty) and (j <= Length(Path)) and (Path[j] = '%') then begin
+        if SameText(Name, 'APPDIR') then
+          Value := ExcludeTrailingPathDelimiter(GetAppDir)
+        else
+          Value := System.SysUtils.GetEnvironmentVariable(Name);
+        if not Value.IsEmpty then begin
+          Result := Result + Value;
+          i := j + 1;
+          Found := True;
+        end;
+      end;
+      // Prefix-only placeholder, longest name wins, e.g. %date before %d
+      if not Found then begin
+        Best := -1;
+        for k:=0 to PrefixOnlyArgs.Count-1 do begin
+          if (Copy(Path, i+1, Length(PrefixOnlyArgs.Names[k])) = PrefixOnlyArgs.Names[k])
+            and ((Best = -1) or (Length(PrefixOnlyArgs.Names[k]) > Length(PrefixOnlyArgs.Names[Best]))) then
+            Best := k;
+        end;
+        if Best > -1 then begin
+          Result := Result + PrefixOnlyArgs.ValueFromIndex[Best];
+          i := i + 1 + Length(PrefixOnlyArgs.Names[Best]);
+          Found := True;
+        end;
+      end;
+    end;
+    if not Found then begin
+      Result := Result + Path[i];
+      Inc(i);
+    end;
   end;
-  Arguments.Free;
+  PrefixOnlyArgs.Free;
+
+  // Relative paths are relative to the application directory, not to the current directory
+  if ResolveRelative and (not Result.IsEmpty) and TPath.IsRelativePath(Result) then
+    Result := ExpandFileName(GetAppDir + Result);
 end;
 
 
