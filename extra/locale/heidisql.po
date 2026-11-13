@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2026-10-19 08:37+0200\n"
+"PO-Revision-Date: 2026-11-12 20:54+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -5777,8 +5777,8 @@ msgstr "Find some help on this error"
 msgid "Allows the following replacement patterns:"
 msgstr "Allows the following replacement patterns:"
 
-msgid "Environment variables like %USERPROFILE% are resolved when connecting. %APPDIR% is the application directory."
-msgstr "Environment variables like %USERPROFILE% are resolved when connecting. %APPDIR% is the application directory."
+msgid "Environment variables like %s are resolved when connecting. %s is the application directory."
+msgstr "Environment variables like %s are resolved when connecting. %s is the application directory."
 
 #. Table tools
 #. Data grid > Insert value
@@ -5868,7 +5868,6 @@ msgstr "Importing file: %s"
 #. Session manager > Start tab
 msgid "Imported settings, sessions and files from a previous version."
 msgstr "Imported settings, sessions and files from a previous version."
-
 
 #. MessageDialog()
 msgid "Missing \"No\" button in %() call"

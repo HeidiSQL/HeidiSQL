@@ -322,8 +322,8 @@ begin
     FilenameHint := FilenameHint + CRLF + '%' + Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
   end;
   Placeholders.Free;
-  FPathVariablesHint := _('Environment variables like %USERPROFILE% are resolved when connecting. %APPDIR% is the application directory.');
-  editLogFilePath.Hint := FPathVariablesHint + CRLF + CRLF + FilenameHint;
+  FPathVariablesHint := f_('Environment variables like %s are resolved when connecting. %s is the application directory.', ['%USERPROFILE%', '%APPDIR%']);
+  editLogFilePath.Hint := FPathVariablesHint + sLineBreak + sLineBreak + FilenameHint;
   editStartupScript.Hint := FPathVariablesHint;
   editSSHPrivateKey.Hint := FPathVariablesHint;
   editSSLPrivateKey.Hint := FPathVariablesHint;
@@ -1880,7 +1880,7 @@ begin
   FileNames := Explode(DELIM, Edit.Text);
   if FileNames.Count > 0 then begin
     OldDirRaw := ExtractFilePath(FileNames[0]);
-    OldDirExpanded := ExtractFilePath(ExpandFilePathVariables(FileNames[0]));
+    OldDirExpanded := ExtractFilePath(GetOutputFilename(FileNames[0], nil));
   end else begin
     OldDirRaw := '';
     OldDirExpanded := '';
