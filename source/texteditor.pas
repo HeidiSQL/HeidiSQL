@@ -179,7 +179,7 @@ begin
   CursorPos := FormatNumber(MemoText.CaretY) + ':' + FormatNumber(MemoText.CaretX);
   lblTextLength.Caption := f_('%s characters (max: %s), %s lines, cursor at %s', [FormatNumber(MemoText.GetTextLen), MaxLen, FormatNumber(MemoText.Lines.Count), CursorPos]);
   if MemoText.ReadOnly then
-    lblTextLength.Caption := lblTextLength.Caption + ', read-only';
+    lblTextLength.Caption := lblTextLength.Caption + ', ' + _('read-only');
 end;
 
 

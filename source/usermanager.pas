@@ -1454,7 +1454,7 @@ begin
       if User = FocusedUser^ then
         Continue;
       if (User.Username = editUsername.Text) and (User.Host = editFromHost.Text) then
-        raise EInputError.CreateFmt('User or role <%s@%s> already exists.', [editUsername.Text, editFromHost.Text]);
+        raise EInputError.Create(f_('User or role <%s@%s> already exists.', [editUsername.Text, editFromHost.Text]));
     end;
 
     // Check input: Ensure we have a unique user@host combination

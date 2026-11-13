@@ -1214,7 +1214,8 @@ var
 begin
   // Fetch text of shortcut item
   case Sender.GetNodeLevel(Node) of
-    0: CellText := FShortcutCategories[Node.Index];
+    // Category is the untranslated TAction.Category, which LCL's translator skips as it is a plain string
+    0: CellText := _(FShortcutCategories[Node.Index]);
     1: begin
       Data := Sender.GetNodeData(Node);
       if Assigned(Data.KeyStroke) then begin
@@ -1647,7 +1648,7 @@ begin
   FLanguages.Sort;
   FLanguages.Insert(0, '*** '+f_('Auto detect (%s)', [SysLanguage]));
   if FLanguages.Count <= 1 then
-    FLanguages[0] := 'English only - no .mo files found in ' + ExtractFilePath(AppLanguageMoBasePath);
+    FLanguages[0] := f_('English only - no .mo files found in %s', [ExtractFilePath(AppLanguageMoBasePath)]);
 
   AvailMoFiles.Free;
   AvailLangCodes.Free;

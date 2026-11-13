@@ -87,7 +87,7 @@ var
     (
       Index:           dbdtDecimal;
       Name:            'DECIMAL';
-      Description:     'Fixed precision and scale numeric data from -10^38 +1 through 10^38 1.';
+      Description:     'Fixed precision and scale numeric data from -10^38 +1 through 10^38 -1.';
       HasLength:       True;
       RequiresLength:  True;
       HasBinary:       False;

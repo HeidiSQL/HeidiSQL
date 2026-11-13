@@ -257,7 +257,6 @@ type
     asFileDialogSortColumn, asFileDialogSortDescending, asFileDialogRecentFolders,
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asCreateDbCollation, asRealTrailingZeros,
-    asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
     asReformatter, asReformatterNoDialog, asAlwaysGenerateFilter, asDisplayReverseForeignKeys,
     asGenerateDataNumRows, asGenerateDataNullAmount, asWebOnceAction, asDisplayLogPanel, asDisplayTreeFilters,
     asUnused);
@@ -2683,7 +2682,8 @@ end;
 function _(const Pattern: string): string;
 begin
   Result := '';
-  if Assigned(AppLanguageMoFile) then
+  // Empty msgid would return the .mo header
+  if Assigned(AppLanguageMoFile) and (not Pattern.IsEmpty) then
     Result := AppLanguageMoFile.Translate(Pattern);
   if Result.IsEmpty then
     Result := Pattern;
@@ -4109,10 +4109,6 @@ begin
   InitSetting(asDisplayBars,                      'DisplayBars',                           0, true);
   InitSetting(asMySQLBinaries,                    'MySQL_Binaries',                        0, False, '');
   InitSetting(asTerminal,                         'Terminal',                              0, False, '');
-  InitSetting(asSequalSuggestWindowWidth,         'SequalSuggestWindowWidth',              500);
-  InitSetting(asSequalSuggestWindowHeight,        'SequalSuggestWindowHeight',             400);
-  InitSetting(asSequalSuggestPrompt,              'SequalSuggestPrompt',                   0, False, '');
-  InitSetting(asSequalSuggestRecentPrompts,       'SequalSuggestRecentPrompts',            0, False, '');
   InitSetting(asReformatter,                      'Reformatter',                           0);
   InitSetting(asReformatterNoDialog,              'ReformatterNoDialog',                   0);
   InitSetting(asAlwaysGenerateFilter,             'AlwaysGenerateFilter',                  0, False);
@@ -4852,7 +4848,7 @@ begin
   // Load registry settings from file
 
   if not FileExists(Filename) then begin
-    raise Exception.CreateFmt('File does not exist: %s', [Filename]);
+    raise Exception.Create(f_('File does not exist: %s', [Filename]));
   end;
 
   Content := ReadTextfile(FileName, UTF8NoBOMEncoding);
@@ -4890,7 +4886,7 @@ begin
       3: // Integer (Delphi definition)
         FRegistry.WriteInteger(Name, MakeInt(Value));
       else
-        ErrorDialog(Name+' has an unsupported data type.');
+        ErrorDialog(f_('%s has an unsupported data type.', [Name]));
     end;
     Segments.Free;
   end;
@@ -4934,7 +4930,7 @@ var
         jtNumber, jtBoolean:
           Value := IntToStr(FRegistry.ReadInteger(Names[i]));
         else
-          ErrorDialog(Names[i]+' has an unsupported data type.');
+          ErrorDialog(f_('%s has an unsupported data type.', [Names[i]]));
       end;
       Content := Content + Value + CRLF;
     end;

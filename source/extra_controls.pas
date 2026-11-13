@@ -62,6 +62,8 @@ type
       procedure FixTreeFontsOnDPIChange(Owner: TComponent; NewDPI: Integer);
       procedure DeferFreeControl(AControl: TControl);
       class procedure InheritFont(AFont: TFont);
+      // Translates Items of combo boxes, list boxes, radio and check groups owned by Root
+      class procedure TranslateItemLists(Root: TComponent);
       class procedure SaveListSetup(List: TLazVirtualStringTree);
       class procedure RestoreListSetup(List: TLazVirtualStringTree);
       class function GetCurrentPPI(Control: TControl): Integer;
@@ -105,6 +107,65 @@ begin
   inherited;
 
   InheritFont(Font);
+  TranslateItemLists(Self);
+end;
+
+class procedure TExtForm.TranslateItemLists(Root: TComponent);
+var
+  i, j, OldIndex: Integer;
+  Comp: TComponent;
+  Checked: array of Boolean;
+
+  procedure TranslateList(List: TStrings);
+  var
+    j: Integer;
+    Translated: String;
+  begin
+    List.BeginUpdate;
+    try
+      for j:=0 to List.Count-1 do begin
+        if List[j].IsEmpty then
+          Continue;
+        Translated := _(List[j]);
+        if Translated <> List[j] then
+          List[j] := Translated;
+      end;
+    finally
+      List.EndUpdate;
+    end;
+  end;
+
+begin
+  // LCL's TDefaultTranslator only handles TTranslateString properties read
+  // through TReader.ReadPropValue. TStrings contents from .lfm files
+  // (Items.Strings) are read via TReader.ReadString and never translated, so
+  // we do that here. Lists without a matching msgid stay as they are.
+  for i:=0 to Root.ComponentCount-1 do begin
+    Comp := Root.Components[i];
+    if Comp is TCustomComboBox then begin
+      OldIndex := TCustomComboBox(Comp).ItemIndex;
+      TranslateList(TCustomComboBox(Comp).Items);
+      TCustomComboBox(Comp).ItemIndex := OldIndex;
+    end
+    else if Comp is TCustomListBox then begin
+      OldIndex := TCustomListBox(Comp).ItemIndex;
+      TranslateList(TCustomListBox(Comp).Items);
+      TCustomListBox(Comp).ItemIndex := OldIndex;
+    end
+    else if Comp is TCustomRadioGroup then begin
+      OldIndex := TCustomRadioGroup(Comp).ItemIndex;
+      TranslateList(TCustomRadioGroup(Comp).Items);
+      TCustomRadioGroup(Comp).ItemIndex := OldIndex;
+    end
+    else if Comp is TCustomCheckGroup then begin
+      SetLength(Checked, TCustomCheckGroup(Comp).Items.Count);
+      for j:=0 to High(Checked) do
+        Checked[j] := TCustomCheckGroup(Comp).Checked[j];
+      TranslateList(TCustomCheckGroup(Comp).Items);
+      for j:=0 to High(Checked) do
+        TCustomCheckGroup(Comp).Checked[j] := Checked[j];
+    end;
+  end;
 end;
 
 procedure TExtForm.WMDPIChanged(var Msg: TLMessage);

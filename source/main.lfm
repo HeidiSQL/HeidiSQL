@@ -3861,9 +3861,6 @@ object MainForm: TMainForm
       object Launchcommandline1: TMenuItem
         Action = actLaunchCommandline
       end
-      object SequalSuggest1: TMenuItem
-        Action = actSequalSuggest
-      end
       object N7: TMenuItem
         Caption = '-'
       end
@@ -5059,13 +5056,6 @@ object MainForm: TMainForm
       ImageIndex = 74
       ShortCut = 32806
       OnExecute = actSynMoveUpExecute
-    end
-    object actSequalSuggest: TAction
-      Category = 'Tools'
-      Caption = 'Sequal Suggest'
-      ImageIndex = 206
-      Visible = False
-      OnExecute = actSequalSuggestExecute
     end
     object actResetPanelDimensions: TAction
       Category = 'Tools'
@@ -20904,9 +20894,6 @@ object MainForm: TMainForm
     end
     object menuSQLhelp2: TMenuItem
       Action = actSQLhelp
-    end
-    object SequalSuggest2: TMenuItem
-      Action = actSequalSuggest
     end
     object menuQueryInsertFunction: TMenuItem
       Caption = 'Insert function'

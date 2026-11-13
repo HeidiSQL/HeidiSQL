@@ -120,7 +120,7 @@ begin
   Caption := f_('About %s', [APPNAME]);
   lblAppName.Caption := APPNAME;
   lblAppVersion.Caption := _('Version') + ' ' + AppVersion;
-  lblAppCompiled.Caption := _('Compiled on:') + ' ' + DateTimeToStr(GetFileModTime(Application.ExeName)) + ' with';
+  lblAppCompiled.Caption := f_('Compiled on: %s with', [DateTimeToStr(GetFileModTime(Application.ExeName))]);
   lnklblCompiler.Caption := GetCompilerVersion;
   lnklblCompiler.Hint := 'https://www.lazarus-ide.org/?utm_source='+APPNAME;
   lnklblWebpage.Caption := APPDOMAIN;

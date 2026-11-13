@@ -821,9 +821,6 @@ type
     Movelineup1: TMenuItem;
     menuCloseTabOnDblClick: TMenuItem;
     Undo1: TMenuItem;
-    actSequalSuggest: TAction;
-    SequalSuggest1: TMenuItem;
-    SequalSuggest2: TMenuItem;
     popupDataTop: TPopupMenu;
     menuQueryExactRowCount: TMenuItem;
     menuCloseTabOnMiddleClick: TMenuItem;
@@ -1253,7 +1250,6 @@ type
       var Special: Boolean; Markup: TSynSelectedColor);
     procedure SynMemoSQLLogSpecialLineMarkup(Sender: TObject; Line: Integer;
       var Special: Boolean; Markup: TSynSelectedColor);
-    procedure actSequalSuggestExecute(Sender: TObject);
     procedure menuQueryExactRowCountClick(Sender: TObject);
     procedure menuCloseTabOnMiddleClickClick(Sender: TObject);
     procedure TimerCloseTabByButtonTimer(Sender: TObject);
@@ -2117,11 +2113,11 @@ begin
 
   // Make exit action OS friendly
   {$IFDEF UNIX}
-    actExitApplication.Caption := '&Quit';
+    actExitApplication.Caption := _('&Quit');
     actExitApplication.ShortCut := KeyToShortCut(VK_Q, [ssCtrl]);
   {$ENDIF}
   {$IFDEF WINDOWS}
-    actExitApplication.Caption := 'E&xit';
+    actExitApplication.Caption := _('E&xit');
     actExitApplication.ShortCut := KeyToShortCut(VK_F4, [ssAlt]);
   {$ENDIF}
   {$IFDEF DARWIN}
@@ -2145,6 +2141,10 @@ begin
     Action := TAction(ActionList1.Actions[i]);
     Action.ShortCut := AppSettings.ReadInt(asActionShortcut1, Action.Name, Action.ShortCut);
   end;
+
+  // Set dynamic caption before taking the snapshot, as it is displayed in the shortcut preferences
+  actQueryTable.Caption := f_('Select top %s rows', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
+  actQueryTable.Hint := f_('Selects the first %s rows in a new query tab', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
 
   // Keep a list of untranslated captions and hints of actions
   FActionList1DefaultCaptions := TStringList.Create;
@@ -2930,7 +2930,7 @@ begin
     ngMySQL: Dialog := TUserManagerForm.Create(Self);
     ngPgSQL: Dialog := TRoleManagerPgForm.Create(Self);
     ngMSSQL: Dialog := TRoleManagerMssqlForm.Create(Self);
-    else ErrorDialog(ActiveConnection.Parameters.NetTypeName(False) + ' not supported for managing users');
+    else ErrorDialog(f_('%s not supported for managing users', [ActiveConnection.Parameters.NetTypeName(False)]));
   end;
   if Dialog = nil then
     Exit;
@@ -3231,7 +3231,7 @@ begin
   if Dialog.Execute then try
     if LowerCase(ExtractFileExt(Dialog.FileName)) = 'reg' then
       //ShellExec('regedit.exe', '', '"'+Dialog.FileName+'"')
-      ErrorDialog('Registry dumps not supported. Please use a txt file exported by '+APPNAME)
+      ErrorDialog(f_('Registry dumps not supported. Please use a txt file exported by %s', [APPNAME]))
     else begin
       AppSettings.ImportSettings(Dialog.FileName);
       // Refresh in session manager per timer interval
@@ -7075,7 +7075,7 @@ begin
   t := TimerRefresh.Enabled;
   TimerRefresh.Enabled := false; // prevent av (ListProcessList.selected...)
   Conn := ActiveConnection;
-  if MessageDialog('Kill '+IntToStr(ListProcessList.SelectedCount)+' Process(es)?', mtConfirmation, [mbok,mbcancel]) = mrok then
+  if MessageDialog(f_('Kill %s Process(es)?', [FormatNumber(ListProcessList.SelectedCount)]), mtConfirmation, [mbok,mbcancel]) = mrok then
   begin
     Node := GetNextNode(ListProcessList, nil, True);
     while Assigned(Node) do begin
@@ -8887,7 +8887,7 @@ begin
 
   OldName := QueryTabs.ActiveHelpersTree.Text[QueryTabs.ActiveHelpersTree.FocusedNode, 0];
   NewName := OldName;
-  if InputQuery(_('Rename'), 'Rename snippet "'+OldName+'"', NewName) then
+  if InputQuery(_('Rename'), f_('Rename snippet "%s"', [OldName]), NewName) then
   begin
     Screen.Cursor := crHourGlass;
     if NewName.IsEmpty then begin
@@ -12592,15 +12592,6 @@ begin
     AppBeep(MB_ICONASTERISK);
 end;
 
-
-procedure TMainForm.actSequalSuggestExecute(Sender: TObject);
-//var
-//  SequalSuggestForm: TSequalSuggestForm;
-begin
-  // Show Sequal Suggest dialog
-  //SequalSuggestForm := TSequalSuggestForm.Create(Self);
-  //SequalSuggestForm.ShowModal;
-end;
 
 procedure TMainForm.actSelectAllExecute(Sender: TObject);
 var

@@ -605,7 +605,7 @@ begin
     ListFiles.FocusedNode := Node;
     FileInfo := ListFiles.GetNodeData(Node);
     if not FileExists(FileInfo.Filename) then begin
-      ErrorDialog('File does not exist: '+FileInfo.Filename);
+      ErrorDialog(f_('File does not exist: %s', [FileInfo.Filename]));
       Node := ListFiles.GetNextSibling(Node);
       Continue;
     end;

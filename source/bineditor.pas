@@ -207,9 +207,10 @@ end;
 
 procedure TfrmBinEditor.memoTextChange(Sender: TObject);
 begin
-  lblTextLength.Caption := FormatNumber(Length(memoText.Text) / 2) + ' bytes.';
   if memoText.MaxLength > 0 then
-    lblTextLength.Caption := lblTextLength.Caption + ' (Max: '+FormatNumber(memoText.MaxLength / 2)+')';
+    lblTextLength.Caption := f_('%s bytes (max: %s)', [FormatNumber(Length(memoText.Text) / 2), FormatNumber(memoText.MaxLength / 2)])
+  else
+    lblTextLength.Caption := f_('%s bytes', [FormatNumber(Length(memoText.Text) / 2)]);
   Modified := True;
 end;
 

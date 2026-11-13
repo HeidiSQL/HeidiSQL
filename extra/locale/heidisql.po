@@ -7148,3 +7148,383 @@ msgstr "Switch to details view"
 #: extfiledialog.pas
 msgid "Switch to icon view"
 msgstr "Switch to icon view"
+
+#: about.pas:123
+msgid "Compiled on: %s with"
+msgstr "Compiled on: %s with"
+
+#: apphelpers.pas:2811
+msgid "Hostname"
+msgstr "Hostname"
+
+#: apphelpers.pas:4894 apphelpers.pas:4938
+msgid "%s has an unsupported data type."
+msgstr "%s has an unsupported data type."
+
+#: bineditor.pas:211
+msgid "%s bytes (max: %s)"
+msgstr "%s bytes (max: %s)"
+
+#: bineditor.pas:213
+msgid "%s bytes"
+msgstr "%s bytes"
+
+#: connections.lfm:87
+msgid "Previous portable settings must be imported once in this version. To do this, click on the button above and open your old .txt file."
+msgstr "Previous portable settings must be imported once in this version. To do this, click on the button above and open your old .txt file."
+
+#: connections.lfm:649
+msgid "Use SSH tunnel"
+msgstr "Use SSH tunnel"
+
+#: connections.lfm:750
+msgid "Send your password to the server in cleartext, for MySQL 5.5.47+"
+msgstr "Send your password to the server in cleartext, for MySQL 5.5.47+"
+
+#: connections.lfm:869
+msgid "DDL queries (CREATE, ALTER, ...)"
+msgstr "DDL queries (CREATE, ALTER, ...)"
+
+#: connections.lfm:904
+msgid "DML queries (INSERT, UPDATE, ...)"
+msgstr "DML queries (INSERT, UPDATE, ...)"
+
+#: connections.lfm:978
+msgid "Certificate verification:"
+msgstr "Certificate verification:"
+
+#: connections.lfm:1442
+msgid "Folders at top"
+msgstr "Folders at top"
+
+#: connections.lfm:1533 main.lfm:2950 usermanager.lfm:159
+msgid "Filter ..."
+msgstr "Filter ..."
+
+#: connections.pas:1713
+msgid "Cipher"
+msgstr "Cipher"
+
+#: connections.pas:1714
+msgid "Key:"
+msgstr "Key:"
+
+#: connections.pas:1715
+msgid "Encryption parameters"
+msgstr "Encryption parameters"
+
+#: connections.pas:1875
+msgid "Select %s"
+msgstr "Select %s"
+
+#: crashdialog.lfm:6
+msgid "An exception occurred"
+msgstr "An exception occurred"
+
+#: crashdialog.lfm:19
+msgid "The application crashed. This should not have happened. Below you see some details, which you may share in order to fix this for the future."
+msgstr "The application crashed. This should not have happened. Below you see some details, which you may share in order to fix this for the future."
+
+#: crashdialog.lfm:57
+msgid "Ignore and proceed"
+msgstr "Ignore and proceed"
+
+#: crashdialog.lfm:74
+msgid "Exit application"
+msgstr "Exit application"
+
+#: crashdialog.lfm:92
+msgid "Copy details"
+msgstr "Copy details"
+
+#: crashdialog.lfm:110
+msgid "Report online"
+msgstr "Report online"
+
+#: createdatabase.lfm:61
+msgid "Servers default:"
+msgstr "Servers default:"
+
+#: csv_detector.pas:83
+msgid "Parsing textfile, row %s, %d%%"
+msgstr "Parsing textfile, row %s, %d%%"
+
+#: csv_detector.pas:84
+msgid "Analyzing textfile, row %s, %d%%"
+msgstr "Analyzing textfile, row %s, %d%%"
+
+#: dbconnection.pas:3081
+msgid "Could not load any Firebird/Interbase client library (fbclient or ibclient). Install one, or check the library setting in your session."
+msgstr "Could not load any Firebird/Interbase client library (fbclient or ibclient). Install one, or check the library setting in your session."
+
+#: dbconnection.pas:8490
+msgid "Client version"
+msgstr "Client version"
+
+#: dbstructures.pas:284
+msgid "No library selected. Please make sure you have installed %s, e.g. \"%s\"."
+msgstr "No library selected. Please make sure you have installed %s, e.g. \"%s\"."
+
+#: exportgrid.lfm:497
+msgid "Backspace"
+msgstr "Backspace"
+
+#: exportgrid.lfm:502
+msgid "Control+Z"
+msgstr "Control+Z"
+
+#: extfiledialog.lfm:7 extfiledialog.pas:840
+msgid "Open existing file"
+msgstr "Open existing file"
+
+#: extfiledialog.lfm:166
+msgid "Linebreaks:"
+msgstr "Linebreaks:"
+
+#: extfiledialog.lfm:291
+msgid "Search files"
+msgstr "Search files"
+
+#: extfiledialog.pas:860
+msgid "Save to file"
+msgstr "Save to file"
+
+#: grideditlinks.pas:1418
+msgid "Custom text"
+msgstr "Custom text"
+
+#: grideditlinks.pas:1465
+msgid "On update"
+msgstr "On update"
+
+#: insertfiles.lfm:222
+msgid "0 files"
+msgstr "0 files"
+
+#: insertfiles.pas:130
+msgid "Common images"
+msgstr "Common images"
+
+#: main.lfm:3710
+msgid "Color scheme"
+msgstr "Color scheme"
+
+#: main.lfm:3995
+msgid "Follow Foreign Key"
+msgstr "Follow Foreign Key"
+
+#: main.lfm:4452
+msgid "Clear query log"
+msgstr "Clear query log"
+
+#: main.lfm:5085
+msgid "Select top 1000 rows"
+msgstr "Select top 1000 rows"
+
+#: main.lfm:5086
+msgid "Selects the first 1000 rows in a new query tab"
+msgstr "Selects the first 1000 rows in a new query tab"
+
+#: main.lfm:5092
+msgid "SQL editor preferences"
+msgstr "SQL editor preferences"
+
+#: main.lfm:20227 preferences.lfm:2039
+msgid "SQL Files (*.sql)|*.sql"
+msgstr "SQL Files (*.sql)|*.sql"
+
+#: main.lfm:20540
+msgid "default"
+msgstr "default"
+
+#: main.lfm:20551
+msgid "datetime"
+msgstr "datetime"
+
+#: main.lfm:20557
+msgid "date"
+msgstr "date"
+
+#: main.lfm:20563
+msgid "time"
+msgstr "time"
+
+#: main.lfm:20569
+msgid "year"
+msgstr "year"
+
+#: main.lfm:20575
+msgid "unix timestamp"
+msgstr "unix timestamp"
+
+#: main.lfm:20584
+msgid "utc datetime"
+msgstr "utc datetime"
+
+#: main.lfm:20589
+msgid "utc date"
+msgstr "utc date"
+
+#: main.lfm:20594
+msgid "utc time"
+msgstr "utc time"
+
+#: main.lfm:20599
+msgid "utc unix timestamp"
+msgstr "utc unix timestamp"
+
+#: main.lfm:20961
+msgid "Generate SELECT ..."
+msgstr "Generate SELECT ..."
+
+#: main.lfm:20967
+msgid "Generate INSERT ..."
+msgstr "Generate INSERT ..."
+
+#: main.lfm:20973
+msgid "Generate UPDATE ..."
+msgstr "Generate UPDATE ..."
+
+#: main.lfm:20979
+msgid "Generate DELETE ..."
+msgstr "Generate DELETE ..."
+
+#: main.lfm:21042
+msgid "Rename tab"
+msgstr "Rename tab"
+
+#: main.pas:2120
+msgid "&Quit"
+msgstr "&Quit"
+
+#: main.pas:2242
+msgid "Configuration path: %s"
+msgstr "Configuration path: %s"
+
+#: main.pas:2245
+msgid "Timezone offset: %d"
+msgstr "Timezone offset: %d"
+
+#: main.pas:2937
+msgid "%s not supported for managing users"
+msgstr "%s not supported for managing users"
+
+#: main.pas:3238
+msgid "Registry dumps not supported. Please use a txt file exported by %s"
+msgstr "Registry dumps not supported. Please use a txt file exported by %s"
+
+#: main.pas:6642
+msgid "rows"
+msgstr "rows"
+
+#: main.pas:6917
+msgid "Selected"
+msgstr "Selected"
+
+#: main.pas:7082
+msgid "Kill %s Process(es)?"
+msgstr "Kill %s Process(es)?"
+
+#: main.pas:8894
+msgid "Rename snippet \"%s\""
+msgstr "Rename snippet \"%s\""
+
+#: main.pas:8899 main.pas:8910
+msgid "Failed renaming %s"
+msgstr "Failed renaming %s"
+
+#: main.pas:12793
+msgid "Untitled"
+msgstr "Untitled"
+
+#: main.pas:15765
+msgid "Saving backup file..."
+msgstr "Saving backup file..."
+
+#: preferences.lfm:80
+msgid "Theme: *"
+msgstr "Theme: *"
+
+#: preferences.lfm:337
+msgid "Terminal:"
+msgstr "Terminal:"
+
+#: preferences.lfm:358
+msgid "Terminal application. May have arguments, and supports %s for the actual command."
+msgstr "Terminal application. May have arguments, and supports %s for the actual command."
+
+#: preferences.lfm:1693 preferences.lfm:1752
+msgid "Shift"
+msgstr "Shift"
+
+#: preferences.lfm:1707 preferences.lfm:1766
+msgid "Alt"
+msgstr "Alt"
+
+#: preferences.lfm:1721 preferences.lfm:1780
+msgid "Ctrl"
+msgstr "Ctrl"
+
+#: preferences.lfm:1962
+msgid "Set custom directory for SQL snippet files"
+msgstr "Set custom directory for SQL snippet files"
+
+#: preferences.pas:1651
+msgid "English only - no .mo files found in %s"
+msgstr "English only - no .mo files found in %s"
+
+#: searchreplace.pas:519
+msgid "Text \"%s\" %d times replaced."
+msgstr "Text \"%s\" %d times replaced."
+
+#: table_editor.lfm:1181
+msgid "Storage-Engine Independent Column Compression"
+msgstr "Storage-Engine Independent Column Compression"
+
+#: table_editor.pas:3232
+msgid "Database does not provide reverse foreign key listing"
+msgstr "Database does not provide reverse foreign key listing"
+
+#: tabletools.lfm:390
+msgid "Simple text"
+msgstr "Simple text"
+
+#: tabletools.lfm:1057
+msgid "Invert Check"
+msgstr "Invert Check"
+
+#: tabletools.lfm:1075
+msgid "Wrap data DML in transactions"
+msgstr "Wrap data DML in transactions"
+
+#: tabletools.pas:1029
+msgid "Compressing done."
+msgstr "Compressing done."
+
+#: tabletools.pas:1172
+msgid "Check all visible"
+msgstr "Check all visible"
+
+#: tabletools.pas:1503
+msgid "Selected objects size: %s"
+msgstr "Selected objects size: %s"
+
+#: texteditor.lfm:328
+msgid "Format code once"
+msgstr "Format code once"
+
+#: texteditor.lfm:333
+msgid "Always format code"
+msgstr "Always format code"
+
+#: texteditor.pas:182
+msgid "read-only"
+msgstr "read-only"
+
+#: usermanager.pas:1457
+msgid "User or role <%s@%s> already exists."
+msgstr "User or role <%s@%s> already exists."
+
+#: view.lfm:230
+msgid "SQL security:"
+msgstr "SQL security:"

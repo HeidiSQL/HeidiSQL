@@ -1872,7 +1872,7 @@ begin
   for i:=0 to Edit.Parent.ControlCount - 1 do begin
     Control := Edit.Parent.Controls[i];
     if (Control is TLabel) and ((Control as TLabel).FocusControl = Edit) then begin
-      Selector.Title := 'Select ' + (Control as TLabel).Caption;
+      Selector.Title := f_('Select %s', [(Control as TLabel).Caption]);
       break;
     end;
   end;
