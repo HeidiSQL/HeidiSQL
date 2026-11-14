@@ -59,6 +59,18 @@ Heidi keeps its workaround in `TExtForm.FixTreeFontsOnDPIChange`
 `NodeHeight` of all initialized nodes). When upgrading Lazarus: check whether
 the release contains the fix; if so, test removing the workaround.
 
+Performance (measured 2026-11-14, Lazarus 4.8, Win64, 20 columns): the DPI
+change itself is O(n) already without any NodeHeight fix, about 120 ms per
+1 mio nodes. Cause: `TVTHeader.AutoAdjustLayout` sets `col.Width` per column
+→ `TVirtualTreeColumn.SetWidth` → `TBaseVirtualTree.DoColumnResize`, which
+walks all nodes just to reset `vsHeightMeasured` on multiline nodes, so one
+full traversal per column. `GetFirstInitialized`/`GetNextInitialized` also
+visit every node, so limiting a NodeHeight reset to initialized nodes saves
+almost nothing. Resetting `NodeHeight` of all nodes costs about 150 ms per
+1 mio nodes. Possible upstream improvement: set the column widths inside
+`Columns.BeginUpdate`/`EndUpdate` and call `DoColumnResize` once, or skip the
+loop when `toMultiline` is off.
+
 ## Open item: VT header font PPI (issue #2413)
 
 `TVTHeader.Font` is a TPersistent font that neither LCL DPI scaling nor
