@@ -37,6 +37,28 @@ https://gitlab.com/freepascal.org/lazarus/lazarus/-/work_items/42717
 `IsTheme(hTheme, teButton)` line (`../../source/metadarkstyle/HEIDISQL-NOTES.md`),
 else check boxes render light in dark mode on such monitors.
 
+Upstream (Lazarus main, 2026-11-11): cc6e88ec30 adds
+`ThemeServices.DrawElementForPPI` from this patch (same signature), d8815d6cb0
+uses it in VT (same call as 0012) and also fixes grids.pas, TCheckboxThemed,
+TCustomCheckCombo, TCheckListBox and TChartListbox. Not in `fixes_5` as of
+2026-11-14, so 5.0 does not contain it unless backported. Keep 0012 while on
+4.8; when upgrading, drop it if the release contains both commits.
+
+## Upstream fix without local patch: VT node heights on DPI change
+
+VT does not scale `DefaultNodeHeight` / `NodeHeight[Node]` on a DPI change.
+Fixed upstream in Lazarus main for
+https://gitlab.com/freepascal.org/lazarus/lazarus/-/work_items/42716, but
+deliberately not backported to `fixes_5` (maintainer is unsure about
+non-Windows widgetsets), so neither 4.8 nor 5.x contain it; earliest release
+would be 6.0 unless it gets merged into fixes later (status 2026-11-14; the
+commit could not be found in GitLab main yet, neither by issue number nor
+by `NodeHeight` changes; hash to be added). No local patch:
+Heidi keeps its workaround in `TExtForm.FixTreeFontsOnDPIChange`
+(`source/extra_controls.pas`, recalculates `DefaultNodeHeight` and resets
+`NodeHeight` of all initialized nodes). When upgrading Lazarus: check whether
+the release contains the fix; if so, test removing the workaround.
+
 ## Open item: VT header font PPI (issue #2413)
 
 `TVTHeader.Font` is a TPersistent font that neither LCL DPI scaling nor
