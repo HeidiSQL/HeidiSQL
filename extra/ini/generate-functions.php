@@ -1,0 +1,1069 @@
+<?php
+/**
+ * Generates the functions-*.ini files with SQL function definitions, shown in HeidiSQL's
+ * completion proposal, function menus and hints.
+ *
+ * Usage:
+ *   php generate-functions.php <target> [--option=value ...]
+ *
+ * Targets and their sources:
+ *   mysql       Help tables of a running MySQL server:
+ *               --port=3309 [--host=127.0.0.1] [--user=root] [--pass=] --out=functions-mysql9.ini
+ *               One file per major (or major.minor) version, as help tables contain no version info.
+ *               HeidiSQL tries functions-mysql<major.minor>.ini, then <major>, lower majors, and finally
+ *               functions-mysql.ini. Current set: mysql (5.7), mysql8.0 (8.0), mysql8 (8.3), mysql9 (9.6).
+ *   mariadb     Help tables of a running MariaDB server (newest version), same options, default output
+ *               functions-mariadb.ini. "since" is taken from "added in MariaDB x.y" notes.
+ *   postgresql  Online documentation of all versions given in --versions (default 13-18). "since" is the
+ *               first of these versions mentioning a function.
+ *   sqlite      Online documentation. "since" is taken from the release history.
+ *   mssql       Checkout of https://github.com/MicrosoftDocs/sql-docs, passed via --docs=<dir>.
+ *               "since" is taken from the monikerRange of each page:
+ *               git clone --depth 1 --filter=blob:none --sparse https://github.com/MicrosoftDocs/sql-docs
+ *               git -C sql-docs sparse-checkout set docs/t-sql/functions
+ *               Categories missing on overview pages are taken from the previous functions-mssql.ini, or
+ *               from --old=<ini>.
+ *   firebird    Online language references of --versions (default 3.0,4.0,5.0).
+ *
+ * Common options:
+ *   --cache=<dir>  Directory for downloaded pages, default: system temp dir
+ *   --out=<file>   Output file, default: functions-<target>.ini next to this script
+ *
+ * Entries from supplements/<output file name> are merged into the result, replacing generated entries with the
+ * same name and declaration. Use these for functions missing in the sources. Keys: name, declaration,
+ * category, since, description. Without a declaration key, the values apply to all entries of that name.
+ * A value "none" clears the generated value, e.g. a wrong "since". An entry
+ * with "remove=1" removes all generated entries of that name.
+ *
+ * Output: UTF-8 without BOM, CRLF, typographic characters replaced by ASCII. "description" contains "\n"
+ * for line breaks, which HeidiSQL converts. Entries with "since" newer than the server are hidden by HeidiSQL.
+ */
+
+declare(strict_types=1);
+
+const NL = "\r\n";
+const WRAP_WIDTH = 80;
+const MAX_LINES = 40;
+
+$args = parseArgs($argv);
+$target = $args[0] ?? '';
+$opt = $args['options'];
+$cacheDir = $opt['cache'] ?? (sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'heidisql-funcgen');
+if (!is_dir($cacheDir)) {
+    mkdir($cacheDir, 0777, true);
+}
+
+switch ($target) {
+    case 'mysql':
+        $entries = genMysql($opt, false);
+        break;
+    case 'mariadb':
+        $entries = genMysql($opt, true);
+        break;
+    case 'postgresql':
+        $entries = genPostgresql($opt);
+        break;
+    case 'sqlite':
+        $entries = genSqlite();
+        break;
+    case 'mssql':
+        $entries = genMssql($opt);
+        break;
+    case 'firebird':
+        $entries = genFirebird($opt);
+        break;
+    default:
+        fwrite(STDERR, "Unknown target \"$target\". See header of " . basename(__FILE__) . " for usage.\n");
+        exit(1);
+}
+
+$outFile = $opt['out'] ?? ('functions-' . $target . '.ini');
+if (!preg_match('#[/\\\\]#', $outFile)) {
+    $outFile = __DIR__ . DIRECTORY_SEPARATOR . $outFile;
+}
+$entries = mergeSupplements($entries, __DIR__ . '/supplements/' . basename($outFile));
+file_put_contents($outFile, buildIni($entries));
+echo 'Wrote ' . count($entries) . ' entries to ' . $outFile . "\n";
+
+
+// ---------------------------------------------------------------------------------------------------
+// Common helpers
+// ---------------------------------------------------------------------------------------------------
+
+function parseArgs(array $argv): array
+{
+    $result = ['options' => []];
+    foreach (array_slice($argv, 1) as $arg) {
+        if (preg_match('#^--([\w-]+)=(.*)$#s', $arg, $m)) {
+            $result['options'][$m[1]] = $m[2];
+        } else {
+            $result[] = $arg;
+        }
+    }
+    return $result;
+}
+
+function entry(string $name, string $declaration, string $category, string $description, string $since = ''): array
+{
+    return [
+        'name' => trim($name),
+        'declaration' => normalizeDeclaration($declaration),
+        'category' => trim($category),
+        'description' => $description,
+        'since' => $since,
+    ];
+}
+
+function normalizeDeclaration(string $decl): string
+{
+    $decl = toAscii($decl);
+    $decl = preg_replace('#\s+#', ' ', $decl);
+    $decl = preg_replace('#\(\s+#', '(', $decl);
+    $decl = preg_replace('#\s+\)#', ')', $decl);
+    return trim($decl);
+}
+
+/** Download a URL, cached. Returns null on HTTP errors like 404 */
+function download(string $url): ?string
+{
+    global $cacheDir;
+    $file = $cacheDir . DIRECTORY_SEPARATOR . preg_replace('#[^\w.-]+#', '_', preg_replace('#^https?://#', '', $url));
+    if (file_exists($file)) {
+        $data = file_get_contents($file);
+        return $data === '' ? null : $data;
+    }
+    $context = stream_context_create(['http' => ['ignore_errors' => true, 'user_agent' => 'HeidiSQL function list generator']]);
+    $data = @file_get_contents($url, false, $context);
+    $headers = http_get_last_response_headers() ?? [];
+    $status = $headers[0] ?? '';
+    if ($data === false || !preg_match('#\s200\b#', $status)) {
+        fwrite(STDERR, "Not found: $url ($status)\n");
+        file_put_contents($file, '');
+        return null;
+    }
+    file_put_contents($file, $data);
+    return $data;
+}
+
+/** Replace typographic and other non-ASCII characters by ASCII equivalents, where sensible */
+function toAscii(string $s): string
+{
+    static $map = [
+        "\u{2018}" => "'", "\u{2019}" => "'", "\u{201A}" => "'", "\u{2032}" => "'",
+        "\u{201C}" => '"', "\u{201D}" => '"', "\u{201E}" => '"', "\u{2033}" => '"',
+        "\u{2013}" => '-', "\u{2014}" => '-', "\u{2212}" => '-', "\u{2010}" => '-', "\u{2011}" => '-',
+        "\u{2026}" => '...', "\u{2192}" => '->', "\u{2190}" => '<-', "\u{21D2}" => '=>',
+        "\u{2264}" => '<=', "\u{2265}" => '>=', "\u{2260}" => '<>', "\u{00D7}" => 'x',
+        "\u{00A0}" => ' ', "\u{2009}" => ' ', "\u{202F}" => ' ', "\u{2002}" => ' ', "\u{2003}" => ' ',
+        "\u{200B}" => '', "\u{FEFF}" => '', "\u{00AD}" => '', "\u{2022}" => '-', "\u{00B7}" => '-',
+        "\u{2713}" => 'yes', "\u{221E}" => 'infinity', "\u{03C0}" => 'pi', "\u{00B1}" => '+/-',
+    ];
+    return strtr($s, $map);
+}
+
+/** Clean up a text from HTML: decode entities, remove tags, normalize white space */
+function htmlToText(string $html): string
+{
+    $html = preg_replace('#<br\s*/?>#i', ' ', $html);
+    $text = strip_tags($html);
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $text = toAscii($text);
+    return trim(preg_replace('#\s+#u', ' ', $text));
+}
+
+/**
+ * Build the description from paragraphs: word wrap prose paragraphs, keep preformatted ones,
+ * limit number of lines, append URL.
+ * @param array $paragraphs Strings; prefix a paragraph with "\x01" to keep its line breaks
+ */
+function buildDescription(array $paragraphs, string $url = ''): string
+{
+    $lines = [];
+    foreach ($paragraphs as $p) {
+        if ($p === '' || $p === "\x01") {
+            continue;
+        }
+        if ($p[0] === "\x01") {
+            $pLines = explode("\n", rtrim(substr($p, 1)));
+        } else {
+            $pLines = explode("\n", wordwrap(trim(preg_replace('#\s+#', ' ', $p)), WRAP_WIDTH));
+        }
+        if ($lines) {
+            $lines[] = '';
+        }
+        array_push($lines, ...$pLines);
+    }
+    if (count($lines) > MAX_LINES) {
+        $lines = array_slice($lines, 0, MAX_LINES);
+        $lines[] = '...';
+    }
+    if ($url !== '') {
+        $lines[] = '';
+        $lines[] = 'URL: ' . $url;
+    }
+    return implode("\n", array_map('rtrim', $lines));
+}
+
+function entryKey(array $e): string
+{
+    return strtoupper($e['name']) . '|' . strtolower(preg_replace('#\s+#', '', $e['declaration']));
+}
+
+/** Remove duplicate entries with same name and declaration, keeping the first */
+function uniqueEntries(array $entries): array
+{
+    $result = [];
+    foreach ($entries as $e) {
+        $key = entryKey($e);
+        if (!isset($result[$key])) {
+            $result[$key] = $e;
+        }
+    }
+    return array_values($result);
+}
+
+function mergeSupplements(array $entries, string $file): array
+{
+    if (!file_exists($file)) {
+        return $entries;
+    }
+    // Own parser, as parse_ini_file treats ";" and other characters in values specially
+    $sections = [];
+    $section = null;
+    foreach (file($file, FILE_IGNORE_NEW_LINES) as $line) {
+        if (preg_match('#^\s*(;|$)#', $line)) {
+            continue;
+        }
+        if (preg_match('#^\[(.+)\]\s*$#', $line, $m)) {
+            $section = $m[1];
+            $sections[$section] = [];
+        } elseif ($section !== null && preg_match('#^(\w+)=(.*)$#', $line, $m)) {
+            $sections[$section][strtolower($m[1])] = trim($m[2]);
+        }
+    }
+    $entries = uniqueEntries($entries);
+    foreach ($sections as $section => $values) {
+        $name = $values['name'] ?? preg_replace('#\d+$#', '', $section);
+        if (!empty($values['remove'])) {
+            $entries = array_values(array_filter($entries, fn($e) => strcasecmp($e['name'], $name) != 0));
+            continue;
+        }
+        $sup = entry($name, $values['declaration'] ?? '', $values['category'] ?? '', '', $values['since'] ?? '');
+        $sup['description'] = str_replace('\n', "\n", $values['description'] ?? '');
+        // Without declaration key: update all entries of that name
+        $allOfName = !isset($values['declaration']);
+        if ($allOfName) {
+            unset($sup['declaration']);
+        }
+        $replaced = false;
+        foreach ($entries as $i => $e) {
+            if ($allOfName ? strcasecmp($e['name'], $name) == 0 : entryKey($e) === entryKey($sup)) {
+                // Keep generated values where the supplement has none
+                foreach ($sup as $k => $v) {
+                    if ($v === 'none') {
+                        $entries[$i][$k] = '';
+                    } elseif ($v !== '') {
+                        $entries[$i][$k] = $v;
+                    }
+                }
+                $replaced = true;
+            }
+        }
+        if (!$replaced) {
+            $sup['declaration'] ??= '';
+            $entries[] = $sup;
+        }
+    }
+    return $entries;
+}
+
+function buildIni(array $entries): string
+{
+    $entries = uniqueEntries($entries);
+    usort($entries, fn($a, $b) => [strtoupper($a['name']), $a['declaration']] <=> [strtoupper($b['name']), $b['declaration']]);
+    $counts = [];
+    foreach ($entries as $e) {
+        $u = strtoupper($e['name']);
+        $counts[$u] = ($counts[$u] ?? 0) + 1;
+    }
+    $numbers = [];
+    $out = [];
+    foreach ($entries as $e) {
+        $u = strtoupper($e['name']);
+        if ($counts[$u] > 1) {
+            $numbers[$u] = ($numbers[$u] ?? 0) + 1;
+            $section = $u . $numbers[$u];
+        } else {
+            $section = $u;
+        }
+        $descr = toAscii($e['description']);
+        $descr = str_replace(["\r\n", "\r", "\n"], '\n', $descr);
+        $block = '[' . $section . ']' . NL;
+        if ($section !== $e['name']) {
+            $block .= 'name=' . $e['name'] . NL;
+        }
+        $block .= 'declaration=' . $e['declaration'] . NL;
+        $block .= 'category=' . $e['category'] . NL;
+        if ($e['since'] !== '') {
+            $block .= 'since=' . $e['since'] . NL;
+        }
+        $block .= 'description=' . $descr . NL;
+        $out[] = $block;
+    }
+    return implode('', $out);
+}
+
+/** Return contents of balanced parentheses, starting at the opening parenthesis at $pos */
+function balancedParens(string $s, int $pos): ?string
+{
+    $depth = 0;
+    $len = strlen($s);
+    for ($i = $pos; $i < $len; $i++) {
+        if ($s[$i] === '(') {
+            $depth++;
+        } elseif ($s[$i] === ')') {
+            $depth--;
+            if ($depth === 0) {
+                return substr($s, $pos + 1, $i - $pos - 1);
+            }
+        }
+    }
+    return null;
+}
+
+function compareVersions(string $a, string $b): int
+{
+    return version_compare($a, $b);
+}
+
+
+// ---------------------------------------------------------------------------------------------------
+// MySQL / MariaDB: help tables
+// ---------------------------------------------------------------------------------------------------
+
+function genMysql(array $opt, bool $isMariaDB): array
+{
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    $db = mysqli_connect($opt['host'] ?? '127.0.0.1', $opt['user'] ?? 'root', $opt['pass'] ?? '', null, (int)($opt['port'] ?? 3306));
+    mysqli_set_charset($db, 'utf8mb4');
+    $version = mysqli_fetch_row(mysqli_query($db, 'SELECT VERSION()'))[0];
+    echo "Reading help tables from $version\n";
+    $res = mysqli_query($db, "SELECT t.name, t.description, c.name AS category
+        FROM mysql.help_topic t JOIN mysql.help_category c ON t.help_category_id = c.help_category_id
+        ORDER BY t.name");
+
+    // Statement and other non-function categories
+    $skipCategories = '#^(Internal|Data Manipulation|Data Definition|Compound Statements|Administration|'
+        . 'Account Management|Transactions|Utility|Help Metadata|Language Structure|Storage Engines|'
+        . 'Components|Prepared Statements|Table Maintenance|Plugins|Replication|Data Types|Logical Operators|'
+        . 'User-Defined Functions|Server Administration|Geographic Features|Functions$)#i';
+
+    $entries = [];
+    while ($row = mysqli_fetch_object($res)) {
+        if (preg_match($skipCategories, $row->category)) {
+            continue;
+        }
+        // "IF FUNCTION", "REPLACE Function", "Median Window Function", "JSON_MERGE_PATCH()"
+        if (!preg_match('#^(\w+)(\(\))?(\s+(window|aggregate))?(\s+function)?$#i', $row->name, $m)) {
+            continue;
+        }
+        $name = $m[1];
+        if (preg_match('#^(IS|IN|INTERVAL|CASE|LIKE|REGEXP|BETWEEN|NOT|DIV|MOD_OPERATOR|BINARY)$#i', $name)
+            && !preg_match('#^' . $name . '\s*\(#im', $row->description)) {
+            continue;
+        }
+        $text = str_replace("\r\n", "\n", $row->description);
+
+        // Syntax block
+        if ($isMariaDB) {
+            $syntax = preg_match('#Syntax\n-+\n(.*?)\n\n(Description|Examples|Return|[A-Z][\w ]+\n-+)#s', $text, $ms) ? $ms[1] : '';
+        } elseif (preg_match('#^Syntax:\n(.*?)\n\n#s', $text, $ms)) {
+            $syntax = $ms[1];
+        } else {
+            // Some topics start directly with the signature, e.g. "ROW_NUMBER() over_clause"
+            $first = explode("\n\n", $text, 2)[0];
+            $syntax = preg_match('#\b' . preg_quote($name, '#') . '\s*\(#i', $first) ? $first : '';
+            $text = $syntax !== '' ? "Syntax:\n" . $text : $text;
+        }
+        $syntax = preg_replace('#\s+#', ' ', $syntax);
+        $declarations = [];
+        $offset = 0;
+        while (preg_match('#\b' . preg_quote($name, '#') . '\s*\(#i', $syntax, $md, PREG_OFFSET_CAPTURE, $offset)) {
+            $parenPos = $md[0][1] + strlen($md[0][0]) - 1;
+            $decl = balancedParens($syntax, $parenPos);
+            if ($decl === null) {
+                break;
+            }
+            $declarations[] = $decl;
+            $offset = $parenPos + strlen($decl) + 2;
+        }
+        if (!$declarations) {
+            continue;
+        }
+
+        // Description body and URL
+        $url = preg_match('#\nURL: (\S+)#', $text, $mu) ? $mu[1] : '';
+        $body = preg_replace('#\nURL: \S+\s*$#s', '', $text);
+        $since = '';
+        if ($isMariaDB) {
+            $since = mariadbSince($name, $body);
+            $body = preg_match('#\nDescription\n-+\n(.*)$#s', $body, $mb) ? $mb[1] : $body;
+            $body = preg_replace('#\n(Examples?|See Also)\n-+\n.*$#s', '', "\n" . $body);
+        } else {
+            $body = preg_replace('#^Syntax:\n.*?\n\n#s', '', $body);
+        }
+        $paragraphs = array_map(fn($p) => "\x01" . $p, preg_split('#\n{2,}#', trim($body)));
+        $description = buildDescription($paragraphs, $url);
+
+        $category = mysqlCategory($name, $row->category);
+        foreach ($declarations as $decl) {
+            $entries[] = entry(strtoupper($name), $decl, $category, $description, $since);
+        }
+    }
+    return $entries;
+}
+
+/** Help categories are partly wrong in MySQL, e.g. JSON functions in "MBR Functions" */
+function mysqlCategory(string $name, string $category): string
+{
+    $u = strtoupper($name);
+    if (str_starts_with($u, 'JSON_')) {
+        return 'JSON Functions';
+    }
+    if (in_array($u, ['STRING_TO_VECTOR', 'VECTOR_DIM', 'VECTOR_TO_STRING', 'DISTANCE']) || str_starts_with($u, 'VEC_')) {
+        return 'Vector Functions';
+    }
+    if ($category === 'Functions and Modifiers for Use with GROUP BY') {
+        return 'Aggregate Functions and Modifiers';
+    }
+    // Unify case, e.g. "Comparison operators" in older versions, but keep "MBR", "WKT", "GeoJSON"
+    $words = explode(' ', $category);
+    foreach ($words as $i => $w) {
+        $words[$i] = ($i > 0 && in_array(strtolower($w), ['and', 'or', 'of', 'for', 'with', 'by', 'in']))
+            ? strtolower($w) : ucfirst($w);
+    }
+    return implode(' ', $words);
+}
+
+/** Find "added in MariaDB x.y.z" notes in the head of the help text, or in a sentence naming the function */
+function mariadbSince(string $name, string $text): string
+{
+    $head = preg_match('#^(.*?)\nDescription\n-+\n#s', $text, $m) ? $m[1] : '';
+    $versions = [];
+    $sentences = preg_split('#(?<=[.!?])\s+#', $head . "\n" . substr($text, strlen($head), 1500));
+    foreach ($sentences as $sentence) {
+        if (!preg_match('#\b(added|introduced)\s+in\s+MariaDB\s+(\d+\.\d+(\.\d+)?)#i', $sentence, $mv)) {
+            continue;
+        }
+        $inHead = str_contains($head, $sentence);
+        $namesFunction = preg_match('#\b' . preg_quote($name, '#') . '\b(\s*\(\))?\s+(function\s+)?(was|is|were)\b#i', $sentence)
+            || preg_match('#^(The\s+)?' . preg_quote($name, '#') . '\b#i', $sentence);
+        // Skip notes about clauses, options or behavior changes
+        if (preg_match('#\b(clause|option|argument|parameter|keyword|syntax|support for|ability|behavio)#i', $sentence)) {
+            continue;
+        }
+        if ($inHead || $namesFunction) {
+            // Backports: "introduced in MariaDB 10.2.38, MariaDB 10.3.29, ..." - take all versions
+            preg_match_all('#MariaDB\s+(\d+\.\d+(\.\d+)?)#', $sentence, $all);
+            array_push($versions, ...$all[1]);
+        }
+    }
+    if (!$versions) {
+        return '';
+    }
+    usort($versions, 'compareVersions');
+    // Versions below 10.0 are irrelevant
+    return compareVersions($versions[0], '10.0') < 0 ? '' : $versions[0];
+}
+
+
+// ---------------------------------------------------------------------------------------------------
+// PostgreSQL: online documentation, function tables since v13
+// ---------------------------------------------------------------------------------------------------
+
+function genPostgresql(array $opt): array
+{
+    $versions = explode(',', $opt['versions'] ?? '13,14,15,16,17,18');
+    $pages = [
+        'math' => 'Mathematical Functions',
+        'string' => 'String Functions',
+        'binarystring' => 'Binary String Functions',
+        'bitstring' => 'Bit String Functions',
+        'formatting' => 'Data Type Formatting Functions',
+        'datetime' => 'Date/Time Functions',
+        'enum' => 'Enum Support Functions',
+        'geometry' => 'Geometric Functions',
+        'net' => 'Network Address Functions',
+        'textsearch' => 'Text Search Functions',
+        'uuid' => 'UUID Functions',
+        'json' => 'JSON Functions',
+        'sequence' => 'Sequence Manipulation Functions',
+        'comparison' => 'Comparison Functions',
+        'array' => 'Array Functions',
+        'range' => 'Range Functions',
+        'aggregate' => 'Aggregate Functions',
+        'window' => 'Window Functions',
+        'merge-support' => 'Merge Support Functions',
+        'srf' => 'Set Returning Functions',
+        'info' => 'Session Information Functions',
+        'admin' => 'System Administration Functions',
+        'trigger' => 'Trigger Functions',
+        'event-triggers' => 'Event Trigger Functions',
+        'statistics' => 'Statistics Information Functions',
+        'conditional' => 'Conditional Expressions',
+        'xml' => 'XML Functions',
+    ];
+    $firstSeen = [];
+    $entries = [];
+    $newest = end($versions);
+    foreach ($versions as $version) {
+        foreach ($pages as $page => $category) {
+            $url = "https://www.postgresql.org/docs/$version/functions-$page.html";
+            $html = download($url);
+            if ($html === null) {
+                continue;
+            }
+            // Older versions describe some functions in prose instead of tables, so take any mention
+            preg_match_all('#<code class="function">(\w+)</code>#', $html, $mentioned);
+            foreach ($mentioned[1] as $name) {
+                $firstSeen[strtoupper($name)] ??= $version;
+            }
+            $tableEntries = parsePgFunctionTable($html);
+            $tableNames = array_flip(array_map(fn($e) => $e['name'], $tableEntries));
+            $proseEntries = array_filter(parsePgSynopsis($html), fn($e) => !isset($tableNames[$e['name']]));
+            foreach (array_merge($tableEntries, $proseEntries) as $e) {
+                $firstSeen[strtoupper($e['name'])] ??= $version;
+                if ($version === $newest) {
+                    $e['category'] = $category;
+                    $e['description'] = buildDescription($e['paragraphs'], "https://www.postgresql.org/docs/current/functions-$page.html");
+                    unset($e['paragraphs']);
+                    $entries[] = $e;
+                }
+            }
+        }
+    }
+    foreach ($entries as &$e) {
+        $first = $firstSeen[strtoupper($e['name'])];
+        $e['since'] = $first === $versions[0] ? '' : $first;
+    }
+    return $entries;
+}
+
+/** Functions described in prose: <pre class="synopsis"> blocks followed by paragraphs, e.g. XML functions */
+function parsePgSynopsis(string $html): array
+{
+    $result = [];
+    preg_match_all('#<pre class="synopsis">(.*?)</pre>(.*?)(?=<pre|<div class="sect|</div>\s*<div class="sect|$)#s', $html, $ms, PREG_SET_ORDER);
+    foreach ($ms as $m) {
+        $synopsis = html_entity_decode(strip_tags($m[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        preg_match_all('#<p>(.*?)</p>#s', $m[2], $mp);
+        $paragraphs = [];
+        foreach ($mp[1] as $p) {
+            $text = htmlToText($p);
+            if ($text !== '' && !preg_match('#^Examples?:?$#i', $text) && count($paragraphs) < 3) {
+                $paragraphs[] = $text;
+            }
+        }
+        // One or more signatures, possibly spanning lines
+        $synopsis = preg_replace('#\s+#', ' ', $synopsis);
+        $offset = 0;
+        while (preg_match('#(?<![\w.])([A-Za-z_]\w*)\s*\(#', $synopsis, $mf, PREG_OFFSET_CAPTURE, $offset)) {
+            $name = $mf[1][0];
+            $parenPos = $mf[0][1] + strlen($mf[0][0]) - 1;
+            $decl = balancedParens($synopsis, $parenPos);
+            if ($decl === null) {
+                break;
+            }
+            $offset = $parenPos + strlen($decl) + 2;
+            if (preg_match('#^(CASE|WHEN|THEN|ELSE|SELECT|FROM|AS|PASSING|COLUMNS|NAME|XMLATTRIBUTES)$#i', $name)) {
+                continue;
+            }
+            $descr = $paragraphs;
+            if (preg_match('#^\s*\x{2192}\s*(\w[\w ]*)#u', substr($synopsis, $offset), $mr)) {
+                array_unshift($descr, 'Returns: ' . trim($mr[1]));
+            }
+            $e = entry(strtoupper($name), $decl, '', '');
+            $e['paragraphs'] = $descr;
+            $result[] = $e;
+        }
+    }
+    return $result;
+}
+
+/** Parse <td class="func_table_entry"> cells: one or more signatures, description, examples */
+function parsePgFunctionTable(string $html): array
+{
+    $result = [];
+    preg_match_all('#<td\b[^>]*\bclass="func_table_entry"[^>]*>(.*?)</td>#s', $html, $cells);
+    foreach ($cells[1] as $cell) {
+        preg_match_all('#<p\b([^>]*)>(.*?)</p>#s', $cell, $ps, PREG_SET_ORDER);
+        $signatures = [];
+        $paragraphs = [];
+        $examples = [];
+        foreach ($ps as $p) {
+            if (str_contains($p[1], 'func_signature')) {
+                $signatures[] = $p[2];
+            } elseif (preg_match('#^\s*<code class="literal">#', $p[2]) && str_contains($p[2], "\u{2192}")) {
+                $example = htmlToText($p[2]);
+                // Skip examples with a result table, which is not part of the paragraph
+                if (!str_ends_with($example, '->')) {
+                    $examples[] = $example;
+                }
+            } elseif (preg_match('#^\s*<code class="literal">[^<]*</code>\s*$#', $p[2])) {
+                // Example setup statements, e.g. "create type twoints as ..."
+                continue;
+            } else {
+                $paragraphs[] = htmlToText($p[2]);
+            }
+        }
+        $returnTypes = [];
+        $parsed = [];
+        foreach ($signatures as $sig) {
+            if (!preg_match('#<code class="function">(\w+)</code>\s*\(#', $sig, $m, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+            $name = $m[1][0];
+            $text = html_entity_decode(strip_tags($sig), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $pos = strpos($text, '(', strpos($text, $name));
+            $decl = balancedParens($text, $pos);
+            if ($decl === null) {
+                continue;
+            }
+            $ret = preg_match('#\x{2192}\s*(.+)$#u', $text, $mr) ? trim(preg_replace('#\s+#', ' ', $mr[1])) : '';
+            $parsed[] = [$name, $decl, $ret];
+        }
+        foreach ($parsed as [$name, $decl, $ret]) {
+            $descr = [];
+            if ($ret !== '') {
+                $descr[] = 'Returns: ' . toAscii($ret);
+            }
+            array_push($descr, ...array_slice($paragraphs, 0, 3));
+            if ($examples) {
+                $descr[] = "\x01Examples:\n" . implode("\n", array_slice($examples, 0, 3));
+            }
+            $e = entry(strtoupper($name), $decl, '', '');
+            $e['paragraphs'] = $descr;
+            $result[] = $e;
+        }
+    }
+    return $result;
+}
+
+
+// ---------------------------------------------------------------------------------------------------
+// SQLite: online documentation
+// ---------------------------------------------------------------------------------------------------
+
+function genSqlite(): array
+{
+    $pages = [
+        'lang_corefunc' => 'Scalar Functions',
+        'lang_aggfunc' => 'Aggregate Functions',
+        'lang_mathfunc' => 'Mathematical Functions',
+        'windowfunctions' => 'Window Functions',
+    ];
+    $entries = [];
+    foreach ($pages as $page => $category) {
+        $url = "https://www.sqlite.org/$page.html";
+        $html = download($url) ?? throw new RuntimeException("Could not read $url");
+        // <a name="x"></a><dt><p><b>abs(<i>X</i>)<br>...</b></dt><dd><p>text</p><p>text</dd>
+        preg_match_all('#(?:<a name="(\w+)"></a>\s*)?<dt>(.*?)</dt>\s*<dd>(.*?)</dd>#s', $html, $ms, PREG_SET_ORDER);
+        foreach ($ms as $m) {
+            $paragraphs = array_map('htmlToText', preg_split('#<p>#', $m[3]));
+            $anchor = $m[1] !== '' ? "$url#{$m[1]}" : $url;
+            $description = buildDescription($paragraphs, $anchor);
+            foreach (preg_split('#<br\s*/?>#', $m[2]) as $def) {
+                $def = htmlToText($def);
+                if (preg_match('#^(\w+)\s*\(#', $def, $md)) {
+                    $decl = balancedParens($def, strpos($def, '('));
+                    $entries[] = entry(strtoupper($md[1]), $decl ?? '', $category, $description);
+                }
+            }
+        }
+    }
+
+    // Date and time functions: signatures in a list, description in sections
+    $url = 'https://www.sqlite.org/lang_datefunc.html';
+    $html = download($url) ?? throw new RuntimeException("Could not read $url");
+    $common = 'All date and time functions take a time value as an argument, followed by zero or more modifiers. '
+        . 'The time value can be a string like "YYYY-MM-DD HH:MM:SS", a Julian day number, or "now".';
+    // <li> <b>unixepoch(</b><i>time-value, modifier, ...</i><b>)</b> </li>
+    preg_match_all('#<li>\s*<b>(\w+)\(</b><i>(.*?)</i><b>\)</b>\s*</li>#s', $html, $ms, PREG_SET_ORDER);
+    foreach ($ms as $m) {
+        // "The <b>date()</b> function returns ..." or "The <b>timediff(A,B)</b> function ..."
+        $text = preg_match('#<p>\s*(The <b>' . $m[1] . '\(.*?)(?=</p>|<a name=)#s', $html, $mp) ? htmlToText($mp[1]) : '';
+        $entries[] = entry(strtoupper($m[1]), htmlToText($m[2]), 'Date and Time Functions',
+            buildDescription([$text, $common], $url));
+    }
+
+    // JSON functions: signature list with anchors, description in the anchored section
+    $url = 'https://www.sqlite.org/json1.html';
+    $html = download($url) ?? throw new RuntimeException("Could not read $url");
+    preg_match_all('#<li value=\'\d+\'>\s*(.*?)\s*</li>#s', $html, $items);
+    foreach ($items[1] as $item) {
+        foreach (preg_split('#<br\s*/?>#', $item) as $def) {
+            if (!preg_match('#<a href=\'\#(\w+)\'>(\w+)</a>\s*\((.*?)\)\s*$#s', trim($def), $md)) {
+                continue;
+            }
+            $section = '';
+            if (preg_match('#<a name="' . $md[1] . '"></a>.*?</h2>(.*?)<h2#s', $html, $mSec)) {
+                preg_match_all('#<p>(.*?)(?=<p>|</p>|$)#s', $mSec[1], $mp);
+                $section = implode("\n\n", array_slice(array_filter(array_map('htmlToText', $mp[1])), 0, 3));
+            }
+            $name = strtoupper($md[2]);
+            $category = preg_match('#_(each|tree)$#i', $name) ? 'JSON Table-Valued Functions'
+                : (preg_match('#_group_#i', $name) ? 'JSON Aggregate Functions' : 'JSON Functions');
+            $entries[] = entry($name, htmlToText($md[3]), $category,
+                buildDescription(preg_split('#\n\n#', $section), "$url#{$md[1]}"));
+        }
+    }
+
+    $entries = uniqueEntries($entries);
+    $since = sqliteSinceMap(array_unique(array_map(fn($e) => strtolower($e['name']), $entries)));
+    foreach ($entries as &$e) {
+        $e['since'] = $since[strtolower($e['name'])] ?? '';
+    }
+    return $entries;
+}
+
+/** Earliest release whose change log item adds a function, e.g. "Added the concat() function" */
+function sqliteSinceMap(array $names): array
+{
+    $html = download('https://www.sqlite.org/changes.html') ?? '';
+    $nameSet = array_flip($names);
+    $since = [];
+    // Releases are listed newest first
+    preg_match_all('#<h3>[^<]*\((3\.\d+\.\d+)\)</h3>(.*?)(?=<h3>|$)#s', $html, $releases, PREG_SET_ORDER);
+    foreach ($releases as [, $version, $body]) {
+        preg_match_all('#<li>(.*?)(?=<li>|</ol>|</ul>)#s', $body, $items);
+        foreach ($items[1] as $item) {
+            $text = htmlToText($item);
+            if (!preg_match('#\b(add|added|adds|new)\b#i', $text)
+                || preg_match('#\b(enhance|enhanced|fix|fixed|bug|option|argument|parameter)\b#i', $text)) {
+                continue;
+            }
+            preg_match_all('#\b(\w+)\(\)#', $text, $fm);
+            foreach ($fm[1] as $f) {
+                $f = strtolower($f);
+                if (isset($nameSet[$f]) && (!isset($since[$f]) || compareVersions($version, $since[$f]) < 0)) {
+                    $since[$f] = $version;
+                }
+            }
+        }
+    }
+    // Irrelevant for the SQLite libraries used in HeidiSQL
+    return array_filter($since, fn($v) => compareVersions($v, '3.25.0') >= 0);
+}
+
+
+// ---------------------------------------------------------------------------------------------------
+// MS SQL: MicrosoftDocs/sql-docs repository
+// ---------------------------------------------------------------------------------------------------
+
+function genMssql(array $opt): array
+{
+    $dir = rtrim($opt['docs'] ?? '', '/\\') . '/docs/t-sql/functions';
+    if (!is_dir($dir)) {
+        throw new RuntimeException("Directory not found: $dir. Pass the sql-docs checkout with --docs=<dir>");
+    }
+    $files = glob("$dir/*.md");
+
+    // Categories from overview pages, which link the function pages
+    $categories = [];
+    foreach ($files as $file) {
+        $md = file_get_contents($file);
+        if (preg_match('#^title:\s*"?(.+? [Ff]unctions)\b#m', $md, $mt) && !preg_match('#```syntaxsql#', $md)
+            && !preg_match('#^(functions|what-are)#', basename($file))) {
+            $category = mssqlCategory(preg_replace('#\s*\(Transact-SQL\)#', '', $mt[1]));
+            preg_match_all('#\]\(([\w-]+\.md)\)#', $md, $ml);
+            foreach ($ml[1] as $linked) {
+                $categories[$linked] ??= $category;
+            }
+        }
+    }
+    // Fallback: categories of the previous output file, as some overview pages are elsewhere in the docs
+    $oldCategories = [];
+    $oldFile = $opt['old'] ?? (__DIR__ . '/functions-mssql.ini');
+    if (file_exists($oldFile)) {
+        $section = null;
+        foreach (file($oldFile, FILE_IGNORE_NEW_LINES) as $line) {
+            if (preg_match('#^\[(.+)\]#', $line, $m)) {
+                $section = preg_replace('#\d+$#', '', $m[1]);
+            } elseif ($section !== null && preg_match('#^category=(.+)$#', $line, $m)) {
+                $oldCategories[strtoupper($section)] = mssqlCategory(trim($m[1]));
+            }
+        }
+    }
+
+    $entries = [];
+    foreach ($files as $file) {
+        $md = str_replace("\r\n", "\n", file_get_contents($file));
+        if (!preg_match_all('#```syntaxsql[ \t]*\n(.*?)```#s', $md, $ms)) {
+            continue;
+        }
+        if (!preg_match('#^monikerRange:\s*"?([^"\n]*)#m', $md, $mm)) {
+            $moniker = '';
+        } else {
+            $moniker = $mm[1];
+        }
+        $since = mssqlSince($moniker);
+        if ($since === null) {
+            // Not available in SQL Server or Azure SQL Database, e.g. Fabric or Synapse only
+            continue;
+        }
+        $title = preg_match('#^title:\s*"?([^"\n]+)#m', $md, $mt) ? $mt[1] : '';
+        $summary = preg_match('#^description:\s*"?([^"\n]+)#m', $md, $md2) ? trim($md2[1], '" ') : '';
+
+        // Function names: from the title, e.g. "CAST and CONVERT (Transact-SQL)", "Logical functions - GREATEST"
+        $title = preg_replace('#\s*\(Transact-SQL\)#', '', $title);
+        $title = preg_replace('#^.* - #', '', $title);
+        preg_match_all('#\b([A-Z][A-Z0-9_$]*[A-Z0-9_$])\b#', $title, $mn);
+        $names = array_unique($mn[1]);
+
+        $syntax = preg_replace('#--.*$#m', '', implode("\n", $ms[1]));
+        $syntax = preg_replace('#\s+#', ' ', $syntax);
+        $body = mssqlBody($md);
+        $returns = mssqlSection($md, 'Return types?');
+        $paragraphs = [];
+        if ($returns !== '') {
+            $paragraphs[] = preg_match('#^(Returns|The return)#i', $returns) ? $returns : 'Returns: ' . $returns;
+        }
+        $paragraphs = array_merge($paragraphs, $body);
+        if ($summary !== '' && !$body) {
+            $paragraphs[] = $summary;
+        }
+        $url = 'https://learn.microsoft.com/en-us/sql/t-sql/functions/' . basename($file, '.md');
+        $description = buildDescription($paragraphs, $url);
+        foreach ($names as $name) {
+            if (in_array($name, ['AND', 'OR', 'SQL', 'JSON', 'XML', 'NULL', 'IS', 'NOT', 'ODBC'])) {
+                continue;
+            }
+            $category = $categories[basename($file)] ?? $oldCategories[$name] ?? match (true) {
+                (bool)preg_match('#^(REGEXP_|EDIT_DISTANCE|JARO_WINKLER|BASE64_|UNISTR)#', $name) => 'String Functions',
+                str_starts_with($name, 'JSON_') => 'JSON Functions',
+                in_array($name, ['GREATEST', 'LEAST']) => 'Logical Functions',
+                default => 'Other Functions',
+            };
+            $offset = 0;
+            while (preg_match('#\b' . preg_quote($name, '#') . '\s*\(#i', $syntax, $mf, PREG_OFFSET_CAPTURE, $offset)) {
+                $parenPos = $mf[0][1] + strlen($mf[0][0]) - 1;
+                $decl = balancedParens($syntax, $parenPos);
+                if ($decl === null) {
+                    break;
+                }
+                $entries[] = entry($name, $decl, $category, $description, $since);
+                $offset = $parenPos + strlen($decl) + 2;
+            }
+        }
+    }
+    return $entries;
+}
+
+/**
+ * monikerRange => since:
+ * ">=sql-server-ver16 || ..." => 16, ">=sql-server-2016/2017 || ..." => "" (all versions), "=azuresqldb-current"
+ * only => 99 (HeidiSQL ignores "since" on Azure, which reports an old version), Fabric/Synapse only => null
+ */
+function mssqlSince(string $moniker): ?string
+{
+    static $years = ['2016' => '13', '2017' => '14', '2019' => '15', '2022' => '16', '2025' => '17'];
+    if ($moniker === '') {
+        return '';
+    }
+    $versions = [];
+    if (preg_match_all('#sql-server-(?:linux-)?ver(\d+)#', $moniker, $m)) {
+        array_push($versions, ...$m[1]);
+    }
+    if (preg_match_all('#sql-server-(?:linux-)?(20\d\d)#', $moniker, $m)) {
+        foreach ($m[1] as $year) {
+            $versions[] = $years[$year] ?? '13';
+        }
+    }
+    if ($versions) {
+        sort($versions, SORT_NUMERIC);
+        // 2016 and 2017 are the oldest monikers in the current docs, meaning "all versions"
+        return $versions[0] <= 14 ? '' : $versions[0];
+    }
+    if (str_contains($moniker, 'azuresqldb-current')) {
+        // Azure SQL only: hide on boxed servers via a far future version
+        return '99';
+    }
+    return null;
+}
+
+/** Unify category names: "String" => "String Functions", "Date and Time Data Types and Functions" => ... */
+function mssqlCategory(string $c): string
+{
+    $c = trim(preg_replace('#^(What are |Transact-SQL |The )#i', '', trim($c, ' "')));
+    if (preg_match('#^Date and time#i', $c)) {
+        return 'Date and Time Functions';
+    }
+    $c = preg_replace('#\s+functions$#i', '', $c);
+    $words = explode(' ', $c);
+    foreach ($words as $i => $w) {
+        $words[$i] = ($i > 0 && in_array(strtolower($w), ['and', 'or', 'of'])) ? strtolower($w)
+            : (preg_match('#^[A-Z]{2,}$#', $w) ? $w : ucfirst(strtolower($w)));
+    }
+    return implode(' ', $words) . ' Functions';
+}
+
+/** First paragraphs after the "applies to" include, before the syntax or first heading */
+function mssqlBody(string $md): array
+{
+    $md = preg_replace('#^---\n.*?\n---\n#s', '', $md);
+    $md = preg_replace('#^\#[^\n]*\n#m', "\x02", $md, 1);
+    $start = strpos($md, "\x02");
+    $md = substr($md, $start === false ? 0 : $start + 1);
+    $end = preg_match('#\n(\#\#|```)#', $md, $m, PREG_OFFSET_CAPTURE) ? $m[0][1] : strlen($md);
+    $paragraphs = [];
+    foreach (preg_split('#\n\s*\n#', substr($md, 0, $end)) as $p) {
+        $p = markdownToText($p);
+        if ($p !== '' && !preg_match('#^(Applies to|Transact-SQL syntax conventions)#i', $p)) {
+            $paragraphs[] = $p;
+        }
+    }
+    return array_slice($paragraphs, 0, 3);
+}
+
+function mssqlSection(string $md, string $headingRegex): string
+{
+    if (!preg_match('#\n\#\#\s+' . $headingRegex . '\s*\n(.*?)(?=\n\#\#|$)#is', $md, $m)) {
+        return '';
+    }
+    foreach (preg_split('#\n\s*\n#', $m[1]) as $p) {
+        $p = markdownToText($p);
+        if ($p !== '') {
+            return $p;
+        }
+    }
+    return '';
+}
+
+function markdownToText(string $s): string
+{
+    $s = preg_replace('#\[!INCLUDE[^\]]*\]\([^)]*\)\]?#', '', $s);
+    $s = preg_replace('#\[!NOTE\]|\[!TIP\]|\[!IMPORTANT\]|\[!WARNING\]|\[!CAUTION\]#', '', $s);
+    $s = preg_replace('#:::[^\n]*:::#', '', $s);
+    $s = preg_replace('#^\s*:::.*$#m', '', $s);
+    $s = preg_replace('#!?\[([^\]]*)\]\([^)]*\)#', '$1', $s);
+    $s = preg_replace('#<[^>]+>#', '', $s);
+    $s = preg_replace('#^\s*>\s?#m', '', $s);
+    $s = str_replace(['**', '`'], '', $s);
+    $s = preg_replace('#(?<!\w)\*([^*\n]+)\*(?!\w)#', '$1', $s);
+    $s = preg_replace('#(?<!\w)_([^_\n]+)_(?!\w)#', '$1', $s);
+    $s = html_entity_decode($s, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    return trim(preg_replace('#\s+#', ' ', toAscii($s)));
+}
+
+
+// ---------------------------------------------------------------------------------------------------
+// Firebird: online language references
+// ---------------------------------------------------------------------------------------------------
+
+function genFirebird(array $opt): array
+{
+    $versions = explode(',', $opt['versions'] ?? '3.0,4.0,5.0');
+    $firstSeen = [];
+    $entries = [];
+    $newest = end($versions);
+    foreach ($versions as $version) {
+        $v = str_replace('.', '', $version);
+        $url = "https://firebirdsql.org/file/documentation/html/en/refdocs/fblangref$v/firebird-$v-language-reference.html";
+        $html = download($url) ?? throw new RuntimeException("Could not read $url");
+        foreach (parseFirebirdReference($html, $url) as $e) {
+            $firstSeen[strtoupper($e['name'])] ??= $version;
+            if ($version === $newest) {
+                $entries[] = $e;
+            }
+        }
+    }
+    foreach ($entries as &$e) {
+        $first = $firstSeen[strtoupper($e['name'])];
+        $e['since'] = $first === $versions[0] ? '' : $first;
+    }
+    return $entries;
+}
+
+function parseFirebirdReference(string $html, string $url): array
+{
+    $entries = [];
+    // Split into h2/h3/h4 sections
+    $parts = preg_split('#(<h[234] id="[^"]+">.*?</h[234]>)#s', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+    $chapter = $category = '';
+    for ($i = 1; $i < count($parts); $i += 2) {
+        preg_match('#<h([234]) id="([^"]+)">(.*?)</h[234]>#s', $parts[$i], $mh);
+        [$level, $id, $title] = [$mh[1], $mh[2], htmlToText($mh[3])];
+        $title = preg_replace('#^[\d.]+\s*#', '', $title);
+        $content = $parts[$i + 1] ?? '';
+        if ($level === '2') {
+            $chapter = $title;
+            continue;
+        }
+        if (!preg_match('#Functions#i', $chapter)) {
+            continue;
+        }
+        // Function headings: "LPAD()", "CHAR_LENGTH(), CHARACTER_LENGTH()". Mostly h4 below a category h3,
+        // but some on h3 level in older references.
+        $isFunction = preg_match_all('#\b([A-Z][A-Z0-9_$]*)\(\)#', $title, $mn);
+        if (!$isFunction && $level === '4') {
+            // Older references: "<code>LAG</code>" without parentheses
+            $isFunction = preg_match_all('#<code>([A-Z][A-Z0-9_$]*)</code>#', $mh[3], $mn);
+        }
+        if ($level === '3' && !$isFunction) {
+            $category = $title;
+            continue;
+        }
+        if (!$isFunction) {
+            continue;
+        }
+        if ($level === '3') {
+            $category = $chapter;
+        }
+        $content = preg_replace('#<div class="sect4">.*$#s', '', $content);
+        $syntax = preg_match('#<div class="title">Syntax</div>\s*<div class="content">\s*<pre[^>]*>(.*?)</pre>#s', $content, $ms)
+            ? html_entity_decode(strip_tags($ms[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8') : '';
+        $syntax = preg_replace('#\s+#', ' ', $syntax);
+        $resultType = preg_match('#<div class="title">Result type</div>\s*<p>(.*?)</p>#s', $content, $mr) ? htmlToText($mr[1]) : '';
+        // Prose: paragraphs and list items outside tables and titled blocks
+        $prose = preg_replace('#<table.*?</table>#s', '', $content);
+        // Titled paragraphs: "Result type", "See also"
+        $prose = preg_replace('#<div class="paragraph">\s*<div class="title">.*?</div>\s*<p>.*?</p>\s*</div>#s', '', $prose);
+        $prose = preg_replace('#<div class="listingblock">.*?</pre>\s*</div>\s*</div>#s', '', $prose);
+        preg_match_all('#<p>(.*?)</p>#s', $prose, $mp);
+        $paragraphs = [];
+        if ($resultType !== '') {
+            $paragraphs[] = 'Result type: ' . $resultType;
+        }
+        foreach ($mp[1] as $p) {
+            $text = htmlToText($p);
+            if ($text !== '' && count($paragraphs) < 5) {
+                $paragraphs[] = $text;
+            }
+        }
+        $description = buildDescription($paragraphs, "$url#$id");
+        $headingDecls = [];
+        foreach (array_unique($mn[1]) as $name) {
+            $found = false;
+            $offset = 0;
+            // "CEIL[ING] (number)"
+            while (preg_match('#\b' . preg_quote($name, '#') . '(\[\w+\])?\s*\(#', $syntax, $mf, PREG_OFFSET_CAPTURE, $offset)) {
+                $parenPos = $mf[0][1] + strlen($mf[0][0]) - 1;
+                $decl = balancedParens($syntax, $parenPos);
+                if ($decl === null) {
+                    break;
+                }
+                $entries[] = entry($name, $decl, $category, $description);
+                $headingDecls[] = $decl;
+                $offset = $parenPos + strlen($decl) + 2;
+                $found = true;
+            }
+            if (!$found) {
+                // Synonym in the same heading, e.g. CEILING with syntax "CEIL[ING] (number)"
+                foreach ($headingDecls ?: [''] as $decl) {
+                    $entries[] = entry($name, $decl, $category, $description);
+                }
+            }
+        }
+    }
+    return $entries;
+}
