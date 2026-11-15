@@ -4,11 +4,10 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
-  dbconnection, dbstructures, dbstructures.mysql, Vcl.ComCtrls, gnugettext, SynRegExpr, extra_controls;
+  dbconnection, dbstructures, Vcl.ComCtrls, gnugettext, SynRegExpr, extra_controls;
 
 type
-  TVarType = (vtString, vtNumeric, vtBoolean, vtEnum);
-  EVariableError = class(Exception);
+  TVarType = (vtString, vtNumeric, vtBoolean);
 
   TfrmEditVariable = class(TExtForm)
     btnOK: TButton;
@@ -19,13 +18,11 @@ type
     gbValue: TGroupBox;
     radioBooleanOn: TRadioButton;
     radioBooleanOff: TRadioButton;
-    comboEnum: TComboBox;
     editNumber: TEdit;
     UpDownNumber: TUpDown;
     editString: TEdit;
     lblString: TLabel;
     lblNumber: TLabel;
-    lblEnum: TLabel;
     lblBoolean: TLabel;
     btnHelp: TButton;
     procedure btnOKClick(Sender: TObject);
@@ -33,24 +30,34 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
+    procedure radioScopeClick(Sender: TObject);
   private
     { Private declarations }
-    FVar: TServerVariable;
+    FVarName: String;
     FVarType: TVarType;
     FVarValue: String;
-    procedure SetVarName(Value: String);
+    FSessionValue: String;
+    FGlobalValue: String;
+    FHasSessionValue: Boolean;
+    FHasGlobalValue: Boolean;
+    procedure LoadValue;
   public
     { Public declarations }
-    property VarName: String write SetVarName;
-    property VarValue: String write FVarValue;
+    procedure SetSessionValue(Value: String);
+    procedure SetGlobalValue(Value: String);
+    property VarName: String write FVarName;
   end;
 
 
 implementation
 
-uses main, apphelpers;
+uses System.StrUtils, main, apphelpers;
 
 {$R *.dfm}
+
+
+const
+  BooleanValues: array[0..5] of String = ('ON', 'OFF', 'YES', 'NO', 'TRUE', 'FALSE');
 
 
 procedure TfrmEditVariable.FormCreate(Sender: TObject);
@@ -66,51 +73,71 @@ begin
 end;
 
 
-procedure TfrmEditVariable.SetVarName(Value: String);
-var
-  i: Integer;
-  Found: Boolean;
+procedure TfrmEditVariable.SetSessionValue(Value: String);
 begin
-  // Find var name in predefined documented list of variables
-  Found := False;
-  for i:=Low(MySQLVariables) to High(MySQLVariables) do begin
-    if MySQLVariables[i].Name = Value then begin
-      FVar := MySQLVariables[i];
-      Found := True;
-      if not FVar.IsDynamic then
-        raise EVariableError.CreateFmt(_('"%s" is a read only variable, not editable'), [Value]);
-      break;
-    end;
-  end;
-  if not Found then
-    raise EVariableError.CreateFmt(_('Could not find %s variable in internal mapping.'), [Value]);
+  FSessionValue := Value;
+  FHasSessionValue := True;
+end;
+
+
+procedure TfrmEditVariable.SetGlobalValue(Value: String);
+begin
+  FGlobalValue := Value;
+  FHasGlobalValue := True;
 end;
 
 
 procedure TfrmEditVariable.FormShow(Sender: TObject);
-var
-  val: String;
 begin
   Width := AppSettings.ReadIntDpiAware(asEditVarWindowWidth, Self);
   Height := AppSettings.ReadIntDpiAware(asEditVarWindowHeight, Self);
-  // Verify variable type by value
-  FVarType := vtString;
-  if IsInt(FVarValue) then
-    FVarType := vtNumeric;
-  if (FVar.EnumValues <> '') and (Pos(UpperCase(FVarValue), UpperCase(FVar.EnumValues))>0) then
-    FVarType := vtEnum;
-  if (FVarType <> vtEnum) and (Pos(UpperCase(FVarValue), 'ON,OFF,0,1,YES,NO')>0) then
-    FVarType := vtBoolean;
 
-  gbValue.Caption := FVar.Name;
+  gbValue.Caption := FVarName;
+
+  // Scope availability is derived from the server's SHOW SESSION/GLOBAL VARIABLES
+  // results. Variables in neither list cannot exist, so leave both enabled then.
+  radioScopeSession.Enabled := FHasSessionValue or (not FHasGlobalValue);
+  radioScopeGlobal.Enabled := FHasGlobalValue or (not FHasSessionValue);
+  if radioScopeSession.Enabled then
+    radioScopeSession.Checked := True
+  else
+    radioScopeGlobal.Checked := True;
+  LoadValue;
+end;
+
+
+procedure TfrmEditVariable.radioScopeClick(Sender: TObject);
+begin
+  if Visible and (Sender as TRadioButton).Checked then
+    LoadValue;
+end;
+
+
+{**
+  Detect value type from the value of the selected scope and prepare the editor
+}
+procedure TfrmEditVariable.LoadValue;
+var
+  val: String;
+begin
+  if radioScopeGlobal.Checked then
+    FVarValue := FGlobalValue
+  else
+    FVarValue := FSessionValue;
+
+  val := UpperCase(FVarValue);
+  if IsInt(FVarValue) then
+    FVarType := vtNumeric
+  else if MatchStr(val, BooleanValues) then
+    FVarType := vtBoolean
+  else
+    FVarType := vtString;
 
   lblString.Enabled := FVarType = vtString;
   editString.Enabled := FVarType = vtString;
   lblNumber.Enabled := FVarType = vtNumeric;
   editNumber.Enabled := FVarType = vtNumeric;
   UpDownNumber.Enabled := FVarType = vtNumeric;
-  lblEnum.Enabled := FVarType = vtEnum;
-  comboEnum.Enabled := FVarType = vtEnum;
   lblBoolean.Enabled := FVarType = vtBoolean;
   radioBooleanOn.Enabled := FVarType = vtBoolean;
   radioBooleanOff.Enabled := FVarType = vtBoolean;
@@ -127,8 +154,7 @@ begin
       editNumber.SetFocus;
     end;
     vtBoolean: begin
-      val := UpperCase(FVarValue);
-      if (val='ON') or (val='1') or (val='YES') then begin
+      if (val='ON') or (val='YES') or (val='TRUE') then begin
         radioBooleanOn.Checked := True;
         radioBooleanOn.SetFocus;
       end else begin
@@ -136,19 +162,7 @@ begin
         radioBooleanOff.SetFocus;
       end;
     end;
-    vtEnum: begin
-      comboEnum.Items.CommaText := FVar.EnumValues;
-      comboEnum.ItemIndex := comboEnum.Items.IndexOf(UpperCase(FVarValue));
-      comboEnum.SetFocus;
-    end;
   end;
-
-  radioScopeSession.Enabled := FVar.VarScope in [vsSession, vsBoth];
-  radioScopeGlobal.Enabled := FVar.VarScope in [vsGlobal, vsBoth];
-  if radioScopeSession.Enabled then
-    radioScopeSession.Checked := True
-  else if radioScopeGlobal.Enabled then
-    radioScopeGlobal.Checked := True;
 end;
 
 
@@ -162,11 +176,11 @@ var
 begin
   // Syntax taken from http://dev.mysql.com/doc/refman/4.1/en/using-system-variables.html
   sql := 'SET @@';
-  if radioScopeSession.Checked then
-    sql := sql + 'session'
+  if radioScopeGlobal.Checked then
+    sql := sql + 'global'
   else
-    sql := sql + 'global';
-  sql := sql + '.' + FVar.Name + ' = ';
+    sql := sql + 'session';
+  sql := sql + '.' + FVarName + ' = ';
 
   Conn := MainForm.ActiveConnection;
 
@@ -182,11 +196,11 @@ begin
         val := Conn.EscapeString(editString.Text);
     end;
     vtBoolean: val := IntToStr(Integer(radioBooleanOn.Checked));
-    vtEnum: val := Conn.EscapeString(comboEnum.Text);
   end;
   sql := sql + val;
 
-  // Set the value and keep the form open in any error case
+  // Set the value and keep the form open in any error case, e.g. for read-only
+  // variables or when the chosen scope is not supported by the variable
   try
     Conn.Query(sql);
     Conn.ShowWarnings;

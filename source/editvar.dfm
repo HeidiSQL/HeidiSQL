@@ -58,6 +58,7 @@ object frmEditVariable: TfrmEditVariable
       Height = 17
       Caption = 'This session'
       TabOrder = 0
+      OnClick = radioScopeClick
     end
     object radioScopeGlobal: TRadioButton
       Left = 122
@@ -66,6 +67,7 @@ object frmEditVariable: TfrmEditVariable
       Height = 17
       Caption = 'Global'
       TabOrder = 1
+      OnClick = radioScopeClick
     end
   end
   object gbValue: TGroupBox
@@ -93,23 +95,16 @@ object frmEditVariable: TfrmEditVariable
       Height = 13
       Caption = 'Number:'
     end
-    object lblEnum: TLabel
-      Left = 8
-      Top = 80
-      Width = 64
-      Height = 13
-      Caption = 'Enumeration:'
-    end
     object lblBoolean: TLabel
       Left = 8
-      Top = 105
+      Top = 80
       Width = 42
       Height = 13
       Caption = 'Boolean:'
     end
     object radioBooleanOn: TRadioButton
       Left = 88
-      Top = 104
+      Top = 79
       Width = 82
       Height = 17
       Caption = 'On'
@@ -117,21 +112,12 @@ object frmEditVariable: TfrmEditVariable
     end
     object radioBooleanOff: TRadioButton
       Left = 176
-      Top = 104
+      Top = 79
       Width = 91
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Off'
       TabOrder = 1
-    end
-    object comboEnum: TComboBox
-      Left = 88
-      Top = 77
-      Width = 180
-      Height = 21
-      Style = csDropDownList
-      Anchors = [akLeft, akTop, akRight]
-      TabOrder = 2
     end
     object editNumber: TEdit
       Left = 88

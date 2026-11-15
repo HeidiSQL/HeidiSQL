@@ -121,15 +121,6 @@ type
     NullColor:       TColor;
   end;
 
-  // Server variables
-  TVarScope = (vsGlobal, vsSession, vsBoth);
-  TServerVariable = record
-    Name: String;
-    IsDynamic: Boolean;
-    VarScope: TVarScope;
-    EnumValues: String;
-  end;
-
   // Custom exception class for any connection or database related error
   EDbError = class(Exception)
     private
