@@ -48,16 +48,30 @@ TCustomCheckCombo, TCheckListBox and TChartListbox. Not in `fixes_5` as of
 
 VT does not scale `DefaultNodeHeight` / `NodeHeight[Node]` on a DPI change.
 Fixed upstream in Lazarus main for
-https://gitlab.com/freepascal.org/lazarus/lazarus/-/work_items/42716, but
-deliberately not backported to `fixes_5` (maintainer is unsure about
-non-Windows widgetsets), so neither 4.8 nor 5.x contain it; earliest release
-would be 6.0 unless it gets merged into fixes later (status 2026-11-14; the
-commit could not be found in GitLab main yet, neither by issue number nor
-by `NodeHeight` changes; hash to be added). No local patch:
-Heidi keeps its workaround in `TExtForm.FixTreeFontsOnDPIChange`
-(`source/extra_controls.pas`, recalculates `DefaultNodeHeight` and resets
-`NodeHeight` of all initialized nodes). When upgrading Lazarus: check whether
-the release contains the fix; if so, test removing the workaround.
+https://gitlab.com/freepascal.org/lazarus/lazarus/-/work_items/42716 by
+405b441432 (new `TBaseVirtualTree.DoAutoAdjustLayout` scaling default and
+per-node heights, header font PPI in `PaintHeader`, `ScaleFontsPPI` for the
+header font). Related: 43fd7bce86 fixes list item heights in TCheckListBox,
+TColorBox, TColorListBox, TChartListbox. Both deliberately not backported to
+`fixes_5` (maintainer is unsure about non-Windows widgetsets), so neither 4.8
+nor 5.x contain them; earliest release would be 6.0 unless merged into fixes
+later (status 2026-11-15).
+
+405b441432 as committed crashes HeidiSQL at startup: its loop uses
+`GetFirst`/`GetNext`, which call `InitChildren` and fire `OnInitChildren`
+already from `TCustomForm.AfterConstruction` (AV in
+`treeQueryHelpersInitChildren`, no connection yet). With
+`GetFirstNoInit`/`GetNextNoInit` instead, tested on 4.8 together with
+d8815d6cb0 and 43fd7bce86 and with Heidi's workaround disabled: no crash, node
+heights and header scale correctly between 100% and 175% monitors. Open
+point as well: `SetNodeHeight` ignores trees with `toReadOnly`, so their node
+heights stay unscaled.
+
+No local patch: Heidi keeps its workaround in
+`TExtForm.FixTreeFontsOnDPIChange` (`source/extra_controls.pas`, recalculates
+`DefaultNodeHeight`, resets `NodeHeight` of all initialized nodes, syncs the
+header font). When upgrading Lazarus: check whether the release contains
+405b441432 with the NoInit iteration; if so, test removing the workaround.
 
 Performance (measured 2026-11-14, Lazarus 4.8, Win64, 20 columns): the DPI
 change itself is O(n) already without any NodeHeight fix, about 120 ms per
