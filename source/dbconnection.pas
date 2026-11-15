@@ -3435,6 +3435,8 @@ begin
     SQLFunctionsFileOrder := VersionedFiles('mssql')
   else if FParameters.IsAnySQLite then
     SQLFunctionsFileOrder := VersionedFiles('sqlite')
+  else if FParameters.IsFirebird then
+    SQLFunctionsFileOrder := VersionedFiles('firebird')+',interbase'
   else if FParameters.IsAnyInterbase then
     SQLFunctionsFileOrder := VersionedFiles('interbase')
   else
@@ -12300,6 +12302,24 @@ var
   Sections: TStringList;
   IniFilePath, Section: String;
   SQLFunc: TSQLFunction;
+  ServerVersion, SinceVersion: Int64;
+
+  function VersionToNumber(Version: String): Int64;
+  var
+    rx: TRegExpr;
+  begin
+    // "16", "3.44" or "18.1.2" => comparable number
+    Result := 0;
+    rx := TRegExpr.Create;
+    rx.Expression := '^(\d+)(\.(\d+))?(\.(\d+))?';
+    if rx.Exec(Version) then begin
+      Result := StrToInt64Def(rx.Match[1], 0) * 1000000 +
+        StrToInt64Def(rx.Match[3], 0) * 1000 +
+        StrToInt64Def(rx.Match[5], 0);
+    end;
+    rx.Free;
+  end;
+
 begin
   inherited Create(True);
   FOwner := AOwner;
@@ -12311,6 +12331,13 @@ begin
   FNames.Duplicates := dupIgnore;
   FNames.Sorted := True;
 
+  // Functions with a "since" version newer than the server are skipped. Interbase reports no version (0),
+  // then nothing is skipped. Same for Azure SQL, which reports an old version but has the newest functions.
+  if (AOwner.ServerVersionInt > 0) and (not AOwner.Parameters.IsAzure) then
+    ServerVersion := VersionToNumber(AOwner.ServerVersionStr)
+  else
+    ServerVersion := 0;
+
   TryFiles := Explode(',', SQLFunctionsFileOrder);
   for TryFile in TryFiles do begin
     IniFilePath := GetResourcesDir + 'functions-'+TryFile+'.ini';
@@ -12321,6 +12348,9 @@ begin
       Sections := TStringList.Create;
       Ini.ReadSections(Sections);
       for Section in Sections do begin
+        SinceVersion := VersionToNumber(Ini.ReadString(Section, 'Since', ''));
+        if (ServerVersion > 0) and (SinceVersion > ServerVersion) then
+          Continue;
         SQLFunc := TSQLFunction.Create;
         SQLFunc.Name := Ini.ReadString(Section, 'Name', Section);
         SQLFunc.Declaration := '(' + Ini.ReadString(Section, 'Declaration', '') + ')';
