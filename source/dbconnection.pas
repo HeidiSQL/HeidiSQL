@@ -285,7 +285,7 @@ type
       FCategories: TStringList;
       FNames: TStringList;
     public
-      constructor Create(AOwner: TDBConnection; SQLFunctionsFileOrder: String);
+      constructor Create(AOwner: TDBConnection; SQLFunctionsFile: String);
       property Categories: TStringList read FCategories;
       property Names: TStringList read FNames;
   end;
@@ -3347,26 +3347,12 @@ var
   TypeOid: String;
   AllEnums: TDBQuery;
   AllEnumsList: TStringList;
-  SQLFunctionsFileOrder: String;
-  MajorMinorVer, MajorVer: String;
+  SQLFunctionsFile: String;
   StartupScript: String;
   StartupBatch: TSQLBatch;
   SqlQuery: TSQLSentence;
   Minutes, Hours: Integer;
   Offset: String;
-
-  function VersionedFiles(Prefix: String): String;
-  var
-    v: Integer;
-  begin
-    // Exact major.minor version first, then the server's major version and all lower ones,
-    // so a newer server falls back to the newest available older file, e.g. MySQL 9 to mysql8
-    Result := Prefix + MajorMinorVer;
-    for v:=StrToIntDef(MajorVer, 0) downto 1 do
-      Result := Result + ',' + Prefix + IntToStr(v);
-    Result := Result + ',' + Prefix;
-  end;
-
 begin
   FSqlProvider.ServerVersion := ServerVersionInt;
 
@@ -3420,28 +3406,26 @@ begin
     FKeepAliveTimer.OnTimer := KeepAliveTimerEvent;
   end;
 
-  MajorMinorVer := RegExprGetMatch('^(\d+\.\d+)', ServerVersionStr, 1);
-  MajorVer := RegExprGetMatch('^(\d+)\.', ServerVersionStr, 1);
-
+  // One function list per server type, version specific functions are filtered by their since/until keys
   if FParameters.IsMariaDB then
-    SQLFunctionsFileOrder := VersionedFiles('mariadb')+',mysql'
+    SQLFunctionsFile := 'mariadb'
   else if FParameters.IsAnyMySQL then
-    SQLFunctionsFileOrder := VersionedFiles('mysql')
+    SQLFunctionsFile := 'mysql'
   else if FParameters.IsRedshift then
-    SQLFunctionsFileOrder := VersionedFiles('redshift')+',postgresql'
+    SQLFunctionsFile := 'redshift'
   else if FParameters.IsAnyPostgreSQL then
-    SQLFunctionsFileOrder := VersionedFiles('postgresql')
+    SQLFunctionsFile := 'postgresql'
   else if FParameters.IsAnyMSSQL then
-    SQLFunctionsFileOrder := VersionedFiles('mssql')
+    SQLFunctionsFile := 'mssql'
   else if FParameters.IsAnySQLite then
-    SQLFunctionsFileOrder := VersionedFiles('sqlite')
+    SQLFunctionsFile := 'sqlite'
   else if FParameters.IsFirebird then
-    SQLFunctionsFileOrder := VersionedFiles('firebird')+',interbase'
+    SQLFunctionsFile := 'firebird'
   else if FParameters.IsAnyInterbase then
-    SQLFunctionsFileOrder := VersionedFiles('interbase')
+    SQLFunctionsFile := 'interbase'
   else
-    SQLFunctionsFileOrder := '';
-  FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFileOrder);
+    SQLFunctionsFile := '';
+  FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFile);
 
   // Set timezone offset to UTC
   if FSqlProvider.Has(qSetTimezone) and Parameters.LocalTimeZone then begin
@@ -12294,10 +12278,8 @@ end;
 
 { TSQLFunctionList }
 
-constructor TSQLFunctionList.Create(AOwner: TDBConnection; SQLFunctionsFileOrder: String);
+constructor TSQLFunctionList.Create(AOwner: TDBConnection; SQLFunctionsFile: String);
 var
-  TryFiles: TStringList;
-  TryFile: String;
   Ini: TMemIniFile;
   Sections: TStringList;
   IniFilePath, Section: String;
@@ -12339,38 +12321,36 @@ begin
   else
     ServerVersion := 0;
 
-  TryFiles := Explode(',', SQLFunctionsFileOrder);
-  for TryFile in TryFiles do begin
-    IniFilePath := GetResourcesDir + 'functions-'+TryFile+'.ini';
-    FOwner.Log(lcDebug, 'Trying '+IniFilePath);
-    if FileExists(IniFilePath) then begin
-      FOwner.Log(lcInfo, 'Reading function definitions from '+IniFilePath);
-      Ini := TMemIniFile.Create(IniFilePath);
-      Sections := TStringList.Create;
-      Ini.ReadSections(Sections);
-      for Section in Sections do begin
-        SinceVersion := VersionToNumber(Ini.ReadString(Section, 'Since', ''));
-        UntilVersion := VersionToNumber(Ini.ReadString(Section, 'Until', ''));
-        if (ServerVersion > 0) and (SinceVersion > ServerVersion) then
-          Continue;
-        if (ServerVersion > 0) and (UntilVersion > 0) and (UntilVersion <= ServerVersion) then
-          Continue;
-        SQLFunc := TSQLFunction.Create;
-        SQLFunc.Name := Ini.ReadString(Section, 'Name', Section);
-        SQLFunc.Declaration := '(' + Ini.ReadString(Section, 'Declaration', '') + ')';
-        SQLFunc.Category := Ini.ReadString(Section, 'Category', '');
-        SQLFunc.Description := Ini.ReadString(Section, 'Description', '');
-        SQLFunc.Description := StringReplace(SQLFunc.Description, '\n', sLineBreak, [rfReplaceAll]);
-        Add(SQLFunc);
-        FCategories.Add(SQLFunc.Category);
-        FNames.Add(SQLFunc.Name);
-      end;
-      Ini.Free;
-      Sections.Free;
-      Break;
-    end;
+  if SQLFunctionsFile.IsEmpty then
+    Exit;
+  IniFilePath := GetResourcesDir + 'functions-'+SQLFunctionsFile+'.ini';
+  if not FileExists(IniFilePath) then begin
+    FOwner.Log(lcDebug, 'Function definitions not found: '+IniFilePath);
+    Exit;
   end;
-  TryFiles.Free;
+  FOwner.Log(lcInfo, 'Reading function definitions from '+IniFilePath);
+  Ini := TMemIniFile.Create(IniFilePath);
+  Sections := TStringList.Create;
+  Ini.ReadSections(Sections);
+  for Section in Sections do begin
+    SinceVersion := VersionToNumber(Ini.ReadString(Section, 'Since', ''));
+    UntilVersion := VersionToNumber(Ini.ReadString(Section, 'Until', ''));
+    if (ServerVersion > 0) and (SinceVersion > ServerVersion) then
+      Continue;
+    if (ServerVersion > 0) and (UntilVersion > 0) and (UntilVersion <= ServerVersion) then
+      Continue;
+    SQLFunc := TSQLFunction.Create;
+    SQLFunc.Name := Ini.ReadString(Section, 'Name', Section);
+    SQLFunc.Declaration := '(' + Ini.ReadString(Section, 'Declaration', '') + ')';
+    SQLFunc.Category := Ini.ReadString(Section, 'Category', '');
+    SQLFunc.Description := Ini.ReadString(Section, 'Description', '');
+    SQLFunc.Description := StringReplace(SQLFunc.Description, '\n', sLineBreak, [rfReplaceAll]);
+    Add(SQLFunc);
+    FCategories.Add(SQLFunc.Category);
+    FNames.Add(SQLFunc.Name);
+  end;
+  Ini.Free;
+  Sections.Free;
 end;
 
 
