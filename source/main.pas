@@ -9815,6 +9815,8 @@ var
   Dialog: TfrmEditVariable;
   VarName, VarValue: String;
 begin
+  if (not ActiveConnection.Has(frEditVariables)) or (not Assigned(ListVariables.FocusedNode)) then
+    Exit;
   Dialog := TfrmEditVariable.Create(Self);
   try
     VarName := ListVariables.Text[ListVariables.FocusedNode, 0];

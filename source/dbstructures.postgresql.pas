@@ -609,6 +609,18 @@ begin
     qForeignKeyEventAction: Result := 'RESTRICT,CASCADE,SET NULL,NO ACTION,SET DEFAULT';
     qSessionVariables: Result := 'SHOW ALL';
     qGlobalVariables: Result := 'SHOW ALL';
+    // Format args for setting variables: 0 = name, 1 = escaped name, 2 = value
+    qSetSessionVariable: Result := 'SET %0:s TO %2:s';
+    qSetGlobalVariable: Result := IfThen(
+      FServerVersion >= 90400,
+      'ALTER SYSTEM SET %0:s TO %2:s',
+      ''
+      );
+    qApplyGlobalVariables: Result := IfThen(
+      FServerVersion >= 90400,
+      'SELECT pg_reload_conf()',
+      ''
+      );
     // Columns: id, user, host, db, command, time, state, program, memory, progress, info
     qProcessList: Result := 'SELECT pid, usename, client_addr, datname, '+
       IfThen(FServerVersion >= 100000, 'backend_type', 'NULL AS backend_type')+

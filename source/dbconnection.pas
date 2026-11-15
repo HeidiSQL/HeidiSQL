@@ -7433,6 +7433,8 @@ end;
 
 function TDBConnection.Has(Item: TFeatureOrRequirement): Boolean;
 begin
+  if Item = frEditVariables then
+    Exit(Assigned(FSqlProvider) and (FSqlProvider.Has(qSetSessionVariable) or FSqlProvider.Has(qSetGlobalVariable)));
   case FParameters.NetTypeGroup of
     ngMySQL:
       case Item of
@@ -7442,7 +7444,6 @@ begin
         frIntegerDisplayWidth: Result := (FParameters.IsMySQL(True) and (ServerVersionInt < 80017)) or
           (not FParameters.IsMySQL(True));
         frColumnDefaultParentheses: Result := FParameters.IsMySQL(True) and (ServerVersionInt >= 80013);
-        frEditVariables: Result := ServerVersionInt >= 40003;
         frCreateView: Result := ServerVersionInt >= 50001;
         frCreateProcedure: Result := ServerVersionInt >= 50003;
         frCreateFunction: Result := ServerVersionInt >= 50003;
