@@ -1161,6 +1161,17 @@ begin
       'SHOW GLOBAL VARIABLES',
       ''
       );
+    // Format args for setting variables: 0 = name, 1 = escaped name, 2 = value
+    qSetSessionVariable: Result := IfThen(
+      (FNetType <> ntMySQL_ProxySQLAdmin) and (FServerVersion >= 40003),
+      'SET @@session.%0:s = %2:s',
+      ''
+      );
+    qSetGlobalVariable: Result := IfThen(
+      (FNetType <> ntMySQL_ProxySQLAdmin) and (FServerVersion >= 40003),
+      'SET @@global.%0:s = %2:s',
+      ''
+      );
     // Columns: id, user, host, db, command, time, state, program, memory, progress, info. %s = expression for program column
     qProcessList: Result := IfThen(
       (FNetType <> ntMySQL_ProxySQLAdmin) and (FServerVersion >= 50107),

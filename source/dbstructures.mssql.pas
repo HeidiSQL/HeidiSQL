@@ -480,8 +480,19 @@ begin
       '        @level1type  = N''TABLE'',  @level1name = :EscapedName,' + sLineBreak +
       '        @level2type  = N''COLUMN'', @level2name = :TargetColumn' + sLineBreak +
       'END';
-    qSessionVariables: Result := 'SELECT comment, value FROM master.dbo.syscurconfigs ORDER BY comment';
-    qGlobalVariables: Result := 'SELECT comment, value FROM master.dbo.syscurconfigs ORDER BY comment';
+    // Server configuration options, no session scope. Names are required for sp_configure.
+    qSessionVariables, qGlobalVariables: Result := IfThen(
+      FServerVersion >= 900,
+      'SELECT name, CAST(value_in_use AS BIGINT) AS value FROM sys.configurations ORDER BY name',
+      'SELECT comment, value FROM master.dbo.syscurconfigs ORDER BY comment'
+      );
+    // Format args for setting variables: 0 = name, 1 = escaped name, 2 = value
+    qSetGlobalVariable: Result := IfThen(
+      FServerVersion >= 900,
+      'EXEC sp_configure %1:s, %2:s',
+      ''
+      );
+    qApplyGlobalVariables: Result := 'RECONFIGURE';
     // Columns: id, user, host, db, command, time, state, program, memory, progress, info
     qProcessList: Result := 'SELECT p.spid, RTRIM(p.loginame) AS loginname, RTRIM(p.hostname) AS hostname,'+
       ' d.name, p.cmd, p.waittime, RTRIM(p.status) AS status, RTRIM(p.program_name) AS program_name,'+

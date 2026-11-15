@@ -88,16 +88,22 @@ end;
 
 
 procedure TfrmEditVariable.FormShow(Sender: TObject);
+var
+  Conn: TDBConnection;
 begin
   Width := AppSettings.ReadIntDpiAware(asEditVarWindowWidth, Self);
   Height := AppSettings.ReadIntDpiAware(asEditVarWindowHeight, Self);
 
+  Conn := MainForm.ActiveConnection;
   gbValue.Caption := FVarName;
+  btnHelp.Visible := Conn.Parameters.NetTypeGroup = ngMySQL;
 
-  // Scope availability is derived from the server's SHOW SESSION/GLOBAL VARIABLES
+  // Scope availability is derived from the server's session and global variables
   // results. Variables in neither list cannot exist, so leave both enabled then.
-  radioScopeSession.Enabled := FHasSessionValue or (not FHasGlobalValue);
-  radioScopeGlobal.Enabled := FHasGlobalValue or (not FHasSessionValue);
+  radioScopeSession.Enabled := Conn.SqlProvider.Has(qSetSessionVariable)
+    and (FHasSessionValue or (not FHasGlobalValue));
+  radioScopeGlobal.Enabled := Conn.SqlProvider.Has(qSetGlobalVariable)
+    and (FHasGlobalValue or (not FHasSessionValue));
   if radioScopeSession.Enabled then
     radioScopeSession.Checked := True
   else
@@ -171,17 +177,10 @@ end;
 }
 procedure TfrmEditVariable.btnOKClick(Sender: TObject);
 var
-  sql, val: String;
+  val: String;
   Conn: TDBConnection;
+  QueryId: TQueryId;
 begin
-  // Syntax taken from http://dev.mysql.com/doc/refman/4.1/en/using-system-variables.html
-  sql := 'SET @@';
-  if radioScopeGlobal.Checked then
-    sql := sql + 'global'
-  else
-    sql := sql + 'session';
-  sql := sql + '.' + FVarName + ' = ';
-
   Conn := MainForm.ActiveConnection;
 
   case FVarType of
@@ -197,12 +196,18 @@ begin
     end;
     vtBoolean: val := IntToStr(Integer(radioBooleanOn.Checked));
   end;
-  sql := sql + val;
+
+  if radioScopeGlobal.Checked then
+    QueryId := qSetGlobalVariable
+  else
+    QueryId := qSetSessionVariable;
 
   // Set the value and keep the form open in any error case, e.g. for read-only
   // variables or when the chosen scope is not supported by the variable
   try
-    Conn.Query(sql);
+    Conn.Query(Conn.SqlProvider.GetSql(QueryId, [FVarName, Conn.EscapeString(FVarName), val]));
+    if (QueryId = qSetGlobalVariable) and Conn.SqlProvider.Has(qApplyGlobalVariables) then
+      Conn.Query(Conn.SqlProvider.GetSql(qApplyGlobalVariables));
     Conn.ShowWarnings;
   except
     on E:EDbError do begin
