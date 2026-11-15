@@ -611,11 +611,6 @@ msgstr "name of variable"
 msgid "Number:"
 msgstr "Number:"
 
-#. frmEditVariable..gbValue..lblEnum..Caption
-#: editvar.dfm:103
-msgid "Enumeration:"
-msgstr "Enumeration:"
-
 #. editvar.dfm
 msgid "Boolean:"
 msgstr "Boolean:"
@@ -4261,14 +4256,6 @@ msgstr "Unknown, should never appear"
 #: dbconnection.pas:5316
 msgid "Unsupported type (%d) in %s."
 msgstr "Unsupported type (%d) in %s."
-
-#. editvar.pas
-msgid "\"%s\" is a read only variable, not editable"
-msgstr "\"%s\" is a read only variable, not editable"
-
-#: editvar.pas:90
-msgid "Could not find %s variable in internal mapping."
-msgstr "Could not find %s variable in internal mapping."
 
 #: exportgrid.pas:73
 msgid "Excel CSV"

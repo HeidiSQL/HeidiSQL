@@ -9626,31 +9626,17 @@ procedure TMainForm.ListVariablesPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
 var
-  Idx: PInt64;
-  i, tmp: Integer;
-  VarName, SessionVal, GlobalVal: String;
+  SessionVal, GlobalVal: String;
   dcat: TDBDatatypeCategoryIndex;
   vt: TLazVirtualStringTree;
 begin
   vt := Sender as TLazVirtualStringTree;
-  Idx := Sender.GetNodeData(Node);
-  VarName := FVariableNames[Idx^];
-  tmp := -1;
-  for i:=Low(MySQLVariables) to High(MySQLVariables) do begin
-    if MySQLVariables[i].Name = VarName then begin
-      tmp := i;
-      break;
-    end;
-  end;
-  if (tmp=-1) or (not MySQLVariables[tmp].IsDynamic) then begin
-    // Gray out whole row if the variable is either unknown or not editable
-    TargetCanvas.Font.Color := GetThemeColor(clGrayText)
-  end else if Column in [1, 2] then begin
+  if Column in [1, 2] then begin
     SessionVal := vt.Text[Node, 1];
     GlobalVal := vt.Text[Node, 2];
     if IsInt(SessionVal) or IsInt(GlobalVal) then
       dcat := dtcInteger
-    else if (tmp > -1) and ((MySQLVariables[tmp].EnumValues <> '') or (Pos(UpperCase(SessionVal), 'ON,OFF,0,1,YES,NO')>0)) then
+    else if MatchText(SessionVal, ['ON', 'OFF', 'YES', 'NO', 'TRUE', 'FALSE']) then
       dcat := dtcOther
     else
       dcat := dtcText;
@@ -9827,23 +9813,27 @@ end;
 procedure TMainForm.menuEditVariableClick(Sender: TObject);
 var
   Dialog: TfrmEditVariable;
-  VarValue: String;
+  VarName, VarValue: String;
 begin
   Dialog := TfrmEditVariable.Create(Self);
   try
-    try
-      Dialog.VarName := ListVariables.Text[ListVariables.FocusedNode, 0];
-      VarValue := ListVariables.Text[ListVariables.FocusedNode, 1];
+    VarName := ListVariables.Text[ListVariables.FocusedNode, 0];
+    Dialog.VarName := VarName;
+    if FSessionVars.IndexOfName(VarName) > -1 then begin
+      VarValue := FSessionVars.Values[VarName];
       if VarValue = TEXT_NULL then
         VarValue := '';
-      Dialog.VarValue := VarValue;
-      // Refresh list node
-      if Dialog.ShowModal = mrOK then
-        InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
-    except
-      on E:EVariableError do
-        ErrorDialog(E.Message);
+      Dialog.SetSessionValue(VarValue);
     end;
+    if FGlobalVars.IndexOfName(VarName) > -1 then begin
+      VarValue := FGlobalVars.Values[VarName];
+      if VarValue = TEXT_NULL then
+        VarValue := '';
+      Dialog.SetGlobalValue(VarValue);
+    end;
+    // Refresh list node
+    if Dialog.ShowModal = mrOK then
+      InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
   finally
     Dialog.Free;
   end;

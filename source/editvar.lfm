@@ -7,7 +7,7 @@ object frmEditVariable: TfrmEditVariable
   ClientHeight = 222
   ClientWidth = 291
   Color = clBtnFace
-  Constraints.MinHeight = 216
+  Constraints.MinHeight = 188
   Constraints.MinWidth = 288
   Position = poMainFormCenter
   LCLVersion = '4.8.0.0'
@@ -58,14 +58,14 @@ object frmEditVariable: TfrmEditVariable
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = btnOK
     Left = 5
-    Height = 44
-    Top = 143
+    Height = 72
+    Top = 115
     Width = 281
     Align = alTop
     Anchors = [akTop, akLeft, akRight, akBottom]
     BorderSpacing.Around = 5
     Caption = 'Scope'
-    ClientHeight = 24
+    ClientHeight = 52
     ClientWidth = 277
     ParentBackground = False
     TabOrder = 2
@@ -79,6 +79,7 @@ object frmEditVariable: TfrmEditVariable
       BorderSpacing.Around = 5
       Caption = 'This session'
       TabOrder = 0
+      OnChange = radioScopeChange
     end
     object radioScopeGlobal: TRadioButton
       AnchorSideLeft.Control = radioScopeSession
@@ -91,6 +92,7 @@ object frmEditVariable: TfrmEditVariable
       BorderSpacing.Around = 5
       Caption = 'Global'
       TabOrder = 1
+      OnChange = radioScopeChange
     end
   end
   object gbValue: TGroupBox
@@ -99,14 +101,14 @@ object frmEditVariable: TfrmEditVariable
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     Left = 5
-    Height = 133
+    Height = 105
     Top = 5
     Width = 281
     Align = alTop
     AutoSize = True
     BorderSpacing.Around = 5
     Caption = 'name of variable'
-    ClientHeight = 113
+    ClientHeight = 85
     ClientWidth = 277
     ParentBackground = False
     TabOrder = 3
@@ -131,35 +133,24 @@ object frmEditVariable: TfrmEditVariable
       BorderSpacing.Around = 5
       Caption = 'Number:'
     end
-    object lblEnum: TLabel
+    object lblBoolean: TLabel
       AnchorSideLeft.Control = gbValue
       AnchorSideTop.Control = spinNumber
       AnchorSideTop.Side = asrBottom
       Left = 5
       Height = 15
       Top = 61
-      Width = 71
-      BorderSpacing.Around = 5
-      Caption = 'Enumeration:'
-    end
-    object lblBoolean: TLabel
-      AnchorSideLeft.Control = gbValue
-      AnchorSideTop.Control = comboEnum
-      AnchorSideTop.Side = asrBottom
-      Left = 5
-      Height = 15
-      Top = 89
       Width = 46
       BorderSpacing.Around = 5
       Caption = 'Boolean:'
     end
     object radioBooleanOn: TRadioButton
-      AnchorSideLeft.Control = comboEnum
-      AnchorSideTop.Control = comboEnum
+      AnchorSideLeft.Control = spinNumber
+      AnchorSideTop.Control = spinNumber
       AnchorSideTop.Side = asrBottom
       Left = 90
       Height = 19
-      Top = 89
+      Top = 61
       Width = 34
       BorderSpacing.Around = 5
       Caption = 'On'
@@ -168,7 +159,7 @@ object frmEditVariable: TfrmEditVariable
     object radioBooleanOff: TRadioButton
       AnchorSideLeft.Control = radioBooleanOn
       AnchorSideLeft.Side = asrBottom
-      AnchorSideTop.Control = comboEnum
+      AnchorSideTop.Control = spinNumber
       AnchorSideTop.Side = asrBottom
       Left = 129
       Height = 19
@@ -177,21 +168,6 @@ object frmEditVariable: TfrmEditVariable
       BorderSpacing.Around = 5
       Caption = 'Off'
       TabOrder = 1
-    end
-    object comboEnum: TComboBox
-      AnchorSideTop.Control = spinNumber
-      AnchorSideTop.Side = asrBottom
-      AnchorSideRight.Control = gbValue
-      AnchorSideRight.Side = asrBottom
-      Left = 85
-      Height = 23
-      Top = 61
-      Width = 187
-      Anchors = [akTop, akLeft, akRight]
-      BorderSpacing.Around = 5
-      ItemHeight = 15
-      Style = csDropDownList
-      TabOrder = 2
     end
     object spinNumber: TSpinEditEx
       AnchorSideTop.Control = editString
@@ -207,6 +183,7 @@ object frmEditVariable: TfrmEditVariable
       MaxLength = 0
       SpinButtonWidth = 17
       TabOrder = 3
+      OnKeyDown = spinNumberKeyDown
       NullValue = 0
       Value = 0
     end
