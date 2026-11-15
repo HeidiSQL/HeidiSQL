@@ -7,11 +7,12 @@
  *   php generate-functions.php <target> [--option=value ...]
  *
  * Targets and their sources:
- *   mysql       Help tables of a running MySQL server:
- *               --port=3309 [--host=127.0.0.1] [--user=root] [--pass=] --out=functions-mysql9.ini
- *               One file per major (or major.minor) version, as help tables contain no version info.
- *               HeidiSQL tries functions-mysql<major.minor>.ini, then <major>, lower majors, and finally
- *               functions-mysql.ini. Current set: mysql (5.7), mysql8.0 (8.0), mysql8 (8.3), mysql9 (9.6).
+ *   mysql       Help tables of several running MySQL servers, merged into one file:
+ *               --servers=3300,3334:password,3333,3308,3309 [--host=127.0.0.1] [--user=root] [--pass=]
+ *               Help tables contain no version info, so "since" and "until" (first version without a removed
+ *               function) are derived from the server versions where a function appears. They are only as
+ *               exact as the gaps between these versions. Current set: 5.5, 5.7, 8.0, 8.3, 9.6.
+ *               A single server via --port=... is possible as well.
  *   mariadb     Help tables of a running MariaDB server (newest version), same options, default output
  *               functions-mariadb.ini. "since" is taken from "added in MariaDB x.y" notes.
  *   postgresql  Online documentation of all versions given in --versions (default 13-18). "since" is the
@@ -31,12 +32,13 @@
  *
  * Entries from supplements/<output file name> are merged into the result, replacing generated entries with the
  * same name and declaration. Use these for functions missing in the sources. Keys: name, declaration,
- * category, since, description. Without a declaration key, the values apply to all entries of that name.
+ * category, since, until, description. Without a declaration key, the values apply to all entries of that name.
  * A value "none" clears the generated value, e.g. a wrong "since". An entry
  * with "remove=1" removes all generated entries of that name.
  *
  * Output: UTF-8 without BOM, CRLF, typographic characters replaced by ASCII. "description" contains "\n"
- * for line breaks, which HeidiSQL converts. Entries with "since" newer than the server are hidden by HeidiSQL.
+ * for line breaks, which HeidiSQL converts. HeidiSQL hides entries with "since" newer than the server, and
+ * entries with "until" lower or equal to the server version.
  */
 
 declare(strict_types=1);
@@ -55,7 +57,7 @@ if (!is_dir($cacheDir)) {
 
 switch ($target) {
     case 'mysql':
-        $entries = genMysql($opt, false);
+        $entries = isset($opt['servers']) ? genMysqlMulti($opt) : genMysql($opt, false);
         break;
     case 'mariadb':
         $entries = genMysql($opt, true);
@@ -111,6 +113,7 @@ function entry(string $name, string $declaration, string $category, string $desc
         'category' => trim($category),
         'description' => $description,
         'since' => $since,
+        'until' => '',
     ];
 }
 
@@ -250,6 +253,7 @@ function mergeSupplements(array $entries, string $file): array
         }
         $sup = entry($name, $values['declaration'] ?? '', $values['category'] ?? '', '', $values['since'] ?? '');
         $sup['description'] = str_replace('\n', "\n", $values['description'] ?? '');
+        $sup['until'] = $values['until'] ?? '';
         // Without declaration key: update all entries of that name
         $allOfName = !isset($values['declaration']);
         if ($allOfName) {
@@ -307,6 +311,9 @@ function buildIni(array $entries): string
         if ($e['since'] !== '') {
             $block .= 'since=' . $e['since'] . NL;
         }
+        if ($e['until'] !== '') {
+            $block .= 'until=' . $e['until'] . NL;
+        }
         $block .= 'description=' . $descr . NL;
         $out[] = $block;
     }
@@ -341,7 +348,72 @@ function compareVersions(string $a, string $b): int
 // MySQL / MariaDB: help tables
 // ---------------------------------------------------------------------------------------------------
 
-function genMysql(array $opt, bool $isMariaDB): array
+/**
+ * MySQL: merge help tables of several servers, given in ascending version order:
+ * --servers=3300,3334:password,3333,3308,3309 (port[:password]). Descriptions are taken from the newest server
+ * having a function. "since" and "until" are derived from the first and last server version having it.
+ */
+function genMysqlMulti(array $opt): array
+{
+    $servers = [];
+    foreach (explode(',', $opt['servers']) as $server) {
+        [$port, $pass] = array_pad(explode(':', $server, 2), 2, $opt['pass'] ?? '');
+        $version = '';
+        $entries = genMysql(['port' => $port, 'pass' => $pass] + $opt, false, $version);
+        $version = preg_replace('#^(\d+\.\d+\.\d+).*$#', '$1', $version);
+        $byName = [];
+        foreach ($entries as $e) {
+            $byName[strtoupper($e['name'])][] = $e;
+        }
+        $servers[] = ['version' => $version, 'entries' => $byName];
+    }
+    usort($servers, fn($a, $b) => compareVersions($a['version'], $b['version']));
+    $last = count($servers) - 1;
+
+    $names = [];
+    foreach ($servers as $s) {
+        $names += array_flip(array_keys($s['entries']));
+    }
+    $result = [];
+    foreach (array_keys($names) as $name) {
+        $seen = [];
+        foreach ($servers as $i => $s) {
+            if (isset($s['entries'][$name])) {
+                $seen[] = $i;
+            }
+        }
+        $first = $seen[0];
+        $newest = end($seen);
+        $since = $first === 0 ? '' : versionBoundary($servers[$first - 1]['version'], $servers[$first]['version'], true);
+        // Removed: missing in all versions after the last one having it. Gaps in between are ignored, as they are
+        // mostly parsing issues of single help tables.
+        $until = $newest === $last ? '' : versionBoundary($servers[$newest]['version'], $servers[$newest + 1]['version'], false);
+        foreach ($servers[$newest]['entries'][$name] as $e) {
+            $e['since'] = $since;
+            $e['until'] = $until;
+            $result[] = $e;
+        }
+    }
+    return $result;
+}
+
+/**
+ * Version where a change between two known server versions is assumed. Inclusive, so a function is rather shown
+ * on a server not having it than hidden on a server having it:
+ * Added between 5.7.9 and 8.0.26 => 8.0, between 8.0.26 and 8.3.0 => 8.0.27.
+ * Removed between 5.7.9 and 8.0.26 => 8.0, between 8.0.26 and 8.3.0 => 8.3.0.
+ */
+function versionBoundary(string $before, string $after, bool $added): string
+{
+    $b = array_map('intval', explode('.', $before));
+    $a = array_map('intval', explode('.', $after));
+    if ($b[0] !== $a[0]) {
+        return $a[0] . '.' . ($a[1] ?? 0);
+    }
+    return $added ? $b[0] . '.' . ($b[1] ?? 0) . '.' . (($b[2] ?? 0) + 1) : $after;
+}
+
+function genMysql(array $opt, bool $isMariaDB, string &$version = ''): array
 {
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     $db = mysqli_connect($opt['host'] ?? '127.0.0.1', $opt['user'] ?? 'root', $opt['pass'] ?? '', null, (int)($opt['port'] ?? 3306));

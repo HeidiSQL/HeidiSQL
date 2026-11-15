@@ -12302,7 +12302,7 @@ var
   Sections: TStringList;
   IniFilePath, Section: String;
   SQLFunc: TSQLFunction;
-  ServerVersion, SinceVersion: Int64;
+  ServerVersion, SinceVersion, UntilVersion: Int64;
 
   function VersionToNumber(Version: String): Int64;
   var
@@ -12331,7 +12331,8 @@ begin
   FNames.Duplicates := dupIgnore;
   FNames.Sorted := True;
 
-  // Functions with a "since" version newer than the server are skipped. Interbase reports no version (0),
+  // Functions with a "since" version newer than the server are skipped, as well as functions removed in the
+  // server version or earlier ("until" = first version without it). Interbase reports no version (0),
   // then nothing is skipped. Same for Azure SQL, which reports an old version but has the newest functions.
   if (AOwner.ServerVersionInt > 0) and (not AOwner.Parameters.IsAzure) then
     ServerVersion := VersionToNumber(AOwner.ServerVersionStr)
@@ -12349,7 +12350,10 @@ begin
       Ini.ReadSections(Sections);
       for Section in Sections do begin
         SinceVersion := VersionToNumber(Ini.ReadString(Section, 'Since', ''));
+        UntilVersion := VersionToNumber(Ini.ReadString(Section, 'Until', ''));
         if (ServerVersion > 0) and (SinceVersion > ServerVersion) then
+          Continue;
+        if (ServerVersion > 0) and (UntilVersion > 0) and (UntilVersion <= ServerVersion) then
           Continue;
         SQLFunc := TSQLFunction.Create;
         SQLFunc.Name := Ini.ReadString(Section, 'Name', Section);
