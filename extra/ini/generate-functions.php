@@ -17,6 +17,9 @@
  *               git clone --depth 1 --filter=blob:none --sparse https://github.com/mariadb-corporation/mariadb-docs
  *               git -C mariadb-docs sparse-checkout set server/reference/sql-functions
  *                 server/reference/sql-statements/geometry-constructors
+ *                 server/reference/sql-structure/operators/comparison-operators
+ *                 server/reference/sql-structure/sequences/sequence-functions
+ *                 server/server-usage/storage-engines/spider/spider-functions
  *               Alternatively the help tables of a running server via --port etc., where "since" is taken from
  *               "added in MariaDB x.y" notes. The help tables lag behind the documentation.
  *   For mysql and mariadb, exact "since" and "until" versions are then taken from the function registry in the
@@ -813,9 +816,10 @@ function applyRegistryVersions(array $entries, bool $isMariaDB): array
         }
         $since = $first[$u] === 0 ? '' : $versions[$first[$u]];
         // A keyword can be older than the function, e.g. TO_NUMBER in Oracle mode. Keep a later version from the
-        // documentation then.
+        // MariaDB documentation then. For MySQL, an existing "since" is derived from help tables only, which is
+        // less reliable than the registry.
         $firstIsKeyword = $sets[$first[$u]][$u] === 'kw';
-        if (!$firstIsKeyword || $e['since'] === '' || compareVersions($e['since'], $since) < 0) {
+        if (!$isMariaDB || !$firstIsKeyword || $e['since'] === '' || compareVersions($e['since'], $since) < 0) {
             $e['since'] = $since;
         }
         if ($lastSeen[$u] < $last) {
