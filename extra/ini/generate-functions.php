@@ -15,6 +15,9 @@
  *               A single server via --port=... is possible as well.
  *   mariadb     Help tables of a running MariaDB server (newest version), same options, default output
  *               functions-mariadb.ini. "since" is taken from "added in MariaDB x.y" notes.
+ *   For mysql and mariadb, exact "since" and "until" versions are then taken from the function registry in the
+ *   server sources on GitHub (sql/item_create.cc, sql/lex.h etc.) of all release tags, where it knows a
+ *   function. Disable with --no-registry=1.
  *   postgresql  Online documentation of all versions given in --versions (default 13-18). "since" is the
  *               first of these versions mentioning a function.
  *   sqlite      Online documentation. "since" is taken from the release history.
@@ -58,9 +61,15 @@ if (!is_dir($cacheDir)) {
 switch ($target) {
     case 'mysql':
         $entries = isset($opt['servers']) ? genMysqlMulti($opt) : genMysql($opt, false);
+        if (empty($opt['no-registry'])) {
+            $entries = applyRegistryVersions($entries, false);
+        }
         break;
     case 'mariadb':
         $entries = genMysql($opt, true);
+        if (empty($opt['no-registry'])) {
+            $entries = applyRegistryVersions($entries, true);
+        }
         break;
     case 'postgresql':
         $entries = genPostgresql($opt);
@@ -127,7 +136,7 @@ function normalizeDeclaration(string $decl): string
 }
 
 /** Download a URL, cached. Returns null on HTTP errors like 404 */
-function download(string $url): ?string
+function download(string $url, bool $quiet = false): ?string
 {
     global $cacheDir;
     $file = $cacheDir . DIRECTORY_SEPARATOR . preg_replace('#[^\w.-]+#', '_', preg_replace('#^https?://#', '', $url));
@@ -140,7 +149,9 @@ function download(string $url): ?string
     $headers = http_get_last_response_headers() ?? [];
     $status = $headers[0] ?? '';
     if ($data === false || !preg_match('#\s200\b#', $status)) {
-        fwrite(STDERR, "Not found: $url ($status)\n");
+        if (!$quiet) {
+            fwrite(STDERR, "Not found: $url ($status)\n");
+        }
         file_put_contents($file, '');
         return null;
     }
@@ -490,6 +501,177 @@ function genMysql(array $opt, bool $isMariaDB, string &$version = ''): array
         $category = mysqlCategory($name, $row->category);
         foreach ($declarations as $decl) {
             $entries[] = entry(strtoupper($name), $decl, $category, $description, $since);
+        }
+    }
+    return $entries;
+}
+
+// ---------------------------------------------------------------------------------------------------
+// MySQL / MariaDB: version history of the native function registry in the server sources
+// ---------------------------------------------------------------------------------------------------
+
+/**
+ * Sources declaring function names, per repository. Missing files in older tags are skipped.
+ */
+function registrySources(bool $isMariaDB): array
+{
+    return $isMariaDB
+        ? ['repo' => 'MariaDB/server', 'prefix' => 'mariadb-', 'min' => '10.0.10',
+            'files' => ['sql/item_create.cc', 'sql/item_geofunc.cc', 'sql/lex.h', 'sql/sql_type_geom.cc',
+                'plugin/type_inet/plugin.cc', 'plugin/type_uuid/plugin.cc']]
+        : ['repo' => 'mysql/mysql-server', 'prefix' => 'mysql-', 'min' => '5.5.8',
+            'files' => ['sql/item_create.cc', 'sql/lex.h']];
+}
+
+/**
+ * Function names declared in one source file.
+ * @return array name => "fn" for registered functions, "kw" for plain keywords
+ */
+function registryNamesFromSource(string $src): array
+{
+    $result = [];
+    // lex.h: all keywords, as grammar defined functions like COALESCE, IF or REPLACE are plain keywords. Only
+    // names of functions from the help are looked up, so other keywords don't matter. Keywords are not used
+    // to detect removed functions, as for example PASSWORD stays a keyword after PASSWORD() was removed.
+    // MySQL 8+: {SYM("COALESCE", COALESCE)}, MariaDB and MySQL 5.x: { "COALESCE", SYM(COALESCE)},
+    preg_match_all('#\bSYM(?:_HK|_H)?\("([A-Z][A-Z0-9_]*)"#', $src, $m);
+    foreach ($m[1] as $name) {
+        $result[$name] = 'kw';
+    }
+    preg_match_all('#\{\s*"([A-Z][A-Z0-9_]*)"\s*,\s*SYM#', $src, $m);
+    foreach ($m[1] as $name) {
+        $result[$name] = 'kw';
+    }
+    // lex.h, functions: MySQL 8+ {SYM_FN("ADDDATE", ADDDATE_SYM)}, MariaDB and MySQL 5.x: sql_functions[] array
+    $names = [];
+    preg_match_all('#SYM_FN\("([A-Z][A-Z0-9_]*)"#', $src, $m);
+    array_push($names, ...$m[1]);
+    if (preg_match('#sql_functions\[\]\s*=\s*\{(.*?)\n\};#s', $src, $mb)) {
+        preg_match_all('#\{\s*"([A-Z][A-Z0-9_]*)"\s*,#', $mb[1], $m);
+        array_push($names, ...$m[1]);
+    }
+    // MariaDB and MySQL 5.x: { { STRING_WITH_LEN("ABS") }, BUILDER(Create_func_abs)},
+    preg_match_all('#\{\s*\{\s*(?:C_)?STRING_WITH_LEN\("([A-Z][A-Z0-9_]*)"\)\s*\}\s*,\s*(?:GEOM_)?BUILDER#', $src, $m);
+    array_push($names, ...$m[1]);
+    // MySQL 8+: {"ABS", SQL_FN(Item_func_abs, 1)},
+    preg_match_all('#\{"([A-Z][A-Z0-9_]*)",\s*SQL_#', $src, $m);
+    array_push($names, ...$m[1]);
+    // MariaDB 10.5+, geometry constructors POINT() etc.: Named_type_handler<Type_handler_point> type_handler_point("point");
+    preg_match_all('#Named_type_handler<\w+>\s+\w+\("([a-z][a-z0-9_]*)"\)#', $src, $m);
+    array_push($names, ...array_map('strtoupper', $m[1]));
+    // Function plugins: "Function INET6_ATON()",
+    preg_match_all('#"Function ([A-Z][A-Z0-9_]*)\(\)"#', $src, $m);
+    array_push($names, ...$m[1]);
+    foreach ($names as $name) {
+        $result[$name] = 'fn';
+    }
+    return $result;
+}
+
+/** Release tags of a repository, sorted by version */
+function githubReleaseTags(string $repo, string $prefix, string $minVersion): array
+{
+    $json = download("https://api.github.com/repos/$repo/git/matching-refs/tags/$prefix")
+        ?? throw new RuntimeException("Could not read tags of $repo");
+    $versions = [];
+    foreach (json_decode($json, true) as $ref) {
+        if (preg_match('#^refs/tags/' . preg_quote($prefix, '#') . '(\d+\.\d+\.\d+)$#', $ref['ref'], $m)
+            && compareVersions($m[1], $minVersion) >= 0) {
+            $versions[] = $m[1];
+        }
+    }
+    usort($versions, 'compareVersions');
+    return $versions;
+}
+
+/**
+ * Names in the function registry for each release tag. Only the first and last tag of each major.minor series
+ * are read, plus tags found by bisecting where these differ. Tags in between equal neighbours inherit their set.
+ * @return array [versions, sets]: sets[i] = name => true
+ */
+function registryHistory(bool $isMariaDB): array
+{
+    $cfg = registrySources($isMariaDB);
+    $versions = githubReleaseTags($cfg['repo'], $cfg['prefix'], $cfg['min']);
+    $sets = [];
+    $fetch = function (int $i) use (&$sets, $versions, $cfg) {
+        if (!isset($sets[$i])) {
+            $names = [];
+            foreach ($cfg['files'] as $file) {
+                $src = download("https://raw.githubusercontent.com/{$cfg['repo']}/{$cfg['prefix']}{$versions[$i]}/$file", true);
+                if ($src !== null) {
+                    foreach (registryNamesFromSource($src) as $name => $kind) {
+                        if (($names[$name] ?? '') !== 'fn') {
+                            $names[$name] = $kind;
+                        }
+                    }
+                }
+            }
+            ksort($names);
+            $sets[$i] = $names;
+        }
+        return $sets[$i];
+    };
+    $refine = function (int $a, int $b) use (&$refine, &$sets, $fetch) {
+        $fetch($a);
+        if ($b - $a < 1) {
+            return;
+        }
+        if ($fetch($a) == $fetch($b)) {
+            for ($i = $a + 1; $i < $b; $i++) {
+                $sets[$i] ??= $sets[$a];
+            }
+            return;
+        }
+        if ($b - $a === 1) {
+            return;
+        }
+        $m = intdiv($a + $b, 2);
+        $refine($a, $m);
+        $refine($m, $b);
+    };
+    // Series boundaries
+    $series = [];
+    foreach ($versions as $i => $v) {
+        $series[preg_replace('#\.\d+$#', '', $v)][] = $i;
+    }
+    foreach ($series as $indexes) {
+        $refine(reset($indexes), end($indexes));
+    }
+    ksort($sets);
+    echo 'Read function registry of ' . count(array_unique(array_map('serialize', $sets))) . ' distinct states in '
+        . count($versions) . " release tags\n";
+    return [$versions, $sets];
+}
+
+/**
+ * Overwrite "since" with the first release where the server sources know a name (function or keyword).
+ * "until": first release after the last one knowing the name at all, if it is missing in the newest release.
+ * If the newest release registers it as function, "until" is cleared. If the newest release only has it as
+ * keyword (PASSWORD after PASSWORD() was removed, or ROW_NUMBER moved between arrays), the existing value is kept.
+ */
+function applyRegistryVersions(array $entries, bool $isMariaDB): array
+{
+    [$versions, $sets] = registryHistory($isMariaDB);
+    $last = count($versions) - 1;
+    $first = [];
+    $lastSeen = [];
+    foreach ($sets as $i => $set) {
+        foreach ($set as $name => $kind) {
+            $first[$name] ??= $i;
+            $lastSeen[$name] = $i;
+        }
+    }
+    foreach ($entries as &$e) {
+        $u = strtoupper($e['name']);
+        if (!isset($first[$u])) {
+            continue;
+        }
+        $e['since'] = $first[$u] === 0 ? '' : $versions[$first[$u]];
+        if ($lastSeen[$u] < $last) {
+            $e['until'] = $versions[$lastSeen[$u] + 1];
+        } elseif ($sets[$last][$u] === 'fn') {
+            $e['until'] = '';
         }
     }
     return $entries;
