@@ -298,7 +298,7 @@ type
       FCategories: TStringList;
       FNames: TStringList;
     public
-      constructor Create(AOwner: TDBConnection; SQLFunctionsFileOrder: String);
+      constructor Create(AOwner: TDBConnection; SQLFunctionsFile: String);
       property Categories: TStringList read FCategories;
       property Names: TStringList read FNames;
   end;
@@ -3479,8 +3479,7 @@ var
   TypeOid: String;
   AllEnums: TDBQuery;
   AllEnumsList: TStringList;
-  SQLFunctionsFileOrder: String;
-  MajorMinorVer, MajorVer: String;
+  SQLFunctionsFile: String;
   StartupScript: String;
   StartupBatch: TSQLBatch;
   SqlQuery: TSQLSentence;
@@ -3540,26 +3539,26 @@ begin
     FKeepAliveTimer.OnTimer := KeepAliveTimerEvent;
   end;
 
-  MajorMinorVer := RegExprGetMatch('^(\d+\.\d+)', ServerVersionStr, 1);
-  MajorVer := RegExprGetMatch('^(\d+)\.', ServerVersionStr, 1);
-
+  // One function list per server type, version specific functions are filtered by their since/until keys
   if FParameters.IsMariaDB then
-    SQLFunctionsFileOrder := 'mariadb'+MajorMinorVer+',mariadb'+MajorVer+',mariadb,mysql'
+    SQLFunctionsFile := 'mariadb'
   else if FParameters.IsAnyMySQL then
-    SQLFunctionsFileOrder := 'mysql'+MajorMinorVer+',mysql'+MajorVer+',mysql'
+    SQLFunctionsFile := 'mysql'
   else if FParameters.IsRedshift then
-    SQLFunctionsFileOrder := 'redshift'+MajorMinorVer+',redshift'+MajorVer+',redshift,postgresql'
+    SQLFunctionsFile := 'redshift'
   else if FParameters.IsAnyPostgreSQL then
-    SQLFunctionsFileOrder := 'postgresql'+MajorMinorVer+',postgresql'+MajorVer+',postgresql'
+    SQLFunctionsFile := 'postgresql'
   else if FParameters.IsAnyMSSQL then
-    SQLFunctionsFileOrder := 'mssql'+MajorMinorVer+',mssql'+MajorVer+',mssql'
+    SQLFunctionsFile := 'mssql'
   else if FParameters.IsAnySQLite then
-    SQLFunctionsFileOrder := 'sqlite'+MajorMinorVer+',sqlite'+MajorVer+',sqlite'
+    SQLFunctionsFile := 'sqlite'
+  else if FParameters.IsFirebird then
+    SQLFunctionsFile := 'firebird'
   else if FParameters.IsAnyInterbase then
-    SQLFunctionsFileOrder := 'interbase'+MajorMinorVer+',interbase'+MajorVer+',interbase'
+    SQLFunctionsFile := 'interbase'
   else
-    SQLFunctionsFileOrder := '';
-  FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFileOrder);
+    SQLFunctionsFile := '';
+  FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFile);
 
   // Set timezone offset to UTC
   if FSqlProvider.Has(qSetTimezone) and Parameters.LocalTimeZone then begin
@@ -12339,14 +12338,30 @@ end;
 
 { TSQLFunctionList }
 
-constructor TSQLFunctionList.Create(AOwner: TDBConnection; SQLFunctionsFileOrder: String);
+constructor TSQLFunctionList.Create(AOwner: TDBConnection; SQLFunctionsFile: String);
 var
-  TryFiles: TStringList;
-  TryFile: String;
   Ini: TMemIniFile;
   Sections: TStringList;
   IniFilePath, Section: String;
   SQLFunc: TSQLFunction;
+  ServerVersion, SinceVersion, UntilVersion: Int64;
+
+  function VersionToNumber(Version: String): Int64;
+  var
+    rx: TRegExpr;
+  begin
+    // "16", "3.44" or "18.1.2" => comparable number
+    Result := 0;
+    rx := TRegExpr.Create;
+    rx.Expression := '^(\d+)(\.(\d+))?(\.(\d+))?';
+    if rx.Exec(Version) then begin
+      Result := StrToInt64Def(rx.Match[1], 0) * 1000000 +
+        StrToInt64Def(rx.Match[3], 0) * 1000 +
+        StrToInt64Def(rx.Match[5], 0);
+    end;
+    rx.Free;
+  end;
+
 begin
   inherited Create(True);
   FOwner := AOwner;
@@ -12358,30 +12373,45 @@ begin
   FNames.Duplicates := dupIgnore;
   FNames.Sorted := True;
 
-  TryFiles := Explode(',', SQLFunctionsFileOrder);
-  for TryFile in TryFiles do begin
-    IniFilePath := GetAppDir + 'functions-'+TryFile+'.ini';
-    FOwner.Log(lcDebug, 'Trying '+IniFilePath);
-    if FileExists(IniFilePath) then begin
-      FOwner.Log(lcInfo, 'Reading function definitions from '+IniFilePath);
-      Ini := TMemIniFile.Create(IniFilePath);
-      Sections := TStringList.Create;
-      Ini.ReadSections(Sections);
-      for Section in Sections do begin
-        SQLFunc := TSQLFunction.Create;
-        SQLFunc.Name := Ini.ReadString(Section, 'Name', Section);
-        SQLFunc.Declaration := '(' + Ini.ReadString(Section, 'Declaration', '') + ')';
-        SQLFunc.Category := Ini.ReadString(Section, 'Category', '');
-        SQLFunc.Description := Ini.ReadString(Section, 'Description', '');
-        SQLFunc.Description := StringReplace(SQLFunc.Description, '\n', sLineBreak, [rfReplaceAll]);
-        Add(SQLFunc);
-        FCategories.Add(SQLFunc.Category);
-        FNames.Add(SQLFunc.Name);
-      end;
-      Ini.Free;
-      Break;
-    end;
+  // Functions with a "since" version newer than the server are skipped, as well as functions removed in the
+  // server version or earlier ("until" = first version without it). Interbase reports no version (0),
+  // then nothing is skipped. Same for Azure SQL, which reports an old version but has the newest functions.
+  if (AOwner.ServerVersionInt > 0) and (not AOwner.Parameters.IsAzure) then
+    ServerVersion := VersionToNumber(AOwner.ServerVersionStr)
+  else
+    ServerVersion := 0;
+
+  if SQLFunctionsFile.IsEmpty then
+    Exit;
+  IniFilePath := GetAppDir + 'functions-'+SQLFunctionsFile+'.ini';
+  if not FileExists(IniFilePath) then begin
+    FOwner.Log(lcDebug, 'Function definitions not found: '+IniFilePath);
+    Exit;
   end;
+  FOwner.Log(lcInfo, 'Reading function definitions from '+IniFilePath);
+  // Files are UTF-8 without BOM
+  Ini := TMemIniFile.Create(IniFilePath, TEncoding.UTF8);
+  Sections := TStringList.Create;
+  Ini.ReadSections(Sections);
+  for Section in Sections do begin
+    SinceVersion := VersionToNumber(Ini.ReadString(Section, 'Since', ''));
+    UntilVersion := VersionToNumber(Ini.ReadString(Section, 'Until', ''));
+    if (ServerVersion > 0) and (SinceVersion > ServerVersion) then
+      Continue;
+    if (ServerVersion > 0) and (UntilVersion > 0) and (UntilVersion <= ServerVersion) then
+      Continue;
+    SQLFunc := TSQLFunction.Create;
+    SQLFunc.Name := Ini.ReadString(Section, 'Name', Section);
+    SQLFunc.Declaration := '(' + Ini.ReadString(Section, 'Declaration', '') + ')';
+    SQLFunc.Category := Ini.ReadString(Section, 'Category', '');
+    SQLFunc.Description := Ini.ReadString(Section, 'Description', '');
+    SQLFunc.Description := StringReplace(SQLFunc.Description, '\n', sLineBreak, [rfReplaceAll]);
+    Add(SQLFunc);
+    FCategories.Add(SQLFunc.Category);
+    FNames.Add(SQLFunc.Name);
+  end;
+  Ini.Free;
+  Sections.Free;
 end;
 
 
