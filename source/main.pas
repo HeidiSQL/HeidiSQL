@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, ActnList,
   ComCtrls, ExtCtrls, LCLProc, DateUtils, SynEdit, SynEditHighlighter,
-  SynHighlighterSQL, SynGutterBase, SynCompletion, SynEditKeyCmds, SynEditTypes,
+  SynHighlighterSQL, SynGutterBase, SynCompletion, SynEditKeyCmds, SynEditTypes, LCLVersion,
   SynGutter, SynGutterLineNumber, SynGutterCodeFolding, StrUtils, laz.VirtualTrees,
   laz.VTHeaderPopup, RegExpr, Buttons, StdCtrls, fphttpclient, Math, LCLIntf,
   Generics.Collections, Generics.Defaults, opensslsockets, StdActns, Clipbrd,
@@ -7684,6 +7684,9 @@ var
   Obj: TDBObject;
   i, ColumnNameChars: Integer;
   Column: TTableColumn;
+  LineText, Signatures, FuncDescription: String;
+  NextCharPos: Integer;
+  IsFunctionCall: Boolean;
 begin
   // Activate hint for SQL function in query editors
   Edit := Sender as TSynEdit;
@@ -7693,84 +7696,102 @@ begin
 
   LogSQL('TokenType:'+TokenType.ToString+' Token:"'+Token+'"', lcDebug);
   Conn := ActiveConnection;
-  if Assigned(Conn) then begin
-    case SynHighlighterSQL.TtkTokenKind(TokenType) of
+  if not Assigned(Conn) then
+    Exit;
 
-      SynHighlighterSQL.tkFunction: begin
-        for SQLFunc in ActiveConnection.SQLFunctions do begin
-          if SQLFunc.Name.ToUpper = Token.ToUpper then begin
-            HintInfo.HintStr := SQLFunc.Name + SQLFunc.Declaration + sLineBreak + sLineBreak + SQLFunc.Description;
-            Break;
-          end;
-        end;
+  // SQL functions: the highlighter's built-in function names are outdated and differ from our function lists
+  // per server type and version. So look up any word followed by an opening parenthesis, plus words the
+  // highlighter knows as function.
+  IsFunctionCall := SynHighlighterSQL.TtkTokenKind(TokenType) = SynHighlighterSQL.tkFunction;
+  if (not IsFunctionCall) and (RowColPos.Y >= 1) and (RowColPos.Y <= Edit.Lines.Count) then begin
+    LineText := Edit.Lines[RowColPos.Y - 1];
+    NextCharPos := TokenStart + Length(Token);
+    while (NextCharPos <= Length(LineText)) and (LineText[NextCharPos] in [' ', #9]) do
+      Inc(NextCharPos);
+    IsFunctionCall := (NextCharPos <= Length(LineText)) and (LineText[NextCharPos] = '(');
+  end;
+  if IsFunctionCall and (Conn.SQLFunctions.Names.IndexOf(Token) > -1) then begin
+    // Show all signatures of overloaded functions, plus the first description
+    Signatures := '';
+    FuncDescription := '';
+    for SQLFunc in Conn.SQLFunctions do begin
+      if CompareText(SQLFunc.Name, Token) = 0 then begin
+        Signatures := Signatures + SQLFunc.Name + SQLFunc.Declaration + sLineBreak;
+        if FuncDescription.IsEmpty then
+          FuncDescription := SQLFunc.Description;
       end;
-
-      SynHighlighterSQL.tkTableName: begin
-        // Show some details from table listing cache
-        if (not Conn.IsLockedByThread) and Conn.DbObjectsCached(Conn.Database) then begin
-          AllObjects := Conn.GetDBObjects(Conn.Database);
-          for Obj in AllObjects do begin
-            if (Obj.NodeType = lntTable) and (Obj.Name.ToLower = Token.ToLower) then begin
-              HintInfo.HintStr := _(Obj.ObjType) + ' ' + Obj.Name + ':' + sLineBreak +
-                _('Rows') + ': ' + FormatNumber(Obj.Rows) + sLineBreak +
-                _('Size') + ': ' + FormatByteNumber(Obj.DataLen + Obj.IndexLen) + SLineBreak;
-              ColumnNameChars := 0;
-              for Column in Obj.TableColumns do begin
-                ColumnNameChars := Max(ColumnNameChars, Length(Column.Name));
-              end;
-              for Column in Obj.TableColumns do begin
-                HintInfo.HintStr := HintInfo.HintStr + Format('%s%'+ColumnNameChars.ToString+'s: %s', [SLineBreak, Column.Name, Column.FullDataType]);
-              end;
-
-              Break;
-            end;
-          end;
-        end;
-      end;
-
-      {SynHighlighterSQL.tkProcName: begin
-        // tkProcName not available in Laz SynEdit
-        // Show routine parameters, comment and body
-        if (not Conn.IsLockedByThread) and Conn.DbObjectsCached(Conn.Database) then begin
-          AllObjects := Conn.GetDBObjects(Conn.Database);
-          for Obj in AllObjects do begin
-            if (Obj.NodeType in [lntFunction, lntProcedure]) and (Obj.Name.ToLower = Token.ToLower) then begin
-              Parameters := TRoutineParamList.Create;
-              Conn.ParseRoutineStructure(Obj, Parameters);
-              HintInfo.HintStr := _(Obj.ObjType) + ' ' + Obj.Name;
-              Params := TStringList.Create;
-              for Param in Parameters do begin
-                Params.Add(Param.Name + ' ['+Param.Datatype+']');
-              end;
-              HintInfo.HintStr := HintInfo.HintStr + '(' + Implode(', ', Params) + ')' + sLineBreak + sLineBreak;
-              Params.Free;
-              if not Obj.Returns.IsEmpty then
-                HintInfo.HintStr := HintInfo.HintStr + 'Returns: ' + Obj.Returns + sLineBreak + sLineBreak;
-              if not Obj.Comment.IsEmpty then
-                HintInfo.HintStr := HintInfo.HintStr + Obj.Comment + sLineBreak + sLineBreak;
-              if not Obj.Body.IsEmpty then
-                HintInfo.HintStr := HintInfo.HintStr + StrEllipsis(Obj.Body, SIZE_KB);
-              HintInfo.HintStr := Trim(HintInfo.HintStr);
-              Break;
-            end;
-          end;
-        end;
-      end;}
-
-      SynHighlighterSQL.tkDatatype: begin
-        for i:=Low(Conn.Datatypes) to High(Conn.Datatypes) do begin
-          if Conn.Datatypes[i].Name.ToLower = Token.ToLower then begin
-            HintInfo.HintStr := WrapText(Conn.Datatypes[i].Description, 100);
-            Break;
-          end;
-        end;
-      end;
-
-      SynHighlighterSQL.tkString: begin
-        HintInfo.HintStr := _('String:') + ' ' + FormatByteNumber(Length(Token));
-      end;
-
     end;
+    HintInfo.HintStr := Trim(Signatures + sLineBreak + FuncDescription);
+    Exit;
+  end;
+
+  case SynHighlighterSQL.TtkTokenKind(TokenType) of
+
+    SynHighlighterSQL.tkTableName: begin
+      // Show some details from table listing cache
+      if (not Conn.IsLockedByThread) and Conn.DbObjectsCached(Conn.Database) then begin
+        AllObjects := Conn.GetDBObjects(Conn.Database);
+        for Obj in AllObjects do begin
+          if (Obj.NodeType = lntTable) and (Obj.Name.ToLower = Token.ToLower) then begin
+            HintInfo.HintStr := _(Obj.ObjType) + ' ' + Obj.Name + ':' + sLineBreak +
+              _('Rows') + ': ' + FormatNumber(Obj.Rows) + sLineBreak +
+              _('Size') + ': ' + FormatByteNumber(Obj.DataLen + Obj.IndexLen) + SLineBreak;
+            ColumnNameChars := 0;
+            for Column in Obj.TableColumns do begin
+              ColumnNameChars := Max(ColumnNameChars, Length(Column.Name));
+            end;
+            for Column in Obj.TableColumns do begin
+              HintInfo.HintStr := HintInfo.HintStr + Format('%s%'+ColumnNameChars.ToString+'s: %s', [SLineBreak, Column.Name, Column.FullDataType]);
+            end;
+
+            Break;
+          end;
+        end;
+      end;
+    end;
+
+    {SynHighlighterSQL.tkProcName: begin
+      // tkProcName not available in Laz SynEdit
+      // Show routine parameters, comment and body
+      if (not Conn.IsLockedByThread) and Conn.DbObjectsCached(Conn.Database) then begin
+        AllObjects := Conn.GetDBObjects(Conn.Database);
+        for Obj in AllObjects do begin
+          if (Obj.NodeType in [lntFunction, lntProcedure]) and (Obj.Name.ToLower = Token.ToLower) then begin
+            Parameters := TRoutineParamList.Create;
+            Conn.ParseRoutineStructure(Obj, Parameters);
+            HintInfo.HintStr := _(Obj.ObjType) + ' ' + Obj.Name;
+            Params := TStringList.Create;
+            for Param in Parameters do begin
+              Params.Add(Param.Name + ' ['+Param.Datatype+']');
+            end;
+            HintInfo.HintStr := HintInfo.HintStr + '(' + Implode(', ', Params) + ')' + sLineBreak + sLineBreak;
+            Params.Free;
+            if not Obj.Returns.IsEmpty then
+              HintInfo.HintStr := HintInfo.HintStr + 'Returns: ' + Obj.Returns + sLineBreak + sLineBreak;
+            if not Obj.Comment.IsEmpty then
+              HintInfo.HintStr := HintInfo.HintStr + Obj.Comment + sLineBreak + sLineBreak;
+            if not Obj.Body.IsEmpty then
+              HintInfo.HintStr := HintInfo.HintStr + StrEllipsis(Obj.Body, SIZE_KB);
+            HintInfo.HintStr := Trim(HintInfo.HintStr);
+            Break;
+          end;
+        end;
+      end;
+    end;}
+
+    SynHighlighterSQL.tkDatatype: begin
+      for i:=Low(Conn.Datatypes) to High(Conn.Datatypes) do begin
+        if Conn.Datatypes[i].Name.ToLower = Token.ToLower then begin
+          HintInfo.HintStr := WrapText(Conn.Datatypes[i].Description, 100);
+          Break;
+        end;
+      end;
+    end;
+
+    SynHighlighterSQL.tkString: begin
+      HintInfo.HintStr := _('String:') + ' ' + FormatByteNumber(Length(Token));
+    end;
+
   end;
 
 end;
@@ -10108,6 +10129,10 @@ var
   TableLevelObj: TDBObject;
   MainTabToActivate: TTabSheet;
   EnteringSession: Boolean;
+  {$IF LCL_FULLVERSION >= 5000000}
+  HighlighterDialect: TSQLDialect;
+  FuncName: String;
+  {$ENDIF}
 begin
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
   MainTabToActivate := nil;
@@ -10232,11 +10257,25 @@ begin
         else
           raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FActiveDbObj.Connection.Parameters.NetType)]);
       end;
-      // Extend predefined MySQLFunctions from SynHighlighterSQL with our own functions list
-      //SynSQLSynUsed.FunctionNames.BeginUpdate;
-      //SynSQLSynUsed.FunctionNames.Clear;
-      //SynSQLSynUsed.FunctionNames.AddStrings(FActiveDbObj.Connection.SQLFunctions.Names);
-      //SynSQLSynUsed.FunctionNames.EndUpdate;
+      {$IF LCL_FULLVERSION >= 5000000}
+      // Extend the highlighter's built-in function names with our own function list. Names already known as
+      // keyword, like IF, keep their kind. Outdated built-in function names cannot be removed in bulk, so
+      // highlighting and our list are not fully in sync.
+      SynSQLSynUsed.BeginUpdate;
+      try
+        HighlighterDialect := SynSQLSynUsed.SQLDialect;
+        // Reset keywords of the previous session, also when both use the same dialect, e.g. MySQL and MariaDB
+        if HighlighterDialect = sqlOracle then
+          SynSQLSynUsed.SQLDialect := sqlStandard
+        else
+          SynSQLSynUsed.SQLDialect := sqlOracle;
+        SynSQLSynUsed.SQLDialect := HighlighterDialect;
+        for FuncName in FActiveDbObj.Connection.SQLFunctions.Names do
+          SynSQLSynUsed.AddKeyword(FuncName, SynHighlighterSQL.tkFunction);
+      finally
+        SynSQLSynUsed.EndUpdate;
+      end;
+      {$ENDIF}
     end;
 
     if (FActiveDbObj <> nil)
