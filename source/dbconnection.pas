@@ -3354,6 +3354,19 @@ var
   SqlQuery: TSQLSentence;
   Minutes, Hours: Integer;
   Offset: String;
+
+  function VersionedFiles(Prefix: String): String;
+  var
+    v: Integer;
+  begin
+    // Exact major.minor version first, then the server's major version and all lower ones,
+    // so a newer server falls back to the newest available older file, e.g. MySQL 9 to mysql8
+    Result := Prefix + MajorMinorVer;
+    for v:=StrToIntDef(MajorVer, 0) downto 1 do
+      Result := Result + ',' + Prefix + IntToStr(v);
+    Result := Result + ',' + Prefix;
+  end;
+
 begin
   FSqlProvider.ServerVersion := ServerVersionInt;
 
@@ -3411,19 +3424,19 @@ begin
   MajorVer := RegExprGetMatch('^(\d+)\.', ServerVersionStr, 1);
 
   if FParameters.IsMariaDB then
-    SQLFunctionsFileOrder := 'mariadb'+MajorMinorVer+',mariadb'+MajorVer+',mariadb,mysql'
+    SQLFunctionsFileOrder := VersionedFiles('mariadb')+',mysql'
   else if FParameters.IsAnyMySQL then
-    SQLFunctionsFileOrder := 'mysql'+MajorMinorVer+',mysql'+MajorVer+',mysql'
+    SQLFunctionsFileOrder := VersionedFiles('mysql')
   else if FParameters.IsRedshift then
-    SQLFunctionsFileOrder := 'redshift'+MajorMinorVer+',redshift'+MajorVer+',redshift,postgresql'
+    SQLFunctionsFileOrder := VersionedFiles('redshift')+',postgresql'
   else if FParameters.IsAnyPostgreSQL then
-    SQLFunctionsFileOrder := 'postgresql'+MajorMinorVer+',postgresql'+MajorVer+',postgresql'
+    SQLFunctionsFileOrder := VersionedFiles('postgresql')
   else if FParameters.IsAnyMSSQL then
-    SQLFunctionsFileOrder := 'mssql'+MajorMinorVer+',mssql'+MajorVer+',mssql'
+    SQLFunctionsFileOrder := VersionedFiles('mssql')
   else if FParameters.IsAnySQLite then
-    SQLFunctionsFileOrder := 'sqlite'+MajorMinorVer+',sqlite'+MajorVer+',sqlite'
+    SQLFunctionsFileOrder := VersionedFiles('sqlite')
   else if FParameters.IsAnyInterbase then
-    SQLFunctionsFileOrder := 'interbase'+MajorMinorVer+',interbase'+MajorVer+',interbase'
+    SQLFunctionsFileOrder := VersionedFiles('interbase')
   else
     SQLFunctionsFileOrder := '';
   FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFileOrder);
