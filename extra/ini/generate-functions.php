@@ -13,8 +13,12 @@
  *               function) are derived from the server versions where a function appears. They are only as
  *               exact as the gaps between these versions. Current set: 5.5, 5.7, 8.0, 8.3, 9.6.
  *               A single server via --port=... is possible as well.
- *   mariadb     Help tables of a running MariaDB server (newest version), same options, default output
- *               functions-mariadb.ini. "since" is taken from "added in MariaDB x.y" notes.
+ *   mariadb     Documentation repository https://github.com/mariadb-corporation/mariadb-docs, via --docs=<dir>:
+ *               git clone --depth 1 --filter=blob:none --sparse https://github.com/mariadb-corporation/mariadb-docs
+ *               git -C mariadb-docs sparse-checkout set server/reference/sql-functions
+ *                 server/reference/sql-statements/geometry-constructors
+ *               Alternatively the help tables of a running server via --port etc., where "since" is taken from
+ *               "added in MariaDB x.y" notes. The help tables lag behind the documentation.
  *   For mysql and mariadb, exact "since" and "until" versions are then taken from the function registry in the
  *   server sources on GitHub (sql/item_create.cc, sql/lex.h etc.) of all release tags, where it knows a
  *   function. Disable with --no-registry=1.
@@ -66,7 +70,7 @@ switch ($target) {
         }
         break;
     case 'mariadb':
-        $entries = genMysql($opt, true);
+        $entries = isset($opt['docs']) ? genMariadbDocs($opt['docs']) : genMysql($opt, true);
         if (empty($opt['no-registry'])) {
             $entries = applyRegistryVersions($entries, true);
         }
@@ -507,6 +511,146 @@ function genMysql(array $opt, bool $isMariaDB, string &$version = ''): array
 }
 
 // ---------------------------------------------------------------------------------------------------
+// MariaDB: documentation repository https://github.com/mariadb-corporation/mariadb-docs (Markdown)
+// ---------------------------------------------------------------------------------------------------
+
+function genMariadbDocs(string $root): array
+{
+    $root = rtrim($root, '/\\');
+    $dirs = [
+        "$root/server/reference/sql-functions",
+        "$root/server/reference/sql-statements/geometry-constructors",
+        "$root/server/reference/sql-structure/operators/comparison-operators",
+        "$root/server/reference/sql-structure/sequences/sequence-functions",
+        "$root/server/server-usage/storage-engines/spider/spider-functions",
+    ];
+    $entries = [];
+    foreach ($dirs as $dir) {
+        if (!is_dir($dir)) {
+            throw new RuntimeException("Directory not found: $dir. See header of " . basename(__FILE__) . ' for the checkout.');
+        }
+        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS));
+        foreach ($it as $file) {
+            if ($file->getExtension() !== 'md' || in_array($file->getFilename(), ['README.md', 'SUMMARY.md'])) {
+                continue;
+            }
+            $rel = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
+            array_push($entries, ...parseMariadbDocsPage(file_get_contents($file->getPathname()), $rel,
+                mariadbDocsCategory($file->getPath())));
+        }
+    }
+    return $entries;
+}
+
+/** Category from the title of the directory's README.md, e.g. "Date & Time Functions" */
+function mariadbDocsCategory(string $dir): string
+{
+    static $cache = [];
+    if (!isset($cache[$dir])) {
+        $readme = @file_get_contents("$dir/README.md");
+        $title = ($readme !== false && preg_match('#^\# (.+)$#m', $readme, $m)) ? trim($m[1])
+            : ucwords(str_replace('-', ' ', basename($dir)));
+        $title = str_replace(['&', '\\'], ['and', ''], $title);
+        $cache[$dir] = mysqlCategory('', $title);
+    }
+    return $cache[$dir];
+}
+
+function parseMariadbDocsPage(string $md, string $relPath, string $category): array
+{
+    $md = str_replace("\r\n", "\n", $md);
+    $front = preg_match('#^---\n(.*?)\n---\n#s', $md, $mf) ? $mf[1] : '';
+    $body = substr($md, strlen($mf[0] ?? ''));
+    if (!preg_match('#^\# (.+)$#m', $body, $mt)) {
+        return [];
+    }
+    $title = str_replace('\\', '', $mt[1]);
+    // Syntax: first code block in the "Syntax" section, or the first code block at all
+    $syntaxSection = preg_match('#\n\#\# Syntax\s*\n(.*?)(?=\n\#\# |$)#s', $body, $ms) ? $ms[1] : $body;
+    if (!preg_match('#```\w*\n(.*?)```#s', $syntaxSection, $mc)) {
+        return [];
+    }
+    $syntaxLines = str_replace('\\', '', $mc[1]);
+    $syntax = preg_replace('#\s+#', ' ', $syntaxLines);
+
+    // Function names: words in the title, e.g. "IF Function", "ST_AsText", "CAST and CONVERT", plus synonyms
+    // starting a syntax line, e.g. "AsText(g)" below "ST_AsText(g)"
+    preg_match_all('#\b([A-Za-z][A-Za-z0-9_]+)\b#', $title, $mn);
+    $titleWords = array_map('strtoupper', $mn[1]);
+    preg_match_all('#^\s*([A-Za-z][A-Za-z0-9_]*)\s*\(#m', $syntaxLines, $ml);
+    preg_match_all('#\b([A-Za-z][A-Za-z0-9_]*)\s*\(#', $syntax, $ms2);
+    $names = [];
+    foreach (array_merge($ms2[1], $ml[1]) as $ident) {
+        $u = strtoupper($ident);
+        if (in_array($u, $titleWords) || in_array($ident, $ml[1])) {
+            $names[] = $u;
+        }
+    }
+    $names = array_diff(array_unique($names), ['FUNCTION', 'OPERATOR', 'AND', 'OR', 'NOT', 'SELECT', 'AGAINST',
+        'ANALYSE', 'PROCEDURE', 'CREATE', 'SET', 'VALUES', 'IN', 'FUNCTION_NAME', 'WINDOW_FUNCTION']);
+
+    // Description section, or paragraphs after the syntax
+    $descr = preg_match('#\n\#\# Description\s*\n(.*?)(?=\n\#\# |$)#s', $body, $md2) ? $md2[1] : '';
+    $paragraphs = [];
+    $descr = preg_replace('#```.*?```#s', '', $descr);
+    foreach (preg_split('#\n\s*\n#', $descr) as $p) {
+        // Skip tables and sub headings
+        if (preg_match('#^\s*(\||\#)#', $p)) {
+            continue;
+        }
+        if (preg_match('#^\s*[*-]\s+#', $p)) {
+            // List: one line per item, wrapped with indentation
+            $lines = [];
+            foreach (preg_split('#\n\s*[*-]\s+#', "\n" . trim($p), -1, PREG_SPLIT_NO_EMPTY) as $item) {
+                $item = mariadbDocsText($item);
+                if ($item !== '') {
+                    $lines[] = '- ' . str_replace("\n", "\n  ", wordwrap($item, WRAP_WIDTH - 2));
+                }
+            }
+            $text = $lines ? "\x01" . implode("\n", $lines) : '';
+        } else {
+            $text = mariadbDocsText($p);
+        }
+        if ($text !== '' && count($paragraphs) < 4) {
+            $paragraphs[] = $text;
+        }
+    }
+    if (!$paragraphs && preg_match('#^description:\s*>?-?\s*(.*?)(?=\n\w+:|$)#s', $front, $mdesc)) {
+        $paragraphs[] = trim(preg_replace('#\s+#', ' ', $mdesc[1]));
+    }
+    // Version notes in hints, e.g. "JSON_ARRAY_INTERSECT is available from MariaDB 11.2."
+    $plain = preg_replace('#\[([^\]]*)\]\([^)]*\)#', '$1', $body);
+    $since = preg_match('#(?:available|introduced|added)\s+(?:from|in)\s+MariaDB\s+(?:Community Server\s+)?(\d+\.\d+(?:\.\d+)?)#i', $plain, $mv)
+        ? $mv[1] : '';
+    $url = 'https://mariadb.com/docs/' . preg_replace('#\.md$#', '', $relPath);
+    $description = buildDescription($paragraphs, $url);
+
+    $entries = [];
+    foreach ($names as $name) {
+        $offset = 0;
+        while (preg_match('#\b' . preg_quote($name, '#') . '\s*\(#i', $syntax, $mf2, PREG_OFFSET_CAPTURE, $offset)) {
+            $parenPos = $mf2[0][1] + strlen($mf2[0][0]) - 1;
+            $decl = balancedParens($syntax, $parenPos);
+            if ($decl === null) {
+                break;
+            }
+            $entries[] = entry($name, $decl, mysqlCategory($name, $category), $description, $since);
+            $offset = $parenPos + strlen($decl) + 2;
+        }
+    }
+    return $entries;
+}
+
+/** Markdown and GitBook blocks to plain text */
+function mariadbDocsText(string $s): string
+{
+    $s = preg_replace('#\{%[^%]*%\}#', '', $s);
+    $s = preg_replace('#<[^>]+>#', '', $s);
+    $s = str_replace('\\', '', $s);
+    return markdownToText($s);
+}
+
+// ---------------------------------------------------------------------------------------------------
 // MySQL / MariaDB: version history of the native function registry in the server sources
 // ---------------------------------------------------------------------------------------------------
 
@@ -560,8 +704,8 @@ function registryNamesFromSource(string $src): array
     preg_match_all('#Named_type_handler<\w+>\s+\w+\("([a-z][a-z0-9_]*)"\)#', $src, $m);
     array_push($names, ...array_map('strtoupper', $m[1]));
     // Function plugins: "Function INET6_ATON()",
-    preg_match_all('#"Function ([A-Z][A-Z0-9_]*)\(\)"#', $src, $m);
-    array_push($names, ...$m[1]);
+    preg_match_all('#"Function ([A-Za-z][A-Za-z0-9_]*)\(\)"#', $src, $m);
+    array_push($names, ...array_map('strtoupper', $m[1]));
     foreach ($names as $name) {
         $result[$name] = 'fn';
     }
@@ -667,7 +811,13 @@ function applyRegistryVersions(array $entries, bool $isMariaDB): array
         if (!isset($first[$u])) {
             continue;
         }
-        $e['since'] = $first[$u] === 0 ? '' : $versions[$first[$u]];
+        $since = $first[$u] === 0 ? '' : $versions[$first[$u]];
+        // A keyword can be older than the function, e.g. TO_NUMBER in Oracle mode. Keep a later version from the
+        // documentation then.
+        $firstIsKeyword = $sets[$first[$u]][$u] === 'kw';
+        if (!$firstIsKeyword || $e['since'] === '' || compareVersions($e['since'], $since) < 0) {
+            $e['since'] = $since;
+        }
         if ($lastSeen[$u] < $last) {
             $e['until'] = $versions[$lastSeen[$u] + 1];
         } elseif ($sets[$last][$u] === 'fn') {
