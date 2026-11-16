@@ -705,6 +705,17 @@ begin
     SQLVARBINARY:        Result:=ftVarBytes;
     SYBUNIQUE:           Result:=ftGuid;
     SYBVARIANT:          Result:=ftBlob;
+    // HeidiSQL: CLR user defined types (geography, geometry, hierarchyid) arrive as raw bytes
+    SYBMSUDT:            Result:=ftBlob;
+    // HeidiSQL: extended TDS 7+ types. dbtablecolinfo() reports 175 "xchar" for XML columns
+    // stored in a table, which AddFieldDefs turns into ftMemo due to their max length.
+    XSYBCHAR, XSYBNCHAR: Result:=ftFixedChar;
+    XSYBVARCHAR, XSYBNVARCHAR,
+    SYBNVARCHAR:         Result:=ftString;
+    XSYBBINARY:          Result:=ftBytes;
+    XSYBVARBINARY:       Result:=ftVarBytes;
+    SYBNTEXT:            Result:=ftMemo;
+    SYBBITN:             Result:=ftBoolean;
   else
     DatabaseErrorFmt('Unsupported SQL DataType %d "%s"', [SQLDataType, dbprtype(SQLDataType)]);
     Result:=ftUnknown;

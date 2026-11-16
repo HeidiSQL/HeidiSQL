@@ -152,6 +152,15 @@ const
   SQLNUMERIC=$6c;
   // from proto.h:
   SYBNTEXT=$63;
+  // HeidiSQL: extended TDS 7+ types, which dbtablecolinfo() may return unconverted (seen: XSYBCHAR for XML columns)
+  SYBNVARCHAR  =$67;
+  SYBBITN      =$68;
+  XSYBVARBINARY=$A5;
+  XSYBVARCHAR  =$A7;
+  XSYBBINARY   =$AD;
+  XSYBCHAR     =$AF;
+  XSYBNVARCHAR =$E7;
+  XSYBNCHAR    =$EF;
   // MS only types:
   SYBINT8   =$7F;
   SYBUNIQUE =$24;
