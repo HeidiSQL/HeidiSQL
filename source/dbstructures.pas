@@ -30,7 +30,8 @@ type
     ntFirebird_TCPIP,
     ntFirebird_Local,
     ntMySQL_RDS,
-    ntSQLiteEncrypted
+    ntSQLiteEncrypted,
+    ntMySQL_ClickHouse
     );
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase);
   TNetTypeLibs = TDictionary<TNetType, TStringList>;
