@@ -188,7 +188,7 @@ type
       Created, Updated, LastChecked: TDateTime;
       Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
       // Routine options:
-      Body, Definer, Returns, DataAccess, Security, ArgTypes: String;
+      Body, Definer, Returns, DataAccess, Security, ArgTypes, Preamble, RoutineOptions: String;
       Deterministic, RowsAreExact, IsMaterialized: Boolean;
 
       NodeType, GroupType: TListNodeType;
@@ -8691,8 +8691,37 @@ var
   i: Integer;
   Param: TRoutineParam;
   InLiteral: Boolean;
+  MsSqlRoutine: TMsSqlRoutineStructure;
+  MsSqlParam: TMsSqlRoutineParam;
 begin
   // Parse CREATE code of stored function or procedure to detect parameters
+  Obj.Preamble := '';
+  Obj.RoutineOptions := '';
+  if FParameters.NetTypeGroup = ngMSSQL then begin
+    // T-SQL has its own syntax, e.g. no parentheses around procedure parameters. See GitHub issue #667
+    Obj.Definer := '';
+    Obj.Returns := '';
+    Obj.Comment := '';
+    if ParseMsSqlRoutine(Obj.CreateCode, MsSqlRoutine) then begin
+      for MsSqlParam in MsSqlRoutine.Params do begin
+        Param := TRoutineParam.Create;
+        Param.Name := MsSqlParam.Name;
+        Param.Datatype := MsSqlParam.Datatype;
+        Param.Context := MsSqlParam.Context;
+        Parameters.Add(Param);
+      end;
+      Obj.Preamble := MsSqlRoutine.Preamble;
+      Obj.Returns := MsSqlRoutine.Returns;
+      Obj.RoutineOptions := MsSqlRoutine.Options;
+      Obj.Body := MsSqlRoutine.Body;
+    end
+    else begin
+      // Unknown structure, show the whole code rather than a random part of it
+      Obj.Body := Obj.CreateCode;
+    end;
+    Exit;
+  end;
+
   rx := TRegExpr.Create;
   rx.ModifierI := True;
   rx.ModifierG := True;
@@ -11168,6 +11197,8 @@ begin
   DataAccess := '';
   Security := '';
   ArgTypes := '';
+  Preamble := '';
+  RoutineOptions := '';
   Deterministic := False;
   RowsAreExact := False;
   IsMaterialized := False;
@@ -11221,6 +11252,8 @@ begin
     DataAccess := s.DataAccess;
     Security := s.Security;
     ArgTypes := s.ArgTypes;
+    Preamble := s.Preamble;
+    RoutineOptions := s.RoutineOptions;
     Deterministic := s.Deterministic;
     RowsAreExact := s.RowsAreExact;
     IsMaterialized := s.IsMaterialized;

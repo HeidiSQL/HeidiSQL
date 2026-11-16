@@ -11,6 +11,20 @@ type
       function GetSql(AId: TQueryId): string; override;
   end;
 
+  TMsSqlRoutineParam = record
+    Name, Datatype, Context: String;
+  end;
+  // Segments of a CREATE PROCEDURE/FUNCTION code
+  TMsSqlRoutineStructure = record
+    Preamble: String; // Comments in front of the CREATE keyword
+    Returns: String;  // Function result, without the RETURNS keyword
+    Options: String;  // WITH and FOR REPLICATION clauses
+    Body: String;     // Everything after the AS keyword
+    Params: array of TMsSqlRoutineParam;
+  end;
+
+  function ParseMsSqlRoutine(const Code: String; out Routine: TMsSqlRoutineStructure): Boolean;
+
 var
 
   MSSQLDatatypes: array [0..33] of TDBDatatype =
@@ -414,6 +428,213 @@ var
 implementation
 
 {$I const.inc}
+
+function ParseMsSqlRoutine(const Code: String; out Routine: TMsSqlRoutineStructure): Boolean;
+var
+  Cur, Len, TokStart, TokEnd: Integer;
+  Tok, LastTok: String;
+  HasParens, HasReturns: Boolean;
+  Depth, PartStart, PartEnd, PrevEnd, OptionsStart, ParamIdx: Integer;
+
+  function IsWordChar(c: Char): Boolean;
+  begin
+    Result := CharInSet(c, ['A'..'Z', 'a'..'z', '0'..'9', '_', '@', '#', '$']) or (c >= #128);
+  end;
+
+  // Move to the next token, skipping whitespace and comments. Sets an empty token at the end of the code.
+  procedure NextToken;
+  var
+    CommentDepth: Integer;
+    QuoteEnd: Char;
+  begin
+    while Cur <= Len do begin
+      if Code[Cur] <= ' ' then
+        Inc(Cur)
+      else if (Code[Cur] = '-') and (Cur < Len) and (Code[Cur+1] = '-') then begin
+        while (Cur <= Len) and (Code[Cur] <> #10) do
+          Inc(Cur);
+      end
+      else if (Code[Cur] = '/') and (Cur < Len) and (Code[Cur+1] = '*') then begin
+        // Block comments can be nested in T-SQL
+        CommentDepth := 1;
+        Inc(Cur, 2);
+        while (Cur <= Len) and (CommentDepth > 0) do begin
+          if (Code[Cur] = '/') and (Cur < Len) and (Code[Cur+1] = '*') then begin
+            Inc(CommentDepth);
+            Inc(Cur, 2);
+          end
+          else if (Code[Cur] = '*') and (Cur < Len) and (Code[Cur+1] = '/') then begin
+            Dec(CommentDepth);
+            Inc(Cur, 2);
+          end
+          else
+            Inc(Cur);
+        end;
+      end
+      else
+        Break;
+    end;
+    TokStart := Cur;
+    if Cur <= Len then begin
+      if CharInSet(Code[Cur], ['[', '"', '''']) then begin
+        // Quoted identifier or string literal. A doubled closing character is an escaped one.
+        if Code[Cur] = '[' then
+          QuoteEnd := ']'
+        else
+          QuoteEnd := Code[Cur];
+        Inc(Cur);
+        while Cur <= Len do begin
+          if Code[Cur] <> QuoteEnd then
+            Inc(Cur)
+          else if (Cur < Len) and (Code[Cur+1] = QuoteEnd) then
+            Inc(Cur, 2)
+          else begin
+            Inc(Cur);
+            Break;
+          end;
+        end;
+      end
+      else if IsWordChar(Code[Cur]) then begin
+        while (Cur <= Len) and IsWordChar(Code[Cur]) do
+          Inc(Cur);
+      end
+      else
+        Inc(Cur);
+    end;
+    TokEnd := Cur;
+    Tok := UpperCase(Copy(Code, TokStart, TokEnd-TokStart));
+  end;
+
+begin
+  // Split the code of a stored procedure or function into its segments. Other than in MySQL, the
+  // parameters of a procedure are mostly not enclosed in parentheses, and comments may precede the CREATE keyword:
+  //   CREATE [OR ALTER] {PROC|PROCEDURE} [schema.]name[;number] [(] @param [AS] type [= default] [OUT|OUTPUT|READONLY], ... [)]
+  //     [WITH option, ...] [FOR REPLICATION] AS body
+  //   CREATE [OR ALTER] FUNCTION [schema.]name ([@param [AS] type [= default] [READONLY], ...])
+  //     RETURNS type [WITH option, ...] [AS] body
+  // See GitHub issue #667
+  Result := False;
+  Routine.Preamble := '';
+  Routine.Returns := '';
+  Routine.Options := '';
+  Routine.Body := '';
+  SetLength(Routine.Params, 0);
+  Cur := 1;
+  Len := Length(Code);
+
+  NextToken;
+  if (Tok <> 'CREATE') and (Tok <> 'ALTER') then
+    Exit;
+  Routine.Preamble := Copy(Code, 1, TokStart-1);
+  NextToken;
+  if Tok = 'OR' then begin
+    NextToken;
+    NextToken;
+  end;
+  if (Tok <> 'PROC') and (Tok <> 'PROCEDURE') and (Tok <> 'FUNCTION') then
+    Exit;
+
+  // Name, probably with schema
+  NextToken;
+  NextToken;
+  while Tok = '.' do begin
+    NextToken;
+    if Tok <> '.' then
+      NextToken;
+  end;
+  // Number of a numbered procedure
+  if Tok = ';' then begin
+    NextToken;
+    NextToken;
+  end;
+
+  // Parameters
+  HasParens := Tok = '(';
+  if HasParens then
+    NextToken;
+  while (Tok <> '') and (Tok[1] = '@') do begin
+    ParamIdx := Length(Routine.Params);
+    SetLength(Routine.Params, ParamIdx+1);
+    Routine.Params[ParamIdx].Name := Copy(Code, TokStart, TokEnd-TokStart);
+    NextToken;
+    if Tok = 'AS' then
+      NextToken;
+    PartStart := TokStart;
+    PartEnd := TokStart;
+    PrevEnd := TokStart;
+    LastTok := '';
+    Depth := 0;
+    while Tok <> '' do begin
+      if Depth = 0 then begin
+        if Tok = ',' then
+          Break;
+        if HasParens and (Tok = ')') then
+          Break;
+        if (not HasParens) and ((Tok = 'AS') or (Tok = 'WITH') or (Tok = 'FOR')) then
+          Break;
+      end;
+      if Tok = '(' then
+        Inc(Depth)
+      else if Tok = ')' then
+        Dec(Depth);
+      PrevEnd := PartEnd;
+      PartEnd := TokEnd;
+      LastTok := Tok;
+      NextToken;
+    end;
+    Routine.Params[ParamIdx].Context := 'IN';
+    if (LastTok = 'OUT') or (LastTok = 'OUTPUT') then begin
+      Routine.Params[ParamIdx].Context := 'OUT';
+      PartEnd := PrevEnd;
+    end;
+    // Keep a default value and READONLY attached to the data type
+    Routine.Params[ParamIdx].Datatype := Trim(Copy(Code, PartStart, PartEnd-PartStart));
+    if Tok = ',' then
+      NextToken;
+  end;
+  if HasParens and (Tok = ')') then
+    NextToken;
+
+  // RETURNS clause and options, up to the AS keyword which introduces the body
+  HasReturns := Tok = 'RETURNS';
+  if HasReturns then
+    NextToken;
+  PartStart := TokStart;
+  PartEnd := TokStart;
+  OptionsStart := 0;
+  LastTok := '';
+  Depth := 0;
+  while Tok <> '' do begin
+    // WITH EXECUTE AS ... is an option, not the start of the body
+    if (Depth = 0) and (Tok = 'AS') and (LastTok <> 'EXECUTE') and (LastTok <> 'EXEC') then
+      Break;
+    // AS is optional in functions
+    if (Depth = 0) and HasReturns and ((Tok = 'BEGIN') or (Tok = 'RETURN')) then
+      Break;
+    if Tok = '(' then
+      Inc(Depth)
+    else if Tok = ')' then
+      Dec(Depth);
+    if (Depth = 0) and (OptionsStart = 0) and ((Tok = 'WITH') or (Tok = 'FOR')) then
+      OptionsStart := TokStart;
+    PartEnd := TokEnd;
+    LastTok := Tok;
+    NextToken;
+  end;
+  if Tok = '' then
+    Exit;
+  if Tok = 'AS' then
+    TokStart := TokEnd;
+  if OptionsStart > 0 then begin
+    Routine.Options := Trim(Copy(Code, OptionsStart, PartEnd-OptionsStart));
+    PartEnd := OptionsStart;
+  end;
+  if HasReturns then
+    Routine.Returns := Trim(Copy(Code, PartStart, PartEnd-PartStart));
+  Routine.Body := Trim(Copy(Code, TokStart, Length(Code)));
+  Result := True;
+end;
+
 
 function TMsSqlProvider.GetSql(AId: TQueryId): string;
 begin
