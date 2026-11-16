@@ -551,7 +551,6 @@ type
       function CleanIdent(Identifier: String): String;
       function QuotedDbAndTableName(DB, Obj: String): String;
       function FindObject(DB, Obj: String): TDBObject;
-      function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
       function UnescapeString(Text: String): String;
       function ExtractLiteral(var SQL: String; Prefix: String): String;
       function GetResults(SQL: String): TDBQuery;
@@ -582,7 +581,6 @@ type
       function GetDatatypeByName(var DataType: String; DeleteFromSource: Boolean; Identifier: String=''): TDBDatatype;
       function GetDatatypeByNativeType(NativeType: Integer; Identifier: String=''): TDBDatatype;
       function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Int64): String;
-      function LikeClauseTail: String;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property OwnsParameters: Boolean read FOwnsParameters write FOwnsParameters;
       property ThreadId: Int64 read GetThreadId;
@@ -5841,78 +5839,55 @@ end;
 }
 function TDBConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
 var
-  c1, c2, c3, c4, EscChar: Char;
+  QuoteEscChar, c: Char;
+  BackslashChars: TSysCharSet;
+  i, ResLen: Integer;
 begin
-  case FParameters.NetTypeGroup of
-    ngMySQL: begin
-      c1 := '''';
-      c2 := '\';
-      c3 := '%';
-      c4 := '_';
-      EscChar := '\';
-      if not ProcessJokerChars then begin
-        // Do not escape joker-chars which are used in a LIKE-clause
-        c4 := '''';
-        c3 := '''';
-      end;
-      Result := escChars(Text, EscChar, c1, c2, c3, c4);
-
-      // Remove characters that SynEdit chokes on, so that
-      // the SQL file can be non-corruptedly loaded again.
-      c1 := #13;
-      c2 := #10;
-      c3 := #0;
-      c4 := #0;
-      // TODO: SynEdit also chokes on Char($2028) and possibly Char($2029).
-      Result := escChars(Result, EscChar, c1, c2, c3, c4);
-    end;
-
-    ngMSSQL, ngSQLite: begin
-
-      c1 := '''';
-      c2 := '''';
-      c3 := '''';
-      c4 := '''';
-      EscChar := '''';
-      Result := escChars(Text, EscChar, c1, c2, c3, c4);
-
-      // Escape joker chars % and _ in conjunction with a specified escape char after the WHERE clause.
-      // See http://www.heidisql.com/forum.php?t=12747
-      if ProcessJokerChars then begin
-        c1 := '%';
-        c2 := '_';
-        c4 := '_';
-        c3 := '_';
-        EscChar := '\';
-        Result := escChars(Result, EscChar, c1, c2, c3, c4);
-      end;
-    end;
-
-    ngPgSQL: begin
-      if ProcessJokerChars then begin
-        c1 := '%';
-        c2 := '_';
-        c3 := '%';
-        c4 := '%';
-        EscChar := '\';
-        Result := escChars(Text, EscChar, c1, c2, c3, c4);
-      end else begin
-        Result := Text;
-      end;
-      // Escape single quote with a second single quote
-      Result := escChars(Result, '''', '''', '''', '''', '''');
-    end;
-
-    ngInterbase: begin
-      c1 := '''';
-      c2 := '''';
-      c3 := '''';
-      c4 := '''';
-      EscChar := '\';
-      Result := escChars(Text, EscChar, c1, c2, c3, c4);
-    end;
-
+  // A single quote gets a preceding escape character: a backslash on MySQL, a second
+  // single quote on all other servers.
+  // BackslashChars are the further characters which get a preceding backslash.
+  if FParameters.NetTypeGroup = ngMySQL then begin
+    QuoteEscChar := '\';
+    // Besides the backslash itself, escape characters that SynEdit chokes on,
+    // so that the SQL file can be non-corruptedly loaded again.
+    // TODO: SynEdit also chokes on Char($2028) and possibly Char($2029).
+    BackslashChars := ['\', #13, #10, #0];
+  end else begin
+    QuoteEscChar := '''';
+    BackslashChars := [];
   end;
+  // In a LIKE pattern, the joker chars % and _ need a preceding backslash, and so does
+  // the backslash itself. Some servers only accept that with an ESCAPE clause, see qLikeCompare.
+  // See http://www.heidisql.com/forum.php?t=12747
+  if ProcessJokerChars then begin
+    // MySQL escapes the backslash a second time below, for the string literal
+    if FParameters.NetTypeGroup = ngMySQL then
+      Text := StringReplace(Text, '\', '\\', [rfReplaceAll]);
+    BackslashChars := BackslashChars + ['\', '%', '_'];
+  end;
+
+  // Each character becomes two characters at most
+  SetLength(Result, Length(Text) * 2);
+  ResLen := 0;
+  for i := 1 to Length(Text) do begin
+    c := Text[i];
+    if (c = '''') or CharInSet(c, BackslashChars) then begin
+      Inc(ResLen);
+      if c = '''' then
+        Result[ResLen] := QuoteEscChar
+      else
+        Result[ResLen] := '\';
+      // Line breaks and null bytes are written as \r, \n and \0
+      case c of
+        #13: c := 'r';
+        #10: c := 'n';
+        #0: c := '0';
+      end;
+    end;
+    Inc(ResLen);
+    Result[ResLen] := c;
+  end;
+  SetLength(Result, ResLen);
 
   if DoQuote then begin
     // Add surrounding single quotes
@@ -5955,57 +5930,6 @@ begin
     Result := ValuePrefix + EscapeString(Text, False)
   else
     Result := ValuePrefix + Text;
-end;
-
-
-{***
- Attempt to do string replacement faster than StringReplace
-}
-function TDBConnection.escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
-const
-  // Attempt to match whatever the CPU cache will hold.
-  block: Cardinal = 65536;
-var
-  bstart, bend, matches, i: Cardinal;
-  // These could be bumped to uint64 if necessary.
-  len, respos: Cardinal;
-  next: Char;
-begin
-  len := Length(Text);
-  Result := '';
-  bend := 0;
-  respos := 0;
-  repeat
-    bstart := bend + 1;
-    bend := bstart + block - 1;
-    if bend > len then bend := len;
-    matches := 0;
-    for i := bstart to bend do if
-      (Text[i] = Char1) or
-      (Text[i] = Char2) or
-      (Text[i] = Char3) or
-      (Text[i] = Char4)
-    then Inc(matches);
-    SetLength(Result, bend + 1 - bstart + matches + respos);
-    for i := bstart to bend do begin
-      next := Text[i];
-      if
-        (next = Char1) or
-        (next = Char2) or
-        (next = Char3) or
-        (next = Char4)
-      then begin
-        Inc(respos);
-        Result[respos] := EscChar;
-        // Special values for MySQL escape.
-        if next = #13 then next := 'r';
-        if next = #10 then next := 'n';
-        if next = #0 then next := '0';
-      end;
-      Inc(respos);
-      Result[respos] := next;
-    end;
-  until bend = len;
 end;
 
 
@@ -9003,15 +8927,6 @@ begin
       // No support for limit nor offset
       Result := Result + QueryBody;
     end;
-  end;
-end;
-
-
-function TDBConnection.LikeClauseTail: String;
-begin
-  case FParameters.NetTypeGroup of
-    ngMSSQL: Result := ' ESCAPE ' + EscapeString('\');
-    else Result := '';
   end;
 end;
 
