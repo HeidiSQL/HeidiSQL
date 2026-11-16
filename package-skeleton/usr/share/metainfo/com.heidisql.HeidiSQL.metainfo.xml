@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.heidisql.HeidiSQL</id>
+  <name>HeidiSQL</name>
+  <summary>Browse and edit SQL databases</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0-or-later</project_license>
+  <developer id="com.heidisql">
+    <name>Ansgar Becker</name>
+  </developer>
+  <url type="homepage">https://www.heidisql.com/</url>
+  <url type="bugtracker">https://github.com/HeidiSQL/HeidiSQL/issues</url>
+  <url type="help">https://www.heidisql.com/help.php</url>
+  <url type="donation">https://www.heidisql.com/donate.php</url>
+  <url type="vcs-browser">https://github.com/HeidiSQL/HeidiSQL</url>
+  <description>
+    <p>HeidiSQL lets you see and edit data and structures on database servers. It connects to MariaDB, MySQL, PostgreSQL, Microsoft SQL Server, SQLite, Interbase and Firebird.</p>
+    <ul>
+      <li>Browse and edit table data in a grid, with filtering and sorting</li>
+      <li>Create and modify tables, views, stored routines, triggers and scheduled events</li>
+      <li>Write queries in an editor with syntax highlighting and code completion</li>
+      <li>Export structure and data to SQL files or directly to another server</li>
+      <li>Export grid rows as CSV, HTML, XML, SQL, JSON and more</li>
+      <li>Manage user privileges and monitor server processes and variables</li>
+      <li>Connect directly or through an SSH tunnel</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">heidisql.desktop</launchable>
+  <categories>
+    <category>Development</category>
+    <category>Database</category>
+  </categories>
+  <keywords>
+    <keyword>database</keyword>
+    <keyword>sql</keyword>
+    <keyword>mysql</keyword>
+    <keyword>mariadb</keyword>
+    <keyword>postgresql</keyword>
+    <keyword>mssql</keyword>
+    <keyword>sqlite</keyword>
+  </keywords>
+  <provides>
+    <binary>heidisql</binary>
+  </provides>
+  <recommends>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </recommends>
+  <content_rating type="oars-1.1"/>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Editing table data in the grid</caption>
+      <image>https://www.heidisql.com/images/screenshots/linux_version_datagrid.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Main window with database tree</caption>
+      <image>https://www.heidisql.com/images/screenshots/linux_fedora_mainscreen.png</image>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="12.22" date="2026-10-25">
+      <url type="details">https://github.com/HeidiSQL/HeidiSQL/releases/tag/v12.22</url>
+    </release>
+    <release version="12.21" date="2026-08-03">
+      <url type="details">https://github.com/HeidiSQL/HeidiSQL/releases/tag/v12.21</url>
+    </release>
+    <release version="12.20" date="2026-06-22">
+      <url type="details">https://github.com/HeidiSQL/HeidiSQL/releases/tag/v12.20</url>
+    </release>
+    <release version="12.19" date="2026-06-20">
+      <url type="details">https://github.com/HeidiSQL/HeidiSQL/releases/tag/v12.19</url>
+    </release>
+    <release version="12.18" date="2026-06-09">
+      <url type="details">https://github.com/HeidiSQL/HeidiSQL/releases/tag/v12.18</url>
+    </release>
+  </releases>
+</component>
