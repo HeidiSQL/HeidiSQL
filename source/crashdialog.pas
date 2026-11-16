@@ -5,7 +5,7 @@ unit crashdialog;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, Buttons, LazVersion;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls, Buttons, Clipbrd, LazVersion;
 
 type
 
@@ -45,9 +45,10 @@ const
 
 procedure TfrmCrashDialog.btnCopyClick(Sender: TObject);
 begin
-  memoDetails.CopyToClipboard;
-  btnCopy.Caption := btnCopy.Caption + ' ' + '✓';
-  // enable timer which resets the button caption?
+  // TMemo.CopyToClipboard only copies the selected text, which is empty here
+  Clipboard.AsText := memoDetails.Text;
+  if Pos('✓', btnCopy.Caption) = 0 then
+    btnCopy.Caption := btnCopy.Caption + ' ' + '✓';
 end;
 
 procedure TfrmCrashDialog.btnReportClick(Sender: TObject);
