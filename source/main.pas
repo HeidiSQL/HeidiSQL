@@ -4952,7 +4952,7 @@ begin
         ngMySQL, ngPgSQL:
           ParamValues := '(' + Implode(', ', Params) + ')';
         ngMSSQL:
-          ParamValues := ' ' + Implode(' ', Params);
+          ParamValues := ' ' + Implode(', ', Params);
         else
           raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Obj.Connection.Parameters.NetType)]);
       end;

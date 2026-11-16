@@ -83,7 +83,11 @@ type
   private
     { Private declarations }
     FAlterRoutineType: String;
-    function ComposeCreateStatement(NameOfObject: String): String;
+    // Parts of an MS SQL routine code which have no control in this editor
+    FPreamble, FRoutineOptions: String;
+    function IsMsSql: Boolean;
+    function ComposeCreateStatement(NameOfObject: String; Alter: Boolean=False): String;
+    function ComposeCreateStatementMsSql(NameOfObject: String; Alter: Boolean): String;
   public
     { Public declarations }
     Parameters: TRoutineParamList;
@@ -153,9 +157,26 @@ begin
   comboDefiner.TextHint := f_('Current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
   comboDefiner.Hint := f_('Leave empty for current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
   SynMemoBody.Text := 'BEGIN'+CRLF+CRLF+'END';
+  FPreamble := '';
+  FRoutineOptions := '';
+  // These options exist in MySQL only
+  lblDefiner.Enabled := not IsMsSql;
+  comboDefiner.Enabled := not IsMsSql;
+  chkDeterministic.Enabled := not IsMsSql;
+  lblSQL.Enabled := not IsMsSql;
+  comboDataAccess.Enabled := not IsMsSql;
+  lblSecurity.Enabled := not IsMsSql;
+  comboSecurity.Enabled := not IsMsSql;
+  lblComment.Enabled := not IsMsSql;
+  editComment.Enabled := not IsMsSql;
+  // A procedure cannot be altered to a function on MS SQL
+  lblType.Enabled := not (IsMsSql and ObjectExists);
+  comboType.Enabled := lblType.Enabled;
   if ObjectExists then begin
     // Editing existing routine
     DBObject.Connection.ParseRoutineStructure(Obj, Parameters);
+    FPreamble := Obj.Preamble;
+    FRoutineOptions := Obj.RoutineOptions;
     comboReturns.Text := Obj.Returns;
     chkDeterministic.Checked := Obj.Deterministic;
     if Obj.DataAccess <> '' then
@@ -243,6 +264,8 @@ var
 begin
   Param := TRoutineParam.Create;
   Param.Name := 'Param'+IntToStr(Parameters.Count+1);
+  if IsMsSql then
+    Param.Name := '@' + Param.Name;
   Param.Datatype := 'INT';
   Param.Context := 'IN';
   if Assigned(listParameters.FocusedNode) then
@@ -417,7 +440,9 @@ begin
     EnumEditor.ValueList := TStringList.Create;
     EnumEditor.ValueList.Add('IN');
     EnumEditor.ValueList.Add('OUT');
-    EnumEditor.ValueList.Add('INOUT');
+    // MS SQL only has input and OUTPUT parameters
+    if not IsMsSql then
+      EnumEditor.ValueList.Add('INOUT');
     EditLink := EnumEditor;
   end;
 end;
@@ -488,7 +513,7 @@ begin
   // Create a temp routine, check for syntax errors, then drop the old routine and create it.
   // See also: http://dev.mysql.com/doc/refman/5.0/en/alter-procedure.html
   try
-    if ObjectExists then begin
+    if ObjectExists and (not IsMsSql) then begin
       // Create temp name
       i := 0;
       allRoutineNames := DBObject.Connection.GetCol('SELECT ROUTINE_NAME FROM '+DBObject.Connection.QuoteIdent(DBObject.Connection.InfSch)+'.'+DBObject.Connection.QuoteIdent('ROUTINES')+
@@ -519,7 +544,16 @@ begin
         DBObject.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+DBObject.Connection.QuoteIdent(editName.Text));
       end;
     end;
-    DBObject.Connection.Query(ComposeCreateStatement(editName.Text));
+    if IsMsSql and ObjectExists and (editName.Text = DBObject.Name) then begin
+      // ALTER fails on syntax errors without touching the routine, and keeps its permissions
+      DBObject.Connection.Query(ComposeCreateStatement(editName.Text, True));
+    end
+    else begin
+      DBObject.Connection.Query(ComposeCreateStatement(editName.Text));
+      // MS SQL: routine was renamed and created with its new name, so remove the old one
+      if IsMsSql and ObjectExists then
+        DBObject.Connection.Query('DROP '+FAlterRoutineType+' '+DBObject.QuotedName);
+    end;
     // Set editing name if create/alter query was successful
     DBObject.Name := editName.Text;
     DBObject.UnloadDetails;
@@ -541,12 +575,66 @@ begin
 end;
 
 
-function TfrmRoutineEditor.ComposeCreateStatement(NameOfObject: String): String;
+function TfrmRoutineEditor.IsMsSql: Boolean;
+begin
+  Result := DBObject.Connection.Parameters.IsAnyMSSQL;
+end;
+
+
+function TfrmRoutineEditor.ComposeCreateStatementMsSql(NameOfObject: String; Alter: Boolean): String;
+var
+  IsFunction: Boolean;
+  Param: TRoutineParam;
+  Params: TStringList;
+  tmp: String;
+begin
+  // CREATE [PROCEDURE|FUNCTION] in T-SQL syntax. See GitHub issue #667
+  IsFunction := comboType.ItemIndex = 1;
+  Result := FPreamble;
+  if Alter then
+    Result := Result + 'ALTER '
+  else
+    Result := Result + 'CREATE ';
+  if IsFunction then
+    Result := Result + 'FUNCTION '
+  else
+    Result := Result + 'PROCEDURE ';
+  if DBObject.Schema <> '' then
+    Result := Result + DBObject.Connection.QuoteIdent(DBObject.Schema) + '.';
+  Result := Result + DBObject.Connection.QuoteIdent(NameOfObject);
+  Params := TStringList.Create;
+  for Param in Parameters do begin
+    tmp := Param.Name.Trim + ' ' + Param.Datatype;
+    if (not IsFunction) and (Param.Context <> 'IN') then
+      tmp := tmp + ' OUTPUT';
+    Params.Add(tmp);
+  end;
+  // Parentheses around parameters are required for functions only
+  if IsFunction then
+    Result := Result + '(';
+  if Params.Count > 0 then
+    Result := Result + sLineBreak + CodeIndent + Implode(',' + sLineBreak + CodeIndent, Params) + sLineBreak
+  else if not IsFunction then
+    Result := Result + sLineBreak;
+  if IsFunction then
+    Result := Result + ')' + sLineBreak + 'RETURNS ' + comboReturns.Text + sLineBreak;
+  Params.Free;
+  if FRoutineOptions <> '' then
+    Result := Result + FRoutineOptions + sLineBreak;
+  Result := Result + 'AS' + sLineBreak + SynMemoBody.Text;
+end;
+
+
+function TfrmRoutineEditor.ComposeCreateStatement(NameOfObject: String; Alter: Boolean=False): String;
 var
   ProcOrFunc, tmp: String;
   i: Integer;
   Params: TStringList;
 begin
+  if IsMsSql then begin
+    Result := ComposeCreateStatementMsSql(NameOfObject, Alter);
+    Exit;
+  end;
   case comboType.ItemIndex of
     0: ProcOrFunc := 'PROCEDURE';
     else ProcOrFunc := 'FUNCTION';
