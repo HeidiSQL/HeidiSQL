@@ -336,6 +336,7 @@ type
       function IsInfiniDB: Boolean;
       function IsInfobright: Boolean;
       function IsProxySQLAdmin: Boolean;
+      function IsClickHouse: Boolean;
       function IsMySQLonRDS: Boolean;
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
@@ -1532,6 +1533,7 @@ function TConnectionParameters.NetTypeName(LongFormat: Boolean): String;
 const
   PrefixMysql = 'MariaDB or MySQL';
   PrefixProxysql = 'ProxySQL Admin';
+  PrefixClickhouse = 'ClickHouse';
   PrefixMssql = 'Microsoft SQL Server';
   PrefixPostgres = 'PostgreSQL';
   PrefixRedshift = 'Redshift PG';
@@ -1548,6 +1550,7 @@ begin
       ntMySQL_NamedPipe:        Result := PrefixMysql+' (named pipe)';
       ntMySQL_SSHtunnel:        Result := PrefixMysql+' (SSH tunnel)';
       ntMySQL_ProxySQLAdmin:    Result := PrefixProxysql+' (Experimental)';
+      ntMySQL_ClickHouse:       Result := PrefixClickhouse+' (MySQL protocol, experimental)';
       ntMySQL_RDS:              Result := 'MySQL on RDS';
       ntMSSQL_NamedPipe:        Result := PrefixMssql+' (named pipe, unsuppported)';
       ntMSSQL_TCPIP:            Result := PrefixMssql+' (TCP/IP)';
@@ -1574,6 +1577,7 @@ begin
         else if IsInfobright then      Result := 'Infobright'
         else if IsMemSQL then          Result := 'MemSQL'
         else if IsProxySQLAdmin then   Result := 'ProxySQL Admin'
+        else if IsClickHouse then      Result := PrefixClickhouse
         else if IsMySQL(True) then     Result := 'MySQL'
         else                           Result := PrefixMysql;
       end;
@@ -1592,7 +1596,7 @@ end;
 function TConnectionParameters.GetNetTypeGroup: TNetTypeGroup;
 begin
   case FNetType of
-    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS:
+    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS, ntMySQL_ClickHouse:
       Result := ngMySQL;
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
       Result := ngMSSQL;
@@ -1672,6 +1676,7 @@ begin
       and (not IsInfiniDB)
       and (not IsInfobright)
       and (not IsProxySQLAdmin)
+      and (not IsClickHouse)
       and (not IsMemSQL);
   end;
 end;
@@ -1704,6 +1709,12 @@ end;
 function TConnectionParameters.IsProxySQLAdmin: Boolean;
 begin
   Result := NetType = ntMySQL_ProxySQLAdmin;
+end;
+
+
+function TConnectionParameters.IsClickHouse: Boolean;
+begin
+  Result := NetType = ntMySQL_ClickHouse;
 end;
 
 
@@ -1788,6 +1799,8 @@ begin
     ngMySQL: begin
       if IsProxySQLAdmin then
         Result := 6032
+      else if IsClickHouse then
+        Result := 9004
       else
         Result := 3306;
     end;
@@ -1802,7 +1815,7 @@ end;
 function TConnectionParameters.DefaultUsername: String;
 begin
   case NetTypeGroup of
-    ngMySQL: Result := 'root';
+    ngMySQL: Result := IfThen(IsClickHouse, 'default', 'root');
     ngMSSQL: Result := 'sa';
     ngPgSQL: Result := 'postgres';
     ngInterbase: Result := 'sysdba';
@@ -2472,7 +2485,7 @@ begin
     end;
 
     case FParameters.NetType of
-      ntMySQL_TCPIP, ntMySQL_ProxySQLAdmin: begin
+      ntMySQL_TCPIP, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse: begin
       end;
 
       ntMySQL_NamedPipe: begin
@@ -4050,6 +4063,11 @@ function TMySQLConnection.GetCreateCode(Obj: TDBObject): String;
 var
   ColIdx: Integer;
 begin
+  if Parameters.IsClickHouse then begin
+    // ClickHouse returns a single "statement" column, and handles views with SHOW CREATE TABLE as well
+    Result := GetVar('SHOW CREATE TABLE '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
+    Exit;
+  end;
   if Obj.NodeType = lntView then begin
     // Use our own baked CREATE VIEW code
     Result := GetCreateViewCode(Obj.Database, Obj.Name);
@@ -4717,6 +4735,10 @@ var
 begin
   // Get CREATE VIEW code, which can throw privilege errors and errors due to
   // references to renamed or deleted columns
+  if Parameters.IsClickHouse then begin
+    Result := GetVar('SHOW CREATE TABLE '+QuoteIdent(Database)+'.'+QuoteIdent(Name), 0);
+    Exit;
+  end;
   try
     Result := GetVar('SHOW CREATE VIEW '+QuoteIdent(Database)+'.'+QuoteIdent(Name), 1);
   except
@@ -5038,14 +5060,14 @@ end;
 {**
   Return current thread id
   Supports 64bit process numbers on long running servers: https://dev.mysql.com/doc/refman/8.0/en/mysql-thread-id.html
-  ... while ProxySQL does not support CONNECTION_ID()
+  ... while ProxySQL does not support CONNECTION_ID(), and ClickHouse returns 0 for it
 }
 function TMySQLConnection.GetThreadId: Int64;
 begin
   if FThreadId = 0 then begin
     Ping(False);
     if FActive then begin
-      if Parameters.IsProxySQLAdmin then
+      if Parameters.IsProxySQLAdmin or Parameters.IsClickHouse then
         FThreadID := FLib.mysql_thread_id(FHandle)
       else
         FThreadID := StrToInt64Def(GetVar('SELECT CONNECTION_ID()'), 0);
@@ -5370,6 +5392,8 @@ end;
 
 
 function TMySQLConnection.GetAllDatabases: TStringList;
+var
+  i: Integer;
 begin
   Result := inherited;
   if not Assigned(Result) then begin
@@ -5383,6 +5407,13 @@ begin
           FAllDatabases := TStringList.Create;
           Log(lcError, f_('Database names not available due to missing privileges for user %s.', [CurrentUserHostCombination]));
         end;
+      end;
+    end;
+    if Parameters.IsClickHouse then begin
+      // ClickHouse has an uppercase duplicate of information_schema, for compatibility
+      for i:=FAllDatabases.Count-1 downto 0 do begin
+        if FAllDatabases[i] = UpperCase(FInfSch) then
+          FAllDatabases.Delete(i);
       end;
     end;
     Result := FAllDatabases;
@@ -6099,13 +6130,20 @@ var
   Results: TDBQuery;
   engineName, engineSupport: String;
   rx: TRegExpr;
+  EngineNames: TStringList;
 begin
   // After a disconnect Ping triggers the cached engines to be reset
   Log(lcDebug, 'Fetching list of table engines ...');
   Ping(True);
   if not Assigned(FTableEngines) then begin
     FTableEngines := TStringList.Create;
-    try
+    if Parameters.IsClickHouse then begin
+      EngineNames := GetCol('SELECT name FROM system.table_engines ORDER BY name');
+      FTableEngines.AddStrings(EngineNames);
+      EngineNames.Free;
+      FTableEngineDefault := 'MergeTree';
+    end
+    else try
       Results := GetResults('SHOW ENGINES');
       while not Results.Eof do begin
         engineName := Results.Col('Engine');
@@ -6485,8 +6523,51 @@ var
   TableIdx: Integer;
   ColQuery: TDBQuery;
   Col: TTableColumn;
-  DefText, ExtraText: String;
+  DefText, ExtraText, ColName: String;
+  ColNames: TStringList;
 begin
+  if Parameters.IsClickHouse then begin
+    // ClickHouse reports MySQL compatible data types and nullability only in SHOW COLUMNS,
+    // which sorts by name. So the column order comes from system.columns.
+    Result := TTableColumnList.Create(True);
+    ColNames := GetCol('SELECT name FROM system.columns'+
+      ' WHERE database='+EscapeString(Table.Database)+' AND table='+EscapeString(Table.Name)+
+      ' ORDER BY position');
+    ColQuery := GetResults('SHOW FULL COLUMNS FROM '+QuoteIdent(Table.Database)+'.'+QuoteIdent(Table.Name));
+    for ColName in ColNames do begin
+      ColQuery.First;
+      while not ColQuery.Eof do begin
+        if ColQuery.Col(0) = ColName then begin
+          Col := TTableColumn.Create(Self);
+          Result.Add(Col);
+          Col.Name := ColName;
+          Col.OldName := Col.Name;
+          Col.ParseDatatype(ColQuery.Col('type'));
+          Col.AllowNull := SameText(ColQuery.Col('null'), 'yes');
+          Col.OnUpdateType := cdtNothing;
+          Col.OnUpdateText := '';
+          if ColQuery.IsNull('default') then begin
+            if Col.AllowNull then
+              Col.DefaultType := cdtNull
+            else
+              Col.DefaultType := cdtNothing;
+            Col.DefaultText := '';
+          end
+          else begin
+            Col.DefaultType := cdtExpression;
+            Col.DefaultText := ColQuery.Col('default');
+          end;
+          Col.Comment := ColQuery.Col('comment', True);
+          Break;
+        end;
+        ColQuery.Next;
+      end;
+    end;
+    ColQuery.Free;
+    ColNames.Free;
+    Exit;
+  end;
+
   TableIdx := InformationSchemaObjects.IndexOf('columns');
   if TableIdx > -1 then begin
     Result := inherited;
@@ -6709,11 +6790,34 @@ var
   KeyQuery, ColQuery: TDBQuery;
   NewKey: TTableKey;
   SizeQuery: String;
-  SizeByIndex: TStringList;
+  SizeByIndex, KeyColumns: TStringList;
+  KeyColumn: String;
 begin
   Result := TTableKeyList.Create(True);
 
-  if Parameters.IsProxySQLAdmin then begin
+  if Parameters.IsClickHouse then begin
+
+    // A ClickHouse table has one primary key, which does not enforce unique values.
+    // Return it as normal key, so the data grid does not rely on it for identifying a row.
+    KeyColumns := GetCol('SELECT name FROM system.columns'+
+      ' WHERE database='+EscapeString(Table.Database)+' AND table='+EscapeString(Table.Name)+
+      ' AND is_in_primary_key ORDER BY position');
+    if KeyColumns.Count > 0 then begin
+      NewKey := TTableKey.Create(Self);
+      Result.Add(NewKey);
+      NewKey.Name := 'primary_key';
+      NewKey.OldName := NewKey.Name;
+      NewKey.IndexType := TTableKey.KEY;
+      NewKey.OldIndexType := NewKey.IndexType;
+      for KeyColumn in KeyColumns do begin
+        NewKey.Columns.Add(KeyColumn);
+        NewKey.SubParts.Add('');
+        NewKey.Collations.Add('');
+      end;
+    end;
+    KeyColumns.Free;
+
+  end else if Parameters.IsProxySQLAdmin then begin
 
     ColQuery := GetResults('SELECT * '+
       'FROM pragma_table_info('+EscapeString(Table.Name)+') '+
@@ -7839,7 +7943,21 @@ begin
   // Tables and views
   Results := nil;
   try
-    if Parameters.IsProxySQLAdmin then begin
+    if Parameters.IsClickHouse then begin
+      // No SHOW TABLE STATUS, and IS.TABLES has no comment and modification time
+      Results := GetResults('SELECT '+
+          'name AS '+QuoteIdent('Name')+', '+
+          'engine AS '+QuoteIdent('Engine')+', '+
+          'NULL AS '+QuoteIdent('Version')+', '+
+          'total_rows AS '+QuoteIdent('Rows')+', '+
+          'total_bytes AS '+QuoteIdent('Data_length')+', '+
+          '0 AS '+QuoteIdent('Index_length')+', '+
+          'metadata_modification_time AS '+QuoteIdent('Update_time')+', '+
+          'comment AS '+QuoteIdent('Comment')+
+        ' FROM system.tables'+
+        ' WHERE database='+EscapeString(db)+' AND NOT is_temporary'
+        );
+    end else if Parameters.IsProxySQLAdmin then begin
       Results := GetResults('SHOW TABLES FROM '+QuoteIdent(db));
     end else if Parameters.FullTableStatus or (UpperCase(db) = UpperCase(InfSch)) then begin
       Results := GetResults('SHOW TABLE STATUS FROM '+QuoteIdent(db));
@@ -7891,6 +8009,9 @@ begin
         Obj.Engine := Results.Col('Type', True)
       else
         Obj.Engine := Results.Col('Engine', True);
+      // ClickHouse: View, MaterializedView, LiveView, WindowView
+      if Parameters.IsClickHouse and Obj.Engine.EndsWith('View', True) then
+        Obj.NodeType := lntView;
       Obj.Comment := Results.Col('Comment', True);
       // Sanitize comment from automatically appendage
       rx.Expression := '(;\s*)?InnoDB\s*free\:.*$';

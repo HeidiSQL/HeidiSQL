@@ -408,6 +408,7 @@ var
       Index:           dbdtInt;
       NativeType:      3;
       Name:            'INT';
+      Names:           'INTEGER'; // Reported by ClickHouse in SHOW COLUMNS
       Description:     'INT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A normal-size integer. The signed range is -2147483648 to 2147483647. ' +
         'The unsigned range is 0 to 4294967295.';
@@ -1131,10 +1132,52 @@ end;
 
 { TMySqlProvider }
 
+function GetClickHouseSql(AId: TQueryId; out Sql: String): Boolean;
+begin
+  // ClickHouse speaks the MySQL protocol, but supports only a few of the MySQL specific
+  // statements. Returns False for queries which work the same way as on MySQL.
+  Result := True;
+  case AId of
+    qEmptyTable: Sql := 'TRUNCATE TABLE %s';
+    qGlobalStatus: Sql := 'SELECT ''Uptime'' AS name, toInt64(uptime()) AS value'+
+      ' UNION ALL SELECT metric, value FROM system.metrics';
+    qCommandsCounters: Sql := 'SELECT event, value FROM system.events WHERE endsWith(event, ''Query'')';
+    // Some variables expected by the MySQL connection logic, plus the real settings
+    qSessionVariables: Sql := 'SELECT ''version'' AS name, version() AS value'+
+      ' UNION ALL SELECT ''version_comment'', ''ClickHouse'''+
+      ' UNION ALL SELECT ''hostname'', hostName()'+
+      ' UNION ALL SELECT ''version_compile_os'', value FROM system.build_options WHERE name=''SYSTEM'''+
+      ' UNION ALL SELECT ''lower_case_table_names'', ''0'''+
+      ' UNION ALL SELECT ''max_allowed_packet'', value FROM system.settings WHERE name=''max_query_size'''+
+      ' UNION ALL SELECT name, value FROM system.settings';
+    qSetSessionVariable: Sql := 'SET %0:s = %2:s';
+    // Columns: id, user, host, db, command, time, state, program, memory, progress, info
+    qProcessList: Sql := 'SELECT query_id AS ID, user AS USER,'+
+      ' concat(toString(address), '':'', toString(port)) AS HOST, current_database AS DB,'+
+      ' query_kind AS COMMAND, toUInt32(elapsed) AS TIME, '''' AS STATE, client_name AS Program,'+
+      ' memory_usage AS Memory, NULL AS Progress, substring(query, 1, 50000) AS Info'+
+      ' FROM system.processes';
+    qGetCharsets: Sql := 'SELECT CHARACTER_SET_NAME AS Charset, CHARACTER_SET_NAME AS Description'+
+      ' FROM information_schema.CHARACTER_SETS';
+    qGetRowCountApprox: Sql := 'SELECT total_rows FROM system.tables'+
+      ' WHERE database=:EscapedDatabase AND name=:EscapedName';
+    // Not supported:
+    qGlobalVariables, qSetGlobalVariable, qProcessListProgram, qLockedTables,
+    qDisableForeignKeyChecks, qEnableForeignKeyChecks, qGetCollationsExtended, qSetTimezone,
+    qShowFunctionStatus, qShowProcedureStatus, qShowTriggers, qShowEvents, qShowCreateTrigger,
+    qHelpKeyword, qIndexVisible, qIndexInvisible, qGetAuthPlugins, qIndexSize:
+      Sql := '';
+    else Result := False;
+  end;
+end;
+
+
 function TMySqlProvider.GetSql(AId: TQueryId): string;
 var
   IsMariaDB, IsMySQL: Boolean;
 begin
+  if (FNetType = ntMySQL_ClickHouse) and GetClickHouseSql(AId, Result) then
+    Exit;
   IsMariaDB := ServerVersion >= 100000;
   IsMySQL := not IsMariaDB;
   case AId of

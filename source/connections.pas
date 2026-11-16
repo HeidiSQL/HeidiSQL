@@ -1735,7 +1735,7 @@ begin
       editUsername.Button.Enabled := Params.NetType = ntSQLiteEncrypted;
       lblPassword.Enabled := lblUsername.Enabled;
       editPassword.Enabled := lblUsername.Enabled;
-      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP, ntFirebird_TCPIP];
+      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntMySQL_RDS, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP, ntFirebird_TCPIP];
       spinPort.Enabled := lblPort.Enabled;
       chkCompressed.Enabled := Params.IsAnyMySQL;
       lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
@@ -1766,12 +1766,12 @@ begin
       lblQueryTimeout.Enabled := True;
       spinQueryTimeout.Enabled := lblQueryTimeout.Enabled;
       chkLocalTimeZone.Enabled := Params.NetTypeGroup = ngMySQL;
-      chkFullTableStatus.Enabled := (Params.NetTypeGroup in [ngMySQL, ngPgSQL, ngSQLite]) and (Params.NetType <> ntMySQL_ProxySQLAdmin);
+      chkFullTableStatus.Enabled := (Params.NetTypeGroup in [ngMySQL, ngPgSQL, ngSQLite]) and (not (Params.NetType in [ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse]));
       chkCleartextPluginEnabled.Enabled := Params.NetTypeGroup = ngMySQL;
       chkForceUnicode.Enabled := Params.NetTypeGroup = ngMySQL;
       editLogFilePath.Enabled := Params.LogFileDdl or Params.LogFileDml;
       // SSL tab:
-      chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
+      chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntMySQL_RDS, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       lblSSLPrivateKey.Enabled := Params.WantSSL;
       editSSLPrivateKey.Enabled := Params.WantSSL;
       lblSSLCACertificate.Enabled := Params.WantSSL;
