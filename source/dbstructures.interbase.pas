@@ -246,7 +246,7 @@ begin
       'select user from rdb$database',
       'select current_user || ''@'' || mon$attachments.mon$remote_host from mon$attachments where mon$attachments.mon$attachment_id = current_connection'
       );
-    qLikeCompare: Result := '%s LIKE %s';
+    qLikeCompare: Result := '%s LIKE %s ESCAPE ''\''';
     qAddColumn: Result := 'ADD COLUMN %s';
     qChangeColumn: Result := 'CHANGE COLUMN %s %s';
     qRenameColumn: Result := '';

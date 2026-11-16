@@ -675,7 +675,7 @@ begin
     qRenameTable: Result := 'EXEC sp_rename %s, %s';
     qRenameView: Result := 'EXEC sp_rename %s, %s';
     qCurrentUserHost: Result := 'SELECT SYSTEM_USER';
-    qLikeCompare: Result := '%s LIKE %s';
+    qLikeCompare: Result := '%s LIKE %s ESCAPE ''\''';
     qAddColumn: Result := 'ADD %s';
     qChangeColumn: Result := 'ALTER COLUMN %s %s';
     qSetColumnComment: Result := 'IF NOT EXISTS (' + sLineBreak +

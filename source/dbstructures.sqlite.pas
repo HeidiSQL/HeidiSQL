@@ -408,7 +408,7 @@ begin
     qRenameTable: Result := 'ALTER TABLE %s RENAME TO %s';
     qRenameView: Result := 'ALTER TABLE %s RENAME TO %s';
     qCurrentUserHost: Result := ''; // unsupported
-    qLikeCompare: Result := '%s LIKE %s';
+    qLikeCompare: Result := '%s LIKE %s ESCAPE ''\''';
     qAddColumn: Result := 'ADD COLUMN %s';
     qChangeColumn: Result := ''; // SQLite only supports renaming
     qRenameColumn: Result := 'RENAME COLUMN %s TO %s';
