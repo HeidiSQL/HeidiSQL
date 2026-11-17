@@ -1783,12 +1783,12 @@ end;
 procedure TDataTypeEditorLink.DoTreeSelectInitChildren(Sender: TBaseVirtualTree;
   Node: PVirtualNode; var ChildCount: Cardinal);
 var
-  i: Integer;
+  DT: TDBDatatype;
 begin
   // Tell number of datatypes per category
   ChildCount := 0;
-  if Sender.GetNodeLevel(Node) = 0 then for i:=0 to High(FTableColumn.Connection.Datatypes) do begin
-    if FTableColumn.Connection.Datatypes[i].Category = TDBDatatypeCategoryIndex(Node.Index) then
+  if Sender.GetNodeLevel(Node) = 0 then for DT in FTableColumn.Connection.Datatypes do begin
+    if DT.Category = TDBDatatypeCategoryIndex(Node.Index) then
       Inc(ChildCount);
   end;
 end;
@@ -1797,7 +1797,7 @@ end;
 procedure TDataTypeEditorLink.DoTreeSelectGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
 var
-  i: Integer;
+  DT: TDBDatatype;
   Counter: Cardinal;
 begin
   // Get cell text
@@ -1805,11 +1805,11 @@ begin
     0: CellText := DatatypeCategories[TDBDatatypeCategoryIndex(Node.Index)].Name;
     1: begin
          Counter := 0;
-         for i:=0 to High(FTableColumn.Connection.Datatypes) do begin
-           if FTableColumn.Connection.Datatypes[i].Category = TDBDatatypeCategoryIndex(Node.Parent.Index) then begin
+         for DT in FTableColumn.Connection.Datatypes do begin
+           if DT.Category = TDBDatatypeCategoryIndex(Node.Parent.Index) then begin
              Inc(Counter);
              if Counter = Node.Index+1 then begin
-               CellText := FTableColumn.Connection.Datatypes[i].Name;
+               CellText := DT.Name;
                break;
              end;
            end;

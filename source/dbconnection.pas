@@ -428,7 +428,6 @@ type
   TDBLogItems = TObjectList<TDBLogItem>;
   TDBLogEvent = procedure(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil) of object;
   TDBEvent = procedure(Connection: TDBConnection; Database: String) of object;
-  TDBDataTypeArray = Array of TDBDataType;
   TFeatureOrRequirement = (
     frSrid,
     frTemporalTypesFraction,
@@ -580,6 +579,7 @@ type
       procedure PurgePrefetchResults;
       function GetDatatypeByName(var DataType: String; DeleteFromSource: Boolean; Identifier: String=''): TDBDatatype;
       function GetDatatypeByNativeType(NativeType: Integer; Identifier: String=''): TDBDatatype;
+      function GetDatatypeByIndex(Index: TDBDatatypeIndex): TDBDatatype;
       function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Int64): String;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property OwnsParameters: Boolean read FOwnsParameters write FOwnsParameters;
@@ -2202,45 +2202,32 @@ end;
 
 
 constructor TMySQLConnection.Create(AOwner: TComponent);
-var
-  i: Integer;
 begin
   inherited;
   FQuoteChar := '`';
   FQuoteChars := '`"';
   FStatementNum := 0;
-  // The compiler complains that dynamic and static arrays are incompatible, so this does not work:
-  // FDatatypes := MySQLDatatypes
-  SetLength(FDatatypes, Length(MySQLDatatypes));
-  for i:=0 to High(MySQLDatatypes) do
-    FDatatypes[i] := MySQLDatatypes[i];
+  // Copy, as FDatatypes gets modified per connection
+  FDatatypes := CopyDatatypes(MySQLDatatypes);
 end;
 
 
 constructor TAdoDBConnection.Create(AOwner: TComponent);
-var
-  i: Integer;
 begin
   inherited;
-  SetLength(FDatatypes, Length(MSSQLDatatypes));
-  for i:=0 to High(MSSQLDatatypes) do
-    FDatatypes[i] := MSSQLDatatypes[i];
+  FDatatypes := CopyDatatypes(MSSQLDatatypes);
   FInfSch := 'INFORMATION_SCHEMA';
   FMaxRowsPerInsert := 1000;
 end;
 
 
 constructor TPgConnection.Create(AOwner: TComponent);
-var
-  i: Integer;
 begin
   inherited;
   FHexPrefix := '''\x';
   FHexPostfix := '''';
   FQuoteChars := '"';
-  SetLength(FDatatypes, Length(PostGreSQLDatatypes));
-  for i:=0 to High(PostGreSQLDatatypes) do
-    FDatatypes[i] := PostGreSQLDatatypes[i];
+  FDatatypes := CopyDatatypes(PostgreSQLDatatypes);
   // cache for 123::regclass queries:
   FRegClasses := TOidStringPairs.Create;
   // Identifiers with uppercase characters must be quoted, see #1072
@@ -2249,28 +2236,20 @@ end;
 
 
 constructor TSQLiteConnection.Create(AOwner: TComponent);
-var
-  i: Integer;
 begin
   inherited;
   FHexPrefix := 'x''';
   FHexPostfix := '''';
-  SetLength(FDatatypes, Length(SQLiteDatatypes));
-  for i:=0 to High(SQLiteDatatypes) do
-    FDatatypes[i] := SQLiteDatatypes[i];
+  FDatatypes := CopyDatatypes(SQLiteDatatypes);
   // SQLite does not have IS:
   FInfSch := '';
 end;
 
 
 constructor TInterbaseConnection.Create(AOwner: TComponent);
-var
-  i: Integer;
 begin
   inherited;
-  SetLength(FDatatypes, Length(InterbaseDatatypes));
-  for i:=0 to High(InterbaseDatatypes) do
-    FDatatypes[i] := InterbaseDatatypes[i];
+  FDatatypes := CopyDatatypes(InterbaseDatatypes);
   // Interbase does not have IS:
   FInfSch := '';
 end;
@@ -2278,22 +2257,17 @@ end;
 
 procedure TInterbaseConnection.UpdateDatatypes;
 var
-  i: Integer;
+  DT: TDBDatatype;
 begin
   // Skip the Firebird-only column types when connecting to InterBase, which
   // rejects them in DDL and never returns them: BIGINT (16), DECFLOAT (24/25),
   // INT128 (26) and the time zone types (28/29), see RDB$TYPES.
   // Called from SetActive, as the nettype is unknown in the constructor.
   if Parameters.IsInterbase then begin
-    SetLength(FDatatypes, 0);
-    for i:=0 to High(InterbaseDatatypes) do begin
-      if InterbaseDatatypes[i].NativeTypes = '16' then Continue;
-      if InterbaseDatatypes[i].NativeTypes = '24|25' then Continue;
-      if InterbaseDatatypes[i].NativeTypes = '26' then Continue;
-      if InterbaseDatatypes[i].NativeTypes = '28' then Continue;
-      if InterbaseDatatypes[i].NativeTypes = '29' then Continue;
-      SetLength(FDatatypes, Length(FDatatypes)+1);
-      FDatatypes[High(FDatatypes)] := InterbaseDatatypes[i];
+    FDatatypes := [];
+    for DT in InterbaseDatatypes do begin
+      if not MatchStr(DT.NativeTypes, ['16', '24|25', '26', '28', '29']) then
+        FDatatypes := FDatatypes + [DT];
     end;
   end;
 end;
@@ -2361,7 +2335,8 @@ end;
 
 function TDBConnection.GetDatatypeByName(var DataType: String; DeleteFromSource: Boolean; Identifier: String=''): TDBDatatype;
 var
-  i, MatchLen: Integer;
+  MatchLen: Integer;
+  DT: TDBDatatype;
   Match: Boolean;
   rx: TRegExpr;
   Types, tmp: String;
@@ -2372,10 +2347,10 @@ begin
   MatchLen := 0;
   // Remove quotes around PG enums: "UserStatus"
   DataType := DeQuoteIdent(DataType);
-  for i:=0 to High(FDatatypes) do begin
-    Types := FDatatypes[i].Name;
-    if FDatatypes[i].Names <> '' then begin
-      Types := Types + '|' + FDatatypes[i].Names;
+  for DT in FDatatypes do begin
+    Types := DT.Name;
+    if DT.Names <> '' then begin
+      Types := Types + '|' + DT.Names;
       // Move more exact (longer) types to the beginning
       TypesSorted := Explode('|', Types);
       TypesSorted.CustomSort(StringListCompareByLength);
@@ -2393,7 +2368,7 @@ begin
         // TODO: detect array style datatypes, e.g. TEXT[]
       end else begin
         MatchLen := rx.MatchLen[1];
-        Result := FDatatypes[i];
+        Result := DT;
       end;
     end;
   end;
@@ -2421,28 +2396,29 @@ end;
 
 function TDBConnection.GetDatatypeByNativeType(NativeType: Integer; Identifier: String=''): TDBDatatype;
 var
-  i: Integer;
+  DT: TDBDatatype;
   rx: TRegExpr;
   TypeFound: Boolean;
 begin
   rx := TRegExpr.Create;
   TypeFound := False;
 
-  for i:=0 to High(Datatypes) do begin
+  for DT in FDatatypes do begin
     // Skip if native ids / oid's are (yet) empty
-    if Datatypes[i].NativeTypes.IsEmpty then
+    if DT.NativeTypes.IsEmpty then
       Continue;
     // Skip ? and e which have a special meaning in PostgreSQL. Do not skip
     // single digit ids of other servers, e.g. Firebird's 7, 8 and 9.
-    if (Datatypes[i].NativeTypes = '?') or (Datatypes[i].NativeTypes = 'e') then
+    if (DT.NativeTypes = '?') or (DT.NativeTypes = 'e') then
       Continue;
-    rx.Expression := '\b('+Datatypes[i].NativeTypes+')\b';
+    rx.Expression := '\b('+DT.NativeTypes+')\b';
     if rx.Exec(IntToStr(NativeType)) then begin
-      Result := Datatypes[i];
+      Result := DT;
       TypeFound := True;
       break;
     end;
   end;
+  rx.Free;
 
   { Dynamically retrieve data type from pg_type.
     Problematic because we would not know which TDBDatatypeIndex to assign.
@@ -2461,6 +2437,19 @@ begin
     else
       Log(lcError, f_('Unknown datatype oid #%0:d. Fall back to %1:s.', [NativeType, Result.Name]));
   end;
+end;
+
+
+function TDBConnection.GetDatatypeByIndex(Index: TDBDatatypeIndex): TDBDatatype;
+var
+  DT: TDBDatatype;
+begin
+  // Return the first data type with the given index, or the unknown type
+  for DT in FDatatypes do begin
+    if DT.Index = Index then
+      Exit(DT);
+  end;
+  Result := FDatatypes[0];
 end;
 
 
@@ -9083,7 +9072,8 @@ end;
 
 procedure TMySQLQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
-  i, j, NumFields, NumResults: Integer;
+  i, NumFields, NumResults: Integer;
+  DT: TDBDatatype;
   Field: PMYSQL_FIELD;
   IsBinary: Boolean;
   LastResult: PMYSQL_RES;
@@ -9139,23 +9129,23 @@ begin
         FColumnTypes[i] := FConnection.Datatypes[0];
         if (Field.flags and AUTO_INCREMENT_FLAG) = AUTO_INCREMENT_FLAG then
           FAutoIncrementColumn := i;
-        for j:=0 to High(FConnection.Datatypes) do begin
-          if (Field.flags and ENUM_FLAG) = ENUM_FLAG then begin
-            if FConnection.Datatypes[j].Index = dbdtEnum then
-              FColumnTypes[i] := FConnection.Datatypes[j];
-          end else if (Field.flags and SET_FLAG) = SET_FLAG then begin
-            if FConnection.Datatypes[j].Index = dbdtSet then
-              FColumnTypes[i] := FConnection.Datatypes[j];
-          end else if Field._type = Cardinal(FConnection.Datatypes[j].NativeType) then begin
-            // Text and Blob types share the same constants (see FIELD_TYPEs)
-            // See http://dev.mysql.com/doc/refman/5.7/en/c-api-data-structures.html
-            if Connection.IsUnicode then
-              IsBinary := Field.charsetnr = COLLATION_BINARY
-            else
-              IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
-            if IsBinary and (FConnection.Datatypes[j].Category = dtcText) then
-              continue;
-            FColumnTypes[i] := FConnection.Datatypes[j];
+        if (Field.flags and ENUM_FLAG) = ENUM_FLAG then
+          FColumnTypes[i] := FConnection.GetDatatypeByIndex(dbdtEnum)
+        else if (Field.flags and SET_FLAG) = SET_FLAG then
+          FColumnTypes[i] := FConnection.GetDatatypeByIndex(dbdtSet)
+        else begin
+          // Text and Blob types share the same constants (see FIELD_TYPEs)
+          // See http://dev.mysql.com/doc/refman/5.7/en/c-api-data-structures.html
+          if Connection.IsUnicode then
+            IsBinary := Field.charsetnr = COLLATION_BINARY
+          else
+            IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
+          for DT in FConnection.Datatypes do begin
+            if Field._type <> Cardinal(DT.NativeType) then
+              Continue;
+            if IsBinary and (DT.Category = dtcText) then
+              Continue;
+            FColumnTypes[i] := DT;
             Break;
           end;
         end;
@@ -11625,7 +11615,6 @@ constructor TTableColumn.Create(AOwner: TDBConnection; Serialized: String='');
 var
   Attributes: TStringList;
   DataTypeIdx, OldDataTypeIdx: TDBDatatypeIndex;
-  i: Integer;
   NumVal: String;
 
   function FromSerialized(Name, Default: String): String;
@@ -11651,12 +11640,8 @@ begin
   DataTypeIdx := TDBDatatypeIndex(NumVal.ToInteger);
   NumVal := FromSerialized('OldDataType', Integer(dbdtUnknown).ToString);
   OldDataTypeIdx := TDBDatatypeIndex(NumVal.ToInteger);
-  for i:=Low(Connection.Datatypes) to High(Connection.Datatypes) do begin
-    if Connection.Datatypes[i].Index = DataTypeIdx then
-      DataType := Connection.Datatypes[i];
-    if Connection.Datatypes[i].Index = OldDataTypeIdx then
-      OldDataType := Connection.Datatypes[i];
-  end;
+  DataType := Connection.GetDatatypeByIndex(DataTypeIdx);
+  OldDataType := Connection.GetDatatypeByIndex(OldDataTypeIdx);
   LengthSet := FromSerialized('LengthSet', '');
   Unsigned := FromSerialized('Unsigned', '0').ToInteger.ToBoolean;
   AllowNull := FromSerialized('AllowNull', '1').ToInteger.ToBoolean;

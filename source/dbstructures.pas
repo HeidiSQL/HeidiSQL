@@ -114,6 +114,7 @@ type
     Category:        TDBDatatypeCategoryIndex;
     MinVersion:      Integer;
   end;
+  TDBDataTypeArray = Array of TDBDataType;
 
   // Column type category structure
   TDBDatatypeCategory = record
@@ -186,11 +187,25 @@ var
     )
   );
 
+  function CopyDatatypes(const Source: array of TDBDatatype): TDBDataTypeArray;
+
 
 
 implementation
 
 uses apphelpers;
+
+
+function CopyDatatypes(const Source: array of TDBDatatype): TDBDataTypeArray;
+var
+  i: Integer;
+begin
+  // Delphi cannot initialize a dynamic array of records, so the data type lists
+  // are static arrays, which need to be copied into a dynamic one.
+  SetLength(Result, Length(Source));
+  for i:=0 to High(Source) do
+    Result[i] := Source[i];
+end;
 
 
 { TSqlProvider }

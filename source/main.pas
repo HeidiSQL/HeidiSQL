@@ -7359,10 +7359,11 @@ procedure TMainForm.SynMemoQueryTokenHint(Sender: TObject; Coords: TBufferCoord;
   var HintText: string);
 var
   SQLFunc: TSQLFunction;
+  DT: TDBDatatype;
   Conn: TDBConnection;
   AllObjects: TDBObjectList;
   Obj: TDBObject;
-  i, ColumnNameChars: Integer;
+  ColumnNameChars: Integer;
   Column: TTableColumn;
   Parameters: TRoutineParamList;
   Params: TStringList;
@@ -7434,9 +7435,9 @@ begin
       end;
 
       SynHighlighterSQL.tkDatatype: begin
-        for i:=Low(Conn.Datatypes) to High(Conn.Datatypes) do begin
-          if Conn.Datatypes[i].Name.ToLower = Token.ToLower then begin
-            HintText := WrapText(Conn.Datatypes[i].Description, 100);
+        for DT in Conn.Datatypes do begin
+          if DT.Name.ToLower = Token.ToLower then begin
+            HintText := WrapText(DT.Description, 100);
             Break;
           end;
         end;

@@ -128,7 +128,7 @@ end;
 
 procedure TfrmRoutineEditor.Init(Obj: TDBObject);
 var
-  i: Integer;
+  DT: TDBDatatype;
 begin
   inherited;
   TExtForm.RestoreListSetup(listParameters);
@@ -138,8 +138,8 @@ begin
   comboType.ItemIndex := 0;
   comboReturns.Text := '';
   comboReturns.Clear;
-  for i:=0 to High(Obj.Connection.Datatypes) do
-    comboReturns.Items.Add(Obj.Connection.Datatypes[i].Name);
+  for DT in Obj.Connection.Datatypes do
+    comboReturns.Items.Add(DT.Name);
   chkDeterministic.Checked := False;
   SelectNode(listParameters, nil);
   listParameters.Clear;
