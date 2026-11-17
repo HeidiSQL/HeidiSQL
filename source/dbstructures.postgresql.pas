@@ -350,19 +350,6 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dbdtDate;
-      NativeTypes:     '1082';
-      Name:            'DATE';
-      Description:     'Calendar date (year, month, day).';
-      HasLength:       False;
-      RequiresLength:  False;
-      HasBinary:       False;
-      HasDefault:      False;
-      LoadPart:        False;
-      Format:          'yyyy-mm-dd';
-      Category:        dtcTemporal;
-    ),
-    (
       Index:           dbdtInterval;
       NativeTypes:     '1186';
       Name:            'INTERVAL';
