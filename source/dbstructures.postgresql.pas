@@ -44,7 +44,7 @@ type
 const InvalidOid: POid = 0;
 
 var
-  PostgreSQLDatatypes: Array[0..39] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..38] of TDBDatatype =
   (
     (
       Index:           dbdtUnknown;
@@ -345,19 +345,6 @@ var
       HasDefault:      False;
       LoadPart:        False;
       Format:          'yyyy-mm-dd hh:nn:ss';
-      Category:        dtcTemporal;
-    ),
-    (
-      Index:           dbdtDate;
-      NativeTypes:     '1082';
-      Name:            'DATE';
-      Description:     'Calendar date (year, month, day).';
-      HasLength:       False;
-      RequiresLength:  False;
-      HasBinary:       False;
-      HasDefault:      False;
-      LoadPart:        False;
-      Format:          'yyyy-mm-dd';
       Category:        dtcTemporal;
     ),
     (
