@@ -46,8 +46,8 @@ type
 const InvalidOid: POid = 0;
 
 var
-  PostgreSQLDatatypes: Array[0..39] of TDBDatatype =
-  (
+  PostgreSQLDatatypes: TDBDataTypeArray =
+  [
     (
       Index:           dbdtUnknown;
       NativeTypes:     '99999';
@@ -564,7 +564,7 @@ var
       ValueMustMatch:  '^\{?[a-f0-9]{8}-?[a-f0-9]{4}-?[a-f0-9]{4}-?[a-f0-9]{4}-?[a-f0-9]{12}\}?$';
       Category:        dtcText;
     )
-  );
+  ];
 
 implementation
 

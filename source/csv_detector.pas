@@ -289,9 +289,8 @@ begin
 
       // Now, find a fitting data type for this column
 
-      for k:=Low(FConnection.Datatypes) to High(FConnection.Datatypes) do begin
+      for LoopType in FConnection.Datatypes do begin
 
-        LoopType := FConnection.Datatypes[k];
         UnknownTypeYet := Col.DataType.Index = dbdtUnknown;
         if (ValueSize = 0) or (CompareText(Value.OldText, 'null')=0) or (CompareText(Value.OldText, '\N')=0) then
           Col.AllowNull := True;

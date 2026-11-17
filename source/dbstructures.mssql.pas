@@ -29,8 +29,8 @@ type
 
 var
 
-  MSSQLDatatypes: array [0..33] of TDBDatatype =
-  (
+  MSSQLDatatypes: TDBDataTypeArray =
+  [
     (
       Index:           dbdtUnknown;
       NativeTypes:     '99999';
@@ -424,7 +424,7 @@ var
       LoadPart:        False;
       Category:        dtcOther;
     )
-  );
+  ];
 
 
 implementation

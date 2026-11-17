@@ -18,8 +18,8 @@ var
 
   // Interbase field types
   // Taken from https://docwiki.embarcadero.com/InterBase/2020/en/RDB$FIELDS
-  InterbaseDatatypes: Array[0..17] of TDBDatatype =
-  (
+  InterbaseDatatypes: TDBDataTypeArray =
+  [
     (
       Index:           dbdtUnknown;
       Name:            'UNKNOWN';
@@ -226,7 +226,7 @@ var
       LoadPart:        False;
       Category:        dtcTemporal;
     )
-  );
+  ];
 
 
 implementation

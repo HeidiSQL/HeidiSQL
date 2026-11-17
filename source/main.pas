@@ -7679,10 +7679,11 @@ var
   TokenType, TokenStart: Integer;
   RowColPos: TPoint;
   SQLFunc: TSQLFunction;
+  DT: TDBDatatype;
   Conn: TDBConnection;
   AllObjects: TDBObjectList;
   Obj: TDBObject;
-  i, ColumnNameChars: Integer;
+  ColumnNameChars: Integer;
   Column: TTableColumn;
   LineText, Signatures, FuncDescription: String;
   NextCharPos: Integer;
@@ -7780,9 +7781,9 @@ begin
     end;}
 
     SynHighlighterSQL.tkDatatype: begin
-      for i:=Low(Conn.Datatypes) to High(Conn.Datatypes) do begin
-        if Conn.Datatypes[i].Name.ToLower = Token.ToLower then begin
-          HintInfo.HintStr := WrapText(Conn.Datatypes[i].Description, 100);
+      for DT in Conn.Datatypes do begin
+        if DT.Name.ToLower = Token.ToLower then begin
+          HintInfo.HintStr := WrapText(DT.Description, 100);
           Break;
         end;
       end;

@@ -163,8 +163,8 @@ type
 
 var
 
-  SQLiteDatatypes: Array[0..15] of TDBDatatype =
-  (
+  SQLiteDatatypes: TDBDataTypeArray =
+  [
     (
       Index:           dbdtUnknown;
       Name:            'UNKNOWN';
@@ -338,7 +338,7 @@ var
       DefLengthSet:    '''Value A'',''Value B''';
       Category:        dtcOther;
     )
-  );
+  ];
 
 
 implementation

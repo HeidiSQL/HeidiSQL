@@ -138,7 +138,7 @@ var
   IsEsc, IsQuote, InComment, InBigComment, InString, InKeyword, InIdent, LastWasComment: Boolean;
   c, p: Char;
   Keyword, PreviousKeyword, TestPair: String;
-  Datatypes: TDBDataTypeArray;
+  DT: TDBDatatype;
 const
   WordChars = ['a'..'z', 'A'..'Z', '0'..'9', '_', '.'];
   WhiteSpaces = [#9, #10, #13, #32];
@@ -153,9 +153,8 @@ begin
     if (SQLFunc.Declaration <> '') and (SQLFunc.Name <> 'X') then
       AllKeywords.Add(SQLFunc.Name);
   end;
-  Datatypes := Conn.Datatypes;
-  for i:=Low(Datatypes) to High(Datatypes) do
-    AllKeywords.Add(Datatypes[i].Name);
+  for DT in Conn.Datatypes do
+    AllKeywords.Add(DT.Name);
   KeywordMaxLen := 0;
   for i:=0 to AllKeywords.Count-1 do
     KeywordMaxLen := Max(KeywordMaxLen, Length(AllKeywords[i]));

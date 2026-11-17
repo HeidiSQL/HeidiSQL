@@ -126,6 +126,7 @@ type
     Category:        TDBDatatypeCategoryIndex;
     MinVersion:      Integer;
   end;
+  TDBDataTypeArray = Array of TDBDataType;
 
   // Column type category structure
   TDBDatatypeCategory = record

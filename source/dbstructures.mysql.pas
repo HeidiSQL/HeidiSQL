@@ -332,8 +332,8 @@ var
 
 
   // MySQL Data Type List and Properties
-  MySQLDatatypes: array [0..42] of TDBDatatype =
-  (
+  MySQLDatatypes: TDBDataTypeArray =
+  [
     (
       Index:           dbdtUnknown;
       NativeTypes:     '99999';
@@ -1032,7 +1032,7 @@ var
       Category:        dtcSpatial;
     )
 
-  );
+  ];
 
 
 implementation
