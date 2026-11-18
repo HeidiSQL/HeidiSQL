@@ -1875,7 +1875,8 @@ begin
     ngInterbase: begin
       Result := 203;
       if IsFirebird then Result := 204;
-    end
+    end;
+    ngOracle: Result := 208;
     else Result := ICONINDEX_SERVER;
   end;
 end;
