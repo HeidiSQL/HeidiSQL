@@ -6360,6 +6360,9 @@ begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
           end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dbdtHierarchyid) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ';
+          end else if not DBObj.Connection.GetGridColumnExpression(c).IsEmpty then begin
+            // Column types which the driver cannot fetch, or not exactly
+            Select := Select + ' ' + DBObj.Connection.GetGridColumnExpression(c) + ', ';
           end else begin
             Select := Select + ' ' + DBObj.Connection.QuoteIdent(c.Name) + ', ';
             Inc(FullColumnCount);
@@ -6413,7 +6416,7 @@ begin
     if RefreshingData and (vt.Tag <> VTREE_NOTLOADED_PURGECACHE) then begin
       case DBObj.Connection.Parameters.NetTypeGroup of
         ngMSSQL: Offset := 0; // Does not support offset in all server versions
-        ngMySQL, ngPgSQL, ngSQLite: Offset := DataGridResult.RecordCount;
+        ngMySQL, ngPgSQL, ngSQLite, ngOracle: Offset := DataGridResult.RecordCount;
         else raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(DBObj.Connection.Parameters.NetType)]);
       end;
     end;
@@ -10244,6 +10247,8 @@ begin
           SynSQLSynUsed.SQLDialect := sqlStandard;
         ngInterbase:
           SynSQLSynUsed.SQLDialect := sqlInterbase6;
+        ngOracle:
+          SynSQLSynUsed.SQLDialect := sqlOracle;
         else
           raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FActiveDbObj.Connection.Parameters.NetType)]);
       end;

@@ -7512,3 +7512,23 @@ msgstr "User or role <%s@%s> already exists."
 #: view.lfm:230
 msgid "SQL security:"
 msgstr "SQL security:"
+
+#: dbconnection.pas
+msgid "No ODBC driver selected. Please install the ODBC driver for your database server, and select it in your session settings."
+msgstr "No ODBC driver selected. Please install the ODBC driver for your database server, and select it in your session settings."
+
+#: dbconnection.pas
+msgid "Your NLS_LANG environment variable is set to %s. Use a UTF-8 character set like %s to avoid broken non-ASCII text."
+msgstr "Your NLS_LANG environment variable is set to %s. Use a UTF-8 character set like %s to avoid broken non-ASCII text."
+
+#: dbconnection.pas
+msgid "Grid editing is not yet supported on %s."
+msgstr "Grid editing is not yet supported on %s."
+
+#: connections.pas
+msgid "Service name:"
+msgstr "Service name:"
+
+#: connections.pas
+msgid "ODBC driver:"
+msgstr "ODBC driver:"

@@ -1704,6 +1704,10 @@ begin
       lblPassword.Caption := _('Password:');
       lblDatabase.Caption := _('Databases')+':';
       editDatabases.TextHint := _('Separated by semicolon');
+      if Params.IsAnyOracle then
+        lblLibrary.Caption := _('ODBC driver:')
+      else
+        lblLibrary.Caption := _('Library:');
       case Params.NetType of
         ntMySQL_NamedPipe: begin
           lblHost.Caption := _('Socket name:');
@@ -1711,6 +1715,10 @@ begin
         ntPgSQL_TCPIP, ntPgSQL_SSHtunnel: begin
           lblDatabase.Caption := _('Database')+':';
           editDatabases.TextHint := _('Single database name');
+        end;
+        ntOracle_ODBC: begin
+          lblDatabase.Caption := _('Service name:');
+          editDatabases.TextHint := _('Example:') + ' XEPDB1';
         end;
         ntSQLite, ntSQLiteEncrypted: begin
           lblHost.Caption := _('Database filename(s)')+':';
@@ -1725,9 +1733,9 @@ begin
         editHost.Hint := FPathVariablesHint
       else
         editHost.Hint := '';
-      chkLoginPrompt.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL];
+      chkLoginPrompt.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngOracle];
       chkWindowsAuth.Enabled := Params.IsAnyMSSQL or Params.IsAnyMySQL;
-      lblUsername.Enabled := (Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase])
+      lblUsername.Enabled := (Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase, ngOracle])
         and ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
         and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
       lblUsername.Enabled := lblUsername.Enabled or (Params.NetType = ntSQLiteEncrypted);
@@ -1735,12 +1743,13 @@ begin
       editUsername.Button.Enabled := Params.NetType = ntSQLiteEncrypted;
       lblPassword.Enabled := lblUsername.Enabled;
       editPassword.Enabled := lblUsername.Enabled;
-      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntMySQL_RDS, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP, ntFirebird_TCPIP];
+      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntMySQL_RDS, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP, ntFirebird_TCPIP, ntOracle_ODBC];
       spinPort.Enabled := lblPort.Enabled;
       chkCompressed.Enabled := Params.IsAnyMySQL;
-      lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
+      lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase, ngOracle];
       lblDatabase.Enabled := lblDatabase.Enabled or (Params.NetType = ntSQLiteEncrypted);
       editDatabases.Enabled := lblDatabase.Enabled;
+      // Oracle: service name, not selectable from a list
       editDatabases.Button.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
       // SSH tunnel tab:
       chkSSHActive.Enabled := Params.SshSupport;
@@ -1765,7 +1774,7 @@ begin
       // Advanced tab:
       lblQueryTimeout.Enabled := True;
       spinQueryTimeout.Enabled := lblQueryTimeout.Enabled;
-      chkLocalTimeZone.Enabled := Params.NetTypeGroup = ngMySQL;
+      chkLocalTimeZone.Enabled := Params.NetTypeGroup in [ngMySQL, ngOracle];
       chkFullTableStatus.Enabled := (Params.NetTypeGroup in [ngMySQL, ngPgSQL, ngSQLite]) and (not (Params.NetType in [ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse]));
       chkCleartextPluginEnabled.Enabled := Params.NetTypeGroup = ngMySQL;
       chkForceUnicode.Enabled := Params.NetTypeGroup = ngMySQL;

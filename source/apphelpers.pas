@@ -3540,7 +3540,7 @@ begin
   case NetTypeGroup of
     ngMySQL: FQuotes.Add('`'); // MySQL/MariaDB only
     ngPgSQL: FQuotes.Add('$$'); // PostgreSQL only ($abc$ unsupported)
-    ngSQLite: FEscape := '''';
+    ngSQLite, ngOracle: FEscape := '''';
   end;
 end;
 
