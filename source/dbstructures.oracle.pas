@@ -353,12 +353,16 @@ begin
   case AId of
     qEmptyTable: Result := 'TRUNCATE TABLE %s';
     qRenameTable: Result := 'ALTER TABLE %s RENAME TO %s';
+    // Only in the own schema
+    qRenameView: Result := 'RENAME %s TO %s';
     qCurrentUserHost: Result := 'SELECT USER || ''@'' || SYS_CONTEXT(''USERENV'', ''HOST'') FROM dual';
     qLikeCompare: Result := '%s LIKE %s ESCAPE ''\''';
     qAddColumn: Result := 'ADD %s';
     qChangeColumn: Result := 'MODIFY %s';
     qRenameColumn: Result := 'RENAME COLUMN %s TO %s';
     qForeignKeyDrop: Result := 'DROP CONSTRAINT %s';
+    // No ON UPDATE in Oracle, and no RESTRICT
+    qForeignKeyEventAction: Result := 'NO ACTION,CASCADE,SET NULL';
     qSessionVariables: Result := 'SELECT PARAMETER, VALUE FROM NLS_SESSION_PARAMETERS ORDER BY PARAMETER';
     qUSEQuery: Result := 'ALTER SESSION SET CURRENT_SCHEMA = %s';
     qFuncLength: Result := 'LENGTH';

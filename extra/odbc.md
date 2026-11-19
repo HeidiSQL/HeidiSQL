@@ -296,6 +296,7 @@ Code:
   Library dropdown = installed drivers matching `oracle`, label "ODBC driver:".
   SSH tunnel allowed, SSL tab disabled, "Use own client time zone" enabled.
 - Grid editing is blocked with a message (`TDBQuery.CheckEditable`).
+- Icon: `server-oracle.png` (commit "feat: add Oracle connection icon").
 
 Learned while implementing:
 - `TCustomSQLQuery.ExecSQL` with `sqoAutoCommit` commits the shared
@@ -346,9 +347,51 @@ Learned while implementing:
   characters, `;` and `}` are not handled: a password with `;` breaks the
   connection string (not fixed).
 
+Editors (second step):
+- Table editor: ALTER and CREATE for Oracle. One `ALTER TABLE` per clause,
+  Oracle has no comma separated clause list. Columns: `RENAME COLUMN`,
+  `MODIFY (...)` with only the changed parts, compared to the server's column
+  (ORA-01442 for NOT NULL on NOT NULL, ORA-01451 for NULL on nullable,
+  ORA-22859 for any type on a LOB), `DEFAULT NULL` as there is no DROP
+  DEFAULT, `DROP IDENTITY`, `ADD (...)`, `DROP COLUMN`. Comments via
+  `COMMENT ON TABLE/COLUMN`. PK and UNIQUE are constraints (`ADD/DROP
+  CONSTRAINT`, `DROP PRIMARY KEY`), normal indexes `CREATE/DROP INDEX`.
+  Foreign keys without ON UPDATE, ON DELETE only CASCADE or SET NULL.
+  `DEFAULT` before `NOT NULL`, `TIMESTAMP(n) WITH TIME ZONE`.
+  `VARCHAR2`/`CHAR` lengths keep `CHAR` semantics (`CHAR_USED`), otherwise
+  MODIFY would switch to the session's NLS_LENGTH_SEMANTICS (usually BYTE).
+- Function based index parts appear as hidden `SYS_NC...$` columns in
+  `ALL_IND_COLUMNS`, the expression is in `ALL_IND_EXPRESSIONS` (LONG). Oracle
+  creates them itself for DESC parts (`"COL"`) and for any index on a
+  `TIMESTAMP WITH TIME ZONE` column (`SYS_EXTRACT_UTC("COL")`). Both are
+  mapped back to the column name; other expressions become `(expr)` key parts
+  (`TTableKey.IsExpression`), which `CREATE INDEX` accepts in parentheses.
+  Such columns cannot be MODIFYed while the index exists (ORA-30556).
+- DDL commits implicitly in Oracle, so a failing statement in the middle of the
+  editor's batch leaves the earlier ones applied (e.g. `DROP INDEX` done,
+  `CREATE INDEX` failed). `ApplyModifications` counts executed statements and
+  reloads the editor from the server after such a partial failure (all server
+  types). Index types FULLTEXT and SPATIAL are not offered on Oracle (domain
+  indexes with own syntax), and index USING/COMMENT are left out.
+- Keys are dropped by what they are on the server, and added by their new
+  type: `TTableKey.IsConstraint` (set in GetTableKeys, and after saving)
+  tells PK/UNIQUE constraints from plain indexes, so a type change KEY <->
+  UNIQUE gives `DROP INDEX` + `ADD CONSTRAINT ... UNIQUE` and vice versa.
+  A UNIQUE index without constraint is turned into a constraint when edited.
+- View editor: body = everything after the view name in GET_DDL, i.e. column
+  list, `AS SELECT ...` and `WITH READ ONLY`/`CHECK OPTION`, saved with
+  `CREATE OR REPLACE VIEW` (keeps grants). Rename via `RENAME` (own schema
+  only). Materialized views: saving blocked.
+- Routine and trigger editors: saving blocked with a message. The trigger
+  editor would drop the trigger first and then fail on the MySQL syntax; GET_DDL
+  of a trigger also appends `ALTER TRIGGER ... ENABLE`.
+- Tree: `Drop` schema qualified, `DROP MATERIALIZED VIEW`; dropped tables go
+  to the recycle bin. Dropping a schema (= user) is refused with a message.
+  View rename in the list via `RENAME`.
+- Copy table dialog and SQL export still produce MySQL table options and fail
+  with an SQL error (not destructive).
+
 Not done / open:
-- No Oracle icon in the image list yet (`res/icons/server-oracle.png` exists
-  untracked, not wired).
 - Routines: listed and CREATE code shown, but no parameter parsing, so
   "Run routine" is not supported. No packages, sequences, synonyms in the tree.
 - `qGetRowCountApprox` uses `ALL_TABLES.NUM_ROWS`, empty before statistics

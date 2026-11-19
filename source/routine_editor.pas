@@ -501,9 +501,16 @@ var
   TargetExists: Boolean;
 begin
   // Save changes
+  Result := mrOk;
+  // Oracle: parameters, packages and PL/SQL options are not covered by this editor. Block saving,
+  // as it would drop the routine and fail on the MySQL syntax.
+  if DBObject.Connection.Parameters.IsAnyOracle then begin
+    ErrorDialog(f_('Saving is not yet supported in this editor on %s. Run a CREATE OR REPLACE statement in a query tab instead.', [DBObject.Connection.Parameters.NetTypeName(False)]));
+    Result := mrAbort;
+    Exit;
+  end;
   btnSave.Enabled := False;
   btnDiscard.Enabled := False;
-  Result := mrOk;
   case comboType.ItemIndex of
     0: ProcOrFunc := 'PROCEDURE';
     else ProcOrFunc := 'FUNCTION';

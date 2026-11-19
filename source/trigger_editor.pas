@@ -294,6 +294,13 @@ var
 begin
   // Edit mode means we drop the trigger and recreate it, as there is no ALTER TRIGGER.
   Result := mrOk;
+  // Oracle: WHEN, UPDATE OF, statement level and compound triggers are not covered by this editor.
+  // Block saving, as it would drop the trigger first, and fail on recreating it.
+  if DBObject.Connection.Parameters.IsAnyOracle then begin
+    ErrorDialog(f_('Saving is not yet supported in this editor on %s. Run a CREATE OR REPLACE statement in a query tab instead.', [DBObject.Connection.Parameters.NetTypeName(False)]));
+    Result := mrAbort;
+    Exit;
+  end;
   try
     // In edit mode we could create a temporary trigger, but that would only cause an error a la
     // "This version of MySQL doesn't yet support multiple triggers with the same action time and event for one table"

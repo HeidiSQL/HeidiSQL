@@ -532,7 +532,7 @@ function TfrmTableEditor.ApplyModifications: TModalResult;
 var
   Batch: TSQLBatch;
   Query: TSQLSentence;
-  i: Integer;
+  i, ExecutedCount, TotalCount: Integer;
   Rename, ErrMessage, ErrMessageAdditional, InnodbStatus: String;
 begin
   // Check if all indexes have at least one column
@@ -552,9 +552,14 @@ begin
     Batch := ComposeCreateStatement
   else
     Batch := ComposeAlterStatement;
+  ExecutedCount := 0;
+  TotalCount := Batch.Count;
+  if ObjectExists and (editName.Text <> DBObject.Name) then
+    Inc(TotalCount);
   try
     for Query in Batch do begin
       DBObject.Connection.Query(Query.SQL);
+      Inc(ExecutedCount);
       DBObject.Connection.ShowWarnings;
     end;
     // Rename table
@@ -564,6 +569,7 @@ begin
           DBObject.Connection.QuoteIdent(editName.Text)
         ]);
       DBObject.Connection.Query(Rename);
+      Inc(ExecutedCount);
       DBObject.Connection.ShowWarnings;
     end;
     tabALTERcode.TabVisible := ObjectExists;
@@ -598,10 +604,23 @@ begin
         if not ErrMessageAdditional.IsEmpty then
           ErrMessage := ErrMessage + sLineBreak + sLineBreak + 'INNODB STATUS:' + sLineBreak + ErrMessageAdditional;
       end;
-      ErrorDialog(ErrMessage);
+      if (ExecutedCount > 0) and ObjectExists then begin
+        // DDL cannot be rolled back on most servers. The editor would otherwise compose statements
+        // against a state which is no longer on the server, e.g. drop an already dropped index.
+        ErrMessage := ErrMessage + sLineBreak + sLineBreak +
+          f_('%d of %d statements were executed before the error. The editor shows the current state from the server now.', [ExecutedCount, TotalCount]);
+        ErrorDialog(ErrMessage);
+        Modified := False;
+        DBObject.UnloadDetails;
+        Init(DBObject);
+        Mainform.RefreshTree(DBObject);
+      end
+      else
+        ErrorDialog(ErrMessage);
       Result := mrAbort;
     end;
   end;
+  Batch.Free;
 end;
 
 
@@ -627,6 +646,9 @@ begin
   end;
   FDeletedKeys.Clear;
   for i:=0 to FKeys.Count-1 do begin
+    // Saved keys were created as constraint or as plain index, see TTableKey.IsConstraint
+    if FKeys[i].Added or FKeys[i].Modified then
+      FKeys[i].IsConstraint := FKeys[i].InsideCreateCode;
     FKeys[i].OldName := FKeys[i].Name;
     FKeys[i].OldIndexType := FKeys[i].IndexType;
     FKeys[i].Added := False;
@@ -662,12 +684,22 @@ var
   Constraint: TCheckConstraint;
   Conn: TDBConnection;
   Params: TStringMap;
+  OrgColumns: TTableColumnList;
+  OrgCol: TTableColumn;
 
   procedure FinishSpecs;
+  var
+    Spec: String;
   begin
     if Specs.Count > 0 then begin
-      SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + sLineBreak +
-        CodeIndent + Implode(',' + sLineBreak + CodeIndent, Specs)) + ';' + sLineBreak;
+      if Conn.Parameters.IsAnyOracle then begin
+        // Oracle has no comma separated list of alter clauses
+        for Spec in Specs do
+          SQL := SQL + 'ALTER TABLE ' + DBObject.QuotedName + ' ' + Spec + ';' + sLineBreak;
+      end else begin
+        SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + sLineBreak +
+          CodeIndent + Implode(',' + sLineBreak + CodeIndent, Specs)) + ';' + sLineBreak;
+      end;
       Specs.Clear;
     end;
   end;
@@ -676,6 +708,24 @@ var
   begin
     FinishSpecs;
     SQL := SQL + Format(Query, [DBObject.QuotedName]) + ';' + sLineBreak;
+  end;
+
+  procedure AddStatement(Statement: String);
+  begin
+    // Same as AddQuery, without Format(), which breaks on "%" in comments and defaults
+    FinishSpecs;
+    SQL := SQL + Statement + ';' + sLineBreak;
+  end;
+
+  procedure OracleDropKey(Key: TTableKey);
+  begin
+    // Drop by what the key is on the server, not by its new type
+    if Key.OldIndexType = TTableKey.PRIMARY then
+      Specs.Add('DROP PRIMARY KEY')
+    else if Key.IsConstraint then
+      Specs.Add('DROP CONSTRAINT ' + Conn.QuoteIdent(Key.OldName))
+    else
+      AddStatement('DROP INDEX ' + Conn.QuoteIdent(Key.OldName));
   end;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
@@ -718,6 +768,9 @@ begin
       ngPgSQL: begin
         AddQuery('COMMENT ON TABLE '+DBObject.QuotedName+' IS '+Conn.EscapeString(memoComment.Text));
       end;
+      ngOracle: begin
+        AddStatement('COMMENT ON TABLE '+DBObject.QuotedName+' IS '+Conn.EscapeString(memoComment.Text));
+      end;
     end;
   end;
   if (comboCollation.Tag = MODIFIEDFLAG) or (chkCharsetConvert.Checked) then
@@ -755,6 +808,10 @@ begin
 
   // Update columns
   PreviousCol := nil;
+  // Columns as they are on the server, for altering only the changed attributes on Oracle
+  OrgColumns := nil;
+  if Conn.Parameters.IsAnyOracle and ObjectExists then
+    OrgColumns := DBObject.TableColumns;
   for Col in FColumns do begin
     if Col.Status <> esUntouched then begin
       OverrideCollation := IfThen(chkCharsetConvert.Checked, comboCollation.Text);
@@ -855,6 +912,48 @@ begin
           FinishSpecs;
         end;
 
+        ngOracle: begin
+          // https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/ALTER-TABLE.html
+          OrgCol := nil;
+          if Assigned(OrgColumns) then
+            OrgCol := OrgColumns.FindByName(Col.OldName);
+          case Col.Status of
+            esModified: begin
+              if Col.Name <> Col.OldName then
+                Specs.Add(Conn.SqlProvider.GetSql(qRenameColumn, [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)]));
+              // MODIFY only what changed: Oracle rejects NOT NULL on a NOT NULL column (ORA-01442),
+              // NULL on a nullable one (ORA-01451) and any type on LOB columns (ORA-22859)
+              ColSpec := '';
+              if (not Assigned(OrgCol))
+                or (Col.SQLCode('', [cpType, cpVirtuality]) <> OrgCol.SQLCode('', [cpType, cpVirtuality])) then
+                ColSpec := Col.SQLCode('', [cpType, cpVirtuality]);
+              if Assigned(OrgCol) and (OrgCol.DefaultType = cdtAutoInc) and (Col.DefaultType <> cdtAutoInc) then
+                Specs.Add('MODIFY (' + Conn.QuoteIdent(Col.Name) + ' DROP IDENTITY)')
+              else if (not Assigned(OrgCol)) or (Col.SQLCode('', [cpDefault]) <> OrgCol.SQLCode('', [cpDefault])) then begin
+                // There is no DROP DEFAULT
+                if Col.DefaultType = cdtNothing then
+                  ColSpec := ColSpec + ' DEFAULT NULL'
+                else
+                  ColSpec := ColSpec + ' ' + Col.SQLCode('', [cpDefault]);
+              end;
+              if (not Assigned(OrgCol)) or (Col.AllowNull <> OrgCol.AllowNull) then
+                ColSpec := ColSpec + IfThen(Col.AllowNull, ' NULL', ' NOT NULL');
+              ColSpec := Trim(ColSpec);
+              if not ColSpec.IsEmpty then
+                Specs.Add('MODIFY (' + Conn.QuoteIdent(Col.Name) + ' ' + ColSpec + ')');
+              if (not Assigned(OrgCol)) or (Col.Comment <> OrgCol.Comment) then
+                AddStatement('COMMENT ON COLUMN ' + DBObject.QuotedName + '.' + Conn.QuoteIdent(Col.Name) +
+                  ' IS ' + Conn.EscapeString(Col.Comment));
+            end;
+            esAddedUntouched, esAddedModified: begin
+              Specs.Add('ADD (' + Col.SQLCode + ')');
+              if not Col.Comment.IsEmpty then
+                AddStatement('COMMENT ON COLUMN ' + DBObject.QuotedName + '.' + Conn.QuoteIdent(Col.Name) +
+                  ' IS ' + Conn.EscapeString(Col.Comment));
+            end;
+          end;
+        end;
+
       end;
 
     end;
@@ -866,20 +965,44 @@ begin
     if Col.Status = esDeleted then begin
       Specs.Add('DROP COLUMN '+Conn.QuoteIdent(Col.OldName));
       // MSSQL + SQLite want one ALTER TABLE query per DROP COLUMN
-      if Conn.Parameters.NetTypeGroup in [ngMSSQL, ngSQLite] then
+      if Conn.Parameters.NetTypeGroup in [ngMSSQL, ngSQLite, ngOracle] then
         FinishSpecs;
+    end;
+  end;
+
+  // Oracle: drop deleted and modified keys, then add new and modified ones as constraint or index
+  if Conn.Parameters.IsAnyOracle then begin
+    for TblKey in FDeletedKeys do
+      OracleDropKey(TblKey);
+    for TblKey in FKeys do begin
+      if TblKey.Modified and (not TblKey.Added) then
+        OracleDropKey(TblKey);
+    end;
+    for TblKey in FKeys do begin
+      if not (TblKey.Added or TblKey.Modified) then
+        Continue;
+      if TblKey.InsideCreateCode then
+        Specs.Add('ADD ' + TblKey.SQLCode)
+      else
+        AddStatement(TblKey.SQLCode(DBObject.Name));
     end;
   end;
 
   // Drop indexes
   for TblKey in FDeletedKeys do begin
-    if not TblKey.InsideCreateCode then
+    if Conn.Parameters.IsAnyOracle or (not TblKey.InsideCreateCode) then
       Continue;
     if Conn.Parameters.IsAnyPostgreSQL then begin
       if TblKey.IsPrimary or TblKey.IsUnique then
         IndexSQL := 'CONSTRAINT ' + TblKey.OldName
       else // wrong:
         IndexSQL := 'INDEX ' + Conn.QuoteIdent(TblKey.OldName);
+    end
+    else if Conn.Parameters.IsAnyOracle then begin
+      if TblKey.IsPrimary then
+        IndexSQL := 'PRIMARY KEY'
+      else
+        IndexSQL := 'CONSTRAINT ' + Conn.QuoteIdent(TblKey.OldName);
     end
     else begin
       if TblKey.IsPrimary then
@@ -892,7 +1015,7 @@ begin
 
   // Drop changed indexes, and add changed or added indexes
   for TblKey in FKeys do begin
-    if not TblKey.InsideCreateCode then
+    if Conn.Parameters.IsAnyOracle or (not TblKey.InsideCreateCode) then
       Continue;
     if TblKey.Modified and (not TblKey.Added) then begin
       if Conn.Parameters.IsAnyPostgreSQL then begin
@@ -900,6 +1023,12 @@ begin
           IndexSQL := 'CONSTRAINT ' + TblKey.OldName
         else // wrong:
           IndexSQL := 'INDEX ' + Conn.QuoteIdent(TblKey.OldName);
+      end
+      else if Conn.Parameters.IsAnyOracle then begin
+        if TblKey.OldIndexType = TTableKey.PRIMARY then
+          IndexSQL := 'PRIMARY KEY'
+        else
+          IndexSQL := 'CONSTRAINT ' + Conn.QuoteIdent(TblKey.OldName);
       end
       else begin
         if TblKey.OldIndexType = TTableKey.PRIMARY then
@@ -954,7 +1083,7 @@ begin
 
   // Drop indexes, also changed indexes, which will be readded below
   for i:=0 to FDeletedKeys.Count-1 do begin
-    if FDeletedKeys[i].InsideCreateCode then
+    if Conn.Parameters.IsAnyOracle or FDeletedKeys[i].InsideCreateCode then
       Continue;
     if FDeletedKeys[i].IsPrimary then
       IndexSQL := 'PRIMARY KEY'
@@ -964,7 +1093,7 @@ begin
   end;
   // Add changed or added indexes
   for i:=0 to FKeys.Count-1 do begin
-    if FKeys[i].InsideCreateCode then
+    if Conn.Parameters.IsAnyOracle or FKeys[i].InsideCreateCode then
       Continue;
     if FKeys[i].Modified and (not FKeys[i].Added) then begin
       if FKeys[i].OldIndexType = TTableKey.PRIMARY then
@@ -980,6 +1109,7 @@ begin
   Result := TSQLBatch.Create(DBObject.Connection.Parameters.NetTypeGroup);
   Result.SQL := SQL;
 
+  FreeAndNil(OrgColumns);
   FreeAndNil(Specs);
   Mainform.ShowStatusMsg;
   Screen.Cursor := crDefault;
@@ -1020,8 +1150,11 @@ begin
       + ')' + sLineBreak;
   CreateLines.Free;
 
-  if (memoComment.Text <> '') and (not DBObject.Connection.Parameters.IsAnyPostgreSQL) then
+  if (memoComment.Text <> '') and (not DBObject.Connection.Parameters.IsAnyPostgreSQL)
+    and (not DBObject.Connection.Parameters.IsAnyOracle) then
     SQL := SQL + 'COMMENT='+DBObject.Connection.EscapeString(memoComment.Text) + sLineBreak;
+  // MySQL table options. Oracle has none of these.
+  if not DBObject.Connection.Parameters.IsAnyOracle then begin
   if comboCollation.Text <> '' then
     SQL := SQL + 'COLLATE='+DBObject.Connection.EscapeString(comboCollation.Text) + sLineBreak;
   if (comboEngine.Text <> '') and (comboEngine.ItemIndex > 0) then begin
@@ -1046,6 +1179,7 @@ begin
     SQL := SQL + 'INSERT_METHOD='+comboInsertMethod.Text + sLineBreak;
   if SynMemoPartitions.GetTextLen > 0 then
     SQL := SQL +  '/*!50100 ' + SynMemoPartitions.Text + ' */';
+  end;
   SQL := SQL + ';' + sLineBreak;
 
   // Separate queries from here on
@@ -1056,6 +1190,20 @@ begin
         ' IS '+DBObject.Connection.EscapeString(memoComment.Text) + ';' + sLineBreak;
     end;
     for Col in FColumns do begin
+      SQL := SQL + 'COMMENT ON COLUMN '+
+        DBObject.Connection.QuoteIdent(editName.Text)+'.'+DBObject.Connection.QuoteIdent(Col.Name)+
+        ' IS '+DBObject.Connection.EscapeString(Col.Comment) + ';' + sLineBreak;
+    end;
+  end;
+
+  if DBObject.Connection.Parameters.IsAnyOracle then begin
+    if memoComment.Text <> '' then begin
+      SQL := SQL + 'COMMENT ON TABLE '+DBObject.Connection.QuoteIdent(editName.Text)+
+        ' IS '+DBObject.Connection.EscapeString(memoComment.Text) + ';' + sLineBreak;
+    end;
+    for Col in FColumns do begin
+      if (Col.Comment = '') or (Col.Status in [esDeleted, esAddedDeleted]) then
+        Continue;
       SQL := SQL + 'COMMENT ON COLUMN '+
         DBObject.Connection.QuoteIdent(editName.Text)+'.'+DBObject.Connection.QuoteIdent(Col.Name)+
         ' IS '+DBObject.Connection.EscapeString(Col.Comment) + ';' + sLineBreak;
@@ -2456,7 +2604,10 @@ begin
     // Index type pulldown
     EnumEditor := TEnumEditorLink.Create(VT, True, nil);
     EnumEditor.ValueList := TStringList.Create;
-    EnumEditor.ValueList.CommaText := TTableKey.PRIMARY +','+ TTableKey.KEY +','+ TTableKey.UNIQUE +','+ TTableKey.FULLTEXT +','+ TTableKey.SPATIAL;
+    EnumEditor.ValueList.CommaText := TTableKey.PRIMARY +','+ TTableKey.KEY +','+ TTableKey.UNIQUE;
+    // Oracle: full text and spatial indexes are domain indexes with their own syntax
+    if not DBObject.Connection.Parameters.IsAnyOracle then
+      EnumEditor.ValueList.CommaText := EnumEditor.ValueList.CommaText +','+ TTableKey.FULLTEXT +','+ TTableKey.SPATIAL;
     EditLink := EnumEditor;
   end else if (Level = 0) and (Column = IndexColNumAlgorithm) then begin
     // Algorithm pulldown
@@ -2802,8 +2953,10 @@ begin
   Item.Enabled := not PrimaryKeyExists;
   AddItem(menuCreateIndex, TTableKey.KEY, ICONINDEX_INDEXKEY);
   AddItem(menuCreateIndex, TTableKey.UNIQUE, ICONINDEX_UNIQUEKEY);
-  AddItem(menuCreateIndex, TTableKey.FULLTEXT, ICONINDEX_FULLTEXTKEY);
-  AddItem(menuCreateIndex, TTableKey.SPATIAL, ICONINDEX_SPATIALKEY);
+  if not DBObject.Connection.Parameters.IsAnyOracle then begin
+    AddItem(menuCreateIndex, TTableKey.FULLTEXT, ICONINDEX_FULLTEXTKEY);
+    AddItem(menuCreateIndex, TTableKey.SPATIAL, ICONINDEX_SPATIALKEY);
+  end;
 end;
 
 

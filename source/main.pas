@@ -3973,6 +3973,11 @@ begin
     DBObject := ActiveDBObj;
     case DBObject.NodeType of
       lntDb: begin
+        // Oracle: a schema is a user, dropping it is left to the DBA
+        if not Conn.SqlProvider.Has(qDatabaseDrop) then begin
+          ErrorDialog(f_('Dropping a database is not supported on %s.', [Conn.Parameters.NetTypeName(False)]));
+          Exit;
+        end;
         if MessageDialog(f_('Drop Database "%s"?', [DBObject.Database]), f_('WARNING: You will lose all objects in database %s!', [DBObject.Database]), mtCriticalConfirmation, [mbok,mbcancel]) <> mrok then
           Abort;
         try

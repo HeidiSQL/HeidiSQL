@@ -90,6 +90,8 @@ type
       IndexType, OldIndexType, Algorithm, Comment: String;
       // Full "CREATE INDEX" definition from pg_get_indexdef, used by PostgreSQL create code
       Definition: String;
+      // Oracle: exists on the server as PRIMARY KEY or UNIQUE constraint, not only as an index
+      IsConstraint: Boolean;
       Size: Int64;
       Columns, SubParts, Collations: TStringList;
       Modified, Added, Visible: Boolean;
@@ -846,6 +848,7 @@ type
       function GetThreadId: Int64; override;
       function GetAllDatabases: TStringList; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
+      procedure Drop(Obj: TDBObject); override;
     protected
       procedure DoBeforeConnect; override;
       procedure DoAfterConnect; override;
@@ -8024,7 +8027,7 @@ begin
   Result := TTableColumnList.Create(True);
   // ALL_TAB_COLS also has virtual columns, USER_GENERATED excludes hidden system columns
   ColQuery := GetResults('SELECT c.COLUMN_NAME, c.DATA_TYPE, c.DATA_TYPE_OWNER, c.DATA_LENGTH, c.DATA_PRECISION,'+
-    ' c.DATA_SCALE, c.CHAR_LENGTH, c.NULLABLE, c.DATA_DEFAULT, c.VIRTUAL_COLUMN, c.IDENTITY_COLUMN,'+
+    ' c.DATA_SCALE, c.CHAR_LENGTH, c.CHAR_USED, c.NULLABLE, c.DATA_DEFAULT, c.VIRTUAL_COLUMN, c.IDENTITY_COLUMN,'+
     ' c.HIDDEN_COLUMN, cc.COMMENTS'+
     ' FROM ALL_TAB_COLS c'+
     ' LEFT JOIN ALL_COL_COMMENTS cc ON cc.OWNER = c.OWNER AND cc.TABLE_NAME = c.TABLE_NAME AND cc.COLUMN_NAME = c.COLUMN_NAME'+
@@ -8063,7 +8066,14 @@ begin
         end;
         dbdtFloat:
           Col.LengthSet := ColQuery.Col('DATA_PRECISION');
-        dbdtChar, dbdtNchar, dbdtVarchar, dbdtNvarchar:
+        dbdtChar, dbdtVarchar: begin
+          // Keep character length semantics, otherwise ALTER TABLE would change it to the
+          // session's NLS_LENGTH_SEMANTICS, usually BYTE
+          Col.LengthSet := ColQuery.Col('CHAR_LENGTH');
+          if ColQuery.Col('CHAR_USED') = 'C' then
+            Col.LengthSet := Col.LengthSet + ' CHAR';
+        end;
+        dbdtNchar, dbdtNvarchar:
           Col.LengthSet := ColQuery.Col('CHAR_LENGTH');
         dbdtVarbinary:
           Col.LengthSet := ColQuery.Col('DATA_LENGTH');
@@ -8109,7 +8119,7 @@ function TOracleConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
 var
   KeyQuery: TDBQuery;
   NewKey: TTableKey;
-  KeyName: String;
+  KeyName, Expression: String;
 begin
   Result := TTableKeyList.Create(True);
 
@@ -8136,6 +8146,7 @@ begin
         else
           NewKey.IndexType := TTableKey.UNIQUE;
         NewKey.OldIndexType := NewKey.IndexType;
+        NewKey.IsConstraint := True;
       end;
       NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'));
       NewKey.SubParts.Add('');
@@ -8146,10 +8157,13 @@ begin
     KeyQuery.Free;
   end;
 
-  // Indexes not backing a constraint. Function based index columns appear as SYS_NC...$
-  KeyQuery := GetResults('SELECT i.INDEX_NAME, i.UNIQUENESS, ic.COLUMN_NAME, ic.DESCEND'+
+  // Indexes not backing a constraint. Function based index parts appear as hidden
+  // SYS_NC...$ columns, with the expression in ALL_IND_EXPRESSIONS.
+  KeyQuery := GetResults('SELECT i.INDEX_NAME, i.UNIQUENESS, ic.COLUMN_NAME, ic.DESCEND, ie.COLUMN_EXPRESSION'+
     ' FROM ALL_INDEXES i'+
     ' JOIN ALL_IND_COLUMNS ic ON ic.INDEX_OWNER = i.OWNER AND ic.INDEX_NAME = i.INDEX_NAME'+
+    ' LEFT JOIN ALL_IND_EXPRESSIONS ie ON ie.INDEX_OWNER = ic.INDEX_OWNER AND ie.INDEX_NAME = ic.INDEX_NAME'+
+    '   AND ie.COLUMN_POSITION = ic.COLUMN_POSITION'+
     ' WHERE i.TABLE_OWNER = '+EscapeString(Table.Database)+
     ' AND i.TABLE_NAME = '+EscapeString(Table.Name)+
     ' AND i.INDEX_TYPE <> ''LOB'''+
@@ -8172,7 +8186,16 @@ begin
           NewKey.IndexType := TTableKey.KEY;
         NewKey.OldIndexType := NewKey.IndexType;
       end;
-      NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'));
+      Expression := Trim(KeyQuery.Col('COLUMN_EXPRESSION'));
+      if KeyQuery.IsNull('COLUMN_EXPRESSION') or Expression.IsEmpty then
+        NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'))
+      // DESC index part: "COL". TIMESTAMP WITH TIME ZONE column: SYS_EXTRACT_UTC("COL"), added by
+      // Oracle itself on CREATE INDEX for such a column.
+      else if ExecRegExpr('^(SYS_EXTRACT_UTC\()?"[^"]+"\)?$', Expression) then
+        NewKey.Columns.Add(RegExprGetMatch('"([^"]+)"', Expression, 1))
+      else
+        // Real function based index part, see TTableKey.IsExpression
+        NewKey.Columns.Add('(' + Expression + ')');
       NewKey.SubParts.Add('');
       if KeyQuery.Col('DESCEND') = 'DESC' then
         NewKey.Collations.Add('D')
@@ -8250,6 +8273,19 @@ end;
 procedure TDBConnection.Drop(Obj: TDBObject);
 begin
   Query('DROP '+UpperCase(Obj.ObjType)+' '+Obj.QuotedName);
+end;
+
+
+procedure TOracleConnection.Drop(Obj: TDBObject);
+var
+  ObjType: String;
+begin
+  // Schema qualified, and DROP MATERIALIZED VIEW for those. Dropped tables go to the recycle bin.
+  if (Obj.NodeType = lntView) and Obj.IsMaterialized then
+    ObjType := 'MATERIALIZED VIEW'
+  else
+    ObjType := UpperCase(Obj.ObjType);
+  Query('DROP '+ObjType+' '+Obj.QuotedDbAndTableName);
 end;
 
 
@@ -9358,7 +9394,20 @@ var
   rx: TRegExpr;
   EscQuote: String;
 begin
-  if CreateCode <> '' then begin
+  if (CreateCode <> '') and FParameters.IsAnyOracle then begin
+    // DBMS_METADATA.GET_DDL: CREATE OR REPLACE FORCE EDITIONABLE VIEW "SCHEMA"."NAME" ("A", "B") AS SELECT ... [WITH READ ONLY]
+    // Return everything after the name, as the column list may differ from the names in the SELECT,
+    // and WITH READ ONLY / CHECK OPTION must not get lost. See TfrmView.ComposeCreateStatement
+    rx := TRegExpr.Create;
+    rx.ModifierI := True;
+    rx.Expression := '\bVIEW\s+(?:"[^"]+"\s*\.\s*)?"[^"]+"\s+(.+)$';
+    if rx.Exec(CreateCode) then
+      SelectCode := Trim(rx.Match[1])
+    else
+      Log(lcError, f_('Regular expression did not match the VIEW code in %s: %s', ['ParseViewStructure()', sLineBreak+sLineBreak+CreateCode]));
+    rx.Free;
+  end
+  else if CreateCode <> '' then begin
     // CREATE
     //   [OR REPLACE]
     //   [ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
@@ -12870,6 +12919,11 @@ begin
       if (DataType.Index = dbdtEnum) and (FConnection.NamedEnums.IndexOfName(LengthSet) > -1) then begin
         Result := Result + LengthSet;
       end
+      else if FConnection.Parameters.IsAnyOracle and (LengthSet <> '') and DataType.HasLength
+        and ContainsText(DataType.Name, ' WITH ') then begin
+        // Oracle: TIMESTAMP(6) WITH TIME ZONE
+        Result := Result + StringReplace(DataType.Name, ' WITH ', '(' + LengthSet + ') WITH ', [rfIgnoreCase]);
+      end
       else begin
         Result := Result + DataType.Name;
         if (LengthSet <> '') and DataType.HasLength then
@@ -12931,7 +12985,8 @@ begin
     end;
   end;
 
-  if FConnection.Parameters.IsAnyInterbase then begin
+  if FConnection.Parameters.IsAnyInterbase or FConnection.Parameters.IsAnyOracle then begin
+    // Oracle also requires DEFAULT and GENERATED ... AS IDENTITY before NOT NULL
     Result := Result + DefaultClause + NullClause;
   end
   else begin
@@ -13124,6 +13179,7 @@ begin
   Subparts.OnChange := Modification;
   Collations.OnChange := Modification;
   Visible := True;
+  IsConstraint := False;
   Size := -1
 end;
 
@@ -13148,6 +13204,7 @@ begin
     Algorithm := s.Algorithm;
     Comment := s.Comment;
     Definition := s.Definition;
+    IsConstraint := s.IsConstraint;
     Visible := s.Visible;
     Size := s.Size;
     Columns.Assign(s.Columns);
@@ -13219,6 +13276,8 @@ begin
     ngMySQL: Result := True;
     ngSQLite: Result := IsPrimary;
     ngPgSQL: Result := IsPrimary or IsUnique;
+    // Constraints. Normal indexes need CREATE INDEX.
+    ngOracle: Result := IsPrimary or IsUnique;
     else Result := True;
   end;
 end;
@@ -13237,6 +13296,9 @@ begin
     else begin
       if FConnection.Parameters.IsAnyPostgreSQL then begin
         Result := Result + IndexType + ' ';
+      end
+      else if FConnection.Parameters.IsAnyOracle then begin
+        Result := Result + 'CONSTRAINT ' + FConnection.QuoteIdent(Name) + ' ' + IndexType + ' ';
       end
       else begin
         if not IsIndex then
@@ -13262,10 +13324,11 @@ begin
 
     Result := Result + ')';
 
-    if Algorithm <> '' then
+    // MySQL only. Oracle has neither USING nor COMMENT for indexes.
+    if (Algorithm <> '') and (not FConnection.Parameters.IsAnyOracle) then
       Result := Result + ' USING ' + Algorithm;
 
-    if not Comment.IsEmpty then
+    if (not Comment.IsEmpty) and (not FConnection.Parameters.IsAnyOracle) then
       Result := Result + ' COMMENT ' + FConnection.EscapeString(Comment);
 
   end
@@ -13283,7 +13346,12 @@ begin
       Result := Result + IndexType + ' ';
     Result := Result + 'INDEX '+FConnection.QuoteIdent(Name)+' ON ' + FConnection.QuoteIdent(TableName) + ' (';
     for i:=0 to Columns.Count-1 do begin
-      Result := Result + FConnection.QuoteIdent(Columns[i]);
+      if FConnection.Parameters.IsAnyOracle and IsExpression(i) then
+        Result := Result + Columns[i] // Don't quote functional key part
+      else
+        Result := Result + FConnection.QuoteIdent(Columns[i]);
+      if FConnection.Parameters.IsAnyOracle and (Collations.Count > i) and (Collations[i].ToLower = 'd') then
+        Result := Result + ' DESC';
       Result := Result + ', ';
     end;
     if Columns.Count > 0 then
@@ -13401,6 +13469,12 @@ begin
     Result := Result + FConnection.QuoteIdent(ForeignColumns[i]) + ', ';
   if ForeignColumns.Count > 0 then Delete(Result, Length(Result)-1, 2);
   Result := Result + ')';
+  if FConnection.Parameters.IsAnyOracle then begin
+    // No ON UPDATE clause, and ON DELETE only knows CASCADE and SET NULL
+    if MatchText(OnDelete, ['CASCADE', 'SET NULL']) then
+      Result := Result + ' ON DELETE ' + OnDelete;
+    Exit;
+  end;
   if OnUpdate <> '' then
     Result := Result + ' ON UPDATE ' + OnUpdate;
   if OnDelete <> '' then

@@ -122,7 +122,11 @@ begin
     rgCheck.Enabled := True;
     rgCheck.ItemIndex := 0;
     comboSecurity.ItemIndex := 0;
-    SynMemoBody.Text := 'SELECT ';
+    // Oracle: body includes everything after the view name, see ComposeCreateStatement
+    if Obj.Connection.Parameters.IsAnyOracle then
+      SynMemoBody.Text := 'AS SELECT '
+    else
+      SynMemoBody.Text := 'SELECT ';
     lblDisabledWhy.Hide;
   end;
 
@@ -189,6 +193,11 @@ var
 begin
   // Save changes
   Result := mrOk;
+  if DBObject.Connection.Parameters.IsAnyOracle and DBObject.IsMaterialized then begin
+    ErrorDialog(f_('Saving is not yet supported in this editor on %s. Run a CREATE OR REPLACE statement in a query tab instead.', [DBObject.Connection.Parameters.NetTypeName(False)]));
+    Result := mrAbort;
+    Exit;
+  end;
 
   try
     Batch := ComposeCreateStatement;
@@ -236,6 +245,19 @@ function TfrmView.ComposeCreateStatement: TSQLBatch;
 var
   sql, ViewName, RenameView: String;
 begin
+  if DBObject.Connection.Parameters.IsAnyOracle then begin
+    // CREATE OR REPLACE keeps the grants on the view. The body holds the optional column list,
+    // AS, the SELECT and optional WITH READ ONLY / CHECK OPTION. RENAME works in the own schema only.
+    sql := '';
+    if ObjectExists and (DBObject.Name <> editName.Text) then
+      sql := sql + 'RENAME ' + DBObject.Connection.QuoteIdent(DBObject.Name) +
+        ' TO ' + DBObject.Connection.QuoteIdent(editName.Text) + ';' + sLineBreak;
+    sql := sql + 'CREATE OR REPLACE VIEW ' + DBObject.QuotedDatabase + '.' +
+      DBObject.Connection.QuoteIdent(editName.Text) + ' ' + SynMemoBody.Text + ';';
+    Result := TSQLBatch.Create(DBObject.Connection.Parameters.NetTypeGroup);
+    Result.SQL := Trim(sql);
+    Exit;
+  end;
   // Create or Alter code
   if not ObjectExists then begin
     sql := 'CREATE ';
