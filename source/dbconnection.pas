@@ -3263,6 +3263,11 @@ begin
       else
         FServerVersionUntouched := GetVar('SELECT rdb$get_context(''SYSTEM'', ''ENGINE_VERSION'') as version from rdb$database');
 
+      // Session level statement timeout, supported since Firebird 4. The client library has no
+      // timeout of its own, so without this a query would run until the server finishes it.
+      if Parameters.IsFirebird and (ServerVersionInt >= 40000) then
+        Query('SET STATEMENT TIMEOUT '+IntToStr(Parameters.QueryTimeout)+' SECOND');
+
       FRealHostname := Parameters.Hostname;
 
       // Triggers OnDatabaseChange event for <no db>
