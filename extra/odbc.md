@@ -1,7 +1,8 @@
 # ODBC support for Oracle and Snowflake: concept 2026-11
 
 Status: phases 1 and 2 (ODBC base, experimental Oracle network type)
-implemented, see "Implementation status" below. Snowflake and packaging open.
+implemented, see "Implementation status" below. Linux packaging done,
+Snowflake and macOS packaging open.
 Motivation: GitHub issue #1091
 (Snowflake) and the recurring Oracle requests. Neither DBMS offers a C client
 library that is practical to ship, but both have free, official ODBC drivers.
@@ -199,13 +200,25 @@ hardcoded in FPC's `odbcsql.inc`), and the drivers are installed by the user
 ## Packaging
 
 - Windows: nothing to add.
-- Linux (deb): add `libodbc2` (unixODBC driver manager) to `Depends` in
-  `deb-control.txt`; older distributions name it `libodbc1` (to verify).
-  - FPC loads `libodbc.so`, which only exists with the `-dev` package. Call
-    `InitialiseODBC('libodbc.so.2')` beforehand (override parameter in
-    `odbcsql.inc`).
-  - Drivers: Snowflake .deb, Oracle Instant Client ODBC, registered in
-    `odbcinst.ini`.
+- Linux (done):
+  - deb: `libodbc2 | libodbc1` in `Depends` (`deb-control.txt`). `libodbc2`
+    since unixODBC 2.3.7 (Debian 12, Ubuntu 22.04+), `libodbc1` before
+    (Debian 11, Ubuntu 20.04).
+  - rpm: `--depends "libodbc.so.2()(64bit)"` in the Makefile (Fedora/RHEL
+    package `unixODBC`).
+  - snap: `libodbc2` in `stage-packages`. Strict confinement hides
+    `/opt/oracle` and the host's `/etc/odbcinst.ini`, so Oracle will most
+    likely not work in the snap (not tested).
+  - FPC loads `libodbc.so`, which only exists with the `-dev` package.
+    `LoadOdbcDriverManager` in `odbcfixed.pas` calls `InitialiseODBC` with
+    `libodbc.so.2`, `libodbc.so.1`, `libodbc.2.dylib` and finally the FPC
+    default, before odbcconn's own `TODBCEnvironment.Create` (which then only
+    increments the reference count). Called in `GetOdbcDriverNames` (missing
+    driver manager → empty list) and before `TOdbcConnection` opens its
+    handle (missing → error message "Please install unixODBC").
+  - Drivers are not packaged: Oracle Instant Client "Basic" + "ODBC"
+    packages, `odbc_update_ini.sh` registers the driver in
+    `/etc/odbcinst.ini`. Snowflake: official .deb/.rpm.
 - macOS: install unixODBC via brew in `create-macos-app.sh` and bundle
   `libodbc.2.dylib`, like libpq.
   - Snowflake has a macOS driver.

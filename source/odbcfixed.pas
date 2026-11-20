@@ -41,6 +41,9 @@ function OdbcErrorText(const Msg: String): String;
 function GetOdbcDriverNames(const FilterRegex: String): TStringList;
 // Let the Oracle client talk UTF-8, if the user has not configured NLS_LANG
 function PrepareOracleClientEnvironment: String;
+// Load the ODBC driver manager before odbcconn does it. On Linux and macOS, FPC loads the
+// unversioned libodbc.so / libodbc.dylib, which only exists with the unixODBC -dev package.
+procedure LoadOdbcDriverManager;
 
 implementation
 
@@ -59,6 +62,7 @@ type
 
 var
   ODBCFormatSettings: TFormatSettings;
+  OdbcDriverManagerLoaded: Boolean = False;
 
 
 procedure TFixedODBCConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);
@@ -342,7 +346,7 @@ begin
   Env := nil;
   try
     try
-      // Loads the driver manager (odbc32.dll / libodbc)
+      LoadOdbcDriverManager;
       Env := TODBCEnvironment.Create;
       Direction := SQL_FETCH_FIRST;
       while True do begin
@@ -383,6 +387,42 @@ begin
     libc_setenv('NLS_LANG', PChar(Result), 1);
     {$ENDIF}
   end;
+end;
+
+
+procedure LoadOdbcDriverManager;
+{$IFNDEF WINDOWS}
+const
+  // Runtime names of unixODBC: libodbc2 (Debian 12+, Ubuntu 23.04+), libodbc1 (older), Homebrew
+  LibNames: array[0..3] of String = ('libodbc.so.2', 'libodbc.so.1', 'libodbc.2.dylib', '');
+var
+  LibName: String;
+  Tried: String;
+{$ENDIF}
+begin
+  if OdbcDriverManagerLoaded then
+    Exit;
+  {$IFDEF WINDOWS}
+  // odbc32.dll is part of Windows, odbcconn loads it
+  {$ELSE}
+  Tried := '';
+  for LibName in LibNames do begin
+    try
+      // '' = FPC's default libodbc.so / libodbc.dylib
+      InitialiseODBC(LibName);
+      OdbcDriverManagerLoaded := True;
+      Break;
+    except
+      on E:EInOutError do begin
+        if LibName <> '' then
+          Tried := Tried + LibName + ', ';
+      end;
+    end;
+  end;
+  if not OdbcDriverManagerLoaded then
+    raise EInOutError.Create('Can not load the ODBC driver manager. Please install unixODBC (tried '
+      + Tried + 'libodbc.' + SharedSuffix + ').');
+  {$ENDIF}
 end;
 
 

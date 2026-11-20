@@ -3351,6 +3351,7 @@ begin
     PrepareHandle(FinalHost, FinalPort);
 
     try
+      LoadOdbcDriverManager;
       FHandle.Open;
       FActive := True;
       FConnectionStarted := GetTickCount64 div 1000;

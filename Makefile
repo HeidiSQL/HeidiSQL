@@ -161,6 +161,7 @@ rpm-package:
 	  --depends "libpq.so.5()(64bit)" \
 	  --depends "libsqlite3.so.0()(64bit)" \
 	  --depends "libsybdb.so.5()(64bit)" \
+	  --depends "libodbc.so.2()(64bit)" \
 	  ./rpm/=/
 
 tar-gtk2:
