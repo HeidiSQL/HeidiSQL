@@ -1603,7 +1603,7 @@ end;
 
 procedure Tconnform.ValidateControls;
 var
-  SessionFocused, FolderFocused: Boolean;
+  SessionFocused, FolderFocused, SSLActive, SSLFilesActive: Boolean;
   Params: TConnectionParameters;
 begin
   SessionFocused := False;
@@ -1687,17 +1687,20 @@ begin
       chkForceUnicode.Enabled := Params.NetTypeGroup = ngMySQL;
       editLogFilePath.Enabled := Params.LogFileDdl or Params.LogFileDml;
       // SSL tab:
-      chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntMySQL_RDS, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
-      lblSSLPrivateKey.Enabled := Params.WantSSL;
-      editSSLPrivateKey.Enabled := Params.WantSSL;
-      lblSSLCACertificate.Enabled := Params.WantSSL;
-      editSSLCACertificate.Enabled := Params.WantSSL;
-      lblSSLCertificate.Enabled := Params.WantSSL;
-      editSSLCertificate.Enabled := Params.WantSSL;
-      lblSSLcipher.Enabled := Params.WantSSL;
-      editSSLcipher.Enabled := Params.WantSSL;
-      lblSSLVerification.Enabled := Params.WantSSL;
-      comboSSLVerification.Enabled := Params.WantSSL;
+      chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntMySQL_RDS, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntMSSQL_TCPIP];
+      SSLActive := chkWantSSL.Enabled and Params.WantSSL;
+      // The OLE DB driver for MS SQL has no client key, certificate, CA or cipher options
+      SSLFilesActive := SSLActive and (not Params.IsAnyMSSQL);
+      lblSSLPrivateKey.Enabled := SSLFilesActive;
+      editSSLPrivateKey.Enabled := SSLFilesActive;
+      lblSSLCACertificate.Enabled := SSLFilesActive;
+      editSSLCACertificate.Enabled := SSLFilesActive;
+      lblSSLCertificate.Enabled := SSLFilesActive;
+      editSSLCertificate.Enabled := SSLFilesActive;
+      lblSSLcipher.Enabled := SSLFilesActive;
+      editSSLcipher.Enabled := SSLFilesActive;
+      lblSSLVerification.Enabled := SSLActive;
+      comboSSLVerification.Enabled := SSLActive;
 
       Params.Free;
     end;

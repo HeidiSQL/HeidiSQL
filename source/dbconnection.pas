@@ -2759,7 +2759,7 @@ var
   FinalHost: String;
   rx: TRegExpr;
   FinalPort, i: Integer;
-  IsOldProvider: Boolean;
+  IsOldProvider, IsEncryptionRequested: Boolean;
 begin
   if Value then begin
     DoBeforeConnect;
@@ -2841,6 +2841,20 @@ begin
         else
           FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Trusted_Connection=yes;'
       end;
+
+      // Encryption settings from the SSL tab. Without SSL activated, the connection string
+      // stays untouched, so the driver default applies: no encryption in v18, mandatory
+      // encryption with certificate validation in v19.
+      // The driver has no mode for verifying the CA without the host name, so that one verifies both.
+      // Note that v19 ignores "Trust Server Certificate" as long as the client registry flag
+      // "Trust Server Certificate" (SNI19.0\GeneralFlags\Flag2) is 0.
+      IsEncryptionRequested := Parameters.WantSSL and Parameters.LibraryOrProvider.StartsWith('MSOLEDBSQL', true);
+      if IsEncryptionRequested then begin
+        // "true" is accepted by v18 and v19, "yes" only by v19
+        FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Use Encryption for Data=true;';
+        if Parameters.SSLVerification = 0 then
+          FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Trust Server Certificate=true;';
+      end;
     except
       on E:EOleException do
         raise EDbError.Create(E.Message);
@@ -2860,6 +2874,13 @@ begin
         FServerUptime := StrToIntDef(GetVar('SELECT DATEDIFF(SECOND, '+QuoteIdent('login_time')+', CURRENT_TIMESTAMP) FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('sysprocesses')+' WHERE '+QuoteIdent('spid')+'=1'), -1);
       except
         FServerUptime := -1;
+      end;
+      try
+        FIsSSL := SameText(GetVar('SELECT '+QuoteIdent('encrypt_option')+' FROM '+QuoteIdent('sys')+'.'+QuoteIdent('dm_exec_connections')+' WHERE '+QuoteIdent('session_id')+'=@@SPID'), 'TRUE');
+      except
+        // Missing VIEW SERVER STATE permission, or SQL Server 2000. With encryption requested,
+        // the driver fails to connect if it cannot encrypt.
+        FIsSSL := IsEncryptionRequested;
       end;
       FServerDateTimeOnStartup := GetVar('SELECT ' + FSqlProvider.GetSql(qFuncNow));
       // Microsoft SQL Server 2008 R2 (RTM) - 10.50.1600.1 (Intel X86)
@@ -2916,6 +2937,14 @@ begin
             );
         end else begin
           ErrorHint := '';
+        end;
+        if ContainsText(Error, 'SSL Provider') and Parameters.LibraryOrProvider.StartsWith('MSOLEDBSQL', true) then begin
+          // Self-signed or otherwise unverifiable server certificate
+          if not (Parameters.WantSSL and (Parameters.SSLVerification = 0)) then
+            ErrorHint := _('Install the server certificate as a trusted certificate on this computer, or activate SSL with "No verification" in your session settings (insecure).')
+          else if not SameText(Parameters.LibraryOrProvider, 'MSOLEDBSQL') then
+            ErrorHint := f_('%s ignores "No verification" as long as the registry value %s is 0. Set it to 1, or install the server certificate as a trusted certificate on this computer.',
+              [Parameters.LibraryOrProvider, 'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MSSQLServer\Client\SNI19.0\GeneralFlags\Flag2']);
         end;
         raise EDbError.Create(Error, LastErrorCode, ErrorHint);
       end;
