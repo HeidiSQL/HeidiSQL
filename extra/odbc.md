@@ -2,7 +2,7 @@
 
 Status: phases 1 and 2 (ODBC base, experimental Oracle network type)
 implemented, see "Implementation status" below. Linux packaging done,
-Snowflake and macOS packaging open.
+macOS packaging done, Snowflake open.
 Motivation: GitHub issue #1091
 (Snowflake) and the recurring Oracle requests. Neither DBMS offers a C client
 library that is practical to ship, but both have free, official ODBC drivers.
@@ -219,11 +219,44 @@ hardcoded in FPC's `odbcsql.inc`), and the drivers are installed by the user
   - Drivers are not packaged: Oracle Instant Client "Basic" + "ODBC"
     packages, `odbc_update_ini.sh` registers the driver in
     `/etc/odbcinst.ini`. Snowflake: official .deb/.rpm.
-- macOS: install unixODBC via brew in `create-macos-app.sh` and bundle
-  `libodbc.2.dylib`, like libpq.
-  - Snowflake has a macOS driver.
-  - Oracle offers no ODBC driver for macOS as far as known (to verify). If so,
-    Oracle via ODBC is Windows/Linux only.
+- macOS (done; driver load and login tested, not yet in the GUI or with a notarized build):
+  - `create-macos-app.sh` brew-installs unixODBC and bundles
+    `libodbc.2.dylib` (plus `libltdl.7.dylib` as its dependency) and
+    `libodbcinst.2.dylib` (linked by `libsqora`) in `Contents/Frameworks`.
+    `LoadOdbcDriverManager` loads `libodbc.2.dylib` by its bare name, which
+    dyld finds via the executable's rpath. Without the bundled copy, nothing
+    is found on Apple Silicon: dyld's fallback paths are `/usr/local/lib` and
+    `/usr/lib`, not `/opt/homebrew/lib`.
+  - macOS ships iODBC (`/usr/lib/libiodbc.2.dylib`, still loadable on 15).
+    Not usable: its `SQLWCHAR` is a 4 byte `wchar_t`, FPC's is a 2 byte
+    `WideChar`. Never fall back to it.
+  - The hardened runtime enforces library validation: only libraries signed
+    with the app's team ID are loaded. User installed drivers (Oracle's
+    `libsqora.dylib`) are signed by someone else, so the app is signed with
+    the entitlement `com.apple.security.cs.disable-library-validation`.
+  - The bundled unixODBC has its config directory compiled in
+    (`/opt/homebrew/etc`), which does not exist without Homebrew. unixODBC
+    also reads `~/.odbcinst.ini` (verified with 2.3.14, `odbcinst -q -d`), so
+    users register the driver there, no sudo needed. `ODBCSYSINI` adds
+    another directory.
+  - Oracle offers an ODBC package for macOS ARM64 (Instant Client 23.26,
+    DMG/PKG, needs Basic or Basic Light). Tested with the DMGs (Basic Light
+    + ODBC 23.26.3, `install_ic.sh` copies to `~/Downloads/instantclient_23_26`,
+    no sudo) against 21c XE: `libsqora.dylib.23.1` has the rpath
+    `@loader_path` for `libclntsh`/`libclntshcore`, and links
+    `@rpath/libodbcinst.2.dylib`, which only resolves through the rpath of the
+    loading executable, i.e. the bundled copy. Loaded via the bundled
+    `libodbc.2.dylib`, `SQLDrivers` lists the driver from `~/.odbcinst.ini`,
+    and `SQLDriverConnect` reaches the server (ORA-01017 with a wrong
+    password). `odbc_update_ini.sh` is not usable for this setup: it expects
+    `<DM home>/etc/odbcinst.ini` and writes `libsqora.so.23.1`. A manual entry
+    is enough:
+    `[Oracle 23 ODBC driver]` / `Driver = <dir>/libsqora.dylib.23.1`.
+  - Snowflake has a macOS driver. Its `simba.snowflake.ini` defaults to
+    iODBC (`ODBCInstLib`, not verified), which must be switched to unixODBC's
+    `libodbcinst.2.dylib`.
+  - What a user installs: Instant Client Basic + ODBC, and a driver entry in
+    `~/.odbcinst.ini`. No Homebrew, no unixODBC.
 
 ## Connecting
 

@@ -52,6 +52,22 @@ else
   SIGN_OPTS="--options runtime --timestamp"
 fi
 
+# Entitlements of the main executable. The hardened runtime only loads libraries signed with
+# the app's own team ID, which rules out ODBC drivers installed by the user (Oracle's
+# libsqora.dylib is signed by Oracle), loaded into the process by unixODBC.
+ENTITLEMENTS_FILE="$(mktemp -t heidisql_entitlements)"
+cat > "${ENTITLEMENTS_FILE}" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>com.apple.security.cs.disable-library-validation</key>
+  <true/>
+</dict>
+</plist>
+EOF
+trap 'rm -f "${ENTITLEMENTS_FILE}"' EXIT
+
 LOCALES_ZIP_URL="https://www.heidisql.com/downloads/locale/HeidiSQL-locale.zip"
 
 
@@ -117,6 +133,9 @@ brew list sqlite >/dev/null 2>&1 || brew install sqlite
 brew list mariadb-connector-c >/dev/null 2>&1 || brew install mariadb-connector-c
 # FreeTDS (libsybdb.dylib) for MS SQL Server
 brew list freetds >/dev/null 2>&1 || brew install freetds
+# unixODBC (libodbc.2.dylib) driver manager for Oracle via ODBC. macOS only ships iODBC,
+# whose 4 byte SQLWCHAR does not fit FPC's 2 byte WideChar in the W functions.
+brew list unixodbc >/dev/null 2>&1 || brew install unixodbc
 
 
 # OpenSSL 1.1 for TFPHTTPClient (deprecated in Homebrew, may be unavailable on CI runners)
@@ -132,6 +151,7 @@ MYSQL_PLUGIN_DIR="${MYSQL_LIB_DIR}/plugin"
 MARIADB_PLUGIN_DIR="${MARIADB_LIB_DIR}/mariadb/plugin"
 OPENSSL11_LIB_DIR="${BREW_PREFIX}/opt/openssl@1.1/lib"
 FREETDS_LIB_DIR="${BREW_PREFIX}/opt/freetds/lib"
+UNIXODBC_LIB_DIR="${BREW_PREFIX}/opt/unixodbc/lib"
 
 ### PREPARE APP BUNDLE STRUCTURE
 
@@ -143,7 +163,7 @@ mkdir -p "${APP_DIR}/Contents/Frameworks"   # where we will put .dylib and .so f
 # Copy main executable
 cp "${EXECUTABLE_SRC}" "${EXECUTABLE_TRG}"
 chmod +x "${EXECUTABLE_TRG}"
-codesign --force ${SIGN_OPTS} --sign "${CODESIGN_IDENTITY}" "${EXECUTABLE_TRG}"
+codesign --force ${SIGN_OPTS} --entitlements "${ENTITLEMENTS_FILE}" --sign "${CODESIGN_IDENTITY}" "${EXECUTABLE_TRG}"
 
 # Minimal Info.plist (adjust identifiers/versions as needed)
 cat > "${APP_DIR}/Contents/Info.plist" <<EOF
@@ -289,6 +309,20 @@ else
   missing_lib "No libsybdb*.dylib found in ${FREETDS_LIB_DIR} - MS SQL connections would be broken"
 fi
 
+# libodbc.2.dylib (unixODBC driver manager, for Oracle via ODBC). LoadOdbcDriverManager loads
+# it by its bare name, found through the executable's rpath. libodbcinst.2.dylib is not
+# needed by libodbc itself, but Oracle's libsqora.dylib links @rpath/libodbcinst.2.dylib,
+# which dyld resolves via the executable's rpath as well. The drivers themselves are installed
+# by the user and registered in ~/.odbcinst.ini, as this unixODBC's own config directory
+# is ${BREW_PREFIX}/etc, which does not exist without Homebrew.
+for odbc_lib in libodbc.2.dylib libodbcinst.2.dylib; do
+  if [[ -f "${UNIXODBC_LIB_DIR}/${odbc_lib}" ]]; then
+    copy_and_rewrite_dylib "${UNIXODBC_LIB_DIR}/${odbc_lib}"
+  else
+    missing_lib "No ${odbc_lib} found in ${UNIXODBC_LIB_DIR} - Oracle connections would be broken"
+  fi
+done
+
 # libfbclient.dylib (Firebird/Interbase client; there is no homebrew formula, so use
 # the official Firebird framework from https://firebirdsql.org, either installed on
 # this machine, or extracted from its macOS pkg and passed via FBCLIENT_ROOT by the
@@ -426,7 +460,7 @@ if [[ ${#MISSING_LIBS[@]} -gt 0 ]]; then
   for m in "${MISSING_LIBS[@]}"; do
     echo "  - ${m}" >&2
   done
-  echo "Hints: brew install mysql-client libpq sqlite mariadb-connector-c freetds; for Firebird, extract the official macOS pkg and pass FBCLIENT_ROOT, or install /Library/Frameworks/Firebird.framework (see .github/workflows/lazarus.yaml)" >&2
+  echo "Hints: brew install mysql-client libpq sqlite mariadb-connector-c freetds unixodbc; for Firebird, extract the official macOS pkg and pass FBCLIENT_ROOT, or install /Library/Frameworks/Firebird.framework (see .github/workflows/lazarus.yaml)" >&2
   rm -rf "${APP_DIR}"
   exit 1
 fi
@@ -487,7 +521,7 @@ find "${APP_DIR}/Contents" -type f \( -name "*.dylib" -o -name "*.so" \) | while
 done
 
 echo "Signing main app bundle..."
-codesign --force ${SIGN_OPTS} --sign --deep --sign "${CODESIGN_IDENTITY}" "${APP_DIR}"
+codesign --force ${SIGN_OPTS} --entitlements "${ENTITLEMENTS_FILE}" --sign --deep --sign "${CODESIGN_IDENTITY}" "${APP_DIR}"
 
 echo "Verifying code signature..."
 codesign --verify --deep --strict --verbose=2 "${APP_DIR}"
