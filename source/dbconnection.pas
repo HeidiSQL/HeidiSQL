@@ -2007,8 +2007,8 @@ end;
 
 function TConnectionParameters.AdditionalParamsSupported: Boolean;
 begin
-  // Client libraries with a key/value connection string
-  Result := IsAnyMSSQL or IsAnyPostgreSQL;
+  // Client libraries with a key/value connection string, or an option file for MySQL
+  Result := IsAnyMySQL or IsAnyMSSQL or IsAnyPostgreSQL;
 end;
 
 
@@ -2523,8 +2523,13 @@ var
   VerifyServerCert: Integer;
   Error, StatusName: String;
   FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
-  ErrorHint: String;
-  PluginDir, TlsVersions: AnsiString;
+  ErrorHint, OptionsFile, OptionsContent: String;
+  PluginDir, TlsVersions, OptionsFileAnsi: AnsiString;
+  FinalSocketUtf8, OptionsUtf8: UTF8String;
+  SocketArg: PAnsiChar;
+  AdditionalParams: TStringList;
+  OptionsStream: TFileStream;
+  i: Integer;
   Status: TDBQuery;
   PasswordChangeDialog: TfrmPasswordChange;
   UserNameSize: DWORD;
@@ -2648,16 +2653,56 @@ begin
     // Ensure we have some connection timeout
     SetOption(FLib.MYSQL_OPT_CONNECT_TIMEOUT, @(FParameters.QueryTimeout));
 
-    Connected := FLib.mysql_real_connect(
-      FHandle,
-      PAnsiChar(Utf8Encode(FinalHost)),
-      PAnsiChar(Utf8Encode(FinalUsername)),
-      PAnsiChar(Utf8Encode(FinalPassword)),
-      nil,
-      FinalPort,
-      PAnsiChar(Utf8Encode(FinalSocket)),
-      ClientFlags
-      );
+    // User defined parameters go into an option file, in my.cnf syntax. The library reads it
+    // in mysql_real_connect, after the above options, so these values override them.
+    // Avoids mapping option names to MYSQL_OPT_* numbers, which differ between library versions.
+    OptionsFile := '';
+    AdditionalParams := FParameters.AdditionalParamsList;
+    if AdditionalParams.Count > 0 then begin
+      OptionsContent := '[client]' + sLineBreak;
+      for i:=0 to AdditionalParams.Count-1 do begin
+        // Other characters, e.g. "[", could break the file format
+        if ExecRegExpr('^[a-zA-Z0-9_\-]+$', AdditionalParams.Names[i]) then
+          OptionsContent := OptionsContent + AdditionalParams.Names[i] + '=' + AdditionalParams.ValueFromIndex[i] + sLineBreak
+        else
+          Log(lcError, f_('Ignoring invalid option name "%s" in connection parameters', [AdditionalParams.Names[i]]));
+      end;
+      OptionsFile := GetTempDir + APPNAME + '-' + IntToStr(GetCurrentProcessId) + '-' + IntToStr(GetTickCount) + '.cnf';
+      OptionsUtf8 := UTF8Encode(OptionsContent);
+      OptionsStream := TFileStream.Create(OptionsFile, fmCreate);
+      try
+        OptionsStream.WriteBuffer(PAnsiChar(OptionsUtf8)^, Length(OptionsUtf8));
+      finally
+        OptionsStream.Free;
+      end;
+      OptionsFileAnsi := AnsiString(OptionsFile);
+      SetOption(FLib.MYSQL_READ_DEFAULT_FILE, PAnsiChar(OptionsFileAnsi));
+    end;
+    AdditionalParams.Free;
+
+    // An empty socket would hide a "socket" value from the option file
+    FinalSocketUtf8 := Utf8Encode(FinalSocket);
+    if FinalSocket.IsEmpty and (not OptionsFile.IsEmpty) then
+      SocketArg := nil
+    else
+      SocketArg := PAnsiChar(FinalSocketUtf8);
+
+    try
+      Connected := FLib.mysql_real_connect(
+        FHandle,
+        PAnsiChar(Utf8Encode(FinalHost)),
+        PAnsiChar(Utf8Encode(FinalUsername)),
+        PAnsiChar(Utf8Encode(FinalPassword)),
+        nil,
+        FinalPort,
+        SocketArg,
+        ClientFlags
+        );
+    finally
+      // Contains user input in plain text, so do not keep it
+      if not OptionsFile.IsEmpty then
+        System.SysUtils.DeleteFile(OptionsFile);
+    end;
     if Connected = nil then begin
       Error := LastErrorMsg;
       Log(lcError, Error);

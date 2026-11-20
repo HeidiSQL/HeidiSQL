@@ -299,6 +299,7 @@ type
     public
       MYSQL_OPT_LOCAL_INFILE,
       MYSQL_OPT_CONNECT_TIMEOUT,
+      MYSQL_READ_DEFAULT_FILE,
       MARIADB_OPT_TLS_VERSION,
       MYSQL_OPT_TLS_VERSION,
       MYSQL_PLUGIN_DIR,
@@ -1046,6 +1047,7 @@ begin
   inherited;
   // MYSQL_OPT_* constants
   MYSQL_OPT_CONNECT_TIMEOUT := 0;
+  MYSQL_READ_DEFAULT_FILE := 4; // Same in libmysql and libmariadb
   MYSQL_OPT_LOCAL_INFILE := 8;
   MYSQL_PLUGIN_DIR := 22;
   MYSQL_OPT_SSL_KEY := 25;
