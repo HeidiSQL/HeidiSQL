@@ -734,6 +734,28 @@ object connform: Tconnform
         TabOrder = 13
         OnClick = Modification
       end
+      object lblAdditionalParams: TLabel
+        Left = 3
+        Top = 333
+        Width = 133
+        Height = 14
+        Caption = 'Connection parameters:'
+        FocusControl = editAdditionalParams
+      end
+      object editAdditionalParams: TEdit
+        Left = 190
+        Top = 330
+        Width = 320
+        Height = 22
+        Hint =
+          'Added to the connection string of the client library, overridin' +
+          'g built-in values. Stored unencrypted.'
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 14
+        TextHint = 'key1=value1;key2=value2'
+        OnChange = Modification
+        OnExit = editTrim
+      end
     end
     object tabSSL: TTabSheet
       Caption = 'SSL'

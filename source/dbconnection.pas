@@ -322,10 +322,12 @@ type
       FLogFileDdl: Boolean;
       FLogFileDml: Boolean;
       FLogFilePath: String;
+      FAdditionalParams: String;
       class var FLibraries: TNetTypeLibs;
       function GetImageIndex: Integer;
       function GetSessionName: String;
       function GetAllDatabasesList: TStringList;
+      function GetAdditionalParamsList: TStringList;
     public
       constructor Create; overload;
       constructor Create(SessionRegPath: String); overload;
@@ -364,6 +366,7 @@ type
       function DefaultUsername: String;
       function DefaultIgnoreDatabasePattern: String;
       function DefaultSshActive: Boolean;
+      function AdditionalParamsSupported: Boolean;
       function GetExternalCliArguments(Connection: TDBConnection; ReplacePassword: TThreeStateBoolean): String;
     published
       property IsFolder: Boolean read FIsFolder write FIsFolder;
@@ -412,6 +415,9 @@ type
       property LogFileDdl: Boolean read FLogFileDdl write FLogFileDdl;
       property LogFileDml: Boolean read FLogFileDml write FLogFileDml;
       property LogFilePath: String read FLogFilePath write FLogFilePath;
+      // Raw "key=value;key=value" string, appended to the connection string of the client library
+      property AdditionalParams: String read FAdditionalParams write FAdditionalParams;
+      property AdditionalParamsList: TStringList read GetAdditionalParamsList;
   end;
   PConnectionParameters = ^TConnectionParameters;
 
@@ -1460,6 +1466,7 @@ begin
   FLogFileDdl := AppSettings.GetDefaultBool(asLogFileDdl);
   FLogFileDml := AppSettings.GetDefaultBool(asLogFileDml);
   FLogFilePath := AppSettings.GetDefaultString(asLogFilePath);
+  FAdditionalParams := AppSettings.GetDefaultString(asAdditionalParams);
 
   FLastConnect := 0;
   FCounter := 0;
@@ -1537,8 +1544,9 @@ begin
     FLogFileDdl := AppSettings.ReadBool(asLogFileDdl);
     FLogFileDml := AppSettings.ReadBool(asLogFileDml);
     FLogFilePath := AppSettings.ReadString(asLogFilePath);
+    FAdditionalParams := AppSettings.ReadString(asAdditionalParams);
 
-    FServerVersion := AppSettings.ReadString(asServerVersionFull);
+    FServerVersion :=AppSettings.ReadString(asServerVersionFull);
     DummyDate := 0;
     FLastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DummyDate);
     FCounter := AppSettings.ReadInt(asConnectCount);
@@ -1613,6 +1621,7 @@ begin
     AppSettings.WriteBool(asLogFileDdl, FLogFileDdl);
     AppSettings.WriteBool(asLogFileDml, FLogFileDml);
     AppSettings.WriteString(asLogFilePath, FLogFilePath);
+    AppSettings.WriteString(asAdditionalParams, FAdditionalParams);
     AppSettings.ResetPath;
   end;
 end;
@@ -1993,6 +2002,29 @@ end;
 function TConnectionParameters.DefaultSshActive: Boolean;
 begin
   Result := FNetType in [ntMySQL_SSHtunnel, ntMySQL_RDS, ntPgSQL_SSHtunnel];
+end;
+
+
+function TConnectionParameters.AdditionalParamsSupported: Boolean;
+begin
+  // Client libraries with a key/value connection string
+  Result := IsAnyMSSQL or IsAnyPostgreSQL;
+end;
+
+
+function TConnectionParameters.GetAdditionalParamsList: TStringList;
+var
+  Pair, Key: String;
+begin
+  // Split "key=value;key=value" into name/value pairs. Caller must free the result.
+  Result := TStringList.Create;
+  for Pair in FAdditionalParams.Split([';']) do begin
+    if Pos('=', Pair) < 2 then
+      Continue;
+    Key := Trim(Copy(Pair, 1, Pos('=', Pair)-1));
+    if not Key.IsEmpty then
+      Result.AddPair(Key, Trim(Copy(Pair, Pos('=', Pair)+1, MaxInt)));
+  end;
 end;
 
 
@@ -2756,7 +2788,7 @@ end;
 procedure TAdoDBConnection.SetActive(Value: Boolean);
 var
   Error, NetLib, DataSource, QuotedPassword, ServerVersion, ErrorHint: String;
-  FinalHost: String;
+  FinalHost, AdditionalParams: String;
   rx: TRegExpr;
   FinalPort, i: Integer;
   IsOldProvider, IsEncryptionRequested: Boolean;
@@ -2854,6 +2886,15 @@ begin
         FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Use Encryption for Data=true;';
         if Parameters.SSLVerification = 0 then
           FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Trust Server Certificate=true;';
+      end;
+
+      // User defined parameters come last, as the last occurrence of a keyword wins.
+      // Appended as they are, so quoted values with semicolons survive.
+      AdditionalParams := Trim(Parameters.AdditionalParams);
+      if not AdditionalParams.IsEmpty then begin
+        if not AdditionalParams.EndsWith(';') then
+          AdditionalParams := AdditionalParams + ';';
+        FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + AdditionalParams;
       end;
     except
       on E:EOleException do
@@ -2963,7 +3004,7 @@ end;
 procedure TPgConnection.SetActive(Value: Boolean);
 var
   ConnectionString, OptionValue, Error: String;
-  ConnectOptions: TStringList;
+  ConnectOptions, AdditionalParams: TStringList;
   FinalHost, ErrorHint: String;
   FinalPort, i: Integer;
 begin
@@ -3003,6 +3044,11 @@ begin
         ConnectOptions.AddPair('sslrootcert', GetOutputFilename(FParameters.SSLCACertificate, nil));
       //if FParameters.SSLCipher <> '' then ??
     end;
+    // User defined parameters, overriding the above ones
+    AdditionalParams := FParameters.AdditionalParamsList;
+    for i:=0 to AdditionalParams.Count-1 do
+      ConnectOptions.Values[AdditionalParams.Names[i]] := AdditionalParams.ValueFromIndex[i];
+    AdditionalParams.Free;
     ConnectionString := '';
     for i:=0 to ConnectOptions.Count-1 do begin
       // Escape values. See issue #704 and #1417, and docs: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
