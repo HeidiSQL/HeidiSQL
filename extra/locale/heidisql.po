@@ -7552,3 +7552,7 @@ msgstr "Connection parameters:"
 #: connections.lfm
 msgid "Added to the connection string of the client library, overriding built-in values. Stored unencrypted."
 msgstr "Added to the connection string of the client library, overriding built-in values. Stored unencrypted."
+
+#: dbconnection.pas
+msgid "Ignoring invalid option name \"%s\" in connection parameters"
+msgstr "Ignoring invalid option name \"%s\" in connection parameters"
