@@ -7544,3 +7544,11 @@ msgstr "Saving is not yet supported in this editor on %s. Run a CREATE OR REPLAC
 #: table_editor.pas
 msgid "%d of %d statements were executed before the error. The editor shows the current state from the server now."
 msgstr "%d of %d statements were executed before the error. The editor shows the current state from the server now."
+
+#: connections.lfm
+msgid "Connection parameters:"
+msgstr "Connection parameters:"
+
+#: connections.lfm
+msgid "Added to the connection string of the client library, overriding built-in values. Stored unencrypted."
+msgstr "Added to the connection string of the client library, overriding built-in values. Stored unencrypted."

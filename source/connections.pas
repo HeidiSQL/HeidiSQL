@@ -130,6 +130,8 @@ type
     Filter1: TMenuItem;
     chkLogFileDdl: TCheckBox;
     editLogFilePath: TEditButton;
+    lblAdditionalParams: TLabel;
+    editAdditionalParams: TEdit;
     tabSSL: TTabSheet;
     chkWantSSL: TCheckBox;
     lblSSLPrivateKey: TLabel;
@@ -564,6 +566,7 @@ begin
     Sess.LogFileDdl := chkLogFileDdl.Checked;
     Sess.LogFileDml := chkLogFileDml.Checked;
     Sess.LogFilePath := editLogFilePath.Text;
+    Sess.AdditionalParams := editAdditionalParams.Text;
     Sess.SaveToRegistry;
 
     // Apply session color (and othher settings) to opened connection(s)
@@ -839,6 +842,7 @@ begin
     Result.LogFileDdl := chkLogFileDdl.Checked;
     Result.LogFileDml := chkLogFileDml.Checked;
     Result.LogFilePath := editLogFilePath.Text;
+    Result.AdditionalParams := editAdditionalParams.Text;
   end;
 end;
 
@@ -1163,6 +1167,7 @@ begin
     chkLogFileDdl.Checked := Sess.LogFileDdl;
     chkLogFileDml.Checked := Sess.LogFileDml;
     editLogFilePath.Text := Sess.LogFilePath;
+    editAdditionalParams.Text := Sess.AdditionalParams;
     FServerVersion := Sess.ServerVersion;
   end;
 
@@ -1634,6 +1639,7 @@ begin
       or (Sess.LogFileDdl <> chkLogFileDdl.Checked)
       or (Sess.LogFileDml <> chkLogFileDml.Checked)
       or (Sess.LogFilePath <> editLogFilePath.Text)
+      or (Sess.AdditionalParams <> editAdditionalParams.Text)
       ;
     PasswordModified := Sess.Password <> editPassword.Text;
     FOnlyPasswordModified := PasswordModified and (not FSessionModified);
@@ -1779,6 +1785,8 @@ begin
       chkCleartextPluginEnabled.Enabled := Params.NetTypeGroup = ngMySQL;
       chkForceUnicode.Enabled := Params.NetTypeGroup = ngMySQL;
       editLogFilePath.Enabled := Params.LogFileDdl or Params.LogFileDml;
+      lblAdditionalParams.Enabled := Params.AdditionalParamsSupported;
+      editAdditionalParams.Enabled := lblAdditionalParams.Enabled;
       // SSL tab:
       chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntMySQL_RDS, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       lblSSLPrivateKey.Enabled := Params.WantSSL;

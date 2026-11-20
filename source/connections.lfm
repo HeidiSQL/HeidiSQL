@@ -918,6 +918,34 @@ object connform: Tconnform
         TabOrder = 11
         OnClick = Modification
       end
+      object lblAdditionalParams: TLabel
+        AnchorSideTop.Control = chkLogFileDml
+        AnchorSideTop.Side = asrBottom
+        Left = 3
+        Height = 15
+        Top = 316
+        Width = 130
+        BorderSpacing.Around = 5
+        Caption = 'Connection parameters:'
+        FocusControl = editAdditionalParams
+      end
+      object editAdditionalParams: TEdit
+        AnchorSideTop.Control = chkLogFileDml
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabAdvanced
+        AnchorSideRight.Side = asrBottom
+        Left = 194
+        Height = 23
+        Hint = 'Added to the connection string of the client library, overriding built-in values. Stored unencrypted.'
+        Top = 316
+        Width = 314
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 5
+        TabOrder = 12
+        TextHint = 'key1=value1;key2=value2'
+        OnChange = Modification
+        OnExit = editTrim
+      end
     end
     object tabSSL: TTabSheet
       Caption = 'SSL'
