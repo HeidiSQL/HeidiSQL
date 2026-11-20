@@ -219,7 +219,7 @@ hardcoded in FPC's `odbcsql.inc`), and the drivers are installed by the user
   - Drivers are not packaged: Oracle Instant Client "Basic" + "ODBC"
     packages, `odbc_update_ini.sh` registers the driver in
     `/etc/odbcinst.ini`. Snowflake: official .deb/.rpm.
-- macOS (done; driver load and login tested, not yet in the GUI or with a notarized build):
+- macOS (done; tested 2026-11-20 with the notarized CI bundle against 21c XE):
   - `create-macos-app.sh` brew-installs unixODBC and bundles
     `libodbc.2.dylib` (plus `libltdl.7.dylib` as its dependency) and
     `libodbcinst.2.dylib` (linked by `libsqora`) in `Contents/Frameworks`.
@@ -443,6 +443,101 @@ Not done / open:
 - `qGetRowCountApprox` uses `ALL_TABLES.NUM_ROWS`, empty before statistics
   are gathered.
 - No `functions-oracle.ini` for the SQL function list.
+
+## Help page: Oracle setup for users
+
+How to explain it, learned from testing on macOS:
+
+- Lead with the one sentence users miss: HeidiSQL ships the ODBC driver
+  manager, but not Oracle's driver. The user installs Oracle's Instant Client
+  (free, no Oracle account needed for the macOS downloads) and tells the
+  driver manager where it is. Nothing else, no Homebrew, no unixODBC.
+- One section per OS with copy-paste commands, not prose. The macOS steps
+  are short, but every one of them is a hard stop if skipped.
+- Then one section for the session settings, which are the same everywhere.
+- End with a troubleshooting table: error text as the user sees it, cause,
+  fix. Users search for the error text.
+- Mark the whole thing experimental, and list what does not work yet (grid
+  editing, routine editor, copy table, SQL export), see "Not done / open".
+
+Draft:
+
+### Install the Oracle ODBC driver
+
+**macOS (Apple Silicon)**
+
+1. Download "Basic Light Package (DMG)" (or "Basic") and "ODBC Package
+   (DMG)" from Oracle's "Instant Client for macOS (ARM64)" page. Same version
+   for both.
+2. Open both DMGs, then in Terminal run the installer from one of them. It
+   copies all mounted packages to `~/Downloads/instantclient_23_26`, no admin
+   rights needed:
+   `sh /Volumes/instantclient-basiclite-macos.arm64-23.26.3.0.0/install_ic.sh`
+   Eject the DMGs afterwards. The folder can be moved elsewhere, adjust the
+   path in the next step then.
+3. Register the driver: create the file `~/.odbcinst.ini` with this content
+   (replace `<you>` with your user name, and check the file name of
+   `libsqora` in the folder):
+   ```
+   [Oracle 23 ODBC driver]
+   Description = Oracle ODBC driver
+   Driver = /Users/<you>/Downloads/instantclient_23_26/libsqora.dylib.23.1
+   ```
+   Do not use Oracle's `odbc_update_ini.sh`: it writes the Linux file name
+   `libsqora.so...` and expects a unixODBC installation directory.
+4. Intel Macs: Oracle's last Instant Client for macOS Intel is 19.x; the
+   HeidiSQL macOS build is ARM64 only anyway.
+
+**Windows**
+
+1. Download "Basic Package" (or "Basic Light") and "ODBC Package" from
+   Oracle's "Instant Client for Microsoft Windows (x64)" page, same version,
+   and unzip both into the same folder, e.g. `C:\oracle\instantclient_23_x`.
+2. Run `odbc_install.exe` from that folder in a command prompt with admin
+   rights. It registers a driver named like "Oracle in instantclient_23_x".
+3. If HeidiSQL cannot load the driver, add the folder to `PATH`.
+   (Windows steps not tested by me, taken from Oracle's instructions.)
+
+**Linux**
+
+1. HeidiSQL's packages pull in unixODBC (`libodbc2`/`libodbc1`, rpm
+   `unixODBC`). Install Oracle's Instant Client "Basic" + "ODBC" packages
+   (rpm or zip).
+2. Register the driver in `/etc/odbcinst.ini` (system wide, with sudo) or
+   `~/.odbcinst.ini` (only for you), same format as on macOS, with
+   `Driver = /path/to/libsqora.so.23.1`.
+3. With the zip packages, the Oracle libraries must be found by the dynamic
+   linker: `sudo sh -c "echo /opt/oracle/instantclient_23_x >
+   /etc/ld.so.conf.d/oracle-instantclient.conf" && sudo ldconfig`.
+   (Not tested here.)
+4. The snap package most likely cannot use Oracle at all, see "Packaging".
+
+### Session settings
+
+- Network type: "Oracle (ODBC, experimental)"
+- Hostname / IP and Port: the database server, port usually 1521
+- User and Password: database user
+- Service name: the service of the database (PDB), e.g. `XEPDB1` for
+  Oracle XE 21c, `FREEPDB1` for Oracle Database Free 23ai. Not the SID.
+- ODBC driver: pick the installed Oracle driver from the list. Only drivers
+  with "oracle" in their name are listed. Empty list: the driver is not
+  registered, see above.
+- After connecting, the schemas (users) appear as databases in the tree.
+- `NLS_LANG` is set to `.AL32UTF8` by HeidiSQL if unset. A user who sets
+  it to a non-UTF-8 character set gets broken non-ASCII text (HeidiSQL logs
+  a warning).
+
+### Troubleshooting
+
+| Message | Cause | Fix |
+|---|---|---|
+| "No ODBC driver selected" / empty driver list | Driver not registered | Check `~/.odbcinst.ini` (macOS/Linux) or run `odbc_install.exe` (Windows) |
+| "Can not load the ODBC driver manager. Please install unixODBC" | Linux only: unixODBC missing (tar.gz/AppImage builds) | Install `libodbc2` / `unixODBC` |
+| ORA-12543 "TNS:destination host unreachable" (macOS, server in the LAN, works from Terminal) | macOS "Local Network" privacy blocks HeidiSQL | System Settings → Privacy & Security → Local Network: enable HeidiSQL (after an update: toggle off and on) |
+| ORA-12541 "no listener" | Wrong host or port, listener down, firewall | Check host/port, `lsnrctl status` on the server |
+| ORA-12514 "Service ... is not registered with the listener" | Wrong service name | Use the PDB service name, e.g. `XEPDB1`; `lsnrctl services` on the server lists them |
+| ORA-01017 "invalid username/password" | Wrong credentials, or connected to the wrong service (user lives in a PDB, not in the CDB) | Check user and service name |
+| Driver loads on Windows only after setting PATH | Oracle DLLs not found | Add the Instant Client folder to `PATH` |
 
 ## Testing
 
