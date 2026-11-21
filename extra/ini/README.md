@@ -13,6 +13,7 @@ editor hints. HeidiSQL loads one file per server type from its resources directo
 | SQLite             | `functions-sqlite.ini`     |
 | Firebird           | `functions-firebird.ini`   |
 | Interbase          | `functions-interbase.ini`  |
+| Oracle (ODBC)      | `functions-oracle.ini`     |
 
 All files are UTF-8 without BOM, with CRLF line endings. The Delphi checkout (branch `master`) uses the same
 files in its `out/` folder.
@@ -46,6 +47,7 @@ description=Line 1\nLine 2\n\nURL: https://...
 | sqlite     | Online documentation                                      | Release history, corrected in `supplements/`           |
 | mssql      | [sql-docs](https://github.com/MicrosoftDocs/sql-docs) repository (Markdown) | `monikerRange` of each page               |
 | firebird   | Online language references of all versions in `--versions` | First reference version mentioning a function         |
+| oracle     | Online SQL Language Reference, function pages and text syntax diagrams of the newest version in `--versions` | First reference version listing a function page; documentation 26 means server 23 (26ai reports 23.x) |
 
 The function registry is read from `sql/item_create.cc`, `sql/lex.h` and a few more files at each release
 tag, via raw.githubusercontent.com. Per major.minor series only the first and last tag are read, plus tags found
@@ -54,7 +56,10 @@ by bisecting where these differ. Keywords count for `since` only, as for example
 
 `supplements/functions-<x>.ini` is merged into the generated result. Use it for functions missing in the
 sources and for wrong versions. Keys as above; a value `none` clears a generated value; an entry without
-`declaration` applies to all overloads of that name; `remove=1` drops a function.
+`declaration` applies to all overloads of that name; `remove=1` drops a function; `replace=1` replaces all
+generated overloads by this entry, keeping their category, description and since where the entry has none (for
+wrong declarations). Functions skipped by the oracle target for a missing or broken syntax diagram get these values
+from the function page as well, so their supplement entry only needs a declaration.
 
 ## One-time setup
 
@@ -122,6 +127,7 @@ about quarterly. Additionally after:
 |-----------------------------------------|---------------------------------------------------------------------|
 | New PostgreSQL major (yearly, autumn)   | Append the version to `--pg-versions`, or update the default in `generate-functions.php` |
 | New Firebird major                      | Append the version to `--fb-versions`, or update the default        |
+| New Oracle documentation release        | Append the version to `--ora-versions`, or update the default. If its number differs from the version the server reports, extend the mapping in `genOracle()` |
 | New MySQL release                       | Nothing for since/until. For descriptions of new functions, add a server of that version to `--mysql-servers`; the help tables of MySQL 9.x are frozen at 9.1, so supplements may be needed |
 | New MariaDB, SQLite, SQL Server release | Nothing, just regenerate                                            |
 
@@ -133,4 +139,5 @@ about quarterly. Additionally after:
 - The SQL highlighter of SynEdit has its own, outdated built-in function names. HeidiSQL's editor hints use the
   function lists independently of it. With Lazarus 5, the function names are also added to the highlighter.
 - MS SQL `@@` variables and functions without parentheses like `CURRENT_USER` are not listed, as HeidiSQL
-  inserts functions with parentheses.
+  inserts functions with parentheses. Same for Oracle's `SYSDATE`, `USER` etc., and for Oracle pages whose
+  syntax diagram does not start with the function name, like `FIRST`/`LAST` (`... KEEP (DENSE_RANK FIRST ...)`).

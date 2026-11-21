@@ -442,7 +442,9 @@ Not done / open:
   "Run routine" is not supported. No packages, sequences, synonyms in the tree.
 - `qGetRowCountApprox` uses `ALL_TABLES.NUM_ROWS`, empty before statistics
   are gathered.
-- No `functions-oracle.ini` for the SQL function list.
+- SQL function list: `extra/ini/functions-oracle.ini`, generated from the SQL
+  Language Reference (`generate-functions.php oracle`). Functions without
+  parentheses (`SYSDATE`, `USER`) are not listed.
 
 ## Help page: Oracle setup for users
 

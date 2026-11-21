@@ -3814,6 +3814,8 @@ begin
     SQLFunctionsFile := 'firebird'
   else if FParameters.IsAnyInterbase then
     SQLFunctionsFile := 'interbase'
+  else if FParameters.IsAnyOracle then
+    SQLFunctionsFile := 'oracle'
   else
     SQLFunctionsFile := '';
   FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFile);

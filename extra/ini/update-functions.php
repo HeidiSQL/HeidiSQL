@@ -6,7 +6,7 @@
  *   php update-functions.php [--option=value ...]
  *
  * Options:
- *   --only=<targets>         Comma separated subset of: mariadb,mysql,postgresql,sqlite,mssql,firebird
+ *   --only=<targets>         Comma separated subset of: mariadb,mysql,postgresql,sqlite,mssql,firebird,oracle
  *   --cache=<dir>            Download cache, cleared first unless --keep-cache=1.
  *                            Default: system temp dir, like generate-functions.php
  *   --keep-cache=1           Keep cached downloads. New releases and doc changes are then not seen.
@@ -17,6 +17,7 @@
  *   --host=, --user=         For the MySQL servers, default 127.0.0.1 and root
  *   --pg-versions=<list>     PostgreSQL documentation versions, default from generate-functions.php
  *   --fb-versions=<list>     Firebird language reference versions, default from generate-functions.php
+ *   --ora-versions=<list>    Oracle SQL Language Reference versions, default from generate-functions.php
  *   --no-pull=1              Do not "git pull" the documentation checkouts
  *   --trunk-out=<dir>        Copy the resulting files to this directory, e.g. the out/ folder of the
  *                            Delphi checkout
@@ -35,7 +36,7 @@ foreach (array_slice($argv, 1) as $arg) {
 
 $dir = __DIR__;
 $workspace = dirname($dir, 3);
-$targets = isset($opt['only']) ? explode(',', $opt['only']) : ['mariadb', 'mysql', 'postgresql', 'sqlite', 'mssql', 'firebird'];
+$targets = isset($opt['only']) ? explode(',', $opt['only']) : ['mariadb', 'mysql', 'postgresql', 'sqlite', 'mssql', 'firebird', 'oracle'];
 $cache = $opt['cache'] ?? (sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'heidisql-funcgen');
 $mariadbDocs = $opt['mariadb-docs'] ?? "$workspace/3rdparty/mariadb-docs";
 $mssqlDocs = $opt['mssql-docs'] ?? "$workspace/3rdparty/sql-docs";
@@ -87,6 +88,9 @@ foreach ($targets as $target) {
             break;
         case 'firebird':
             $args = isset($opt['fb-versions']) ? ' --versions=' . escapeshellarg($opt['fb-versions']) : '';
+            break;
+        case 'oracle':
+            $args = isset($opt['ora-versions']) ? ' --versions=' . escapeshellarg($opt['ora-versions']) : '';
             break;
         case 'mssql':
             requireDir($mssqlDocs, 'sql-docs', 'https://github.com/MicrosoftDocs/sql-docs');

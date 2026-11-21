@@ -35,6 +35,11 @@
  *               Categories missing on overview pages are taken from the previous functions-mssql.ini, or
  *               from --old=<ini>.
  *   firebird    Online language references of --versions (default 3.0,4.0,5.0).
+ *   oracle      Online SQL Language Reference of --versions (default 19,21,26). Function names and categories
+ *               from the overview pages of each version, declaration and description from the function pages
+ *               and their text syntax diagrams of the newest version. "since" is the first version listing a
+ *               function page. Documentation 26 is server version 23 (26ai reports 23.x). Functions without
+ *               parentheses like SYSDATE are skipped, as HeidiSQL inserts functions with parentheses.
  *
  * Common options:
  *   --cache=<dir>  Directory for downloaded pages, default: system temp dir
@@ -44,7 +49,8 @@
  * same name and declaration. Use these for functions missing in the sources. Keys: name, declaration,
  * category, since, until, description. Without a declaration key, the values apply to all entries of that name.
  * A value "none" clears the generated value, e.g. a wrong "since". An entry
- * with "remove=1" removes all generated entries of that name.
+ * with "remove=1" removes all generated entries of that name. "replace=1" replaces them by this entry, which takes
+ * missing category, description and since from them, e.g. for a wrong declaration.
  *
  * Output: UTF-8 without BOM, CRLF, typographic characters replaced by ASCII. "description" contains "\n"
  * for line breaks, which HeidiSQL converts. HeidiSQL hides entries with "since" newer than the server, and
@@ -90,6 +96,9 @@ switch ($target) {
     case 'firebird':
         $entries = genFirebird($opt);
         break;
+    case 'oracle':
+        $entries = genOracle($opt);
+        break;
     default:
         fwrite(STDERR, "Unknown target \"$target\". See header of " . basename(__FILE__) . " for usage.\n");
         exit(1);
@@ -100,6 +109,7 @@ if (!preg_match('#[/\\\\]#', $outFile)) {
     $outFile = __DIR__ . DIRECTORY_SEPARATOR . $outFile;
 }
 $entries = mergeSupplements($entries, __DIR__ . '/supplements/' . basename($outFile));
+$entries = resolvePlaceholders($entries);
 file_put_contents($outFile, buildIni($entries));
 echo 'Wrote ' . count($entries) . ' entries to ' . $outFile . "\n";
 
@@ -269,6 +279,21 @@ function mergeSupplements(array $entries, string $file): array
             $entries = array_values(array_filter($entries, fn($e) => strcasecmp($e['name'], $name) != 0));
             continue;
         }
+        if (!empty($values['replace'])) {
+            // Drop generated entries of that name, but keep their values for this one, see resolvePlaceholders()
+            $first = true;
+            foreach ($entries as $i => $e) {
+                if (strcasecmp($e['name'], $name) == 0 && empty($e['placeholder'])) {
+                    if ($first) {
+                        $entries[$i]['placeholder'] = true;
+                        $first = false;
+                    } else {
+                        unset($entries[$i]);
+                    }
+                }
+            }
+            $entries = array_values($entries);
+        }
         $sup = entry($name, $values['declaration'] ?? '', $values['category'] ?? '', '', $values['since'] ?? '');
         $sup['description'] = str_replace('\n', "\n", $values['description'] ?? '');
         $sup['until'] = $values['until'] ?? '';
@@ -297,6 +322,43 @@ function mergeSupplements(array $entries, string $file): array
         }
     }
     return $entries;
+}
+
+/**
+ * Entries marked "placeholder" have no usable declaration, but category, description and since from the
+ * sources. They fill these values into supplement entries of the same name, or with the placeholder name as
+ * prefix if that ends with "_", and are dropped then.
+ */
+function resolvePlaceholders(array $entries): array
+{
+    $placeholders = [];
+    foreach ($entries as $e) {
+        if (!empty($e['placeholder'])) {
+            $placeholders[strtoupper($e['name'])] ??= $e;
+        }
+    }
+    $result = [];
+    foreach ($entries as $e) {
+        if (!empty($e['placeholder'])) {
+            continue;
+        }
+        $p = $placeholders[strtoupper($e['name'])] ?? null;
+        // Prefix placeholder of a group page: "STATS_T_TEST_" for STATS_T_TEST_ONE
+        foreach ($placeholders as $pName => $candidate) {
+            if (!$p && str_ends_with($pName, '_') && str_starts_with(strtoupper($e['name']), $pName)) {
+                $p = $candidate;
+            }
+        }
+        if ($p) {
+            foreach (['category', 'description', 'since'] as $k) {
+                if ($e[$k] === '') {
+                    $e[$k] = $p[$k];
+                }
+            }
+        }
+        $result[] = $e;
+    }
+    return $result;
 }
 
 function buildIni(array $entries): string
@@ -1474,4 +1536,247 @@ function parseFirebirdReference(string $html, string $url): array
         }
     }
     return $entries;
+}
+
+
+// ---------------------------------------------------------------------------------------------------
+// Oracle: online SQL Language Reference
+// ---------------------------------------------------------------------------------------------------
+
+function genOracle(array $opt): array
+{
+    $versions = explode(',', $opt['versions'] ?? '19,21,26');
+    $newest = end($versions);
+    // Documentation release => version reported by the server. 26ai reports 23.x, like 23ai.
+    $serverVersion = fn(string $v): string => $v === '26' ? '23' : $v;
+    $firstSeen = [];
+    $pages = [];
+    foreach ($versions as $version) {
+        foreach (oracleFunctionPages($version) as $page => $info) {
+            $firstSeen[$page] ??= $version;
+            if ($version === $newest) {
+                $pages[$page] = $info;
+            }
+        }
+    }
+    $entries = [];
+    $skipped = [];
+    foreach ($pages as $page => $info) {
+        $url = oracleDocsUrl($newest) . $info['href'];
+        $html = download($url);
+        if ($html === null) {
+            continue;
+        }
+        $syntax = oracleSyntax($html, $newest, $info['label']);
+        $since = $firstSeen[$page] === $versions[0] ? '' : $serverVersion($firstSeen[$page]);
+        $description = buildDescription(oraclePurpose($html), $url);
+        if ($syntax === null) {
+            // Placeholder: completes a supplement entry for this name, dropped otherwise
+            $skipped[] = $info['label'];
+            $e = entry(preg_replace('#[^A-Z0-9_$\#].*$#', '', $info['label']), '', $info['category'], $description, $since);
+            $e['placeholder'] = true;
+            $entries[] = $e;
+            continue;
+        }
+        foreach ($syntax['items'] as [$name, $declaration]) {
+            $entries[] = entry($name, $declaration, $info['category'], $description, $since);
+        }
+        // Group page "STATS_T_TEST_*": placeholder "STATS_T_TEST_" for supplement entries of names not parsed
+        if (preg_match('#^(\w+_)(\s|\*)#', $info['label'], $mg)) {
+            $e = entry($mg[1], '', $info['category'], $description, $since);
+            $e['placeholder'] = true;
+            $entries[] = $e;
+        }
+    }
+    if ($skipped) {
+        fwrite(STDERR, 'No syntax with parentheses, only listed when in supplements: ' . implode(', ', $skipped) . "\n");
+    }
+    return $entries;
+}
+
+function oracleDocsUrl(string $version): string
+{
+    return "https://docs.oracle.com/en/database/oracle/oracle-database/$version/sqlrf/";
+}
+
+/**
+ * Function pages listed on the overview pages of one documentation version, linked from Functions.html:
+ * Single-Row-Functions.html with one category per h2 heading, Aggregate-Functions.html etc. with its title.
+ * @return array lowercase page file name => [href, label (link text), category]. First category wins.
+ */
+function oracleFunctionPages(string $version): array
+{
+    $base = oracleDocsUrl($version);
+    $index = download($base . 'Functions.html') ?? throw new RuntimeException("Could not read {$base}Functions.html");
+    preg_match_all('#<a\s+href="([\w.-]+-Functions\.html)\##', $index, $m);
+    $result = [];
+    foreach (array_unique($m[1]) as $overview) {
+        if (str_starts_with($overview, 'About-')) {
+            continue;
+        }
+        $html = download($base . $overview);
+        if ($html === null) {
+            continue;
+        }
+        $html = preg_replace('#^.*?<article[^>]*>|</article>.*$#s', '', $html);
+        // Page title is h1 in newer, h2 in older documentation. Categories one level below.
+        $perSubHeading = $overview === 'Single-Row-Functions.html';
+        $parts = preg_split('#(<h[1-4](?:\s[^>]*)?>.*?</h[1-4]>)#s', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $category = '';
+        $titleLevel = 0;
+        foreach ($parts as $part) {
+            if (preg_match('#^<h([1-4])(?:\s[^>]*)?>(.*?)</h[1-4]>$#s', $part, $mh)) {
+                $level = (int)$mh[1];
+                $titleLevel = $titleLevel ?: $level;
+                if ($level === $titleLevel || ($perSubHeading && $level === $titleLevel + 1)) {
+                    $category = htmlToText($mh[2]);
+                }
+                continue;
+            }
+            preg_match_all('#<li[^>]*>\s*(?:<p[^>]*>\s*)?<a\s+href="([\w.-]+\.html)(?:\#[^"]*)?"[^>]*>(.*?)</a>#s', $part, $ml, PREG_SET_ORDER);
+            foreach ($ml as $l) {
+                $label = htmlToText($l[2]);
+                // Function names in upper case: "ABS", "ROUND (number)", "CORR_*", "REGR_ (Linear Regression) Functions"
+                if (!preg_match('#^[A-Z][A-Z0-9_$\#]*(?![a-z])#', $label) || str_ends_with($l[1], '-Functions.html')) {
+                    continue;
+                }
+                $result[strtolower($l[1])] ??= ['href' => $l[1], 'label' => $label, 'category' => $category];
+            }
+        }
+    }
+    if (!$result) {
+        throw new RuntimeException("No functions found in documentation $version");
+    }
+    return $result;
+}
+
+/**
+ * Names and declaration from the first text syntax diagram (img_text/*.html) of a function page which starts with
+ * the function name, or alternative names in braces, followed by parentheses:
+ * "{ SUBSTR | SUBSTRB | ... } (char, position [, substring_length ])" => SUBSTR, SUBSTRB, ...
+ * @return array|null [names, items], see parseOracleSyntax()
+ */
+function oracleSyntax(string $html, string $version, string $label): ?array
+{
+    preg_match('#^[A-Z][A-Z0-9_$\#]*#', $label, $ml);
+    $wanted = $ml[0];
+    // Group pages like "CORR_*" or "REGR_ (Linear Regression) Functions" accept all names with that prefix
+    $isGroup = (bool)preg_match('#^\w+(_\s|_?\*)#', $label);
+    // Text diagrams: linked ones, and unlinked ones named like the diagram image (LISTAGG)
+    preg_match_all('#href="(img_text/[\w.-]+\.html)"|<img src="[^"]*/images/([\w.-]+)\.gif"#', $html, $mi, PREG_SET_ORDER);
+    $diagrams = [];
+    foreach ($mi as $m) {
+        $diagrams[] = $m[1] !== '' ? $m[1] : 'img_text/' . $m[2] . '.html';
+    }
+    foreach (array_slice(array_unique($diagrams), 0, 4) as $img) {
+        $text = download(oracleDocsUrl($version) . $img, true);
+        if ($text === null || !preg_match('#<pre[^>]*>(?:<code>)?(.*?)(?:</code>)?</pre>#s', $text, $mp)) {
+            continue;
+        }
+        $syntax = parseOracleSyntax(html_entity_decode(strip_tags($mp[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        if ($syntax === null) {
+            continue;
+        }
+        // Exact name, or all names with the first word of the label as prefix:
+        // CALENDAR => CALENDAR_YEAR ..., CALENDAR_START_END => CALENDAR_YEAR_START_DATE ...
+        $matches = fn($n) => $isGroup ? str_starts_with($n, $wanted) : $n === $wanted;
+        $prefix = preg_replace('#_.*$#', '', $wanted) . '_';
+        $allPrefixed = !array_filter($syntax['names'], fn($n) => !str_starts_with($n, $prefix));
+        if ($allPrefixed || array_filter($syntax['names'], $matches)) {
+            return $syntax;
+        }
+    }
+    return null;
+}
+
+/**
+ * Parse a text syntax diagram:
+ *   NAME (args)                          => [NAME], args
+ *   { NAME1 | NAME2 } (args)             => [NAME1, NAME2], args
+ *   NAME [DISTINCT | ALL] (expr)         => [NAME], [DISTINCT | ALL] expr
+ *   NAME { (args) [...] | (args2) } ...  => [NAME], args
+ *   { A (x) ) | ( B (x, y) ) }           => A, x and B, x, y
+ *   name = ( "NAME" "(" "arg" ")" );     => EBNF style of newer pages, quotes removed first
+ * @return array|null [names, items: [[name, declaration], ...]], null for functions without parentheses
+ */
+function parseOracleSyntax(string $s): ?array
+{
+    $s = trim(preg_replace('#\s+#', ' ', toAscii($s)));
+    if (preg_match('#^\w+ = \((.*)\)\s*;?$#', $s, $m)) {
+        $s = trim(preg_replace('#"([^"]*)"#', '$1', $m[1]));
+        $s = preg_replace(['#\(\s+#', '#\s+\)#', '#\s+,#'], ['(', ')', ','], $s);
+    }
+    $names = [];
+    if (preg_match('#^\{\s*\(?\s*[A-Z][A-Z0-9_$\#]*\s*\(#', $s)) {
+        // Alternatives with own arguments: "{ A ( x ) ) | ( B ( x, y ) ) | ... }". Only if all of them parse.
+        $items = [];
+        foreach (explode('|', trim($s, '{} ')) as $alt) {
+            $alt = trim($alt);
+            if (!preg_match('#^\(?\s*([A-Z][A-Z0-9_$\#]*)\s*(?=\()#', $alt, $ma)
+                || ($decl = balancedParens($alt, strlen($ma[0]))) === null) {
+                $items = [];
+                break;
+            }
+            $items[] = [$ma[1], $decl];
+        }
+        if ($items) {
+            return ['names' => array_column($items, 0), 'items' => $items];
+        }
+    }
+    if (str_starts_with($s, '{') && ($end = strpos($s, '}')) !== false) {
+        foreach (explode('|', substr($s, 1, $end - 1)) as $alt) {
+            $names[] = trim($alt);
+        }
+        $rest = ltrim(substr($s, $end + 1));
+    } elseif (preg_match('#^([A-Z][A-Z0-9_$\#]*)\b\s*#', $s, $mn)) {
+        $names[] = $mn[1];
+        $rest = substr($s, strlen($mn[0]));
+    } else {
+        return null;
+    }
+    $names = array_values(array_filter($names, fn($n) => preg_match('#^[A-Z][A-Z0-9_$\#]*$#', $n)));
+    if (!$names) {
+        return null;
+    }
+    // Modifiers before the parentheses, kept in the declaration
+    $prefix = '';
+    while (preg_match('#^(\[[^\[\]]*\])\s*#', $rest, $mm)) {
+        $prefix .= $mm[1] . ' ';
+        $rest = substr($rest, strlen($mm[0]));
+    }
+    if (str_starts_with($rest, '{')) {
+        // Alternative argument lists: take the first one
+        $rest = ltrim(substr($rest, 1));
+    }
+    if (!str_starts_with($rest, '(') || ($decl = balancedParens($rest, 0)) === null) {
+        return null;
+    }
+    return ['names' => $names, 'items' => array_map(fn($n) => [$n, $prefix . $decl], $names)];
+}
+
+/** Paragraphs of the "Purpose" section, list items prefixed with "- ", without notes and code */
+function oraclePurpose(string $html): array
+{
+    // Some pages have an introduction between title and syntax
+    $s = preg_match('#</h1>(.*?)<h2 #s', $html, $m) ? $m[1] : '';
+    if (preg_match('#<h2 [^>]*>Purpose</h2>(.*?)(?:<h2 |</article>)#s', $html, $m)) {
+        $s .= $m[1];
+    } elseif (preg_match('#<h2 [^>]*>Syntax</h2>(.*?)(?:<h2 [^>]*>Examples?</h2>|</article>)#s', $html, $m)) {
+        // No "Purpose" heading: text below the syntax diagrams
+        $s .= preg_replace('#<h2 .*?</h2>|<p>\s*<img .*?</p>|<p>\s*<a href="img_text/.*?</p>#s', '', $m[1]);
+    }
+    $s = preg_replace('#<div class="infobox.*?</div>#s', '', $s);
+    $s = preg_replace('#<p class="infobox.*?</p>#s', '', $s);
+    $s = preg_replace('#<pre.*?</pre>#s', '', $s);
+    $s = preg_replace('#<li>\s*<p>#', '<p>- ', $s);
+    preg_match_all('#<p>(.*?)</p>#s', $s, $mp);
+    $paragraphs = [];
+    foreach ($mp[1] as $p) {
+        $text = htmlToText($p);
+        // Skip references to syntax clauses: "(listagg_overflow_clause::=, order_by_clause::=)"
+        if ($text !== '' && !str_contains($text, '::=') && count($paragraphs) < 8) {
+            $paragraphs[] = $text;
+        }
+    }
+    return $paragraphs;
 }
