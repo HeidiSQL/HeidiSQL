@@ -206,12 +206,65 @@ object connform: Tconnform
         BorderSpacing.Around = 5
         Caption = 'Databases:'
       end
-      object lblComment: TLabel
+      object lblSnowflakeWarehouse: TLabel
         AnchorSideTop.Control = editDatabases
         AnchorSideTop.Side = asrBottom
         Left = 5
         Height = 15
         Top = 272
+        Width = 66
+        BorderSpacing.Around = 5
+        Caption = 'Warehouse:'
+        FocusControl = editSnowflakeWarehouse
+      end
+      object lblSnowflakeRole: TLabel
+        AnchorSideTop.Control = editSnowflakeWarehouse
+        AnchorSideTop.Side = asrBottom
+        Left = 5
+        Height = 15
+        Top = 300
+        Width = 29
+        BorderSpacing.Around = 5
+        Caption = 'Role:'
+        FocusControl = editSnowflakeRole
+      end
+      object editSnowflakeWarehouse: TEdit
+        AnchorSideTop.Control = editDatabases
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSettings
+        AnchorSideRight.Side = asrBottom
+        Left = 194
+        Height = 23
+        Top = 272
+        Width = 314
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 5
+        TabOrder = 10
+        OnChange = Modification
+        OnExit = editTrim
+      end
+      object editSnowflakeRole: TEdit
+        AnchorSideTop.Control = editSnowflakeWarehouse
+        AnchorSideTop.Side = asrBottom
+        AnchorSideRight.Control = tabSettings
+        AnchorSideRight.Side = asrBottom
+        Left = 194
+        Height = 23
+        Top = 300
+        Width = 314
+        Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 5
+        TabOrder = 11
+        TextHint = 'Optional, default role of the user'
+        OnChange = Modification
+        OnExit = editTrim
+      end
+      object lblComment: TLabel
+        AnchorSideTop.Control = editSnowflakeRole
+        AnchorSideTop.Side = asrBottom
+        Left = 5
+        Height = 15
+        Top = 328
         Width = 57
         BorderSpacing.Around = 5
         Caption = 'Comment:'
@@ -363,18 +416,18 @@ object connform: Tconnform
         OnClick = chkLoginPromptClick
       end
       object memoComment: TMemo
-        AnchorSideTop.Control = editDatabases
+        AnchorSideTop.Control = editSnowflakeRole
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabSettings
         AnchorSideRight.Side = asrBottom
         Left = 194
-        Height = 143
-        Top = 272
+        Height = 87
+        Top = 328
         Width = 314
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Around = 5
         ScrollBars = ssVertical
-        TabOrder = 10
+        TabOrder = 12
         OnChange = Modification
       end
       object editDatabases: TEditButton

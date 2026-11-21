@@ -194,6 +194,7 @@ type
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
     asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asLogFileDdl, asLogFileDml, asLogFilePath, asAdditionalParams,
+    asSnowflakeWarehouse, asSnowflakeRole,
     asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asLowercaseHex, asHintsOnResultTabs, asHightlightSameTextBackground,
     asShowRowId,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
@@ -403,6 +404,9 @@ type
   function GetAppDir: String;
   // Return directory with dlls or dylibs, or empty string for auto-detection
   function GetLibDir: String;
+  // IANA name of the client's time zone, e.g. "Europe/Berlin", or "Etc/GMT-1" if only the offset is known.
+  // Empty if the offset is not a whole hour and no name can be found.
+  function GetLocalIanaTimeZone: String;
   // Return directory with MySQL plugin files. Empty on Linux inidicating auto-detection.
   function GetPluginDir: String;
   // Point to Resources dir in macOS app bundle, application dir in most other OSes
@@ -500,6 +504,7 @@ var
 implementation
 
 uses main, grideditlinks
+{$IFDEF UNIX}, BaseUnix{$ENDIF}
 {$if defined(LINUX) and (defined(LCLQt5) or defined(LCLQt6))}
   , platformtheme
 {$endif};
@@ -1364,6 +1369,99 @@ begin
   Result := '';
   {$ENDIF}
 end;
+
+{$IFDEF WINDOWS}
+type
+  TDynamicTimeZoneInformationW = record
+    Bias: Longint;
+    StandardName: array[0..31] of WideChar;
+    StandardDate: TSystemTime;
+    StandardBias: Longint;
+    DaylightName: array[0..31] of WideChar;
+    DaylightDate: TSystemTime;
+    DaylightBias: Longint;
+    TimeZoneKeyName: array[0..127] of WideChar;
+    DynamicDaylightTimeDisabled: ByteBool;
+  end;
+  TUcalGetTimeZoneIDForWindowsID = function(WinId: PWideChar; Len: Int32; Region: PAnsiChar;
+    Id: PWideChar; IdCapacity: Int32; var Status: Int32): Int32; cdecl;
+
+function GetDynamicTimeZoneInformation(var TimeZoneInformation: TDynamicTimeZoneInformationW): DWORD; stdcall;
+  external 'kernel32.dll' name 'GetDynamicTimeZoneInformation';
+{$ENDIF}
+
+function GetLocalIanaTimeZone: String;
+{$IFDEF WINDOWS}
+const
+  // icu.dll since Windows 10 1903, icuin.dll before
+  IcuLibNames: array[0..1] of String = ('icu.dll', 'icuin.dll');
+{$ENDIF}
+var
+  Offset: Integer;
+  {$IFDEF WINDOWS}
+  TzInfo: TDynamicTimeZoneInformationW;
+  IcuLib: HMODULE;
+  i: Integer;
+  IanaId: WideString;
+  WinIdToIana: TUcalGetTimeZoneIDForWindowsID;
+  IdBuf: array[0..127] of WideChar;
+  IdLen, Status: Int32;
+  {$ENDIF}
+  {$IFDEF UNIX}
+  LinkTarget: String;
+  ZonePos: Integer;
+  {$ENDIF}
+begin
+  Result := '';
+  {$IFDEF WINDOWS}
+  // Map the Windows time zone ID ("W. Europe Standard Time") via the ICU library of Windows 10+
+  FillChar(TzInfo, SizeOf(TzInfo), 0);
+  if (GetDynamicTimeZoneInformation(TzInfo) <> DWORD($FFFFFFFF)) and (TzInfo.TimeZoneKeyName[0] <> #0) then begin
+    for i:=Low(IcuLibNames) to High(IcuLibNames) do begin
+      IcuLib := LoadLibrary(PChar(IcuLibNames[i]));
+      if IcuLib = 0 then
+        Continue;
+      WinIdToIana := TUcalGetTimeZoneIDForWindowsID(GetProcAddress(IcuLib, 'ucal_getTimeZoneIDForWindowsID'));
+      if Assigned(WinIdToIana) then begin
+        Status := 0;
+        IdLen := WinIdToIana(@TzInfo.TimeZoneKeyName[0], -1, nil, @IdBuf[0], Length(IdBuf), Status);
+        // U_ZERO_ERROR = 0, warnings are negative
+        if (Status <= 0) and (IdLen > 0) and (IdLen < Length(IdBuf)) then begin
+          SetString(IanaId, PWideChar(@IdBuf[0]), IdLen);
+          Result := UTF8Encode(IanaId);
+        end;
+      end;
+      FreeLibrary(IcuLib);
+      if not Result.IsEmpty then
+        Break;
+    end;
+  end;
+  {$ENDIF}
+  {$IFDEF UNIX}
+  // TZ=Europe/Berlin, or /etc/localtime -> /usr/share/zoneinfo/Europe/Berlin (macOS: /var/db/timezone/zoneinfo/...)
+  Result := GetEnvironmentVariable('TZ');
+  if Result.StartsWith(':') then
+    Delete(Result, 1, 1);
+  if not ExecRegExpr('^[A-Za-z_]+(/[A-Za-z0-9_+\-]+)+$', Result) then
+    Result := '';
+  if Result.IsEmpty then begin
+    LinkTarget := fpReadLink('/etc/localtime');
+    ZonePos := Pos('zoneinfo/', LinkTarget);
+    if ZonePos > 0 then
+      Result := Copy(LinkTarget, ZonePos + Length('zoneinfo/'), MaxInt);
+  end;
+  {$ENDIF}
+  if Result.IsEmpty then begin
+    // Offset only, without daylight saving changes. POSIX style names have an inverted sign:
+    // Etc/GMT-1 is UTC+01:00. GetLocalTimeOffset is negative east of UTC, as that POSIX sign.
+    Offset := GetLocalTimeOffset;
+    if Offset = 0 then
+      Result := 'UTC'
+    else if Offset mod 60 = 0 then
+      Result := 'Etc/GMT' + IfThen(Offset > 0, '+', '-') + IntToStr(Abs(Offset) div 60);
+  end;
+end;
+
 
 function GetPluginDir: String;
 begin
@@ -3541,6 +3639,7 @@ begin
     ngMySQL: FQuotes.Add('`'); // MySQL/MariaDB only
     ngPgSQL: FQuotes.Add('$$'); // PostgreSQL only ($abc$ unsupported)
     ngSQLite, ngOracle: FEscape := '''';
+    ngSnowflake: FQuotes.Add('$$'); // Dollar-quoted string constants, and backslash escapes in '...'
   end;
 end;
 
@@ -3925,6 +4024,8 @@ begin
   InitSetting(asLogFileDml,                       'LogFileDml',                            0, False, '', True);
   InitSetting(asLogFilePath,                      'LogFilePath',                           0, False, DirnameUserAppData + 'Logs'+PathDelim+'%session'+PathDelim+'%db'+PathDelim+'%y%m%d.sql', True);
   InitSetting(asAdditionalParams,                 'AdditionalParameters',                  0, False, '', True);
+  InitSetting(asSnowflakeWarehouse,               'SnowflakeWarehouse',                    0, False, '', True);
+  InitSetting(asSnowflakeRole,                    'SnowflakeRole',                         0, False, '', True);
   {$IFDEF LINUX}
   // Use generic fontconfig families on Linux.
   InitSetting(asFontName,                         'FontName',                              0, False, 'monospace');

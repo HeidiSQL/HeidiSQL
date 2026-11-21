@@ -6421,7 +6421,7 @@ begin
     if RefreshingData and (vt.Tag <> VTREE_NOTLOADED_PURGECACHE) then begin
       case DBObj.Connection.Parameters.NetTypeGroup of
         ngMSSQL: Offset := 0; // Does not support offset in all server versions
-        ngMySQL, ngPgSQL, ngSQLite, ngOracle: Offset := DataGridResult.RecordCount;
+        ngMySQL, ngPgSQL, ngSQLite, ngOracle, ngSnowflake: Offset := DataGridResult.RecordCount;
         else raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(DBObj.Connection.Parameters.NetType)]);
       end;
     end;
@@ -10254,6 +10254,8 @@ begin
           SynSQLSynUsed.SQLDialect := sqlInterbase6;
         ngOracle:
           SynSQLSynUsed.SQLDialect := sqlOracle;
+        ngSnowflake:
+          SynSQLSynUsed.SQLDialect := sqlStandard;
         else
           raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FActiveDbObj.Connection.Parameters.NetType)]);
       end;
@@ -12138,7 +12140,7 @@ begin
     if vt = ListDatabases then
       LeaveEnabled := True
     else if vt = ListVariables then
-      LeaveEnabled := Conn.Parameters.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL]
+      LeaveEnabled := Conn.Parameters.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngSnowflake]
     else if vt = ListStatus then
       LeaveEnabled := Conn.Parameters.NetTypeGroup in [ngMySQL]
     else if vt = ListProcessList then

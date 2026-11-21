@@ -7556,3 +7556,27 @@ msgstr "Added to the connection string of the client library, overriding built-i
 #: dbconnection.pas
 msgid "Ignoring invalid option name \"%s\" in connection parameters"
 msgstr "Ignoring invalid option name \"%s\" in connection parameters"
+
+#: connections.lfm
+msgid "Warehouse:"
+msgstr "Warehouse:"
+
+#: connections.lfm
+msgid "Role:"
+msgstr "Role:"
+
+#: connections.lfm
+msgid "Optional, default role of the user"
+msgstr "Optional, default role of the user"
+
+#: connections.pas
+msgid "Account URL:"
+msgstr "Account URL:"
+
+#: dbconnection.pas
+msgid "No database selected. Please enter the name of a database in your session settings."
+msgstr "No database selected. Please enter the name of a database in your session settings."
+
+#: dbconnection.pas
+msgid "Could not detect the name of your time zone, keeping the default session time zone."
+msgstr "Could not detect the name of your time zone, keeping the default session time zone."

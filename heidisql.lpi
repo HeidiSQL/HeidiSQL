@@ -212,6 +212,10 @@ if TargetOS=&apos;win64&apos; then
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
+        <Filename Value="source\dbstructures.snowflake.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
         <Filename Value="source\odbcfixed.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>

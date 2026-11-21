@@ -12,7 +12,7 @@ uses
   MSSQLConn, IBConnection, ibase60dyn, SQLDBLib, DB, FmtBCD, odbcconn, odbcfixed,
   generic_types, lazaruscompat,
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase,
-  dbstructures.oracle;
+  dbstructures.oracle, dbstructures.snowflake;
 
 
 type
@@ -313,6 +313,7 @@ type
       FLogFileDml: Boolean;
       FLogFilePath: String;
       FAdditionalParams: String;
+      FSnowflakeWarehouse, FSnowflakeRole: String;
       class var FLibraries: TNetTypeLibs;
       function GetImageIndex: Integer;
       function GetSessionName: String;
@@ -335,6 +336,9 @@ type
       function IsAnySQLite: Boolean;
       function IsAnyInterbase: Boolean;
       function IsAnyOracle: Boolean;
+      function IsAnySnowflake: Boolean;
+      // Connected through an ODBC driver, see TOdbcConnection
+      function IsAnyOdbc: Boolean;
       function IsMariaDB: Boolean;
       function IsMySQL(StrictDetect: Boolean): Boolean;
       function IsPercona: Boolean;
@@ -410,6 +414,8 @@ type
       // Raw "key=value;key=value" string, appended to the connection string of the client library
       property AdditionalParams: String read FAdditionalParams write FAdditionalParams;
       property AdditionalParamsList: TStringList read GetAdditionalParamsList;
+      property SnowflakeWarehouse: String read FSnowflakeWarehouse write FSnowflakeWarehouse;
+      property SnowflakeRole: String read FSnowflakeRole write FSnowflakeRole;
   end;
   PConnectionParameters = ^TConnectionParameters;
 
@@ -867,6 +873,29 @@ type
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
+      function GetGridColumnExpression(Col: TTableColumn): String; override;
+  end;
+
+  // Snowflake: one connection sees the whole account. The session's database is the
+  // "Databases" setting, its schemas are shown as databases in the tree.
+  TSnowflakeConnection = class(TOdbcConnection)
+    private
+      function GetThreadId: Int64; override;
+      function GetAllDatabases: TStringList; override;
+      procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
+      procedure Drop(Obj: TDBObject); override;
+    protected
+      procedure DoAfterConnect; override;
+      procedure PrepareHandle(FinalHost: String; FinalPort: Integer); override;
+      procedure AfterHandleOpened; override;
+      function PingSQL: String; override;
+    public
+      constructor Create(AOwner: TComponent); override;
+      function GetCreateCode(Obj: TDBObject): String; override;
+      function GetTableColumns(Table: TDBObject): TTableColumnList; override;
+      function GetTableKeys(Table: TDBObject): TTableKeyList; override;
+      function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
+      function GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList; override;
       function GetGridColumnExpression(Col: TTableColumn): String; override;
   end;
 
@@ -1415,6 +1444,8 @@ begin
   FLogFileDml := AppSettings.GetDefaultBool(asLogFileDml);
   FLogFilePath := AppSettings.GetDefaultString(asLogFilePath);
   FAdditionalParams := AppSettings.GetDefaultString(asAdditionalParams);
+  FSnowflakeWarehouse := AppSettings.GetDefaultString(asSnowflakeWarehouse);
+  FSnowflakeRole := AppSettings.GetDefaultString(asSnowflakeRole);
 
   FLastConnect := 0;
   FCounter := 0;
@@ -1493,6 +1524,8 @@ begin
     FLogFileDml := AppSettings.ReadBool(asLogFileDml);
     FLogFilePath := AppSettings.ReadString(asLogFilePath);
     FAdditionalParams := AppSettings.ReadString(asAdditionalParams);
+    FSnowflakeWarehouse := AppSettings.ReadString(asSnowflakeWarehouse);
+    FSnowflakeRole := AppSettings.ReadString(asSnowflakeRole);
 
     FServerVersion := AppSettings.ReadString(asServerVersionFull);
     DummyDate := 0;
@@ -1570,6 +1603,8 @@ begin
     AppSettings.WriteBool(asLogFileDml, FLogFileDml);
     AppSettings.WriteString(asLogFilePath, FLogFilePath);
     AppSettings.WriteString(asAdditionalParams, FAdditionalParams);
+    AppSettings.WriteString(asSnowflakeWarehouse, FSnowflakeWarehouse);
+    AppSettings.WriteString(asSnowflakeRole, FSnowflakeRole);
     AppSettings.ResetPath;
   end;
 end;
@@ -1590,6 +1625,8 @@ begin
       Result := TInterbaseConnection.Create(AOwner);
     ngOracle:
       Result := TOracleConnection.Create(AOwner);
+    ngSnowflake:
+      Result := TSnowflakeConnection.Create(AOwner);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1610,7 +1647,7 @@ begin
       Result := TSQLiteQuery.Create(Connection);
     ngInterbase:
       Result := TInterbaseQuery.Create(Connection);
-    ngOracle:
+    ngOracle, ngSnowflake:
       Result := TOdbcQuery.Create(Connection);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
@@ -1630,6 +1667,7 @@ const
   PrefixInterbase = 'Interbase';
   PrefixFirebird = 'Firebird';
   PrefixOracle = 'Oracle';
+  PrefixSnowflake = 'Snowflake';
 begin
   // Return the name of a net type, either in short or long format
   Result := 'Unknown';
@@ -1656,6 +1694,7 @@ begin
       ntFirebird_TCPIP:         Result := PrefixFirebird+' (TCP/IP, experimental)';
       ntFirebird_Local:         Result := PrefixFirebird+' (Local, experimental)';
       ntOracle_ODBC:            Result := PrefixOracle+' (ODBC, experimental)';
+      ntSnowflake_ODBC:         Result := PrefixSnowflake+' (ODBC, experimental)';
     end;
   end
   else begin
@@ -1680,6 +1719,7 @@ begin
       ngSQLite:                        Result := PrefixSqlite;
       ngInterbase:                     Result := PrefixInterbase;
       ngOracle:                        Result := PrefixOracle;
+      ngSnowflake:                     Result := PrefixSnowflake;
     end;
   end;
 end;
@@ -1700,6 +1740,8 @@ begin
       Result := ngInterbase;
     ntOracle_ODBC:
       Result := ngOracle;
+    ntSnowflake_ODBC:
+      Result := ngSnowflake;
     else begin
       // Return default net group here. Raising an exception lets the app die for some reason.
       // Reproduction: click drop-down button on "Database(s)" session setting
@@ -1749,6 +1791,18 @@ end;
 function TConnectionParameters.IsAnyOracle: Boolean;
 begin
   Result := NetTypeGroup = ngOracle;
+end;
+
+
+function TConnectionParameters.IsAnySnowflake: Boolean;
+begin
+  Result := NetTypeGroup = ngSnowflake;
+end;
+
+
+function TConnectionParameters.IsAnyOdbc: Boolean;
+begin
+  Result := NetTypeGroup in [ngOracle, ngSnowflake];
 end;
 
 
@@ -1889,6 +1943,7 @@ begin
       if IsFirebird then Result := 204;
     end;
     ngOracle: Result := 208;
+    ngSnowflake: Result := 209;
     else Result := ICONINDEX_SERVER;
   end;
 end;
@@ -1909,6 +1964,8 @@ begin
     ngPgSQL: Result := 5432;
     ngInterbase: Result := 3050;
     ngOracle: Result := 1521;
+    // HTTPS
+    ngSnowflake: Result := 443;
     else Result := 0;
   end;
 end;
@@ -1932,7 +1989,7 @@ var
 begin
   Result := '';
   case NetTypeGroup of
-    ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngOracle: begin
+    ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngOracle, ngSnowflake: begin
       AllLibs := GetLibraries;
       if AllLibs.Count > 0 then
         Result := AllLibs[0];
@@ -1953,6 +2010,8 @@ begin
   Result := '';
   case NetTypeGroup of
     ngSQLite: Result := '';
+    // <account>.snowflakecomputing.com
+    ngSnowflake: Result := '';
     else Result := '127.0.0.1';
   end;
 end;
@@ -1977,7 +2036,7 @@ function TConnectionParameters.AdditionalParamsSupported: Boolean;
 begin
   // Client libraries with a key/value connection string, or an option file for MySQL.
   // MS SQL via FreeTDS has none.
-  Result := IsAnyMySQL or IsAnyPostgreSQL or IsAnyOracle;
+  Result := IsAnyMySQL or IsAnyPostgreSQL or IsAnyOdbc;
 end;
 
 
@@ -2153,6 +2212,11 @@ begin
         // ODBC driver names, not library files. The driver manager is part of the OS.
         FoundLibs.Free;
         FoundLibs := GetOdbcDriverNames('oracle');
+      end;
+      ngSnowflake: begin
+        // "SnowflakeDSIIDriver" on Windows, "Snowflake" or "SnowflakeDSIIDriver" on Linux/macOS
+        FoundLibs.Free;
+        FoundLibs := GetOdbcDriverNames('snowflake');
       end;
     end;
     rx.Free;
@@ -3572,6 +3636,8 @@ begin
       FSqlProvider := TInterbaseProvider.Create(FParameters.NetType);
     ngOracle:
       FSqlProvider := TOracleProvider.Create(FParameters.NetType);
+    ngSnowflake:
+      FSqlProvider := TSnowflakeProvider.Create(FParameters.NetType);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FParameters.NetType)]);
   end;
@@ -3816,6 +3882,8 @@ begin
     SQLFunctionsFile := 'interbase'
   else if FParameters.IsAnyOracle then
     SQLFunctionsFile := 'oracle'
+  else if FParameters.IsAnySnowflake then
+    SQLFunctionsFile := 'snowflake'
   else
     SQLFunctionsFile := '';
   FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFile);
@@ -4455,9 +4523,23 @@ begin
     // Ask the driver for result columns, so a SELECT is executed only once, by Open
     ColCount := OdbcPreparedColumnCount(TSQLQueryAccess(QueryResult).Cursor);
     if ColCount > 0 then begin
-      QueryResult.Open;
-      HasRows := True;
-      Inc(FRowsFound, QueryResult.RecordCount);
+      try
+        QueryResult.Open;
+        HasRows := True;
+        Inc(FRowsFound, QueryResult.RecordCount);
+      except
+        on E:EDatabaseError do begin
+          // Snowflake describes USE and other commands with a status column on SQLPrepare, but
+          // returns no result set after SQLExecute. SQLDB then raises "Cannot open a non-select
+          // statement", after the statement was executed successfully.
+          if (TSQLQueryAccess(QueryResult).Cursor = nil)
+            or TSQLQueryAccess(QueryResult).Cursor.FSelectable then
+            raise;
+          HasRows := False;
+          if FTransaction.Active then
+            FTransaction.Commit;
+        end;
+      end;
     end else if ColCount = 0 then begin
       // Execute without SQLPrepare, which takes :NEW in trigger bodies for a bind variable
       HasRows := False;
@@ -5819,7 +5901,7 @@ begin
   Result := 0;
   rx := TRegExpr.Create;
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL, ngSQLite, ngInterbase, ngOracle: begin
+    ngMySQL, ngPgSQL, ngSQLite, ngInterbase, ngOracle, ngSnowflake: begin
       rx.Expression := '(\d+)\.(\d+)(\.(\d+))?';
       if rx.Exec(FServerVersionUntouched) then begin
         Result := StrToIntDef(rx.Match[1], 0) *10000 +
@@ -5861,7 +5943,7 @@ var
   major, minor, build: Integer;
 begin
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL, ngSQLite, ngInterbase, ngOracle: begin
+    ngMySQL, ngPgSQL, ngSQLite, ngInterbase, ngOracle, ngSnowflake: begin
       v := IntToStr(ServerVersionInt);
       major := StrToIntDef(Copy(v, 1, Length(v)-4), 0);
       minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
@@ -6259,6 +6341,10 @@ begin
     // so that the SQL file can be non-corruptedly loaded again.
     // TODO: SynEdit also chokes on Char($2028) and possibly Char($2029).
     BackslashChars := ['\', #13, #10, #0];
+  end else if FParameters.NetTypeGroup = ngSnowflake then begin
+    // Snowflake processes backslash escape sequences in single quoted strings
+    QuoteEscChar := '''';
+    BackslashChars := ['\'];
   end else begin
     QuoteEscChar := '''';
     BackslashChars := [];
@@ -6266,7 +6352,13 @@ begin
   // In a LIKE pattern, the joker chars % and _ need a preceding backslash, and so does
   // the backslash itself. Some servers only accept that with an ESCAPE clause, see qLikeCompare.
   // See http://www.heidisql.com/forum.php?t=12747
-  if ProcessJokerChars then begin
+  if ProcessJokerChars and (FParameters.NetTypeGroup = ngSnowflake) then begin
+    // The LIKE escape backslashes must survive the string literal, so they get doubled below
+    Text := StringReplace(Text, '\', '\\', [rfReplaceAll]);
+    Text := StringReplace(Text, '%', '\%', [rfReplaceAll]);
+    Text := StringReplace(Text, '_', '\_', [rfReplaceAll]);
+  end
+  else if ProcessJokerChars then begin
     // MySQL escapes the backslash a second time below, for the string literal
     if FParameters.NetTypeGroup = ngMySQL then
       Text := StringReplace(Text, '\', '\\', [rfReplaceAll]);
@@ -8426,7 +8518,7 @@ begin
       Result := Length(TSQLiteConnection(Self).LastRawResults);
     ngInterbase:
       Result := TInterbaseConnection(Self).LastRawResults.Count;
-    ngOracle:
+    ngOracle, ngSnowflake:
       Result := TOdbcConnection(Self).LastRawResults.Count;
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Parameters.NetType)]);
@@ -9394,6 +9486,389 @@ begin
 end;
 
 
+{ TSnowflakeConnection }
+
+constructor TSnowflakeConnection.Create(AOwner: TComponent);
+begin
+  inherited;
+  FDatatypes := Copy(SnowflakeDatatypes);
+  FInfSch := 'INFORMATION_SCHEMA';
+  // Unquoted identifiers are folded to uppercase
+  FIdentCharsNoQuote := ['A'..'Z', '0'..'9', '_', '$'];
+  FQuoteChars := '"';
+  // Binary literal x'...', lowercase so the "lowercase hex" option does not change the prefix
+  FHexPrefix := 'x''';
+  FHexPostfix := '''';
+end;
+
+
+procedure TSnowflakeConnection.PrepareHandle(FinalHost: String; FinalPort: Integer);
+var
+  Database: String;
+begin
+  // Account URL, e.g. xy12345.eu-central-1.snowflakecomputing.com
+  FHandle.Params.Add('Server=' + FinalHost);
+  if (FinalPort > 0) and (FinalPort <> 443) then
+    FHandle.Params.Add('Port=' + IntToStr(FinalPort));
+  // One database per session, its schemas are the tree's databases
+  Database := Trim(Parameters.AllDatabasesStr);
+  if not Database.IsEmpty then
+    FHandle.Params.Add('Database=' + Database);
+  if not Parameters.SnowflakeWarehouse.Trim.IsEmpty then
+    FHandle.Params.Add('Warehouse=' + Parameters.SnowflakeWarehouse.Trim);
+  if not Parameters.SnowflakeRole.Trim.IsEmpty then
+    FHandle.Params.Add('Role=' + Parameters.SnowflakeRole.Trim);
+  FHandle.Float38AsDecimal := False;
+end;
+
+
+procedure TSnowflakeConnection.AfterHandleOpened;
+begin
+  // CURRENT_VERSION() returns "9.39.1"
+  FServerVersionUntouched := 'Snowflake ' + GetVar('SELECT CURRENT_VERSION()');
+  FServerDateTimeOnStartup := GetVar('SELECT ' + FSqlProvider.GetSql(qFuncNow));
+end;
+
+
+function TSnowflakeConnection.PingSQL: String;
+begin
+  Result := 'SELECT 1';
+end;
+
+
+procedure TSnowflakeConnection.DoAfterConnect;
+var
+  TimeZone: String;
+begin
+  if GetVar('SELECT CURRENT_DATABASE()').IsEmpty then begin
+    raise EDbError.Create(_('No database selected. Please enter the name of a database in your session settings.'));
+  end;
+  if Parameters.LocalTimeZone then begin
+    // Snowflake accepts IANA names only, no offsets like "+01:00". The session time zone is used for
+    // TIMESTAMP_LTZ values and TO_VARCHAR(). Unchecked: account default, often America/Los_Angeles.
+    TimeZone := GetLocalIanaTimeZone;
+    if TimeZone.IsEmpty then
+      Log(lcError, _('Could not detect the name of your time zone, keeping the default session time zone.'))
+    else try
+      Query('ALTER SESSION SET TIMEZONE = ' + EscapeString(TimeZone));
+    except
+      on E:EDbError do; // Logged already
+    end;
+  end;
+  // Runs the startup script
+  inherited;
+end;
+
+
+function TSnowflakeConnection.GetThreadId: Int64;
+begin
+  if FThreadId = 0 then begin
+    Ping(False);
+    if FActive then
+      FThreadID := StrToInt64Def(GetVar('SELECT CURRENT_SESSION()'), 0);
+  end;
+  Result := FThreadID;
+end;
+
+
+function TSnowflakeConnection.GetAllDatabases: TStringList;
+begin
+  // Schemas of the session's database are shown as databases
+  if not Assigned(FAllDatabases) then begin
+    try
+      FAllDatabases := GetCol('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA ORDER BY SCHEMA_NAME');
+    except
+      on E:EDbError do
+        FAllDatabases := TStringList.Create;
+    end;
+    ApplyIgnoreDatabasePattern(FAllDatabases);
+  end;
+  Result := FAllDatabases;
+end;
+
+
+procedure TSnowflakeConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
+var
+  obj: TDBObject;
+  Results: TDBQuery;
+  ObjType: String;
+  fs: TFormatSettings;
+begin
+  fs := DefaultFormatSettings;
+  fs.DateSeparator := '-';
+  fs.TimeSeparator := ':';
+  fs.ShortDateFormat := 'yyyy-mm-dd';
+  fs.LongTimeFormat := 'hh:nn:ss';
+  // TABLE_TYPE: BASE TABLE, TEMPORARY TABLE, EXTERNAL TABLE, EVENT TABLE, VIEW, MATERIALIZED VIEW
+  Results := GetResults('SELECT TABLE_NAME, TABLE_TYPE, ROW_COUNT, BYTES, COMMENT,'+
+    ' TO_VARCHAR(CREATED, ''YYYY-MM-DD HH24:MI:SS'') AS CREATED,'+
+    ' TO_VARCHAR(LAST_ALTERED, ''YYYY-MM-DD HH24:MI:SS'') AS LAST_ALTERED'+
+    ' FROM INFORMATION_SCHEMA.TABLES'+
+    ' WHERE TABLE_SCHEMA = '+EscapeString(db)+
+    ' ORDER BY TABLE_NAME');
+  try
+    while not Results.Eof do begin
+      ObjType := Results.Col('TABLE_TYPE');
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('TABLE_NAME');
+      obj.Database := db;
+      obj.Created := StrToDateTimeDef(Results.Col('CREATED'), 0, fs);
+      obj.Updated := StrToDateTimeDef(Results.Col('LAST_ALTERED'), 0, fs);
+      obj.Comment := Results.Col('COMMENT');
+      if ObjType = 'VIEW' then
+        obj.NodeType := lntView
+      else if ObjType = 'MATERIALIZED VIEW' then begin
+        obj.NodeType := lntView;
+        obj.IsMaterialized := True;
+      end
+      else begin
+        obj.NodeType := lntTable;
+        // Exact numbers from the metadata, not estimated
+        if not Results.IsNull('ROW_COUNT') then begin
+          obj.Rows := MakeInt(Results.Col('ROW_COUNT'));
+          obj.RowsAreExact := True;
+        end;
+        if not Results.IsNull('BYTES') then begin
+          obj.DataLen := MakeInt(Results.Col('BYTES'));
+          obj.Size := obj.DataLen;
+        end;
+      end;
+      Results.Next;
+    end;
+  finally
+    Results.Free;
+  end;
+end;
+
+
+function TSnowflakeConnection.GetCreateCode(Obj: TDBObject): String;
+var
+  ObjType: String;
+begin
+  case Obj.NodeType of
+    lntTable: ObjType := 'TABLE';
+    lntView: ObjType := 'VIEW';
+    else raise EDbError.CreateFmt(_('Unhandled list node type in %s.%s'), [ClassName, 'GetCreateCode']);
+  end;
+  // Views: the original CREATE statement, tables: generated by the server
+  Result := GetVar('SELECT GET_DDL('+EscapeString(ObjType)+', '+EscapeString(Obj.QuotedDbAndTableName)+')');
+  Result := Trim(Result);
+  if Result.EndsWith(';') then
+    Delete(Result, Length(Result), 1);
+end;
+
+
+function TSnowflakeConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
+var
+  ColQuery: TDBQuery;
+  Col: TTableColumn;
+  TypeName, DefaultExpr, Precision: String;
+begin
+  Result := TTableColumnList.Create(True);
+  ColQuery := GetResults('SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, NUMERIC_PRECISION,'+
+    ' NUMERIC_SCALE, DATETIME_PRECISION, IS_NULLABLE, COLUMN_DEFAULT, IS_IDENTITY, COLLATION_NAME, COMMENT'+
+    ' FROM INFORMATION_SCHEMA.COLUMNS'+
+    ' WHERE TABLE_SCHEMA = '+EscapeString(Table.Database)+
+    ' AND TABLE_NAME = '+EscapeString(Table.Name)+
+    ' ORDER BY ORDINAL_POSITION');
+  try
+    while not ColQuery.Eof do begin
+      Col := TTableColumn.Create(Self);
+      Result.Add(Col);
+      Col.Name := ColQuery.Col('COLUMN_NAME');
+      Col.OldName := Col.Name;
+      // VARCHAR is reported as TEXT, VECTOR possibly with its element type and dimension
+      TypeName := ColQuery.Col('DATA_TYPE');
+      if Pos('(', TypeName) > 0 then begin
+        Col.LengthSet := Trim(RegExprGetMatch('\((.*)\)', TypeName, 1));
+        TypeName := Trim(Copy(TypeName, 1, Pos('(', TypeName)-1));
+      end;
+      Col.DataType := GetDatatypeByName(TypeName, False, Col.Name);
+      if Col.DataType.Index = dbdtUnknown then
+        Col.DataType.Name := TypeName;
+      case Col.DataType.Index of
+        dbdtNumeric: begin
+          if not ColQuery.IsNull('NUMERIC_PRECISION') then begin
+            Col.LengthSet := ColQuery.Col('NUMERIC_PRECISION');
+            if not ColQuery.IsNull('NUMERIC_SCALE') then
+              Col.LengthSet := Col.LengthSet + ',' + ColQuery.Col('NUMERIC_SCALE');
+          end;
+        end;
+        dbdtVarchar, dbdtVarbinary:
+          Col.LengthSet := ColQuery.Col('CHARACTER_MAXIMUM_LENGTH');
+        dbdtTime, dbdtDatetime, dbdtDatetime2, dbdtDatetimeOffset, dbdtTimestamp: begin
+          // Fractional seconds precision
+          if not ColQuery.IsNull('DATETIME_PRECISION') then
+            Precision := ColQuery.Col('DATETIME_PRECISION')
+          else
+            Precision := ColQuery.Col('NUMERIC_SCALE');
+          Col.LengthSet := Precision;
+        end;
+      end;
+      Col.AllowNull := ColQuery.Col('IS_NULLABLE') = 'YES';
+      Col.Collation := ColQuery.Col('COLLATION_NAME');
+      DefaultExpr := Trim(ColQuery.Col('COLUMN_DEFAULT'));
+      Col.DefaultType := cdtNothing;
+      Col.DefaultText := '';
+      if ColQuery.Col('IS_IDENTITY') = 'YES' then begin
+        Col.DefaultType := cdtAutoInc;
+        Col.DefaultText := FSqlProvider.GetSql(qAutoInc);
+      end
+      else if (not DefaultExpr.IsEmpty) and (not SameText(DefaultExpr, 'NULL')) then begin
+        if DefaultExpr.StartsWith(FStringQuoteChar) and DefaultExpr.EndsWith(FStringQuoteChar) then begin
+          Col.DefaultType := cdtText;
+          Col.DefaultText := DefaultExpr.DeQuotedString(FStringQuoteChar);
+        end else begin
+          Col.DefaultType := cdtExpression;
+          Col.DefaultText := DefaultExpr;
+        end;
+      end;
+      Col.OnUpdateType := cdtNothing;
+      Col.OnUpdateText := '';
+      Col.Comment := ColQuery.Col('COMMENT');
+      ColQuery.Next;
+    end;
+  finally
+    ColQuery.Free;
+  end;
+end;
+
+
+function TSnowflakeConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
+var
+  KeyQuery: TDBQuery;
+  NewKey: TTableKey;
+  KeyType: String;
+  i, KeyTypeIdx: Integer;
+begin
+  // Snowflake has no indexes on standard tables. Primary and unique keys are constraints,
+  // which are not enforced, except NOT NULL. INFORMATION_SCHEMA has no KEY_COLUMN_USAGE.
+  Result := TTableKeyList.Create(True);
+  for KeyTypeIdx:=0 to 1 do begin
+    KeyType := IfThen(KeyTypeIdx = 0, TTableKey.PRIMARY, TTableKey.UNIQUE);
+    try
+      if KeyType = TTableKey.PRIMARY then
+        KeyQuery := GetResults('SHOW PRIMARY KEYS IN TABLE '+Table.QuotedDbAndTableName)
+      else
+        KeyQuery := GetResults('SHOW UNIQUE KEYS IN TABLE '+Table.QuotedDbAndTableName);
+    except
+      on E:EDbError do
+        Continue;
+    end;
+    try
+      while not KeyQuery.Eof do begin
+        NewKey := nil;
+        for i:=0 to Result.Count-1 do begin
+          if (Result[i].Name = KeyQuery.Col('constraint_name')) and (Result[i].IndexType = KeyType) then begin
+            NewKey := Result[i];
+            Break;
+          end;
+        end;
+        if not Assigned(NewKey) then begin
+          NewKey := TTableKey.Create(Self);
+          Result.Add(NewKey);
+          NewKey.Name := KeyQuery.Col('constraint_name');
+          NewKey.OldName := NewKey.Name;
+          NewKey.IndexType := KeyType;
+          NewKey.OldIndexType := NewKey.IndexType;
+          NewKey.IsConstraint := True;
+        end;
+        // Rows are ordered by key_sequence
+        NewKey.Columns.Add(KeyQuery.Col('column_name'));
+        NewKey.SubParts.Add('');
+        NewKey.Collations.Add('A');
+        KeyQuery.Next;
+      end;
+    finally
+      KeyQuery.Free;
+    end;
+  end;
+end;
+
+
+function TSnowflakeConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
+var
+  ForeignQuery: TDBQuery;
+  ForeignKey: TForeignKey;
+begin
+  Result := TForeignKeyList.Create(True);
+  try
+    ForeignQuery := GetResults('SHOW IMPORTED KEYS IN TABLE '+Table.QuotedDbAndTableName);
+  except
+    on E:EDbError do
+      Exit;
+  end;
+  try
+    ForeignKey := nil;
+    while not ForeignQuery.Eof do begin
+      if (not Assigned(ForeignKey)) or (ForeignKey.KeyName <> ForeignQuery.Col('fk_name')) then begin
+        ForeignKey := TForeignKey.Create(Self);
+        Result.Add(ForeignKey);
+        ForeignKey.KeyName := ForeignQuery.Col('fk_name');
+        ForeignKey.OldKeyName := ForeignKey.KeyName;
+        ForeignKey.Db := Table.Database;
+        ForeignKey.ReferenceDb := ForeignQuery.Col('pk_schema_name');
+        ForeignKey.ReferenceTable := ForeignQuery.Col('pk_schema_name')+'.'+ForeignQuery.Col('pk_table_name');
+        ForeignKey.OnUpdate := ForeignQuery.Col('update_rule');
+        ForeignKey.OnDelete := ForeignQuery.Col('delete_rule');
+      end;
+      ForeignKey.Columns.Add(ForeignQuery.Col('fk_column_name'));
+      ForeignKey.ForeignColumns.Add(ForeignQuery.Col('pk_column_name'));
+      ForeignQuery.Next;
+    end;
+  finally
+    ForeignQuery.Free;
+  end;
+end;
+
+
+function TSnowflakeConnection.GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList;
+begin
+  // Snowflake has no CHECK constraints
+  Result := TCheckConstraintList.Create(True);
+end;
+
+
+function TSnowflakeConnection.GetGridColumnExpression(Col: TTableColumn): String;
+var
+  Ident, Fraction: String;
+begin
+  Result := '';
+  Ident := QuoteIdent(Col.Name);
+  // Fractional seconds, 9 digits by default
+  if Col.LengthSet = '0' then
+    Fraction := ''
+  else if Col.LengthSet.IsEmpty then
+    Fraction := '.FF9'
+  else
+    Fraction := '.FF' + Col.LengthSet;
+  case Col.DataType.Index of
+    // The driver delivers TIMESTAMP_TZ and TIMESTAMP_LTZ in UTC, without the offset.
+    // TO_VARCHAR keeps the offset, and shows LTZ in the session time zone.
+    dbdtDatetimeOffset, dbdtDatetime2:
+      Result := 'TO_VARCHAR(' + Ident + ', ''YYYY-MM-DD HH24:MI:SS' + Fraction + ' TZH:TZM'')';
+    // Fractional seconds get lost in TDateTimeField otherwise
+    dbdtDatetime, dbdtTimestamp:
+      Result := 'TO_VARCHAR(' + Ident + ', ''YYYY-MM-DD HH24:MI:SS' + Fraction + ''')';
+    dbdtTime:
+      Result := 'TO_VARCHAR(' + Ident + ', ''HH24:MI:SS' + Fraction + ''')';
+  end;
+end;
+
+
+procedure TSnowflakeConnection.Drop(Obj: TDBObject);
+var
+  ObjType: String;
+begin
+  if (Obj.NodeType = lntView) and Obj.IsMaterialized then
+    ObjType := 'MATERIALIZED VIEW'
+  else
+    ObjType := UpperCase(Obj.ObjType);
+  Query('DROP '+ObjType+' '+Obj.QuotedDbAndTableName);
+end;
+
+
 function TDBConnection.DecodeAPIString(a: AnsiString): String;
 begin
   if IsUnicode then
@@ -9500,6 +9975,18 @@ begin
     rx.Expression := '\bVIEW\s+(?:"[^"]+"\s*\.\s*)?"[^"]+"\s+(.+)$';
     if rx.Exec(CreateCode) then
       SelectCode := Trim(rx.Match[1])
+    else
+      Log(lcError, f_('Regular expression did not match the VIEW code in %s: %s', ['ParseViewStructure()', sLineBreak+sLineBreak+CreateCode]));
+    rx.Free;
+  end
+  else if (CreateCode <> '') and FParameters.IsAnySnowflake then begin
+    // GET_DDL: create or replace [secure] [materialized] view DB.SCHEMA.NAME(\n\tA,\n\tB\n) [comment='...'] as select ...
+    // Return everything after the name, see TfrmView.ComposeCreateStatement
+    rx := TRegExpr.Create;
+    rx.ModifierI := True;
+    rx.Expression := '\bVIEW\s+(IF\s+NOT\s+EXISTS\s+)?("[^"]+"|[\w$]+)(\s*\.\s*("[^"]+"|[\w$]+)){0,2}\s*(.+)$';
+    if rx.Exec(CreateCode) then
+      SelectCode := Trim(rx.Match[5])
     else
       Log(lcError, f_('Regular expression did not match the VIEW code in %s: %s', ['ParseViewStructure()', sLineBreak+sLineBreak+CreateCode]));
     rx.Free;
@@ -9747,6 +10234,14 @@ begin
         if Offset > 0 then
           Result := Result + ' OFFSET ' + IntToStr(Offset) + ' ROWS';
         Result := Result + ' FETCH NEXT ' + IntToStr(Limit) + ' ROWS ONLY';
+      end;
+    end;
+    ngSnowflake: begin
+      Result := Result + QueryBody;
+      if QueryType = 'SELECT' then begin
+        Result := Result + ' LIMIT ' + IntToStr(Limit);
+        if Offset > 0 then
+          Result := Result + ' OFFSET ' + IntToStr(Offset);
       end;
     end;
   end;
@@ -12078,9 +12573,18 @@ function TOdbcQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 var
   Stream: TMemoryStream;
   Field: TField;
+  RawText: AnsiString;
 begin
   Result := False;
-  if ColumnExists(Column) and (not IsNull(Column)) then begin
+  if ColumnExists(Column) and FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
+    // Row was loaded fully or edited, values only valid in the update row. Col() returns raw bytes.
+    RawText := AnsiString(FCurrentUpdateRow[Column].NewText);
+    SetLength(baData, Length(RawText));
+    if Length(RawText) > 0 then
+      Move(RawText[1], baData[0], Length(RawText));
+    Result := True;
+  end
+  else if ColumnExists(Column) and (not IsNull(Column)) then begin
     Field := FCurrentResults.Fields[Column];
     if Field is TBlobField then begin
       Stream := TMemoryStream.Create;
@@ -12110,6 +12614,7 @@ var
   DateFormat: String;
   Value: TDateTime;
   Scale, DotPos: Integer;
+  BinData: TBytes;
 begin
   if ColumnExists(Column) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
@@ -12138,6 +12643,12 @@ begin
           end;
           ftFloat, ftCurrency:
             Result := FloatToStr(Field.AsFloat, FFormatSettings);
+          ftBlob, ftBytes, ftVarBytes: begin
+            // Raw bytes, without any codepage conversion, see GetColBinData and EscapeBin
+            Result := '';
+            if (not Field.IsNull) and GetColBinData(Column, BinData) and (Length(BinData) > 0) then
+              SetString(Result, PAnsiChar(@BinData[0]), Length(BinData));
+          end;
           ftDate, ftTime, ftDateTime, ftTimeStamp: begin
             if Field.IsNull then
               Result := ''
@@ -12267,7 +12778,7 @@ var
   i: Integer;
   KeyCols: TTableColumnList;
 begin
-  if FConnection.Parameters.IsAnyOracle then
+  if FConnection.Parameters.IsAnyOdbc then
     raise EDbError.Create(f_('Grid editing is not yet supported on %s.', [FConnection.Parameters.NetTypeName(False)]));
   KeyCols := GetKeyColumns;
   if KeyCols.Count = 0 then
@@ -13045,7 +13556,7 @@ begin
   if InParts(cpAllowNull) and (not IsVirtual) and (not FConnection.Parameters.IsAnyMSSQL) then begin
     if not AllowNull then
       NullClause := 'NOT NULL '
-    else if not FConnection.Parameters.IsAnyInterbase then
+    else if not (FConnection.Parameters.NetTypeGroup in [ngInterbase, ngSnowflake]) then
       NullClause := 'NULL ';
   end;
 
@@ -13082,8 +13593,9 @@ begin
     end;
   end;
 
-  if FConnection.Parameters.IsAnyInterbase or FConnection.Parameters.IsAnyOracle then begin
-    // Oracle also requires DEFAULT and GENERATED ... AS IDENTITY before NOT NULL
+  if FConnection.Parameters.NetTypeGroup in [ngInterbase, ngOracle, ngSnowflake] then begin
+    // Oracle also requires DEFAULT and GENERATED ... AS IDENTITY before NOT NULL. Snowflake documents
+    // DEFAULT and AUTOINCREMENT before NOT NULL.
     Result := Result + DefaultClause + NullClause;
   end
   else begin
@@ -13106,7 +13618,7 @@ begin
   end;
 
   if InParts(cpComment) then begin
-    if (Comment <> '') and FConnection.Parameters.IsAnyMySQL then
+    if (Comment <> '') and (FConnection.Parameters.NetTypeGroup in [ngMySQL, ngSnowflake]) then
       Result := Result + 'COMMENT ' + FConnection.EscapeString(Comment) + ' ';
   end;
 
@@ -13375,6 +13887,8 @@ begin
     ngPgSQL: Result := IsPrimary or IsUnique;
     // Constraints. Normal indexes need CREATE INDEX.
     ngOracle: Result := IsPrimary or IsUnique;
+    // No indexes on standard tables, only (not enforced) constraints
+    ngSnowflake: Result := True;
     else Result := True;
   end;
 end;
@@ -13394,7 +13908,7 @@ begin
       if FConnection.Parameters.IsAnyPostgreSQL then begin
         Result := Result + IndexType + ' ';
       end
-      else if FConnection.Parameters.IsAnyOracle then begin
+      else if FConnection.Parameters.IsAnyOdbc then begin
         Result := Result + 'CONSTRAINT ' + FConnection.QuoteIdent(Name) + ' ' + IndexType + ' ';
       end
       else begin
@@ -13422,10 +13936,10 @@ begin
     Result := Result + ')';
 
     // MySQL only. Oracle has neither USING nor COMMENT for indexes.
-    if (Algorithm <> '') and (not FConnection.Parameters.IsAnyOracle) then
+    if (Algorithm <> '') and (not FConnection.Parameters.IsAnyOdbc) then
       Result := Result + ' USING ' + Algorithm;
 
-    if (not Comment.IsEmpty) and (not FConnection.Parameters.IsAnyOracle) then
+    if (not Comment.IsEmpty) and (not FConnection.Parameters.IsAnyOdbc) then
       Result := Result + ' COMMENT ' + FConnection.EscapeString(Comment);
 
   end

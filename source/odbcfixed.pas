@@ -307,6 +307,9 @@ begin
       if (Part <> '') and (Part[Length(Part)] = ';') then
         Delete(Part, Length(Part), 1);
       Part := Trim(rx.Replace(Part, '', False));
+      // Snowflake's driver appends a multi-line "error trace:" with locations in its Rust sources
+      if Pos('error trace:', LowerCase(Part)) > 0 then
+        Part := Trim(Copy(Part, 1, Pos('error trace:', LowerCase(Part))-1));
       if Part <> '' then begin
         if Result <> '' then
           Result := Result + sLineBreak;

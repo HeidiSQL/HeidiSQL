@@ -104,6 +104,10 @@ type
     Importsettingsfile1: TMenuItem;
     lblComment: TLabel;
     memoComment: TMemo;
+    lblSnowflakeWarehouse: TLabel;
+    editSnowflakeWarehouse: TEdit;
+    lblSnowflakeRole: TLabel;
+    editSnowflakeRole: TEdit;
     lblQueryTimeout: TLabel;
     spinQueryTimeout: TSpinEditEx;
     menuMoreGeneralHelp: TMenuItem;
@@ -567,6 +571,8 @@ begin
     Sess.LogFileDml := chkLogFileDml.Checked;
     Sess.LogFilePath := editLogFilePath.Text;
     Sess.AdditionalParams := editAdditionalParams.Text;
+    Sess.SnowflakeWarehouse := editSnowflakeWarehouse.Text;
+    Sess.SnowflakeRole := editSnowflakeRole.Text;
     Sess.SaveToRegistry;
 
     // Apply session color (and othher settings) to opened connection(s)
@@ -843,6 +849,8 @@ begin
     Result.LogFileDml := chkLogFileDml.Checked;
     Result.LogFilePath := editLogFilePath.Text;
     Result.AdditionalParams := editAdditionalParams.Text;
+    Result.SnowflakeWarehouse := editSnowflakeWarehouse.Text;
+    Result.SnowflakeRole := editSnowflakeRole.Text;
   end;
 end;
 
@@ -1168,6 +1176,8 @@ begin
     chkLogFileDml.Checked := Sess.LogFileDml;
     editLogFilePath.Text := Sess.LogFilePath;
     editAdditionalParams.Text := Sess.AdditionalParams;
+    editSnowflakeWarehouse.Text := Sess.SnowflakeWarehouse;
+    editSnowflakeRole.Text := Sess.SnowflakeRole;
     FServerVersion := Sess.ServerVersion;
   end;
 
@@ -1640,6 +1650,8 @@ begin
       or (Sess.LogFileDml <> chkLogFileDml.Checked)
       or (Sess.LogFilePath <> editLogFilePath.Text)
       or (Sess.AdditionalParams <> editAdditionalParams.Text)
+      or (Sess.SnowflakeWarehouse <> editSnowflakeWarehouse.Text)
+      or (Sess.SnowflakeRole <> editSnowflakeRole.Text)
       ;
     PasswordModified := Sess.Password <> editPassword.Text;
     FOnlyPasswordModified := PasswordModified and (not FSessionModified);
@@ -1710,7 +1722,7 @@ begin
       lblPassword.Caption := _('Password:');
       lblDatabase.Caption := _('Databases')+':';
       editDatabases.TextHint := _('Separated by semicolon');
-      if Params.IsAnyOracle then
+      if Params.IsAnyOdbc then
         lblLibrary.Caption := _('ODBC driver:')
       else
         lblLibrary.Caption := _('Library:');
@@ -1726,6 +1738,11 @@ begin
           lblDatabase.Caption := _('Service name:');
           editDatabases.TextHint := _('Example:') + ' XEPDB1';
         end;
+        ntSnowflake_ODBC: begin
+          lblHost.Caption := _('Account URL:');
+          lblDatabase.Caption := _('Database')+':';
+          editDatabases.TextHint := _('Single database name');
+        end;
         ntSQLite, ntSQLiteEncrypted: begin
           lblHost.Caption := _('Database filename(s)')+':';
           lblUsername.Caption := _('Cipher')+':';
@@ -1739,9 +1756,9 @@ begin
         editHost.Hint := FPathVariablesHint
       else
         editHost.Hint := '';
-      chkLoginPrompt.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngOracle];
+      chkLoginPrompt.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngOracle, ngSnowflake];
       chkWindowsAuth.Enabled := Params.IsAnyMSSQL or Params.IsAnyMySQL;
-      lblUsername.Enabled := (Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase, ngOracle])
+      lblUsername.Enabled := (Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase, ngOracle, ngSnowflake])
         and ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
         and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
       lblUsername.Enabled := lblUsername.Enabled or (Params.NetType = ntSQLiteEncrypted);
@@ -1749,14 +1766,19 @@ begin
       editUsername.Button.Enabled := Params.NetType = ntSQLiteEncrypted;
       lblPassword.Enabled := lblUsername.Enabled;
       editPassword.Enabled := lblUsername.Enabled;
-      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntMySQL_RDS, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP, ntFirebird_TCPIP, ntOracle_ODBC];
+      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntMySQL_RDS, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP, ntFirebird_TCPIP, ntOracle_ODBC, ntSnowflake_ODBC];
       spinPort.Enabled := lblPort.Enabled;
       chkCompressed.Enabled := Params.IsAnyMySQL;
-      lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase, ngOracle];
+      lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase, ngOracle, ngSnowflake];
       lblDatabase.Enabled := lblDatabase.Enabled or (Params.NetType = ntSQLiteEncrypted);
       editDatabases.Enabled := lblDatabase.Enabled;
       // Oracle: service name, not selectable from a list
       editDatabases.Button.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
+      lblSnowflakeWarehouse.Enabled := Params.IsAnySnowflake;
+      editSnowflakeWarehouse.Enabled := lblSnowflakeWarehouse.Enabled;
+      editSnowflakeWarehouse.TextHint := _('Example:') + ' COMPUTE_WH';
+      lblSnowflakeRole.Enabled := Params.IsAnySnowflake;
+      editSnowflakeRole.Enabled := lblSnowflakeRole.Enabled;
       // SSH tunnel tab:
       chkSSHActive.Enabled := Params.SshSupport;
       lblSSHExe.Enabled := Params.SSHActive;
@@ -1780,7 +1802,7 @@ begin
       // Advanced tab:
       lblQueryTimeout.Enabled := True;
       spinQueryTimeout.Enabled := lblQueryTimeout.Enabled;
-      chkLocalTimeZone.Enabled := Params.NetTypeGroup in [ngMySQL, ngOracle];
+      chkLocalTimeZone.Enabled := Params.NetTypeGroup in [ngMySQL, ngOracle, ngSnowflake];
       chkFullTableStatus.Enabled := (Params.NetTypeGroup in [ngMySQL, ngPgSQL, ngSQLite]) and (not (Params.NetType in [ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse]));
       chkCleartextPluginEnabled.Enabled := Params.NetTypeGroup = ngMySQL;
       chkForceUnicode.Enabled := Params.NetTypeGroup = ngMySQL;

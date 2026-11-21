@@ -2,7 +2,7 @@
 
 Status: phases 1 and 2 (ODBC base, experimental Oracle network type)
 implemented, see "Implementation status" below. Linux packaging done,
-macOS packaging done, Snowflake open.
+macOS packaging done, Snowflake implemented (phase 3, see below), not packaged.
 Motivation: GitHub issue #1091
 (Snowflake) and the recurring Oracle requests. Neither DBMS offers a C client
 library that is practical to ship, but both have free, official ODBC drivers.
@@ -445,6 +445,72 @@ Not done / open:
 - SQL function list: `extra/ini/functions-oracle.ini`, generated from the SQL
   Language Reference (`generate-functions.php oracle`). Functions without
   parentheses (`SYSDATE`, `USER`) are not listed.
+
+## Implementation status (phase 3, Snowflake)
+
+Code:
+- Net type `ntSnowflake_ODBC` (last `TNetType` item), group `ngSnowflake`,
+  "Snowflake (ODBC, experimental)", port 443, no SSH tunnel, no SSL tab.
+  Library dropdown = installed drivers matching `snowflake`. Icon index 209
+  (`res/icons/server-snowflake.png`, appended to `ImageListMain` and
+  `ImageListSilk` in `main.lfm`).
+- `source/dbstructures.snowflake.pas`: `TSnowflakeProvider`,
+  `SnowflakeDatatypes` (INFORMATION_SCHEMA names, e.g. `TEXT` → `VARCHAR`).
+- `source/dbconnection.pas`: `TSnowflakeConnection` on `TOdbcConnection`.
+  Connection string `Server`, `Port` (only if not 443), `Database` (session
+  field "Database"), `Warehouse`, `Role` (new session fields
+  `SnowflakeWarehouse`, `SnowflakeRole`). Without a current database the
+  connection fails with a message, as the tree needs one.
+- Tree: schemas from `INFORMATION_SCHEMA.SCHEMATA`, tables and (materialized)
+  views from `INFORMATION_SCHEMA.TABLES` (exact `ROW_COUNT`, `BYTES`), columns
+  from `INFORMATION_SCHEMA.COLUMNS`. Keys via `SHOW PRIMARY KEYS` /
+  `SHOW UNIQUE KEYS IN TABLE`, foreign keys via `SHOW IMPORTED KEYS`
+  (INFORMATION_SCHEMA has no `KEY_COLUMN_USAGE`). CREATE code via `GET_DDL`.
+  No routines in the tree yet.
+- Strings: Snowflake processes backslash escapes in `'...'`, so
+  `EscapeString` doubles backslashes. LIKE has no default escape character:
+  `qLikeCompare` adds `ESCAPE '\\'`. `$$` strings are known to the batch
+  splitter.
+- Grid: `TIMESTAMP_TZ`/`_LTZ` via `TO_VARCHAR(col, 'YYYY-MM-DD
+  HH24:MI:SS.FFn TZH:TZM')`, `TIMESTAMP_NTZ` and `TIME` via `TO_VARCHAR`
+  with fractional seconds. Grid editing is blocked as on Oracle.
+- "Use own client time zone": `ALTER SESSION SET TIMEZONE = '<IANA name>'`
+  after connect. `GetLocalIanaTimeZone` in `apphelpers.pas`: Windows maps the
+  time zone key name via `ucal_getTimeZoneIDForWindowsID` from `icu.dll`
+  (Windows 10 1903+, `icuin.dll` before); Linux/macOS use `TZ` or the
+  `/etc/localtime` symlink; fallback `Etc/GMT±n` for whole hours.
+- Table editor: one `ALTER TABLE` per clause. Columns: `RENAME COLUMN`,
+  `ALTER COLUMN ... SET DATA TYPE`, `SET/DROP NOT NULL`, `DROP DEFAULT` /
+  `SET DEFAULT` (only sequences), `COMMENT ON COLUMN`; only changed attributes
+  are sent. Keys are constraints only (PRIMARY, UNIQUE), no plain indexes.
+  `DEFAULT`/`AUTOINCREMENT` before `NOT NULL`, no explicit `NULL`, column
+  comments inline.
+- View editor: body = everything after the view name, saved with
+  `CREATE OR REPLACE [SECURE] [MATERIALIZED] VIEW`, rename via
+  `ALTER VIEW ... RENAME TO`. `CREATE OR REPLACE` drops grants unless the body
+  contains `COPY GRANTS`.
+
+- The driver describes `USE SCHEMA` and other commands with a status column on
+  `SQLPrepare`, but returns no result set after `SQLExecute`. SQLDB then raises
+  "Cannot open a non-select statement" after the statement ran.
+  `TOdbcConnection.Query` takes that as "executed, no result"
+  (`Cursor.FSelectable` is only reset by the execute).
+- Driver messages end with a multi-line "error trace:" pointing to its Rust
+  sources. `OdbcErrorText` cuts it off.
+- Binary literals: `x'...'`. A `TO_BINARY('...', 'HEX')` prefix broke
+  `IsHex()` and the binary editor with the "lowercase hex" option.
+- A user's personal database (`USER$<name>`) does not allow CREATE TABLE.
+- After F2, `EnsureFullRow` copies the row into the update row. `TOdbcQuery`
+  reads binary values from there in that state (like `TMySQLQuery`), and
+  `Col()` returns binary fields as raw bytes. Before, BINARY cells turned
+  into `''` on editing (all ODBC types, also Oracle RAW/BLOB).
+
+Tested 2026-11-21 against the trial account: connect, tree, empty schema,
+grid with VARCHAR (70000 characters), NUMBER(20,4) with trailing zeros,
+NUMBER(38,0) exact, VARIANT, TIMESTAMP_TZ with offset, TIMESTAMP_LTZ in the
+session time zone (Europe/Berlin with the option, -08:00 without), column
+changes incl. NOT NULL in the table editor, view editing, renaming tables and
+views. Binary display after the `x'...'` change not yet confirmed.
 
 ## Help page: Oracle setup for users
 
