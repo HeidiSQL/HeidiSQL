@@ -779,8 +779,13 @@ begin
 
   if memoComment.Tag = MODIFIEDFLAG then begin
     case Conn.Parameters.NetTypeGroup of
-      ngMySQL, ngMSSQL: begin
+      ngMySQL: begin
         Specs.Add('COMMENT=' + Conn.EscapeString(memoComment.Text));
+      end;
+      ngMSSQL: begin
+        Params := DBObject.AsStringMap;
+        Params.Add('NewComment', Conn.EscapeString(memoComment.Text));
+        AddStatement(Conn.SqlProvider.GetSql(qSetTableComment, Params));
       end;
       ngPgSQL: begin
         AddQuery('COMMENT ON TABLE '+DBObject.QuotedName+' IS '+Conn.EscapeString(memoComment.Text));
@@ -1236,7 +1241,8 @@ begin
   CreateLines.Free;
 
   if (memoComment.Text <> '') and (not DBObject.Connection.Parameters.IsAnyPostgreSQL)
-    and (not DBObject.Connection.Parameters.IsAnyOracle) then
+    and (not DBObject.Connection.Parameters.IsAnyOracle)
+    and (not DBObject.Connection.Parameters.IsAnyMSSQL) then
     SQL := SQL + 'COMMENT='+DBObject.Connection.EscapeString(memoComment.Text) + sLineBreak;
   // MySQL table options. Oracle and Snowflake have none of these.
   if not DBObject.Connection.Parameters.IsAnyOdbc then begin
@@ -1278,6 +1284,29 @@ begin
       SQL := SQL + 'COMMENT ON COLUMN '+
         DBObject.Connection.QuoteIdent(editName.Text)+'.'+DBObject.Connection.QuoteIdent(Col.Name)+
         ' IS '+DBObject.Connection.EscapeString(Col.Comment) + ';' + sLineBreak;
+    end;
+  end;
+
+  if DBObject.Connection.Parameters.IsAnyMSSQL then begin
+    // Comments are extended properties. The new table is in the default schema.
+    if memoComment.Text <> '' then begin
+      SQL := SQL + 'DECLARE @Schema SYSNAME = SCHEMA_NAME()' + sLineBreak +
+        'EXEC sys.sp_addextendedproperty @name = N''MS_Description'',' +
+        ' @value = ' + DBObject.Connection.EscapeString(memoComment.Text) + ',' +
+        ' @level0type = N''SCHEMA'', @level0name = @Schema,' +
+        ' @level1type = N''TABLE'', @level1name = ' + DBObject.Connection.EscapeString(editName.Text) +
+        ';' + sLineBreak;
+    end;
+    for Col in FColumns do begin
+      if (Col.Comment = '') or (Col.Status in [esDeleted, esAddedDeleted]) then
+        Continue;
+      SQL := SQL + 'DECLARE @Schema SYSNAME = SCHEMA_NAME()' + sLineBreak +
+        'EXEC sys.sp_addextendedproperty @name = N''MS_Description'',' +
+        ' @value = ' + DBObject.Connection.EscapeString(Col.Comment) + ',' +
+        ' @level0type = N''SCHEMA'', @level0name = @Schema,' +
+        ' @level1type = N''TABLE'', @level1name = ' + DBObject.Connection.EscapeString(editName.Text) + ',' +
+        ' @level2type = N''COLUMN'', @level2name = ' + DBObject.Connection.EscapeString(Col.Name) +
+        ';' + sLineBreak;
     end;
   end;
 

@@ -9024,23 +9024,32 @@ procedure TSqlSrvConnection.FetchDbObjects(db: String; var Cache: TDBObjectList)
 var
   obj: TDBObject;
   Results: TDBQuery;
-  tp, SchemaSelect: String;
+  tp, SchemaSelect, CommentSelect, CommentJoin: String;
 begin
   // Tables, views and procedures
   Results := nil;
   // Schema support introduced in MSSQL 2005 (9.0). See issue #3212.
   // RowsInTable added in 12.16
   SchemaSelect := EscapeString('');
-  if ServerVersionInt >= 900 then
+  CommentSelect := '';
+  CommentJoin := '';
+  if ServerVersionInt >= 900 then begin
     SchemaSelect := 'SCHEMA_NAME('+QuoteIdent('schema_id')+')';
+    // Object comments are extended properties
+    CommentSelect := ', CAST(ep.value AS NVARCHAR(MAX)) AS '+QuoteIdent('Comment');
+    CommentJoin := ' LEFT JOIN '+QuoteIdent(db)+'.sys.extended_properties AS ep'+
+      ' ON ep.major_id = o.object_id AND ep.minor_id = 0 AND ep.class = 1'+
+      ' AND ep.name = '+EscapeString('MS_Description');
+  end;
   try
-    Results := GetResults('SELECT o.*, '+SchemaSelect+' AS '+EscapeString('schema')+', rc.RowsInTable'+
+    Results := GetResults('SELECT o.*, '+SchemaSelect+' AS '+EscapeString('schema')+', rc.RowsInTable'+CommentSelect+
       ' FROM '+QuoteIdent(db)+FSqlProvider.GetSql(qDbObjectsTable)+ ' AS o'+
       ' LEFT JOIN ('+
       '   SELECT object_id, SUM(rows) AS RowsInTable FROM '+QuoteIdent(db)+'.sys.partitions'+
       '   WHERE index_id IN (0,1)'+ // -- heap or clustered index
       '   GROUP BY object_id'+
       ' ) AS rc ON rc.object_id = o.object_id'+
+      CommentJoin+
       ' WHERE o.'+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+', '+EscapeString('TR')+', '+EscapeString('FN')+', '+EscapeString('TF')+', '+EscapeString('IF')+')');
   except
     on E:EDbError do;
@@ -9066,6 +9075,7 @@ begin
       else if (tp = 'FN') or (tp = 'TF') or (tp = 'IF') then
         obj.NodeType := lntFunction;
       obj.Rows := StrToInt64Def(Results.Col('RowsInTable'), -1);
+      obj.Comment := Results.Col('Comment', True);
       obj.RowsAreExact := False; // approximate, not guaranteed exact.
       // Set reasonable default value for calculation of export chunks. See #343
       // OFFSET..FETCH supported from v11.0/2012

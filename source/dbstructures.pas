@@ -42,7 +42,7 @@ type
   TQueryId = (qDatabaseTable, qDatabaseTableId, qDatabaseDrop,
     qDbObjectsTable, qDbObjectsCreateCol, qDbObjectsUpdateCol, qDbObjectsTypeCol,
     qEmptyTable, qRenameTable, qRenameView, qCurrentUserHost, qLikeCompare,
-    qAddColumn, qChangeColumn, qRenameColumn, qSetColumnComment, qForeignKeyEventAction,
+    qAddColumn, qChangeColumn, qRenameColumn, qSetColumnComment, qSetTableComment, qForeignKeyEventAction,
     qGlobalStatus, qCommandsCounters, qSessionVariables, qGlobalVariables,
     qSetSessionVariable, qSetGlobalVariable, qApplyGlobalVariables,
     qProcessList, qProcessListProgram,

@@ -705,6 +705,29 @@ begin
       '        @level1type  = N''TABLE'',  @level1name = :EscapedName,' + sLineBreak +
       '        @level2type  = N''COLUMN'', @level2name = :TargetColumn' + sLineBreak +
       'END';
+    qSetTableComment: Result := 'IF NOT EXISTS (' + sLineBreak +
+      '    SELECT 1' + sLineBreak +
+      '    FROM fn_listextendedproperty (' + sLineBreak +
+      '        N''MS_Description'',' + sLineBreak +
+      '        N''SCHEMA'', :EscapedSchema,' + sLineBreak +
+      '        N''TABLE'',  :EscapedName,' + sLineBreak +
+      '        NULL, NULL' + sLineBreak +
+      '    )' + sLineBreak +
+      ')' + sLineBreak +
+      'BEGIN' + sLineBreak +
+      '    EXEC sys.sp_addextendedproperty' + sLineBreak +
+      '        @name        = N''MS_Description'',' + sLineBreak +
+      '        @value       = :NewComment,' + sLineBreak +
+      '        @level0type  = N''SCHEMA'', @level0name = :EscapedSchema,' + sLineBreak +
+      '        @level1type  = N''TABLE'',  @level1name = :EscapedName' + sLineBreak +
+      'END' + sLineBreak +
+      'ELSE BEGIN' + sLineBreak +
+      '    EXEC sys.sp_updateextendedproperty' + sLineBreak +
+      '        @name        = N''MS_Description'',' + sLineBreak +
+      '        @value       = :NewComment,' + sLineBreak +
+      '        @level0type  = N''SCHEMA'', @level0name = :EscapedSchema,' + sLineBreak +
+      '        @level1type  = N''TABLE'',  @level1name = :EscapedName' + sLineBreak +
+      'END';
     // Server configuration options, no session scope. Names are required for sp_configure.
     qSessionVariables, qGlobalVariables: Result := IfThen(
       FServerVersion >= 900,
@@ -738,7 +761,7 @@ begin
     qLockedTables: Result := '';
     qDisableForeignKeyChecks: Result := '';
     qEnableForeignKeyChecks: Result := '';
-    qForeignKeyDrop: Result := 'DROP FOREIGN KEY %s';
+    qForeignKeyDrop: Result := 'DROP CONSTRAINT %s';
     qGetTableColumns: Result := '';
     qGetCollations: Result := 'SELECT '''' AS "Collation", '+
       ''''' AS "Charset", 0 AS "Id", '+
