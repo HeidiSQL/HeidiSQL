@@ -631,10 +631,11 @@ end;
 
 function TfrmExtFileDialog.CheckFileNameChars(const AName: String): Boolean;
 const
+  // Typed, as a single char literal would otherwise be a Char constant, not indexable
   {$IFDEF WINDOWS}
-  InvalidChars = '\/:*?"<>|';
+  InvalidChars: String = '\/:*?"<>|';
   {$ELSE}
-  InvalidChars = '/';
+  InvalidChars: String = '/';
   {$ENDIF}
 var
   CharList: String;
