@@ -154,7 +154,10 @@ function StrCmpLogicalW(psz1, psz2: PWideChar): Integer; stdcall; external 'shlw
 
 var
   // State of the shell context menu while TrackPopupMenu runs, see ShellMenuWndProc
-  ShellMenuOldWndProc: Pointer = nil; // the LCL window procedure of the dialog
+  // The LCL window procedure of the dialog, as returned by SetWindowLongPtrW, and
+  // the same as callable procedure variable (absolute: no ordinal/pointer casts)
+  ShellMenuOldWndProc: LONG_PTR = 0;
+  ShellMenuOldWndProcFunc: Windows.WNDPROC absolute ShellMenuOldWndProc;
   ShellMenuCM2: IContextMenu2 = nil;
   ShellMenuCM3: IContextMenu3 = nil;
 
@@ -170,6 +173,8 @@ function ShellMenuWndProc(Wnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM):
 var
   ForShell, IsMenuMsg: Boolean;
   MsgResult: LRESULT;
+  MeasureItem: PMeasureItemStruct absolute lParam;
+  DrawItem: PDrawItemStruct absolute lParam;
 begin
   case Msg of
     WM_INITMENUPOPUP, WM_MENUCHAR: begin
@@ -177,11 +182,11 @@ begin
       IsMenuMsg := True;
     end;
     WM_MEASUREITEM: begin
-      IsMenuMsg := PMeasureItemStruct(lParam)^.CtlType = ODT_MENU;
+      IsMenuMsg := MeasureItem^.CtlType = ODT_MENU;
       ForShell := IsMenuMsg;
     end;
     WM_DRAWITEM: begin
-      IsMenuMsg := PDrawItemStruct(lParam)^.CtlType = ODT_MENU;
+      IsMenuMsg := DrawItem^.CtlType = ODT_MENU;
       ForShell := IsMenuMsg;
     end;
     WM_INITMENU, WM_UNINITMENUPOPUP, WM_MENUSELECT, WM_ENTERIDLE, WM_MENURBUTTONUP,
@@ -212,7 +217,7 @@ begin
   if IsMenuMsg then
     Result := DefWindowProcW(Wnd, Msg, wParam, lParam)
   else
-    Result := CallWindowProcW(Windows.WNDPROC(ShellMenuOldWndProc), Wnd, Msg, wParam, lParam);
+    Result := CallWindowProcW(ShellMenuOldWndProcFunc, Wnd, Msg, wParam, lParam);
 end;
 {$ENDIF}
 
@@ -1047,6 +1052,8 @@ var
   InvokeInfo: TCMINVOKECOMMANDINFO;
   Wide: WideString;
   VerbBuf: array[0..63] of WideChar;
+  NewWndProc: Windows.WNDPROC;
+  NewWndProcValue: LONG_PTR absolute NewWndProc;
 begin
   Result := False;
   Verb := '';
@@ -1078,12 +1085,13 @@ begin
         ShellMenuCM3 := nil;
       if not Supports(ContextMenu, IContextMenu2, ShellMenuCM2) then
         ShellMenuCM2 := nil;
-      ShellMenuOldWndProc := Pointer(SetWindowLongPtrW(Handle, GWLP_WNDPROC, LONG_PTR(@ShellMenuWndProc)));
+      NewWndProc := ShellMenuWndProc;
+      ShellMenuOldWndProc := SetWindowLongPtrW(Handle, GWLP_WNDPROC, NewWndProcValue);
       try
         Cmd := Integer(TrackPopupMenu(Menu, TPM_RETURNCMD or TPM_NONOTIFY or TPM_LEFTALIGN or TPM_LEFTBUTTON, ScreenPos.X, ScreenPos.Y, 0, Handle, nil));
       finally
-        SetWindowLongPtrW(Handle, GWLP_WNDPROC, LONG_PTR(ShellMenuOldWndProc));
-        ShellMenuOldWndProc := nil;
+        SetWindowLongPtrW(Handle, GWLP_WNDPROC, ShellMenuOldWndProc);
+        ShellMenuOldWndProc := 0;
         ShellMenuCM3 := nil;
         ShellMenuCM2 := nil;
       end;
@@ -1091,7 +1099,7 @@ begin
         Exit;
       // Language independent verb of the chosen command, e.g. "rename" or "delete".
       // Not all commands have one, e.g. those of shell extensions.
-      FillChar(VerbBuf, SizeOf(VerbBuf), 0);
+      VerbBuf[0] := #0; // only read on success, then null-terminated by the shell
       if ContextMenu.GetCommandString(Cmd - CmdFirst, GCS_VERBW, nil, PAnsiChar(@VerbBuf[0]), Length(VerbBuf)) = S_OK then
         Verb := UTF16ToUTF8(WideString(PWideChar(@VerbBuf[0])));
       Result := True;
