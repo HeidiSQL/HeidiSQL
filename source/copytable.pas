@@ -445,7 +445,8 @@ begin
 
   // Indexes code
   for Key in SelectedKeys do begin
-    CreateLines.Add(Key.SQLCode);
+    if not Key.InlinedInColumn(SelectedColumns) then
+      CreateLines.Add(Key.SQLCode);
   end;
 
   // Foreign keys code

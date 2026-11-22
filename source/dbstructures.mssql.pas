@@ -678,6 +678,8 @@ begin
     qLikeCompare: Result := '%s LIKE %s ESCAPE ''\''';
     qAddColumn: Result := 'ADD %s';
     qChangeColumn: Result := 'ALTER COLUMN %s %s';
+    qRenameColumn: Result := 'EXEC sp_rename %s, %s, ''COLUMN''';
+    qAutoInc: Result := 'IDENTITY(1,1)';
     qSetColumnComment: Result := 'IF NOT EXISTS (' + sLineBreak +
       '    SELECT 1' + sLineBreak +
       '    FROM fn_listextendedproperty (' + sLineBreak +
