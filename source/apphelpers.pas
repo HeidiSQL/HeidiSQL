@@ -3553,11 +3553,14 @@ begin
   FQuotes.Sorted := True;
   FQuotes.Add('"');
   FQuotes.Add('''');
-  FEscape := '\';
+  // No escape char in string literals by default. A doubled quote closes and reopens the string.
+  FEscape := #0;
   case NetTypeGroup of
-    ngMySQL: FQuotes.Add('`'); // MySQL/MariaDB only
+    ngMySQL: begin
+      FQuotes.Add('`'); // MySQL/MariaDB only
+      FEscape := '\';
+    end;
     ngPgSQL: FQuotes.Add('$$'); // PostgreSQL only ($abc$ unsupported)
-    ngSQLite: FEscape := '''';
   end;
 end;
 
