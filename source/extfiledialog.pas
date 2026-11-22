@@ -19,6 +19,8 @@ type
     btnCancel: TButton;
     btnOk: TButton;
     tbViewStyle: TToolBar;
+    tbtnNewFolder: TToolButton;
+    tbtnSeparator1: TToolButton;
     tbtnViewIcons: TToolButton;
     tbtnViewDetails: TToolButton;
     comboRecentFolders: TComboBox;
@@ -69,6 +71,7 @@ type
     procedure RenameTimerTimer(Sender: TObject);
     procedure btnViewIconsClick(Sender: TObject);
     procedure btnViewDetailsClick(Sender: TObject);
+    procedure btnNewFolderClick(Sender: TObject);
     procedure ShellTreeViewChange(Sender: TObject; Node: TTreeNode);
     procedure ShellTreeViewChanging(Sender: TObject; Node: TTreeNode;
       var AllowChange: Boolean);
@@ -98,6 +101,7 @@ type
     FSkipQueuedEdit: Boolean;
     FSelectedByClick: Boolean;
     procedure StartRename(Item: TListItem);
+    function CheckFileNameChars(const AName: String): Boolean;
     procedure RefreshListAsync(Data: PtrInt);
     function CompareFileNames(const Name1, Name2: String): Integer;
     procedure AddRecentFolder(const Folder: String);
@@ -335,6 +339,7 @@ begin
   SetFilterIndex(FFilterIndex);
   SetupListViewColumns;
   comboRecentFolders.Enabled := not (ofNoChangeDir in FOptions);
+  tbtnNewFolder.Enabled := not (ofNoChangeDir in FOptions);
   ShellTreeViewResize(ShellTreeView);
 
   comboEncoding.Items.AddStrings(FEncodings, True);
@@ -624,8 +629,7 @@ begin
   FSkipQueuedEdit := False;
 end;
 
-procedure TfrmExtFileDialog.ShellListViewEdited(Sender: TObject;
-  Item: TListItem; var AValue: String);
+function TfrmExtFileDialog.CheckFileNameChars(const AName: String): Boolean;
 const
   {$IFDEF WINDOWS}
   InvalidChars = '\/:*?"<>|';
@@ -633,9 +637,27 @@ const
   InvalidChars = '/';
   {$ENDIF}
 var
-  OldName, NewName, OldPath, NewPath, CharList: String;
+  CharList: String;
   i: Integer;
-  IsFolder, HasInvalidChars: Boolean;
+begin
+  // Shows an error and returns False if AName contains a character not allowed in
+  // file and folder names
+  Result := True;
+  CharList := '';
+  for i:=1 to Length(InvalidChars) do begin
+    Result := Result and (Pos(InvalidChars[i], AName) = 0);
+    CharList := CharList + InvalidChars[i] + ' ';
+  end;
+  if not Result then
+    ErrorDialog(f_('A file name cannot contain any of the following characters: %s', [CharList.Trim]));
+end;
+
+procedure TfrmExtFileDialog.ShellListViewEdited(Sender: TObject;
+  Item: TListItem; var AValue: String);
+var
+  OldName, NewName, OldPath, NewPath: String;
+  i: Integer;
+  IsFolder: Boolean;
 begin
   // Called before the caption is set to AValue. Rename the file system object here,
   // and reset AValue to the old caption if that is not possible or cancelled.
@@ -649,16 +671,8 @@ begin
   AValue := OldName;
   if NewName.IsEmpty or (NewName = OldName) or (NewName = '.') or (NewName = '..') then
     Exit;
-  HasInvalidChars := False;
-  CharList := '';
-  for i:=1 to Length(InvalidChars) do begin
-    HasInvalidChars := HasInvalidChars or (Pos(InvalidChars[i], NewName) > 0);
-    CharList := CharList + InvalidChars[i] + ' ';
-  end;
-  if HasInvalidChars then begin
-    ErrorDialog(f_('A file name cannot contain any of the following characters: %s', [CharList.Trim]));
+  if not CheckFileNameChars(NewName) then
     Exit;
-  end;
 
   OldPath := ShellListView.GetPathFromItem(Item);
   NewPath := ExtractFilePath(OldPath) + NewName;
@@ -873,6 +887,60 @@ begin
   UpdateViewStyleButton;
 end;
 
+procedure TfrmExtFileDialog.btnNewFolderClick(Sender: TObject);
+var
+  ParentDir, FolderName, NewPath: String;
+  i: Integer;
+begin
+  // Create a subfolder in the current folder, and navigate into it
+  if ofNoChangeDir in FOptions then begin
+    ErrorDialog(_('You cannot change the directory in this context.'));
+    Exit;
+  end;
+  ParentDir := ShellTreeView.Path;
+  if ParentDir.IsEmpty or (not DirectoryExists(ParentDir)) then
+    Exit;
+  ParentDir := IncludeTrailingPathDelimiter(ParentDir);
+  // Suggest a name which does not exist yet: "New folder", "New folder (2)", ...
+  FolderName := _('New folder');
+  i := 1;
+  while DirectoryExists(ParentDir + FolderName) or FileExists(ParentDir + FolderName) do begin
+    Inc(i);
+    FolderName := _('New folder') + ' (' + IntToStr(i) + ')';
+  end;
+  if not InputQuery(_('Create folder'), f_('Name of new folder in %s', [ParentDir]), FolderName) then
+    Exit;
+  FolderName := Trim(FolderName);
+  {$IFDEF WINDOWS}
+  // Windows strips trailing dots silently, like Explorer does
+  while FolderName.EndsWith('.') do
+    Delete(FolderName, Length(FolderName), 1);
+  {$ENDIF}
+  if FolderName.IsEmpty or (FolderName = '.') or (FolderName = '..') then
+    Exit;
+  if not CheckFileNameChars(FolderName) then
+    Exit;
+  NewPath := ParentDir + FolderName;
+  if DirectoryExists(NewPath) or FileExists(NewPath) then begin
+    ErrorDialog(f_('A file or folder with the name "%s" already exists.', [FolderName]));
+    Exit;
+  end;
+  if not CreateDir(NewPath) then begin
+    ErrorDialog(f_('Could not create folder "%s": %s', [NewPath, SysErrorMessage(GetLastOSError)]));
+    Exit;
+  end;
+  // Re-read the children of the current tree node, so the new folder node exists,
+  // then select it. The list view follows, ShellTreeViewChange re-applies the sorting.
+  if Assigned(ShellTreeView.Selected) then
+    ShellTreeView.Refresh(ShellTreeView.Selected);
+  try
+    ShellTreeView.Path := NewPath;
+  except
+    on E:EShellCtrl do
+      ShellTreeView.Path := ParentDir;
+  end;
+end;
+
 procedure TfrmExtFileDialog.UpdateViewStyleButton;
 begin
   // The button matching the current view style stays pressed (Down), the other
@@ -881,6 +949,7 @@ begin
   tbtnViewDetails.Down := ShellListView.ViewStyle = vsReport;
   tbtnViewIcons.Hint := _('Switch to icon view');
   tbtnViewDetails.Hint := _('Switch to details view');
+  tbtnNewFolder.Hint := _('Create new folder');
 end;
 
 procedure TfrmExtFileDialog.ShellListViewContextPopup(Sender: TObject;

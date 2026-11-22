@@ -232,10 +232,10 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = pnlTopBar
       AnchorSideRight.Side = asrBottom
-      Left = 635
+      Left = 607
       Height = 22
       Top = 1
-      Width = 47
+      Width = 75
       Align = alNone
       Anchors = [akTop, akRight]
       AutoSize = True
@@ -243,15 +243,27 @@ object frmExtFileDialog: TfrmExtFileDialog
       Images = MainForm.ImageListMain
       TabOrder = 0
       Wrapable = False
-      object tbtnViewIcons: TToolButton
+      object tbtnNewFolder: TToolButton
         Left = 1
+        Top = 0
+        ImageIndex = 174
+        OnClick = btnNewFolderClick
+      end
+      object tbtnSeparator1: TToolButton
+        Left = 24
+        Height = 22
+        Top = 0
+        Style = tbsDivider
+      end
+      object tbtnViewIcons: TToolButton
+        Left = 29
         Top = 0
         Grouped = True
         ImageIndex = 41
         OnClick = btnViewIconsClick
       end
       object tbtnViewDetails: TToolButton
-        Left = 24
+        Left = 52
         Top = 0
         Grouped = True
         ImageIndex = 56
@@ -275,7 +287,7 @@ object frmExtFileDialog: TfrmExtFileDialog
       AnchorSideTop.Control = pnlTopBar
       AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = tbViewStyle
-      Left = 470
+      Left = 442
       Height = 23
       Top = 1
       Width = 155

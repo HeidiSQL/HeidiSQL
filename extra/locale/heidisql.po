@@ -7133,6 +7133,22 @@ msgstr "Switch to details view"
 msgid "Switch to icon view"
 msgstr "Switch to icon view"
 
+#: extfiledialog.pas
+msgid "Create new folder"
+msgstr "Create new folder"
+
+#: extfiledialog.pas
+msgid "Create folder"
+msgstr "Create folder"
+
+#: extfiledialog.pas
+msgid "Name of new folder in %s"
+msgstr "Name of new folder in %s"
+
+#: extfiledialog.pas
+msgid "Could not create folder \"%s\": %s"
+msgstr "Could not create folder \"%s\": %s"
+
 #: about.pas:123
 msgid "Compiled on: %s with"
 msgstr "Compiled on: %s with"
