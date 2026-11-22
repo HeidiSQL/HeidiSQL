@@ -1470,7 +1470,9 @@ begin
   FOnUpdateEdit.Text := OnUpdateText;
 
   // Disable non working default options per data type
-  FRadioAutoInc.Enabled := FRadioAutoInc.Checked or (FTableColumn.DataType.Category = dtcInteger);
+  // InterBase and Firebird before v3 have no auto increment columns
+  FRadioAutoInc.Enabled := FRadioAutoInc.Checked
+    or ((FTableColumn.DataType.Category = dtcInteger) and FTableColumn.Connection.SqlProvider.Has(qAutoInc));
 
   // Provide items with a check mark for ENUM and SET columns
   if FTableColumn.DataType.Index in [dbdtEnum, dbdtSet] then begin

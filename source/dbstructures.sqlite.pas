@@ -410,6 +410,8 @@ begin
     qAddColumn: Result := 'ADD COLUMN %s';
     qChangeColumn: Result := ''; // SQLite only supports renaming
     qRenameColumn: Result := 'RENAME COLUMN %s TO %s';
+    // Only valid as column constraint on an INTEGER PRIMARY KEY, see TTableColumn.SQLCode
+    qAutoInc: Result := 'AUTOINCREMENT';
     qSessionVariables: Result := 'SELECT null, null'; // Todo: combine "PRAGMA pragma_list" + "PRAGMA a; PRAGMY b; ..."?
     qGlobalVariables: Result := 'SHOW GLOBAL VARIABLES';
     qISSchemaCol: Result := '%s_SCHEMA';

@@ -653,12 +653,22 @@ var
   Node: PVirtualNode;
   Conn: TDBConnection;
   Params: TStringMap;
+  OrgColumns: TTableColumnList;
+  OrgCol: TTableColumn;
 
   procedure FinishSpecs;
+  var
+    Spec: String;
   begin
     if Specs.Count > 0 then begin
-      SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + sLineBreak +
-        CodeIndent + Implode(',' + sLineBreak + CodeIndent, Specs)) + ';' + sLineBreak;
+      if Conn.Parameters.IsAnyMSSQL then begin
+        // MSSQL has a comma separated list for ADD and DROP, but without repeating the keyword, and none for ALTER COLUMN.
+        for Spec in Specs do
+          SQL := SQL + 'ALTER TABLE ' + DBObject.QuotedName + ' ' + Spec + ';' + sLineBreak;
+      end else begin
+        SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + sLineBreak +
+          CodeIndent + Implode(',' + sLineBreak + CodeIndent, Specs)) + ';' + sLineBreak;
+      end;
       Specs.Clear;
     end;
   end;
@@ -667,6 +677,29 @@ var
   begin
     FinishSpecs;
     SQL := SQL + Format(Query, [DBObject.QuotedName]) + ';' + sLineBreak;
+  end;
+
+  procedure AddStatement(Statement: String);
+  begin
+    // Same as AddQuery, without Format(), which breaks on "%" in comments and defaults
+    FinishSpecs;
+    SQL := SQL + Statement + ';' + sLineBreak;
+  end;
+
+  procedure MssqlDropDefault(ColName: String);
+  begin
+    // MSSQL has a named constraint per default value, mostly with a generated name
+    AddStatement('DECLARE @ConstraintName NVARCHAR(256)' + sLineBreak +
+      'DECLARE @Sql NVARCHAR(MAX)' + sLineBreak +
+      'SELECT @ConstraintName = d.name FROM sys.default_constraints AS d' + sLineBreak +
+      '  INNER JOIN sys.columns AS c ON c.object_id = d.parent_object_id AND c.column_id = d.parent_column_id' + sLineBreak +
+      '  WHERE d.parent_object_id = OBJECT_ID(' + Conn.EscapeString(DBObject.QuotedName) + ')' +
+      ' AND c.name = ' + Conn.EscapeString(ColName) + sLineBreak +
+      'IF @ConstraintName IS NOT NULL BEGIN' + sLineBreak +
+      '  SET @Sql = ' + Conn.EscapeString('ALTER TABLE ' + DBObject.QuotedName + ' DROP CONSTRAINT ') +
+      ' + QUOTENAME(@ConstraintName)' + sLineBreak +
+      '  EXEC sp_executesql @Sql' + sLineBreak +
+      'END');
   end;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
@@ -703,8 +736,13 @@ begin
 
   if memoComment.Tag = MODIFIEDFLAG then begin
     case Conn.Parameters.NetTypeGroup of
-      ngMySQL, ngMSSQL: begin
+      ngMySQL: begin
         Specs.Add('COMMENT=' + Conn.EscapeString(memoComment.Text));
+      end;
+      ngMSSQL: begin
+        Params := DBObject.AsStringMap;
+        Params.Add('NewComment', Conn.EscapeString(memoComment.Text));
+        AddStatement(Conn.SqlProvider.GetSql(qSetTableComment, Params));
       end;
       ngPgSQL: begin
         AddQuery('COMMENT ON TABLE '+DBObject.QuotedName+' IS '+Conn.EscapeString(memoComment.Text));
@@ -747,6 +785,10 @@ begin
   // Update columns
   Node := listColumns.GetFirst;
   PreviousCol := nil;
+  // Columns as they are on the server, for altering only the changed attributes on MSSQL
+  OrgColumns := nil;
+  if Conn.Parameters.IsAnyMSSQL and ObjectExists then
+    OrgColumns := DBObject.TableColumns;
   for Col in FColumns do begin
     if Col.Status <> esUntouched then begin
       OverrideCollation := IfThen(chkCharsetConvert.Checked, comboCollation.Text);
@@ -775,19 +817,47 @@ begin
         end;
 
         ngMSSQL: begin
-          ColSpec := Col.SQLCode(OverrideCollation);
+          // https://learn.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql
+          // ALTER COLUMN takes only type, collation and NULL. Defaults are constraints,
+          // renaming needs sp_rename, and the column order cannot be changed.
+          OrgCol := nil;
+          if Assigned(OrgColumns) then
+            OrgCol := OrgColumns.FindByName(Col.OldName);
           case Col.Status of
             esModified: begin
-              Specs.Add(Format(AlterColBase, ['', ColSpec]));
+              if Col.Name <> Col.OldName then
+                AddStatement(Conn.SqlProvider.GetSql(qRenameColumn, [
+                  Conn.EscapeString(DBObject.QuotedName + '.' + Conn.QuoteIdent(Col.OldName)),
+                  Conn.EscapeString(Col.Name)
+                  ]));
+              ColSpec := Col.SQLCode(OverrideCollation, [cpType, cpCollation, cpAllowNull]);
+              if (not Assigned(OrgCol))
+                or (ColSpec <> OrgCol.SQLCode('', [cpType, cpCollation, cpAllowNull])) then begin
+                Specs.Add(Format(AlterColBase, [Conn.QuoteIdent(Col.Name), ColSpec]));
+                FinishSpecs;
+              end;
+              // IDENTITY cannot be added to or removed from an existing column
+              if ((not Assigned(OrgCol)) or (Col.SQLCode('', [cpDefault]) <> OrgCol.SQLCode('', [cpDefault])))
+                and (Col.DefaultType <> cdtAutoInc)
+                and ((not Assigned(OrgCol)) or (OrgCol.DefaultType <> cdtAutoInc)) then begin
+                MssqlDropDefault(Col.Name);
+                if Col.DefaultType in [cdtText, cdtExpression] then
+                  AddStatement('ALTER TABLE ' + DBObject.QuotedName + ' ADD ' + Col.SQLCode('', [cpDefault]) +
+                    ' FOR ' + Conn.QuoteIdent(Col.Name));
+              end;
             end;
             esAddedUntouched, esAddedModified: begin
-              Specs.Add(Format(AddColBase, [ColSpec]));
+              Specs.Add(Format(AddColBase, [Col.SQLCode(OverrideCollation)]));
+              FinishSpecs;
             end;
           end;
-          Params := DBObject.AsStringMap;
-          Params.Add('NewComment', Conn.EscapeString(Col.Comment));
-          Params.Add('TargetColumn', Conn.EscapeString(Col.Name));
-          AddQuery(Conn.SqlProvider.GetSql(qSetColumnComment, Params));
+          if (Assigned(OrgCol) and (Col.Comment <> OrgCol.Comment))
+            or ((not Assigned(OrgCol)) and (not Col.Comment.IsEmpty)) then begin
+            Params := DBObject.AsStringMap;
+            Params.Add('NewComment', Conn.EscapeString(Col.Comment));
+            Params.Add('TargetColumn', Conn.EscapeString(Col.Name));
+            AddStatement(Conn.SqlProvider.GetSql(qSetColumnComment, Params));
+          end;
         end;
 
         ngPgSQL: begin
@@ -856,6 +926,14 @@ begin
   // Deleted columns
   for Col in FColumns do begin
     if Col.Status = esDeleted then begin
+      // MSSQL refuses to drop a column with a default constraint
+      if Conn.Parameters.IsAnyMSSQL then begin
+        OrgCol := nil;
+        if Assigned(OrgColumns) then
+          OrgCol := OrgColumns.FindByName(Col.OldName);
+        if (not Assigned(OrgCol)) or (not (OrgCol.DefaultType in [cdtNothing, cdtAutoInc])) then
+          MssqlDropDefault(Col.OldName);
+      end;
       Specs.Add('DROP COLUMN '+Conn.QuoteIdent(Col.OldName));
       // MSSQL + SQLite want one ALTER TABLE query per DROP COLUMN
       if Conn.Parameters.NetTypeGroup in [ngMSSQL, ngSQLite] then
@@ -972,6 +1050,7 @@ begin
   Result := TSQLBatch.Create(DBObject.Connection.Parameters.NetTypeGroup);
   Result.SQL := SQL;
 
+  FreeAndNil(OrgColumns);
   FreeAndNil(Specs);
   Mainform.ShowStatusMsg;
   Screen.Cursor := crDefault;
@@ -995,7 +1074,7 @@ begin
       CreateLines.Add(Col.SQLCode);
   end;
   for i:=0 to FKeys.Count-1 do begin
-    if not FKeys[i].InsideCreateCode then
+    if (not FKeys[i].InsideCreateCode) or FKeys[i].InlinedInColumn(FColumns) then
       Continue;
     tmp := FKeys[i].SQLCode;
     if tmp <> '' then begin
@@ -1012,7 +1091,8 @@ begin
       + ')' + sLineBreak;
   CreateLines.Free;
 
-  if (memoComment.Text <> '') and (not DBObject.Connection.Parameters.IsAnyPostgreSQL) then
+  if (memoComment.Text <> '') and (not DBObject.Connection.Parameters.IsAnyPostgreSQL)
+    and (not DBObject.Connection.Parameters.IsAnyMSSQL) then
     SQL := SQL + 'COMMENT='+DBObject.Connection.EscapeString(memoComment.Text) + sLineBreak;
   if comboCollation.Text <> '' then
     SQL := SQL + 'COLLATE='+DBObject.Connection.EscapeString(comboCollation.Text) + sLineBreak;
@@ -1041,6 +1121,29 @@ begin
   SQL := SQL + ';' + sLineBreak;
 
   // Separate queries from here on
+
+  if DBObject.Connection.Parameters.IsAnyMSSQL then begin
+    // Comments are extended properties. The new table is in the default schema.
+    if memoComment.Text <> '' then begin
+      SQL := SQL + 'DECLARE @Schema SYSNAME = SCHEMA_NAME()' + sLineBreak +
+        'EXEC sys.sp_addextendedproperty @name = N''MS_Description'',' +
+        ' @value = ' + DBObject.Connection.EscapeString(memoComment.Text) + ',' +
+        ' @level0type = N''SCHEMA'', @level0name = @Schema,' +
+        ' @level1type = N''TABLE'', @level1name = ' + DBObject.Connection.EscapeString(editName.Text) +
+        ';' + sLineBreak;
+    end;
+    for Col in FColumns do begin
+      if (Col.Comment = '') or (Col.Status in [esDeleted, esAddedDeleted]) then
+        Continue;
+      SQL := SQL + 'DECLARE @Schema SYSNAME = SCHEMA_NAME()' + sLineBreak +
+        'EXEC sys.sp_addextendedproperty @name = N''MS_Description'',' +
+        ' @value = ' + DBObject.Connection.EscapeString(Col.Comment) + ',' +
+        ' @level0type = N''SCHEMA'', @level0name = @Schema,' +
+        ' @level1type = N''TABLE'', @level1name = ' + DBObject.Connection.EscapeString(editName.Text) + ',' +
+        ' @level2type = N''COLUMN'', @level2name = ' + DBObject.Connection.EscapeString(Col.Name) +
+        ';' + sLineBreak;
+    end;
+  end;
 
   if DBObject.Connection.Parameters.IsAnyPostgreSQL then begin
     if memoComment.Text <> '' then begin

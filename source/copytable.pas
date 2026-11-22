@@ -440,8 +440,10 @@ begin
   end;
 
   // Indexes code
-  for Key in SelectedKeys do
-    CreateCode := CreateCode + Format(ClausePattern, [Key.SQLCode]);
+  for Key in SelectedKeys do begin
+    if not Key.InlinedInColumn(SelectedColumns) then
+      CreateCode := CreateCode + Format(ClausePattern, [Key.SQLCode]);
+  end;
 
   // Foreign keys code
   for ForeignKey in SelectedForeignKeys do
