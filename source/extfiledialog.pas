@@ -8,7 +8,8 @@ uses
   Classes, SysUtils, LCLType, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Buttons, ShellCtrls, ComCtrls, EditBtn, apphelpers, extra_controls,
   Math, Masks, LazUTF8, LCLIntf
-  {$IFDEF WINDOWS}, Windows, WinDirs, ActiveX, ShlObj {$ENDIF};
+  {$IFDEF WINDOWS}, Windows, WinDirs, ActiveX, ShlObj {$ENDIF}
+  {$IFNDEF WINDOWS}, generic_types {$ENDIF};
 
 type
 
