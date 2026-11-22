@@ -14385,6 +14385,8 @@ begin
   for Tab in QueryTabs do begin
     if Tab.QueryRunning then begin
       Tab.ExecutionThread.Aborted := True;
+      if Tab.ExecutionThread.Connection.CancelQuery then
+        Continue;
       Killer := ActiveConnection.Parameters.CreateConnection(Self);
       Killer.Parameters := ActiveConnection.Parameters;
       Killer.OwnsParameters := False;
