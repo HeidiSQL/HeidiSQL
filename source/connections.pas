@@ -282,12 +282,11 @@ end;
 
 procedure Tconnform.FormCreate(Sender: TObject);
 var
-  NetTypeStr, FilenameHint, PlaceholderLine, ExePath, ExeFile: String;
+  FilenameHint, PlaceholderLine, ExePath, ExeFile: String;
   nt: TNetType;
-  ntg: TNetTypeGroup;
   Params: TConnectionParameters;
   ComboItem: TComboExItem;
-  Placeholders: TStringList;
+  Placeholders, NetTypes: TStringList;
   i: Integer;
   ExeFiles: TStringDynArray;
 begin
@@ -303,20 +302,24 @@ begin
   menuFoldersAtTop.Checked := AppSettings.ReadBool(asSessionManagerListFoldersAtTop);
   FSettingsImportWaitTime := 0;
 
+  // Network types, sorted alphabetically by name
   comboNetType.Clear;
   Params := TConnectionParameters.Create;
-  for ntg := Low(ntg) to High(ntg) do begin
-    for nt:=Low(nt) to High(nt) do begin
-      Params.NetType := nt;
-      if Params.GetNetTypeGroup <> ntg then
-        Continue;
-      NetTypeStr := Params.NetTypeName(True);
-      ComboItem := TComboExItem.Create(comboNetType.ItemsEx);
-      ComboItem.Caption := NetTypeStr;
-      ComboItem.ImageIndex := Params.ImageIndex;
-      ComboItem.Data := Pointer(nt);
-    end;
+  NetTypes := TStringList.Create;
+  for nt:=Low(nt) to High(nt) do begin
+    Params.NetType := nt;
+    NetTypes.AddObject(Params.NetTypeName(True), TObject(NativeInt(Ord(nt))));
   end;
+  NetTypes.Sort;
+  for i:=0 to NetTypes.Count-1 do begin
+    nt := TNetType(NativeInt(NetTypes.Objects[i]));
+    Params.NetType := nt;
+    ComboItem := TComboExItem.Create(comboNetType.ItemsEx);
+    ComboItem.Caption := NetTypes[i];
+    ComboItem.ImageIndex := Params.ImageIndex;
+    ComboItem.Data := Pointer(nt);
+  end;
+  NetTypes.Free;
   Params.Free;
 
   // Create filename placeholders hint
