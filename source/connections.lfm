@@ -95,7 +95,7 @@ object connform: Tconnform
         Left = 5
         Height = 26
         Top = 91
-        Width = 141
+        Width = 275
         AutoSize = True
         BorderSpacing.Around = 5
         Caption = 'Import settings and files from previous version'
@@ -111,7 +111,7 @@ object connform: Tconnform
         AnchorSideRight.Control = tabStart
         AnchorSideRight.Side = asrBottom
         Left = 5
-        Height = 45
+        Height = 75
         Top = 122
         Width = 503
         Anchors = [akTop, akLeft, akRight]
@@ -128,7 +128,7 @@ object connform: Tconnform
         AnchorSideRight.Side = asrBottom
         Left = 5
         Height = 15
-        Top = 176
+        Top = 202
         Width = 503
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -147,7 +147,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 5
         Height = 15
-        Top = 192
+        Top = 193
         Width = 25
         BorderSpacing.Around = 5
         Caption = 'Port:'
@@ -158,7 +158,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 5
         Height = 15
-        Top = 164
+        Top = 165
         Width = 53
         BorderSpacing.Around = 5
         Caption = 'Password:'
@@ -169,7 +169,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 5
         Height = 15
-        Top = 60
+        Top = 61
         Width = 79
         BorderSpacing.Around = 5
         Caption = 'Hostname / IP:'
@@ -180,7 +180,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 5
         Height = 15
-        Top = 136
+        Top = 137
         Width = 26
         BorderSpacing.Around = 5
         Caption = 'User:'
@@ -201,7 +201,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 5
         Height = 15
-        Top = 244
+        Top = 245
         Width = 56
         BorderSpacing.Around = 5
         Caption = 'Databases:'
@@ -211,8 +211,8 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 5
         Height = 15
-        Top = 272
-        Width = 66
+        Top = 273
+        Width = 62
         BorderSpacing.Around = 5
         Caption = 'Warehouse:'
         FocusControl = editSnowflakeWarehouse
@@ -222,8 +222,8 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 5
         Height = 15
-        Top = 300
-        Width = 29
+        Top = 301
+        Width = 26
         BorderSpacing.Around = 5
         Caption = 'Role:'
         FocusControl = editSnowflakeRole
@@ -235,7 +235,7 @@ object connform: Tconnform
         AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
-        Top = 272
+        Top = 273
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -250,7 +250,7 @@ object connform: Tconnform
         AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
-        Top = 300
+        Top = 301
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -264,7 +264,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 5
         Height = 15
-        Top = 328
+        Top = 329
         Width = 57
         BorderSpacing.Around = 5
         Caption = 'Comment:'
@@ -274,7 +274,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 5
         Height = 15
-        Top = 32
+        Top = 33
         Width = 39
         BorderSpacing.Around = 5
         Caption = 'Library:'
@@ -284,7 +284,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 194
         Height = 19
-        Top = 220
+        Top = 221
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -298,7 +298,7 @@ object connform: Tconnform
         AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
-        Top = 192
+        Top = 193
         Width = 80
         BorderSpacing.Around = 5
         MaxLength = 0
@@ -315,7 +315,7 @@ object connform: Tconnform
         AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
-        Top = 164
+        Top = 165
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -331,7 +331,7 @@ object connform: Tconnform
         AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
-        Top = 136
+        Top = 137
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -354,7 +354,7 @@ object connform: Tconnform
         AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
-        Top = 60
+        Top = 61
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -375,14 +375,14 @@ object connform: Tconnform
         AnchorSideRight.Control = tabSettings
         AnchorSideRight.Side = asrBottom
         Left = 194
-        Height = 22
+        Height = 23
         Top = 5
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
         DropDownCount = 12
         Images = MainForm.ImageListMain
-        ItemHeight = 16
+        ItemHeight = 17
         ItemsEx = <>
         Style = csExDropDownList
         TabOrder = 0
@@ -393,7 +393,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 194
         Height = 19
-        Top = 88
+        Top = 89
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -406,7 +406,7 @@ object connform: Tconnform
         AnchorSideTop.Side = asrBottom
         Left = 194
         Height = 19
-        Top = 112
+        Top = 113
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -421,8 +421,8 @@ object connform: Tconnform
         AnchorSideRight.Control = tabSettings
         AnchorSideRight.Side = asrBottom
         Left = 194
-        Height = 87
-        Top = 328
+        Height = 86
+        Top = 329
         Width = 314
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Around = 5
@@ -437,7 +437,7 @@ object connform: Tconnform
         AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
-        Top = 244
+        Top = 245
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -460,7 +460,7 @@ object connform: Tconnform
         AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
-        Top = 32
+        Top = 33
         Width = 314
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
@@ -977,7 +977,7 @@ object connform: Tconnform
         Left = 3
         Height = 15
         Top = 316
-        Width = 130
+        Width = 127
         BorderSpacing.Around = 5
         Caption = 'Connection parameters:'
         FocusControl = editAdditionalParams
