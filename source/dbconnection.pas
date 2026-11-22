@@ -4448,8 +4448,10 @@ begin
     QueryResult.DataBase := FHandle;
     QueryResult.Transaction := FTransaction;
     QueryResult.SQL.Text := SQL;
-    QueryResult.Options := [sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh];
-    QueryResult.PacketRecords := 10000;
+    // Keep results open when the next statement in a batch commits, which closes all datasets
+    // of the transaction otherwise. This also fetches all rows at once.
+    QueryResult.Options := [sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit, sqoCancelUpdatesOnRefresh];
+    QueryResult.PacketRecords := -1;
     // Prepare explicitly, so the cursor tells us whether a result set came back.
     // Read FSelectable before ExecSQL: unlike TSqlSrvConnection, TIBConnection keeps
     // the default sqCommitEndsPrepared option, so the sqoAutoCommit commit inside
