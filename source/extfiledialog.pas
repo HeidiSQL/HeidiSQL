@@ -150,6 +150,69 @@ uses main;
 
 {$IFDEF WINDOWS}
 function StrCmpLogicalW(psz1, psz2: PWideChar): Integer; stdcall; external 'shlwapi.dll' name 'StrCmpLogicalW';
+
+var
+  // State of the shell context menu while TrackPopupMenu runs, see ShellMenuWndProc
+  ShellMenuOldWndProc: Pointer = nil; // the LCL window procedure of the dialog
+  ShellMenuCM2: IContextMenu2 = nil;
+  ShellMenuCM3: IContextMenu3 = nil;
+
+{ Temporary window procedure of the dialog while the shell context menu is open.
+  Owner-drawn and dynamically filled items ("Send to", "New", shell extensions)
+  need their WM_INITMENUPOPUP/WM_MEASUREITEM/WM_DRAWITEM/WM_MENUCHAR messages
+  forwarded to IContextMenu2/3.
+  None of the menu messages must reach the LCL: its handlers for WM_MEASUREITEM,
+  WM_DRAWITEM, WM_INITMENUPOPUP, WM_MENUSELECT and WM_MENUCHAR take the item data
+  of the menu items for TMenuItem objects ("TObject(itemData) is TMenuItem"),
+  which crashes on the shell's item data. }
+function ShellMenuWndProc(Wnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+var
+  ForShell, IsMenuMsg: Boolean;
+  MsgResult: LRESULT;
+begin
+  case Msg of
+    WM_INITMENUPOPUP, WM_MENUCHAR: begin
+      ForShell := True;
+      IsMenuMsg := True;
+    end;
+    WM_MEASUREITEM: begin
+      IsMenuMsg := PMeasureItemStruct(lParam)^.CtlType = ODT_MENU;
+      ForShell := IsMenuMsg;
+    end;
+    WM_DRAWITEM: begin
+      IsMenuMsg := PDrawItemStruct(lParam)^.CtlType = ODT_MENU;
+      ForShell := IsMenuMsg;
+    end;
+    WM_INITMENU, WM_UNINITMENUPOPUP, WM_MENUSELECT, WM_ENTERIDLE, WM_MENURBUTTONUP,
+    WM_MENUDRAG, WM_MENUGETOBJECT, WM_MENUCOMMAND, WM_ENTERMENULOOP, WM_EXITMENULOOP,
+    WM_NEXTMENU: begin
+      ForShell := False;
+      IsMenuMsg := True;
+    end;
+    else begin
+      ForShell := False;
+      IsMenuMsg := False;
+    end;
+  end;
+  if ForShell then begin
+    MsgResult := 0;
+    if Assigned(ShellMenuCM3) then begin
+      if ShellMenuCM3.HandleMenuMsg2(Msg, wParam, lParam, @MsgResult) = S_OK then
+        Exit(MsgResult);
+    end
+    else if Assigned(ShellMenuCM2) then begin
+      if ShellMenuCM2.HandleMenuMsg(Msg, wParam, lParam) = S_OK then begin
+        if Msg = WM_INITMENUPOPUP then
+          Exit(0);
+        Exit(1); // TRUE: WM_MEASUREITEM/WM_DRAWITEM handled
+      end;
+    end;
+  end;
+  if IsMenuMsg then
+    Result := DefWindowProcW(Wnd, Msg, wParam, lParam)
+  else
+    Result := CallWindowProcW(Windows.WNDPROC(ShellMenuOldWndProc), Wnd, Msg, wParam, lParam);
+end;
 {$ENDIF}
 
 function TfrmExtFileDialog.Execute: Boolean;
@@ -1009,7 +1072,20 @@ begin
       CmdFirst := 1;
       if ContextMenu.QueryContextMenu(Menu, 0, CmdFirst, $7FFF, CMF_NORMAL or CMF_EXPLORE) < 0 then
         Exit;
-      Cmd := Integer(TrackPopupMenu(Menu, TPM_RETURNCMD or TPM_NONOTIFY or TPM_LEFTALIGN or TPM_LEFTBUTTON, ScreenPos.X, ScreenPos.Y, 0, Handle, nil));
+      // Route the menu messages to the shell during TrackPopupMenu, see ShellMenuWndProc
+      if not Supports(ContextMenu, IContextMenu3, ShellMenuCM3) then
+        ShellMenuCM3 := nil;
+      if not Supports(ContextMenu, IContextMenu2, ShellMenuCM2) then
+        ShellMenuCM2 := nil;
+      ShellMenuOldWndProc := Pointer(SetWindowLongPtrW(Handle, GWLP_WNDPROC, LONG_PTR(@ShellMenuWndProc)));
+      try
+        Cmd := Integer(TrackPopupMenu(Menu, TPM_RETURNCMD or TPM_NONOTIFY or TPM_LEFTALIGN or TPM_LEFTBUTTON, ScreenPos.X, ScreenPos.Y, 0, Handle, nil));
+      finally
+        SetWindowLongPtrW(Handle, GWLP_WNDPROC, LONG_PTR(ShellMenuOldWndProc));
+        ShellMenuOldWndProc := nil;
+        ShellMenuCM3 := nil;
+        ShellMenuCM2 := nil;
+      end;
       if Cmd <= 0 then
         Exit;
       // Language independent verb of the chosen command, e.g. "rename" or "delete".
