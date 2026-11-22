@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, LCLType, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Buttons, ShellCtrls, ComCtrls, EditBtn, apphelpers, extra_controls,
-  Math, generic_types, Masks, LazUTF8
+  Math, Masks, LazUTF8
   {$IFDEF WINDOWS}, Windows, WinDirs, ActiveX, ShlObj {$ENDIF};
 
 type

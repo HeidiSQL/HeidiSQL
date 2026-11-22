@@ -158,6 +158,7 @@ begin
       TCustomRadioGroup(Comp).ItemIndex := OldIndex;
     end
     else if Comp is TCustomCheckGroup then begin
+      Checked := nil;
       SetLength(Checked, TCustomCheckGroup(Comp).Items.Count);
       for j:=0 to High(Checked) do
         Checked[j] := TCustomCheckGroup(Comp).Checked[j];
@@ -173,7 +174,7 @@ begin
   // Let the LCL scale fonts and bounds first (AutoAdjustLayout inside
   // TCustomForm.WMDPIChanged); the new DPI comes directly from the message.
   inherited;
-  ApplyDPIFix(hi(Cardinal(Msg.wParam)));
+  ApplyDPIFix((Msg.wParam shr 16) and $FFFF);
   // A DPI change can recreate window handles, re-apply, see PreventStatusbarFlicker
   PreventStatusbarFlicker;
 end;
@@ -543,6 +544,7 @@ var
 begin
   // Require a reasonable part of the title bar to be on some monitor, so the user can grab it
   TitleBarRect := Rect(Left, Top, Left + Width, Top + Scale96ToForm(30));
+  VisibleRect := Default(TRect);
   for i:=0 to Screen.MonitorCount-1 do begin
     if IntersectRect(VisibleRect, TitleBarRect, Screen.Monitors[i].WorkareaRect)
       and (VisibleRect.Width >= Scale96ToForm(100)) then

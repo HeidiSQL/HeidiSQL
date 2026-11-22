@@ -331,7 +331,7 @@ var
   Params: TConnectionParameters;
   Canv: TCanvas;
   ItemImageIndex: Integer;
-  ItemText, GrayText, NameText: String;
+  GrayText, NameText: String;
   NameStart, TextX: Integer;
 begin
   Canv := comboExportOutputType.Canvas;

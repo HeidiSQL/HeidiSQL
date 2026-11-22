@@ -1415,7 +1415,7 @@ begin
   Result := '';
   {$IFDEF WINDOWS}
   // Map the Windows time zone ID ("W. Europe Standard Time") via the ICU library of Windows 10+
-  FillChar(TzInfo, SizeOf(TzInfo), 0);
+  TzInfo := Default(TDynamicTimeZoneInformationW);
   if (GetDynamicTimeZoneInformation(TzInfo) <> DWORD($FFFFFFFF)) and (TzInfo.TimeZoneKeyName[0] <> #0) then begin
     for i:=Low(IcuLibNames) to High(IcuLibNames) do begin
       IcuLib := LoadLibrary(PChar(IcuLibNames[i]));

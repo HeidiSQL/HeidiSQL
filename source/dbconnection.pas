@@ -4884,6 +4884,9 @@ var
   FkDeferrable, FkInitiallyDeferred: Boolean;
 begin
   Result := '';
+  FkRefTable := '';
+  FkOnUpdate := '';
+  FkOnDelete := '';
   FkDeferrable := False;
   FkInitiallyDeferred := False;
   case Obj.NodeType of
@@ -6366,6 +6369,7 @@ begin
   end;
 
   // Each character becomes two characters at most
+  Result := '';
   SetLength(Result, Length(Text) * 2);
   ResLen := 0;
   for i := 1 to Length(Text) do begin
@@ -9284,7 +9288,7 @@ begin
         end
         else begin
           // Firebird: SMALLINT, 0=persistent table, 1=view, 2=external table, 3=virtual
-          if MakeInt(ViewContext) in [0, 2] then
+          if (MakeInt(ViewContext) = 0) or (MakeInt(ViewContext) = 2) then
             obj.NodeType := lntTable
           else
             obj.NodeType := lntView;
@@ -12646,6 +12650,7 @@ begin
           ftBlob, ftBytes, ftVarBytes: begin
             // Raw bytes, without any codepage conversion, see GetColBinData and EscapeBin
             Result := '';
+            BinData := nil;
             if (not Field.IsNull) and GetColBinData(Column, BinData) and (Length(BinData) > 0) then
               SetString(Result, PAnsiChar(@BinData[0]), Length(BinData));
           end;

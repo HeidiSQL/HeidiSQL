@@ -12,7 +12,7 @@ interface
 
 uses
   Classes, SysUtils, SynEdit, SynEditKeyCmds, SynEditHighlighter, laz.VirtualTrees,
-  Graphics, SynCompletion, Types
+  Graphics, SynCompletion
   {$IFDEF HEIDI_LINUX_QT}
   , Forms, LMessages, LResources
   {$ENDIF};

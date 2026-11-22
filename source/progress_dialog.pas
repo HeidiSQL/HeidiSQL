@@ -340,6 +340,7 @@ begin
   if (FSpeedFilled > 0) and (FSpeedPeak > 0) then begin
     // Leave some headroom above the peak for the text
     ScaleMax := FSpeedPeak * 1.35;
+    Points := nil;
     SetLength(Points, FSpeedFilled + 2);
     for i:=0 to FSpeedFilled-1 do begin
       x := 1 + Round((i + 1) / SpeedBuckets * (W - 2));

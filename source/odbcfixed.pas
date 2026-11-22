@@ -74,6 +74,11 @@ var
 begin
   inherited AddFieldDefs(cursor, FieldDefs);
   Stmt := TODBCCursorAccess(cursor).FSTMTHandle;
+  NameLen := 0;
+  DataType := 0;
+  Digits := 0;
+  Nullable := 0;
+  ColSize := 0;
   for i:=0 to FieldDefs.Count-1 do begin
     // inherited truncates ColumnSize to a word - ask the driver again
     if not (SQLDescribeCol(Stmt, i+1, nil, 0, NameLen, DataType, ColSize, Digits, Nullable)
@@ -128,10 +133,12 @@ end;
 
 function TFixedODBCConnection.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef;
   buffer: pointer; out CreateBlob: boolean): boolean;
+type
+  TWTxtBuffer = array[0..MaxFmtBCDFractionSize+3] of WideChar;
 var
   Res: SQLRETURN;
   StrLenOrInd: SQLLEN;
-  WTxt: array[0..MaxFmtBCDFractionSize+3] of WideChar;
+  WTxt: TWTxtBuffer;
   Bcd: TBCD;
 begin
   if FieldDef.DataType <> ftFmtBCD then
@@ -140,7 +147,7 @@ begin
   // Oracle needs NUM=US in the connection string for that.
   CreateBlob := False;
   StrLenOrInd := 0;
-  FillChar(WTxt, SizeOf(WTxt), 0);
+  WTxt := Default(TWTxtBuffer);
   Res := SQLGetData(TODBCCursorAccess(cursor).FSTMTHandle, FieldDef.Index+1, SQL_C_WCHAR,
     @WTxt[0], SizeOf(WTxt), @StrLenOrInd);
   if not (Res in [SQL_SUCCESS, SQL_SUCCESS_WITH_INFO]) then
@@ -216,11 +223,13 @@ end;
 
 // Same as ODBCCheckResult in odbcconn, which is not public
 procedure CheckOdbcResult(Res: SQLRETURN; HandleType: SQLSMALLINT; AHandle: SQLHANDLE; const ErrorMsg: String);
+type
+  TMsgTextBuffer = array[0..1023] of AnsiChar;
 var
   NativeError, FirstNativeError: SQLINTEGER;
   TextLength: SQLSMALLINT;
   SqlState, FirstSqlState: String;
-  MsgText: array[0..1023] of AnsiChar;
+  MsgText: TMsgTextBuffer;
   TotalMessage: String;
   RecNumber: SQLSMALLINT;
 begin
@@ -231,9 +240,11 @@ begin
   FirstSqlState := '';
   RecNumber := 1;
   while True do begin
+    SqlState := '';
     SetLength(SqlState, 5);
-    FillChar(MsgText, SizeOf(MsgText), 0);
+    MsgText := Default(TMsgTextBuffer);
     NativeError := 0;
+    TextLength := 0;
     if not (SQLGetDiagRec(HandleType, AHandle, RecNumber, @SqlState[1], NativeError,
       @MsgText[0], SizeOf(MsgText)-1, TextLength) in [SQL_SUCCESS, SQL_SUCCESS_WITH_INFO]) then
       Break;
@@ -258,6 +269,7 @@ var
   RowCount: SQLLEN;
 begin
   Result := -1;
+  RowCount := 0;
   Dbc := SQLHDBC(Conn.Handle);
   Stmt := SQL_NULL_HSTMT;
   CheckOdbcResult(SQLAllocHandle(SQL_HANDLE_STMT, Dbc, Stmt),
@@ -332,12 +344,15 @@ end;
 
 
 function GetOdbcDriverNames(const FilterRegex: String): TStringList;
+type
+  TDescBuffer = array[0..511] of AnsiChar;
+  TAttrsBuffer = array[0..2047] of AnsiChar;
 var
   Env: TODBCEnvironment;
   Res: SQLRETURN;
   Direction: SQLUSMALLINT;
-  Desc: array[0..511] of AnsiChar;
-  Attrs: array[0..2047] of AnsiChar;
+  Desc: TDescBuffer;
+  Attrs: TAttrsBuffer;
   DescLen, AttrLen: SQLSMALLINT;
   DriverName: String;
   rx: TRegExpr;
@@ -353,8 +368,8 @@ begin
       Env := TODBCEnvironment.Create;
       Direction := SQL_FETCH_FIRST;
       while True do begin
-        FillChar(Desc, SizeOf(Desc), 0);
-        FillChar(Attrs, SizeOf(Attrs), 0);
+        Desc := Default(TDescBuffer);
+        Attrs := Default(TAttrsBuffer);
         Res := SQLDrivers(TODBCEnvironmentAccess(Env).FENVHandle, Direction,
           @Desc[0], SizeOf(Desc), @DescLen, @Attrs[0], SizeOf(Attrs), @AttrLen);
         if not (Res in [SQL_SUCCESS, SQL_SUCCESS_WITH_INFO]) then
