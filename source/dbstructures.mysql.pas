@@ -1343,7 +1343,7 @@ begin
       ''
       );
     qShowEvents: Result := IfThen(
-      (FServerVersion >= 50010) and (FNetType <> ntMySQL_ProxySQLAdmin),
+      (FServerVersion >= 50106) and (FNetType <> ntMySQL_ProxySQLAdmin),
       'SELECT *, EVENT_SCHEMA AS `Db`, EVENT_NAME AS `Name` FROM INFORMATION_SCHEMA.`EVENTS` WHERE EVENT_SCHEMA=%s',
       ''
       );
@@ -1402,6 +1402,31 @@ begin
       'SELECT index_name, stat_value * @@innodb_page_size AS bytes' +
       ' FROM mysql.innodb_index_stats'+
       ' WHERE database_name=%s AND table_name=%s AND stat_name=''size''',
+      ''
+      );
+    qDefaultExpression:
+      if FServerIsMySQL and (FServerVersion >= 80013) then
+        Result := 'DEFAULT (%s)'
+      else
+        Result := inherited;
+    qColumnSrid: Result := IfThen(
+      FServerIsMySQL and (FServerVersion >= 80000),
+      'SRID %d',
+      ''
+      );
+    qColumnInvisible: Result := IfThen(
+      (FServerIsMariaDB and (FServerVersion >= 100303)) or (FServerIsMySQL and (FServerVersion >= 80023)),
+      'INVISIBLE',
+      ''
+      );
+    qColumnCompressed: Result := IfThen(
+      FServerIsMariaDB and (FServerVersion >= 100301),
+      'COMPRESSED',
+      ''
+      );
+    qCreateView: Result := IfThen(
+      FServerVersion >= 50001,
+      'CREATE VIEW %s AS %s',
       ''
       );
     else Result := inherited;

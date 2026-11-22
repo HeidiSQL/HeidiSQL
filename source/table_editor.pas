@@ -1700,11 +1700,11 @@ begin
     // No editing of collation allowed if "Convert data" was checked
     ColNumCollation: Result := not chkCharsetConvert.Checked;
 
-    ColNumSrid: Result := (Col.DataType.Category = dtcSpatial) and DBObject.Connection.Has(frSrid);
+    ColNumSrid: Result := (Col.DataType.Category = dtcSpatial) and DBObject.Connection.SqlProvider.Has(qColumnSrid);
 
-    ColNumInvisible: Result := DBObject.Connection.Has(frInvisibleColumns);
+    ColNumInvisible: Result := DBObject.Connection.SqlProvider.Has(qColumnInvisible);
 
-    ColNumCompressed: Result := DBObject.Connection.Has(frCompressedColumns);
+    ColNumCompressed: Result := DBObject.Connection.SqlProvider.Has(qColumnCompressed);
 
     else Result := True;
   end;
@@ -1779,7 +1779,7 @@ begin
     ColNumVirtuality: CellText := Col.Virtuality;
 
     ColNumSrid: begin
-      if (Col.DataType.Category = dtcSpatial) and (Col.Connection.Has(frSrid)) then
+      if (Col.DataType.Category = dtcSpatial) and Col.Connection.SqlProvider.Has(qColumnSrid) then
         CellText := Col.SRID.ToString;
     end;
 
