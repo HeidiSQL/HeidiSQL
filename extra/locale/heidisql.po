@@ -7580,3 +7580,19 @@ msgstr "No database selected. Please enter the name of a database in your sessio
 #: dbconnection.pas
 msgid "Could not detect the name of your time zone, keeping the default session time zone."
 msgstr "Could not detect the name of your time zone, keeping the default session time zone."
+
+#: extfiledialog.pas
+msgid "A file name cannot contain any of the following characters: %s"
+msgstr "A file name cannot contain any of the following characters: %s"
+
+#: extfiledialog.pas
+msgid "A file or folder with the name \"%s\" already exists."
+msgstr "A file or folder with the name \"%s\" already exists."
+
+#: extfiledialog.pas
+msgid "If you change a file name extension, the file might become unusable. Do you want to change it?"
+msgstr "If you change a file name extension, the file might become unusable. Do you want to change it?"
+
+#: extfiledialog.pas
+msgid "Could not rename \"%s\" to \"%s\": %s"
+msgstr "Could not rename \"%s\" to \"%s\": %s"

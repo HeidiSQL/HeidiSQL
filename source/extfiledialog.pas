@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, LCLType, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   StdCtrls, Buttons, ShellCtrls, ComCtrls, EditBtn, apphelpers, extra_controls,
-  Math, Masks, LazUTF8
+  Math, Masks, LazUTF8, LCLIntf
   {$IFDEF WINDOWS}, Windows, WinDirs, ActiveX, ShlObj {$ENDIF};
 
 type
@@ -57,6 +57,15 @@ type
       Data: Integer; var Compare: Integer);
     procedure ShellListViewColumnClick(Sender: TObject; Column: TListColumn);
     procedure ShellListViewResize(Sender: TObject);
+    procedure ShellListViewMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure ShellListViewKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure ShellListViewEditing(Sender: TObject; Item: TListItem;
+      var AllowEdit: Boolean);
+    procedure ShellListViewEdited(Sender: TObject; Item: TListItem;
+      var AValue: String);
+    procedure RenameTimerTimer(Sender: TObject);
     procedure btnViewIconsClick(Sender: TObject);
     procedure btnViewDetailsClick(Sender: TObject);
     procedure ShellTreeViewChange(Sender: TObject; Node: TTreeNode);
@@ -83,6 +92,12 @@ type
     FOnTypeChange: TNotifyEvent;
     FSortDirection: TSortDirection; // SortDirection is not published by TShellListView
     FRecentFoldersHintShown: Boolean;
+    FRenameTimer: TTimer;
+    FRenameCaption: String; // item clicked a second time, renamed when FRenameTimer fires
+    FSkipQueuedEdit: Boolean;
+    FSelectedByClick: Boolean;
+    procedure StartRename(Item: TListItem);
+    procedure RefreshListAsync(Data: PtrInt);
     function CompareFileNames(const Name1, Name2: String): Integer;
     procedure AddRecentFolder(const Folder: String);
     procedure ShowRecentFoldersHint;
@@ -90,7 +105,7 @@ type
     procedure UpdateViewStyleButton;
     procedure SetupListViewColumns;
     {$IFDEF WINDOWS}
-    function ShowShellContextMenu(FileName: String; ScreenPos: TPoint): Boolean;
+    function ShowShellContextMenu(FileName: String; ScreenPos: TPoint; out Verb: String): Boolean;
     {$ENDIF}
     procedure SetTitle(AValue: String);
     function GetFileName: String;
@@ -196,6 +211,22 @@ begin
   {$IFDEF WINDOWS}
   ShellListView.OnContextPopup := ShellListViewContextPopup;
   {$ENDIF}
+  // Inline renaming of files and folders, like in Explorer: F2, or a second click
+  // on the label of the already selected item. ReadOnly must be off for
+  // TListItem.EditCaption and the built-in F2 handling.
+  ShellListView.ReadOnly := False;
+  ShellListView.OnMouseDown := ShellListViewMouseDown;
+  ShellListView.OnKeyDown := ShellListViewKeyDown;
+  ShellListView.OnEditing := ShellListViewEditing;
+  ShellListView.OnEdited := ShellListViewEdited;
+  FRenameTimer := TTimer.Create(Self);
+  FRenameTimer.Enabled := False;
+  {$IFDEF WINDOWS}
+  FRenameTimer.Interval := GetDoubleClickTime;
+  {$ELSE}
+  FRenameTimer.Interval := 500;
+  {$ENDIF}
+  FRenameTimer.OnTimer := RenameTimerTimer;
   FFilterNames := TStringList.Create;
   FFilterMasks := TStringList.Create;
   FFilterIndex := 0;
@@ -211,6 +242,7 @@ end;
 
 procedure TfrmExtFileDialog.FormDestroy(Sender: TObject);
 begin
+  Application.RemoveAsyncCalls(Self);
   AppSettings.WriteString(asFileDialogPreviousDir, ShellTreeView.Path);
   FFilterNames.Free;
   FFilterMasks.Free;
@@ -438,6 +470,7 @@ end;
 
 procedure TfrmExtFileDialog.ShellListViewClick(Sender: TObject);
 begin
+  FSelectedByClick := False; // see ShellListViewMouseDown
   if ShellListView.Selected <> nil then
     editFilename.Text := ShellListView.Selected.Caption
   else
@@ -446,8 +479,153 @@ end;
 
 procedure TfrmExtFileDialog.ShellListViewDblClick(Sender: TObject);
 begin
+  FRenameTimer.Enabled := False;
+  // TCustomListView.DblClick queues the inline editor when ReadOnly is off. A double
+  // click confirms the dialog here, so suppress that, see ShellListViewEditing.
+  // ShowEditor bails out before asking OnEditing when there is no ItemIndex.
+  FSkipQueuedEdit := ShellListView.ItemIndex >= 0;
   if ShellListView.Selected <> nil then
     ModalResult := mrOK;
+end;
+
+procedure TfrmExtFileDialog.ShellListViewMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Item: TListItem;
+begin
+  // Explorer-like rename: a single click on the label of the item which is already
+  // the only selected one, in the focused list. Delayed by the double click time,
+  // so a double click still confirms the dialog.
+  // On Win32, the native list view changes the selection before MouseDown fires, so
+  // Item.Selected alone does not tell whether it was selected before this click.
+  // FSelectedByClick is set in OnSelectItem while the button is down, and reset here
+  // and in OnClick (for widgetsets selecting after MouseDown).
+  FRenameTimer.Enabled := False;
+  FRenameCaption := '';
+  if FSelectedByClick then begin
+    FSelectedByClick := False;
+    Exit;
+  end;
+  if (Button <> mbLeft) or (Shift * [ssShift, ssCtrl, ssAlt, ssDouble] <> []) then
+    Exit;
+  if (not ShellListView.Focused) or ShellListView.IsEditing or (ShellListView.SelCount <> 1) then
+    Exit;
+  Item := ShellListView.GetItemAt(X, Y);
+  if (Item = nil) or (not Item.Selected) then
+    Exit;
+  if not PtInRect(Item.DisplayRect(drLabel), Classes.Point(X, Y)) then
+    Exit;
+  FRenameCaption := Item.Caption;
+  FRenameTimer.Enabled := True;
+end;
+
+procedure TfrmExtFileDialog.RenameTimerTimer(Sender: TObject);
+var
+  Item: TListItem;
+begin
+  FRenameTimer.Enabled := False;
+  Item := ShellListView.Selected;
+  if (Item <> nil) and (ShellListView.SelCount = 1) and (Item.Caption = FRenameCaption)
+    and ShellListView.Focused and (not ShellListView.IsEditing) then
+    StartRename(Item);
+  FRenameCaption := '';
+end;
+
+procedure TfrmExtFileDialog.ShellListViewKeyDown(Sender: TObject;
+  var Key: Word; Shift: TShiftState);
+begin
+  // F2 is handled by TCustomListView.KeyDown before this event, see ShellListViewEditing.
+  // Just stop a pending click rename on any key.
+  FRenameTimer.Enabled := False;
+end;
+
+procedure TfrmExtFileDialog.StartRename(Item: TListItem);
+begin
+  FRenameTimer.Enabled := False;
+  FSkipQueuedEdit := False;
+  Item.EditCaption;
+end;
+
+procedure TfrmExtFileDialog.ShellListViewEditing(Sender: TObject;
+  Item: TListItem; var AllowEdit: Boolean);
+begin
+  // Reached via F2 (TCustomListView.KeyDown), StartRename, and the editor queued by
+  // TCustomListView.DblClick, which is the one to suppress.
+  AllowEdit := (Item <> nil) and (not FSkipQueuedEdit);
+  FSkipQueuedEdit := False;
+end;
+
+procedure TfrmExtFileDialog.ShellListViewEdited(Sender: TObject;
+  Item: TListItem; var AValue: String);
+const
+  {$IFDEF WINDOWS}
+  InvalidChars = '\/:*?"<>|';
+  {$ELSE}
+  InvalidChars = '/';
+  {$ENDIF}
+var
+  OldName, NewName, OldPath, NewPath, CharList: String;
+  i: Integer;
+  IsFolder, HasInvalidChars: Boolean;
+begin
+  // Called before the caption is set to AValue. Rename the file system object here,
+  // and reset AValue to the old caption if that is not possible or cancelled.
+  OldName := Item.Caption;
+  NewName := Trim(AValue);
+  {$IFDEF WINDOWS}
+  // Windows strips trailing dots silently, like Explorer does
+  while NewName.EndsWith('.') do
+    Delete(NewName, Length(NewName), 1);
+  {$ENDIF}
+  AValue := OldName;
+  if NewName.IsEmpty or (NewName = OldName) or (NewName = '.') or (NewName = '..') then
+    Exit;
+  HasInvalidChars := False;
+  CharList := '';
+  for i:=1 to Length(InvalidChars) do begin
+    HasInvalidChars := HasInvalidChars or (Pos(InvalidChars[i], NewName) > 0);
+    CharList := CharList + InvalidChars[i] + ' ';
+  end;
+  if HasInvalidChars then begin
+    ErrorDialog(f_('A file name cannot contain any of the following characters: %s', [CharList.Trim]));
+    Exit;
+  end;
+
+  OldPath := ShellListView.GetPathFromItem(Item);
+  NewPath := ExtractFilePath(OldPath) + NewName;
+  IsFolder := TShellListItem(Item).IsFolder;
+  if (FileExists(NewPath) or DirectoryExists(NewPath)) and (not SameFileName(OldPath, NewPath)) then begin
+    ErrorDialog(f_('A file or folder with the name "%s" already exists.', [NewName]));
+    Exit;
+  end;
+  if (not IsFolder) and (not SameFileName(ExtractFileExt(OldName), ExtractFileExt(NewName))) then begin
+    if MessageDialog(_('If you change a file name extension, the file might become unusable. Do you want to change it?'),
+      mtConfirmation, [mbYes, mbNo]) <> mrYes then
+      Exit;
+  end;
+  if not RenameFile(OldPath, NewPath) then begin
+    ErrorDialog(f_('Could not rename "%s" to "%s": %s', [OldName, NewName, SysErrorMessage(GetLastOSError)]));
+    Exit;
+  end;
+
+  AValue := NewName;
+  i := FFiles.IndexOf(OldPath);
+  if i >= 0 then
+    FFiles[i] := NewPath;
+  if Item.Selected then
+    editFilename.Text := NewName;
+  // Re-read the folder after the caption was updated: new sort position, file
+  // info in TShellListItem, and the tree node of a renamed folder.
+  Application.QueueAsyncCall(RefreshListAsync, 0);
+end;
+
+procedure TfrmExtFileDialog.RefreshListAsync(Data: PtrInt);
+begin
+  if ShellListView.IsEditing then
+    Exit;
+  // Also updates the tree below the current folder. Keeps the selection by caption.
+  ShellListView.UpdateView;
+  ShellListView.Sort;
 end;
 
 procedure TfrmExtFileDialog.ShellListViewFileAdded(Sender: TObject;
@@ -483,6 +661,9 @@ procedure TfrmExtFileDialog.ShellListViewSelectItem(Sender: TObject;
 var
   ListItem: TListItem;
 begin
+  // Selected by the current mouse click? Then this click must not start renaming.
+  if Selected and (GetKeyState(VK_LBUTTON) < 0) then
+    FSelectedByClick := True;
   FFiles.Clear;
   for ListItem in ShellListView.Items do begin
     if ListItem.Selected then begin
@@ -638,10 +819,11 @@ procedure TfrmExtFileDialog.ShellListViewContextPopup(Sender: TObject;
 {$IFDEF WINDOWS}
 var
   Item: TListItem;
-  FileName: String;
+  FileName, Verb: String;
 {$ENDIF}
 begin
   {$IFDEF WINDOWS}
+  FRenameTimer.Enabled := False;
   Item := ShellListView.GetItemAt(MousePos.X, MousePos.Y);
   if (Item <> nil) and (not Item.Selected) then
     ShellListView.Selected := Item; // let the context menu act on the clicked item, like in Explorer
@@ -649,8 +831,22 @@ begin
     FileName := ShellListView.GetPathFromItem(Item)
   else
     FileName := ShellTreeView.Path; // right-click on empty space: context menu of the current folder
-  if not FileName.IsEmpty then
-    Handled := ShowShellContextMenu(FileName, ShellListView.ClientToScreen(MousePos));
+  if FileName.IsEmpty then
+    Exit;
+  Handled := ShowShellContextMenu(FileName, ShellListView.ClientToScreen(MousePos), Verb);
+  if not Handled then
+    Exit;
+  if SameText(Verb, 'rename') then begin
+    // The shell's rename verb only works in Explorer windows, use our inline editor.
+    // On empty space, the menu belongs to the current folder, which is not in the list.
+    if Item <> nil then
+      StartRename(Item);
+  end
+  else begin
+    // Delete, cut, paste, new file etc.: show the result. Queued, as the list items
+    // are recreated, and the context popup handler is still running.
+    Application.QueueAsyncCall(RefreshListAsync, 0);
+  end;
   {$ENDIF}
 end;
 
@@ -774,7 +970,7 @@ end;
 
 {$IFDEF WINDOWS}
 function TfrmExtFileDialog.ShowShellContextMenu(FileName: String;
-  ScreenPos: TPoint): Boolean;
+  ScreenPos: TPoint; out Verb: String): Boolean;
 var
   DesktopFolder, Folder: IShellFolder;
   FullPidl: PItemIDList;
@@ -786,8 +982,10 @@ var
   Cmd, CmdFirst: Integer;
   InvokeInfo: TCMINVOKECOMMANDINFO;
   Wide: WideString;
+  VerbBuf: array[0..63] of WideChar;
 begin
   Result := False;
+  Verb := '';
   FileName := ExcludeTrailingPathDelimiter(ExpandFileName(FileName));
   if not (FileExists(FileName) or DirectoryExists(FileName)) then
     Exit;
@@ -814,6 +1012,14 @@ begin
       Cmd := Integer(TrackPopupMenu(Menu, TPM_RETURNCMD or TPM_NONOTIFY or TPM_LEFTALIGN or TPM_LEFTBUTTON, ScreenPos.X, ScreenPos.Y, 0, Handle, nil));
       if Cmd <= 0 then
         Exit;
+      // Language independent verb of the chosen command, e.g. "rename" or "delete".
+      // Not all commands have one, e.g. those of shell extensions.
+      FillChar(VerbBuf, SizeOf(VerbBuf), 0);
+      if ContextMenu.GetCommandString(Cmd - CmdFirst, GCS_VERBW, nil, PAnsiChar(@VerbBuf[0]), Length(VerbBuf)) = S_OK then
+        Verb := UTF16ToUTF8(WideString(PWideChar(@VerbBuf[0])));
+      Result := True;
+      if SameText(Verb, 'rename') then
+        Exit; // handled by the caller
       InvokeInfo := Default(TCMINVOKECOMMANDINFO);
       InvokeInfo.cbSize := SizeOf(InvokeInfo);
       InvokeInfo.hwnd := Handle;
