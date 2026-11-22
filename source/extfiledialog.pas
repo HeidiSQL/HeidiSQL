@@ -464,9 +464,8 @@ begin
   end
   else begin
     // Size column: our own formatting instead of ShellCtrls' hardcoded "bytes/kB/MB".
-    // ShellCtrls stores the raw byte count in Item.Data.
     if Item.SubItems.Count > 0 then
-      Item.SubItems[0] := FormatByteNumber(Int64(PtrInt(Item.Data)));
+      Item.SubItems[0] := FormatByteNumber(TShellListItem(Item).FileInfo.Size);
     // Additional "Modified" column, see Columns.Add in FormCreate.
     // Note: TSearchRec.Time is a DOS LongInt, TimeStamp is the TDateTime
     Item.SubItems.Add(FormatDateTime('yyyy-mm-dd hh:nn:ss', TShellListItem(Item).FileInfo.TimeStamp));
@@ -504,8 +503,8 @@ begin
     Exit;
   end;
   case ShellListView.SortColumn of
-    1: // Size: numeric compare, ShellCtrls stores the raw byte count in Item.Data
-      Compare := CompareValue(Int64(PtrInt(Item1.Data)), Int64(PtrInt(Item2.Data)));
+    1: // Size: numeric compare
+      Compare := CompareValue(TShellListItem(Item1).FileInfo.Size, TShellListItem(Item2).FileInfo.Size);
     2: // Type: by file extension
       Compare := AnsiCompareText(ExtractFileExt(Item1.Caption), ExtractFileExt(Item2.Caption));
     3: // Modified: numeric compare of the file time
@@ -818,7 +817,9 @@ begin
       InvokeInfo := Default(TCMINVOKECOMMANDINFO);
       InvokeInfo.cbSize := SizeOf(InvokeInfo);
       InvokeInfo.hwnd := Handle;
-      InvokeInfo.lpVerb := PAnsiChar(PtrUInt(Cmd - CmdFirst));
+      // MAKEINTRESOURCE: the command offset is passed as pointer value
+      InvokeInfo.lpVerb := nil;
+      Inc(InvokeInfo.lpVerb, Cmd - CmdFirst);
       InvokeInfo.nShow := SW_SHOWNORMAL;
       ContextMenu.InvokeCommand(InvokeInfo);
       Result := True;
