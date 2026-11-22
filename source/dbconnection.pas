@@ -1686,8 +1686,8 @@ begin
       ntMySQL_TCPIP:            Result := PrefixMysql+' (TCP/IP)';
       ntMySQL_NamedPipe:        Result := PrefixMysql+' (named pipe)';
       ntMySQL_SSHtunnel:        Result := PrefixMysql+' (SSH tunnel)';
-      ntMySQL_ProxySQLAdmin:    Result := PrefixProxysql+' (Experimental)';
-      ntMySQL_ClickHouse:       Result := PrefixClickhouse+' (MySQL protocol, experimental)';
+      ntMySQL_ProxySQLAdmin:    Result := PrefixProxysql;
+      ntMySQL_ClickHouse:       Result := PrefixClickhouse+' (MySQL protocol)';
       ntMySQL_RDS:              Result := 'MySQL on RDS';
       ntMSSQL_NamedPipe:        Result := PrefixMssql+' (named pipe)';
       ntMSSQL_TCPIP:            Result := PrefixMssql+' (TCP/IP)';
@@ -1698,10 +1698,10 @@ begin
       ntPgSQL_SSHtunnel:        Result := PrefixPostgres+' (SSH tunnel)';
       ntSQLite:                 Result := PrefixSqlite;
       ntSQLiteEncrypted:        Result := PrefixSqlite+' (Encrypted)';
-      ntInterbase_TCPIP:        Result := PrefixInterbase+' (TCP/IP, experimental)';
-      ntInterbase_Local:        Result := PrefixInterbase+' (Local, experimental)';
-      ntFirebird_TCPIP:         Result := PrefixFirebird+' (TCP/IP, experimental)';
-      ntFirebird_Local:         Result := PrefixFirebird+' (Local, experimental)';
+      ntInterbase_TCPIP:        Result := PrefixInterbase+' (TCP/IP)';
+      ntInterbase_Local:        Result := PrefixInterbase+' (Local)';
+      ntFirebird_TCPIP:         Result := PrefixFirebird+' (TCP/IP)';
+      ntFirebird_Local:         Result := PrefixFirebird+' (Local)';
     end;
   end
   else begin
