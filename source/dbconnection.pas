@@ -434,20 +434,6 @@ type
   TDBLogItems = TObjectList<TDBLogItem>;
   TDBLogEvent = procedure(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil) of object;
   TDBEvent = procedure(Connection: TDBConnection; Database: String) of object;
-  TFeatureOrRequirement = (
-    frSrid,
-    frTemporalTypesFraction,
-    frIntegerDisplayWidth,
-    frColumnDefaultParentheses,
-    frEditVariables,
-    frCreateView,
-    frCreateProcedure,
-    frCreateFunction,
-    frCreateTrigger,
-    frCreateEvent,
-    frInvisibleColumns,
-    frCompressedColumns
-    ) deprecated 'Use TQueryId and TSqlProvider instead';
 
   TDBConnection = class(TComponent)
     private
@@ -643,7 +629,6 @@ type
       property SQLFunctions: TSQLFunctionList read FSQLFunctions;
       function IsNumeric(Text: String): Boolean;
       function IsHex(Text: String): Boolean;
-      function Has(Item: TFeatureOrRequirement): Boolean; deprecated 'Use SqlProvider.Has(TQueryId) instead';
       property SqlProvider: TSqlProvider read FSqlProvider;
       property NamedEnums: TStringList read FNamedEnums;
       procedure GetColumnDefaultExpressions(Items: TStrings); virtual;
@@ -3608,6 +3593,8 @@ var
   Offset: String;
 begin
   FSqlProvider.ServerVersion := ServerVersionInt;
+  FSqlProvider.ServerIsMariaDB := FParameters.IsMariaDB;
+  FSqlProvider.ServerIsMySQL := FParameters.IsMySQL(True);
 
   for i:=0 to High(Datatypes) do begin
 
@@ -3727,7 +3714,8 @@ begin
   inherited;
 
   // Support microseconds in some temporal datatypes of MariaDB 5.3+ and MySQL 5.6
-  if Has(frTemporalTypesFraction) then begin
+  if (FParameters.IsMariaDB and (ServerVersionInt >= 50300))
+    or (FParameters.IsMySQL(True) and (ServerVersionInt >= 50604)) then begin
     for i:=Low(FDatatypes) to High(FDatatypes) do begin
       if FDatatypes[i].Index in [dbdtDatetime, dbdtDatetime2, dbdtTime, dbdtTimestamp] then
         FDatatypes[i].HasLength := True;
@@ -6591,7 +6579,9 @@ begin
           end;
         end;
         dtcInteger: begin
-          if (not ColQuery.IsNull('NUMERIC_PRECISION')) and Has(frIntegerDisplayWidth) then begin
+          if (not ColQuery.IsNull('NUMERIC_PRECISION'))
+            and (FParameters.NetTypeGroup = ngMySQL)
+            and ((not FParameters.IsMySQL(True)) or (ServerVersionInt < 80017)) then begin
             // Integer display width is deprecated as of MySQL 8.0.17
             MaxLen := ColQuery.Col('NUMERIC_PRECISION');
           end;
@@ -7689,33 +7679,6 @@ begin
         end;
       end;
     end;
-  end;
-end;
-
-function TDBConnection.Has(Item: TFeatureOrRequirement): Boolean;
-begin
-  if Item = frEditVariables then
-    Exit(Assigned(FSqlProvider) and (FSqlProvider.Has(qSetSessionVariable) or FSqlProvider.Has(qSetGlobalVariable)));
-  case FParameters.NetTypeGroup of
-    ngMySQL:
-      case Item of
-        frSrid: Result := FParameters.IsMySQL(True) and (ServerVersionInt >= 80000);
-        frTemporalTypesFraction: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 50300)) or
-          (FParameters.IsMySQL(True) and (ServerVersionInt >= 50604));
-        frIntegerDisplayWidth: Result := (FParameters.IsMySQL(True) and (ServerVersionInt < 80017)) or
-          (not FParameters.IsMySQL(True));
-        frColumnDefaultParentheses: Result := FParameters.IsMySQL(True) and (ServerVersionInt >= 80013);
-        frCreateView: Result := ServerVersionInt >= 50001;
-        frCreateProcedure: Result := ServerVersionInt >= 50003;
-        frCreateFunction: Result := ServerVersionInt >= 50003;
-        frCreateTrigger: Result := ServerVersionInt >= 50002;
-        frCreateEvent: Result := ServerVersionInt >= 50100;
-        frInvisibleColumns: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100303)) or
-          (FParameters.IsMySQL(True) and (ServerVersionInt >= 80023));
-        frCompressedColumns: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100301));
-        else Result := False;
-      end;
-    else Result := False;
   end;
 end;
 
@@ -11942,10 +11905,7 @@ begin
           end;
         end;
         cdtExpression: begin
-          if FConnection.Has(frColumnDefaultParentheses) then
-            DefaultClause := 'DEFAULT ('+DefaultText+')'
-          else
-            DefaultClause := 'DEFAULT '+DefaultText;
+          DefaultClause := FConnection.SqlProvider.GetSql(qDefaultExpression, [DefaultText]);
         end;
       end;
       case OnUpdateType of
@@ -11968,8 +11928,8 @@ begin
     Result := Result + NullClause;
 
     // SRID for spatial columns supported since MySQL 8.0
-    if InParts(cpSRID) and (DataType.Category = dtcSpatial) and FConnection.Has(frSrid) then begin
-      Result := Result + 'SRID ' + SRID.ToString + ' ';
+    if InParts(cpSRID) and (DataType.Category = dtcSpatial) and FConnection.SqlProvider.Has(qColumnSrid) then begin
+      Result := Result + FConnection.SqlProvider.GetSql(qColumnSrid, [SRID]) + ' ';
     end;
 
     Result := Result + DefaultClause;
@@ -11979,8 +11939,8 @@ begin
     Result := Result + 'AS ('+GenerationExpression+') ' + Virtuality + ' ';
   end;
 
-  if InParts(cpInvisible) and Invisible and FConnection.Has(frInvisibleColumns) then begin
-    Result := Result + 'INVISIBLE ';
+  if InParts(cpInvisible) and Invisible and FConnection.SqlProvider.Has(qColumnInvisible) then begin
+    Result := Result + FConnection.SqlProvider.GetSql(qColumnInvisible) + ' ';
   end;
 
   if InParts(cpComment) then begin

@@ -8133,7 +8133,7 @@ begin
   menuFetchDBitems.Enabled := (PageControlHost.ActivePage = tabDatabases) and (ListDatabases.SelectedCount > 0);
   Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and (ListProcessList.SelectedCount > 0);
   menuEditVariable.Enabled := False;
-  if ActiveConnection.Has(frEditVariables) then
+  if ActiveConnection.SqlProvider.Has(qSetSessionVariable) or ActiveConnection.SqlProvider.Has(qSetGlobalVariable) then
     menuEditVariable.Enabled := (PageControlHost.ActivePage = tabVariables) and Assigned(ListVariables.FocusedNode)
   else
     menuEditVariable.Hint := _(SUnsupported);
@@ -8204,11 +8204,11 @@ begin
   end;
   Conn := ActiveConnection;
   if (Conn <> nil) and (Conn.Parameters.IsAnyMySQL) then begin
-    actCreateView.Enabled := actCreateView.Enabled and Conn.Has(frCreateView);
-    actCreateProcedure.Enabled := actCreateProcedure.Enabled and Conn.Has(frCreateProcedure);
-    actCreateFunction.Enabled := actCreateFunction.Enabled and Conn.Has(frCreateFunction);
-    actCreateTrigger.Enabled := actCreateTrigger.Enabled and Conn.Has(frCreateTrigger);
-    actCreateEvent.Enabled := actCreateEvent.Enabled and Conn.Has(frCreateEvent);
+    actCreateView.Enabled := actCreateView.Enabled and Conn.SqlProvider.Has(qCreateView);
+    actCreateProcedure.Enabled := actCreateProcedure.Enabled and Conn.SqlProvider.Has(qShowProcedureStatus);
+    actCreateFunction.Enabled := actCreateFunction.Enabled and Conn.SqlProvider.Has(qShowFunctionStatus);
+    actCreateTrigger.Enabled := actCreateTrigger.Enabled and Conn.SqlProvider.Has(qShowTriggers);
+    actCreateEvent.Enabled := actCreateEvent.Enabled and Conn.SqlProvider.Has(qShowEvents);
   end;
 end;
 
@@ -9783,7 +9783,8 @@ var
   Dialog: TfrmEditVariable;
   VarName, VarValue: String;
 begin
-  if (not ActiveConnection.Has(frEditVariables)) or (not Assigned(ListVariables.FocusedNode)) then
+  if (not (ActiveConnection.SqlProvider.Has(qSetSessionVariable) or ActiveConnection.SqlProvider.Has(qSetGlobalVariable)))
+    or (not Assigned(ListVariables.FocusedNode)) then
     Exit;
   Dialog := TfrmEditVariable.Create(Self);
   try

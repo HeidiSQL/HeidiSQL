@@ -60,11 +60,14 @@ type
     qPgRoleDrop, qPgRoleMembershipGrant, qPgRoleMembershipRevoke,
     qMssqlLoginAttributes, qMssqlServerRoles, qMssqlLoginMemberships, qMssqlDatabases,
     qMssqlLoginCreate, qMssqlLoginAlter, qMssqlLoginRename, qMssqlLoginDrop,
-    qMssqlRoleMembershipGrant, qMssqlRoleMembershipRevoke);
+    qMssqlRoleMembershipGrant, qMssqlRoleMembershipRevoke,
+    qDefaultExpression, qColumnSrid, qColumnInvisible, qColumnCompressed, qCreateView);
   TSqlProvider = class
     strict protected
       FNetType: TNetType;
       FServerVersion: Integer;
+      FServerIsMariaDB: Boolean;
+      FServerIsMySQL: Boolean;
     public
       constructor Create(ANetType: TNetType);
       function Has(AId: TQueryId): Boolean;
@@ -75,6 +78,9 @@ type
       // Version for named parameters
       function GetSql(AId: TQueryId; NamedParameters: TStringMap): string; overload;
       property ServerVersion: Integer read FServerVersion write FServerVersion;
+      // Server flavor as detected from the version string, see TConnectionParameters.IsMariaDB/IsMySQL(True)
+      property ServerIsMariaDB: Boolean read FServerIsMariaDB write FServerIsMariaDB;
+      property ServerIsMySQL: Boolean read FServerIsMySQL write FServerIsMySQL;
   end;
 
   // Column types
@@ -214,6 +220,8 @@ constructor TSqlProvider.Create(ANetType: TNetType);
 begin
   FNetType := ANetType;
   FServerVersion := 0;
+  FServerIsMariaDB := False;
+  FServerIsMySQL := False;
 end;
 
 function TSqlProvider.Has(AId: TQueryId): Boolean;
@@ -231,6 +239,7 @@ begin
     qOrderDesc: Result := 'DESC';
     qGetRowCountExact: Result := 'SELECT COUNT(*) FROM :QuotedDbAndTableName';
     qAutoInc: Result := 'AUTO_INCREMENT';
+    qDefaultExpression: Result := 'DEFAULT %s';
     else Result := '';
   end;
 end;
