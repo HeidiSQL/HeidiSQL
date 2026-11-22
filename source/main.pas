@@ -4931,6 +4931,7 @@ var
   keyword: String;
   Tree: TVirtualStringTree;
   SynMemo: TSynMemo;
+  FocusedCol: TTableColumn;
 begin
   // Call SQL Help from various places
   keyword := '';
@@ -4947,7 +4948,9 @@ begin
   // Data-Tab
   else if (PageControlMain.ActivePage = tabData)
     and Assigned(DataGrid.FocusedNode) then begin
-    keyword := SelectedTableFocusedColumn.DataType.Name;
+    FocusedCol := SelectedTableFocusedColumn;
+    if Assigned(FocusedCol) then
+      keyword := FocusedCol.DataType.Name;
 
   end else if ActiveControl = QueryTabs.ActiveHelpersTree then begin
     // Makes only sense if one of the nodes "SQL fn" or "SQL kw" was selected
