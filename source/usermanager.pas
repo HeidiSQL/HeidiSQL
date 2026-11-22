@@ -262,12 +262,12 @@ begin
   Height := AppSettings.ReadInt(asUsermanagerWindowHeight);
   pnlLeft.Width := AppSettings.ReadInt(asUsermanagerListWidth);
   lblWarning.Font.Color := clRed;
-  PrivsRead := Explode(',', 'SELECT,SHOW VIEW,SHOW DATABASES,PROCESS,EXECUTE');
+  PrivsRead := Explode(',', 'SELECT,SHOW VIEW,SHOW DATABASES,PROCESS,EXECUTE,SHOW_ROUTINE,SHOW CREATE ROUTINE');
   PrivsWrite := Explode(',', 'ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,'+
     'CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES,CREATE TABLESPACE,DELETE HISTORY');
   PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER,'+
-    'BINLOG ADMIN,BINLOG REPLAY,CONNECTION ADMIN,FEDERATED ADMIN,READ_ONLY ADMIN,REPLICATION MASTER ADMIN,'+
-    'REPLICATION SLAVE ADMIN,SET USER,SLAVE MONITOR');
+    'BINLOG ADMIN,BINLOG MONITOR,BINLOG REPLAY,CONNECTION ADMIN,FEDERATED ADMIN,READ_ONLY ADMIN,REPLICATION MASTER ADMIN,'+
+    'REPLICATION SLAVE ADMIN,SET USER,SLAVE MONITOR,CREATE ROLE,DROP ROLE');
   FixVT(listUsers);
   FixVT(treePrivs);
   FHasIsRole := False;
@@ -312,7 +312,8 @@ var
   Version, i: Integer;
   Users: TDBQuery;
   U: TUser;
-  tmp, PasswordExpr, IsRoleExpr, DefaultRoleExpr, PluginExpr: String;
+  tmp, PasswordExpr, IsRoleExpr, DefaultRoleExpr, PluginExpr, PrivName, PrivContext: String;
+  ServerPrivs: TDBQuery;
   SkipNameResolve,
   HasPassword, HasAuthString: Boolean;
   PasswordLengthMatters, PasswordLengthValid: Boolean;
@@ -383,7 +384,8 @@ begin
       i := FPrivsGlobal.IndexOf('REPLICATION CLIENT');
       if i > -1 then
         FPrivsGlobal.Delete(i);
-      FPrivsGlobal.Add('BINLOG ADMIN'); // replaces REPLICATION CLIENT
+      FPrivsGlobal.Add('BINLOG ADMIN');
+      FPrivsGlobal.Add('BINLOG MONITOR'); // replaces REPLICATION CLIENT
       FPrivsGlobal.Add('BINLOG REPLAY');
       FPrivsGlobal.Add('CONNECTION ADMIN');
       FPrivsGlobal.Add('FEDERATED ADMIN');
@@ -396,10 +398,44 @@ begin
       FPrivsGlobal.Add('SLAVE MONITOR');
     end;
     if Version >= 100304 then begin
-      FPrivsGlobal.Add('DELETE HISTORY');
+      FPrivsTable.Add('DELETE HISTORY');
     end;
+  end;
 
-
+  // Add privileges not known above, e.g. dynamic privileges in MySQL 8+ like SHOW_ROUTINE,
+  // or SHOW CREATE ROUTINE in MariaDB 11.3+
+  if Version >= 40100 then try
+    ServerPrivs := FConnection.GetResults('SHOW PRIVILEGES');
+    while not ServerPrivs.Eof do begin
+      PrivName := UpperCase(Trim(ServerPrivs.Col('Privilege')));
+      PrivContext := ServerPrivs.Col('Context');
+      if (PrivName <> '')
+        and (PrivName <> 'USAGE')
+        and (PrivName <> 'PROXY') // See TODO above
+        and (PrivName <> 'GRANT OPTION') // Handled as "GRANT"
+        and (FPrivsGlobal.IndexOf(PrivName) = -1)
+        and (FPrivsDb.IndexOf(PrivName) = -1)
+        and (FPrivsTable.IndexOf(PrivName) = -1)
+        and (FPrivsRoutine.IndexOf(PrivName) = -1)
+        and (FPrivsColumn.IndexOf(PrivName) = -1)
+        then begin
+        if ContainsText(PrivContext, 'Functions') or ContainsText(PrivContext, 'Procedures') then
+          FPrivsRoutine.Add(PrivName)
+        else if ContainsText(PrivContext, 'Tables') then
+          FPrivsTable.Add(PrivName)
+        else if ContainsText(PrivContext, 'Databases') then
+          FPrivsDb.Add(PrivName)
+        else begin
+          FPrivsGlobal.Add(PrivName);
+          if (PrivsRead.IndexOf(PrivName) = -1) and (PrivsWrite.IndexOf(PrivName) = -1) and (PrivsAdmin.IndexOf(PrivName) = -1) then
+            PrivsAdmin.Add(PrivName);
+        end;
+      end;
+      ServerPrivs.Next;
+    end;
+    ServerPrivs.Free;
+  except
+    on E:EDbError do;
   end;
 
   FPrivsTable.AddStrings(FPrivsColumn);
@@ -818,6 +854,26 @@ begin
             else
               P.DBObj.NodeType := lntTable;
             P.AllPrivileges := FPrivsTable;
+          end;
+        end;
+
+        // MySQL 8+ returns dynamic privileges in a separate GRANT line for the same object.
+        // Merge these into the already existing object.
+        for Ptmp in FPrivObjects do begin
+          if (Ptmp <> P)
+            and (Ptmp.DBObj.NodeType = P.DBObj.NodeType)
+            and (Ptmp.DBObj.Database = P.DBObj.Database)
+            and (Ptmp.DBObj.Name = P.DBObj.Name) then begin
+            Ptmp.GrantCode := Ptmp.GrantCode + sLineBreak + P.GrantCode;
+            // Delete by reference: Remove() would find and free Ptmp, as the comparer matches by db object
+            for j:=FPrivObjects.Count-1 downto 0 do begin
+              if FPrivObjects[j] = P then begin
+                FPrivObjects.Delete(j);
+                Break;
+              end;
+            end;
+            P := Ptmp;
+            Break;
           end;
         end;
 
@@ -1264,7 +1320,7 @@ begin
   if Sender = btnCloneUser then begin
     FCloneGrants := TStringList.Create;
     for P in FPrivObjects do
-      FCloneGrants.Add(P.GrantCode);
+      FCloneGrants.AddText(P.GrantCode); // May contain multiple lines, see merged MySQL 8 grants
     OldUser := listUsers.GetNodeData(listUsers.FocusedNode);
     NewHost := OldUser.Host;
     NewUsername := OldUser.Username;
