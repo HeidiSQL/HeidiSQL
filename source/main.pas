@@ -1908,6 +1908,7 @@ var
   CopyAsMenu, CommandMenu, ColorSchemeItem: TMenuItem;
   dti: TDBDatatypeCategoryIndex;
   EditorCommand: TSynEditorCommand;
+  CmdValue: Longint;
   CmdCap: String;
 begin
   {***
@@ -1980,8 +1981,12 @@ begin
   FEditorCommandStrings := TStringList.Create;
   SynEditKeyCmds.GetEditorCommandValues(AddEditorCommandMenu);
   for i:=0 to FEditorCommandStrings.Count-1 do begin
-    EditorCommand := SynMemoQuery.ConvertCodeStringToCommand(FEditorCommandStrings[i]);
+    CmdValue := ecNone;
+    if not IdentToEditorCommand(FEditorCommandStrings[i], CmdValue) then
+      CmdValue := ecNone;
+    EditorCommand := CmdValue;
     CommandMenu := TMenuItem.Create(MainMenu1);
+    CommandMenu.Tag := EditorCommand;
     CmdCap := FEditorCommandStrings[i];
     CmdCap := Copy(CmdCap, 3, Length(CmdCap)-2);
     // Insert spaces before uppercase chars
@@ -2916,7 +2921,7 @@ var
 begin
   Editor := ActiveSynMemo(False);
   if Assigned(Editor) then begin
-    EditorCommand := Editor.IndexToEditorCommand(TMenuItem(Sender).MenuIndex);
+    EditorCommand := TSynEditorCommand(TMenuItem(Sender).Tag);
     Editor.ExecuteCommand(EditorCommand, #0, nil);
   end;
 end;
@@ -5750,7 +5755,9 @@ begin
     if (Sender = actDataDuplicateRowWithoutKeys) or (Sender = actDataDuplicateRowWithKeys) then
       DupeNode := Grid.FocusedNode;
     RowNum := Results.InsertRow;
-    NewNode := Grid.InsertNode(Grid.FocusedNode, amInsertAfter, {%H-}PInt64(RowNum));
+    NewNode := Grid.InsertNode(Grid.FocusedNode, amInsertAfter);
+    // GetNodeData flags the node as having data, so AnyGridInitNode keeps the row number
+    PInt64(Grid.GetNodeData(NewNode))^ := RowNum;
     SelectNode(Grid, NewNode);
     if Assigned(DupeNode) then begin
       // Copy values from source row, ensure we have whole cell data
@@ -11966,7 +11973,8 @@ begin
   // Exit early for non-result-grids like ListTables
   if Grid <> ActiveGrid  then
     Exit;
-  Grid.GetHitTestInfoAt(X, Y, True, {%H-}Hit);
+  Hit := Default(THitInfo);
+  Grid.GetHitTestInfoAt(X, Y, True, Hit);
   if (Hit.HitNode = nil) or (Hit.HitColumn = NoColumn) or (Hit.HitColumn = InvalidColumn) then begin
     Results := GridResult(Grid);
     if Results.Modified then begin

@@ -1544,8 +1544,10 @@ const
   BOM_UTF8: array[0..2] of Byte = ($EF, $BB, $BF);
   BOM_UTF16LE: array[0..1] of Byte = ($FF, $FE);
   BOM_UTF16BE: array[0..1] of Byte = ($FE, $FF);
+type
+  TBomBuffer = array[0..3] of Byte;
 var
-  Buffer: array[0..3] of Byte;
+  Buffer: TBomBuffer;
   ReadCount: Integer;
   OldPos: Int64;
 begin
@@ -1553,8 +1555,9 @@ begin
 
   OldPos := Stream.Position;
   Stream.Position := 0;
+  Buffer := Default(TBomBuffer);
   try
-    ReadCount := Stream.Read({%H-}Buffer, SizeOf(Buffer));
+    ReadCount := Stream.Read(Buffer, SizeOf(Buffer));
   finally
     Stream.Position := OldPos;
   end;
@@ -2563,15 +2566,18 @@ end;
 
 
 function GetLocaleString(const ResourceId: Integer): String;
+type
+  TStringBuffer = array[0..255] of WideChar;
 var
-  Buffer: array[0..255] of WideChar;
+  Buffer: TStringBuffer;
   WS: UnicodeString;
   BufferLen: Integer;
 begin
   Result := '';
   {$IFDEF WINDOWS}
   if LibHandleUser32 <> 0 then begin
-    BufferLen := LoadStringW(LibHandleUser32, ResourceId, {%H-}Buffer, Length(Buffer));
+    Buffer := Default(TStringBuffer);
+    BufferLen := LoadStringW(LibHandleUser32, ResourceId, Buffer, Length(Buffer));
     if BufferLen > 0 then begin
       SetString(WS, PWideChar(@Buffer[0]), BufferLen);
       Result := UTF16ToUTF8(WS);

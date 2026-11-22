@@ -257,7 +257,8 @@ var
 begin
   // Handle click event
   Grid := Sender as TLazVirtualStringTree;
-  Grid.GetHitTestInfoAt(Mouse.CursorPos.X-Grid.ClientOrigin.X, Mouse.CursorPos.Y-Grid.ClientOrigin.Y, True, {%H-}Click);
+  Click := Default(THitInfo);
+  Grid.GetHitTestInfoAt(Mouse.CursorPos.X-Grid.ClientOrigin.X, Mouse.CursorPos.Y-Grid.ClientOrigin.Y, True, Click);
   GridHandleClickOrKeyPress(Grid, Click.HitNode, Click.HitColumn, Click.HitPositions);
 end;
 

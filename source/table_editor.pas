@@ -1980,7 +1980,8 @@ var
 begin
   // Handle click event
   VT := Sender as TLazVirtualStringTree;
-  VT.GetHitTestInfoAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y, True, {%H-}Click);
+  Click := Default(THitInfo);
+  VT.GetHitTestInfoAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y, True, Click);
   vtHandleClickOrKeyPress(VT, Click.HitNode, Click.HitColumn, Click.HitPositions);
 end;
 
@@ -2415,7 +2416,8 @@ var
 begin
   // Handle click event
   VT := Sender as TLazVirtualStringTree;
-  VT.GetHitTestInfoAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y, True, {%H-}Click);
+  Click := Default(THitInfo);
+  VT.GetHitTestInfoAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y, True, Click);
   if Assigned(Click.HitNode) and (Click.HitColumn > NoColumn) and (hiOnItemLabel in Click.HitPositions) then
     VT.EditNode(Click.HitNode, Click.HitColumn);
 end;
