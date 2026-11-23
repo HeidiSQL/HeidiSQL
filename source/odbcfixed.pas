@@ -27,6 +27,7 @@ type
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef; ABlobBuf: PBufBlobField;
       cursor: TSQLCursor; ATransaction: TSQLTransaction); override;
   public
+    constructor Create(AOwner: TComponent); override;
     // Oracle: unconstrained NUMBER and FLOAT(n) are reported as SQL_FLOAT with 38 digits
     property Float38AsDecimal: Boolean read FFloat38AsDecimal write FFloat38AsDecimal;
   end;
@@ -63,7 +64,7 @@ function OdbcCancel(Stmt: SQLHSTMT): Boolean;
 implementation
 
 uses
-  {$IFDEF WINDOWS}Windows,{$ENDIF} RegExpr, dynlibs;
+  {$IFDEF WINDOWS}Windows,{$ENDIF} RegExpr, dynlibs, TypInfo;
 
 {$IFNDEF WINDOWS}
 function libc_setenv(name, value: PChar; overwrite: LongInt): LongInt; cdecl; external 'c' name 'setenv';
@@ -78,6 +79,25 @@ type
 var
   ODBCFormatSettings: TFormatSettings;
   OdbcDriverManagerLoaded: Boolean = False;
+
+
+constructor TFixedODBCConnection.Create(AOwner: TComponent);
+var
+  Opt: TConnOption;
+  OptName: String;
+begin
+  inherited Create(AOwner);
+  // FPC 3.2.4 sets sqCommitEndsPrepared and sqRollbackEndsPrepared for all connections, so
+  // a commit unprepares all prepared queries of the transaction. On a query which is still
+  // open, e.g. the data grid's result, UnPrepare raises "Operation cannot be performed on an
+  // active dataset". Results are fully fetched (PacketRecords = -1) and ODBC statements
+  // survive a commit. By name, as FPC 3.2.2 does not know these options.
+  for Opt:=Low(TConnOption) to High(TConnOption) do begin
+    OptName := GetEnumName(TypeInfo(TConnOption), Ord(Opt));
+    if SameText(OptName, 'sqCommitEndsPrepared') or SameText(OptName, 'sqRollbackEndsPrepared') then
+      Exclude(FConnOptions, Opt);
+  end;
+end;
 
 
 procedure TFixedODBCConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);

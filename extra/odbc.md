@@ -588,6 +588,27 @@ in fresh LXD containers without any ODBC or Oracle packages:
     `WebSearchBaseUrl` presets contain `%query`, but `%q` was replaced
     (also on Windows). Windows build not retested.
 
+### macOS test (2026-11-23)
+
+Notarized CI bundle of 1b9e42e5 (12.22, run 45206980312) against 21c XE
+in the LAN, Instant Client 23.26 registered in `~/.odbcinst.ini`:
+- Connect, error dialog (no raw `<a href>`, search URL ok) and query
+  cancelling work.
+- "Use own client time zone": `SESSIONTIMEZONE` is `+01:00`, as intended
+  (offset on Oracle, IANA name only on Snowflake).
+- Missing driver hint: not testable in the GUI, the library field is a
+  dropdown of installed drivers. Covered by the `--library` test on Linux.
+- Fixed: grid editing failed on every UPDATE/INSERT/DELETE with "Operation
+  cannot be performed on an active dataset". FPC 3.2.4 sets
+  `sqCommitEndsPrepared`/`sqRollbackEndsPrepared` for all SQLDB connections
+  (3.2.2 has neither), so the commit after the statement unprepared all
+  prepared queries of the transaction, including the open grid result.
+  `TFixedODBCConnection.Create` removes both options (by name via RTTI, so
+  it compiles with 3.2.2). Affects the macOS build (FPC 3.2.4) and probably
+  Linux ARM64 (3.2.3), not Windows (3.2.2). Tested with a locally built
+  executable in the CI bundle: UPDATE, INSERT and DELETE work.
+- Snowflake on macOS not tested (no driver installed here), see "Packaging".
+
 ## Crash pass before release (2026-11-23)
 
 All menus, dialogs and tabs tested with Oracle 21c XE and Snowflake. No crash
