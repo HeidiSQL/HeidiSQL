@@ -269,9 +269,16 @@ hardcoded in FPC's `odbcsql.inc`), and the drivers are installed by the user
     `<DM home>/etc/odbcinst.ini` and writes `libsqora.so.23.1`. A manual entry
     is enough:
     `[Oracle 23 ODBC driver]` / `Driver = <dir>/libsqora.dylib.23.1`.
-  - Snowflake has a macOS driver. Its `simba.snowflake.ini` defaults to
-    iODBC (`ODBCInstLib`, not verified), which must be switched to unixODBC's
-    `libodbcinst.2.dylib`.
+  - Snowflake: driver 4.2.0 (`.pkg`, universal, installs to
+    `/opt/snowflake/snowflakeodbc/lib/libsfodbc.dylib`, signed by Snowflake)
+    has no `simba.snowflake.ini` and no `libodbcinst` dependency anymore. Its
+    shipped `sf.odbc.ini` sets `DriverManagerEncoding=UTF-32` for iODBC; with
+    unixODBC every wide string would be mis-decoded. Users override it in
+    `~/Library/Application Support/snowflake/sf.odbc.ini` (or `SF_ODBC_INI`)
+    with `DriverManagerEncoding=UTF-16`, and register the driver in
+    `~/.odbcinst.ini`:
+    `[SnowflakeDSIIDriver]` / `Driver = /opt/snowflake/snowflakeodbc/lib/libsfodbc.dylib`.
+    Tested 2026-11-23, see "macOS test".
   - What a user installs: Instant Client Basic + ODBC, and a driver entry in
     `~/.odbcinst.ini`. No Homebrew, no unixODBC.
 
@@ -527,7 +534,7 @@ grid with VARCHAR (70000 characters), NUMBER(20,4) with trailing zeros,
 NUMBER(38,0) exact, VARIANT, TIMESTAMP_TZ with offset, TIMESTAMP_LTZ in the
 session time zone (Europe/Berlin with the option, -08:00 without), column
 changes incl. NOT NULL in the table editor, view editing, renaming tables and
-views. Binary display after the `x'...'` change not yet confirmed.
+views. Binary display after the `x'...'` change confirmed on macOS 2026-11-23.
 
 ## Implementation status (phase 4, packaging and localization)
 
@@ -607,7 +614,15 @@ in the LAN, Instant Client 23.26 registered in `~/.odbcinst.ini`:
   it compiles with 3.2.2). Affects the macOS build (FPC 3.2.4) and probably
   Linux ARM64 (3.2.3), not Windows (3.2.2). Tested with a locally built
   executable in the CI bundle: UPDATE, INSERT and DELETE work.
-- Snowflake on macOS not tested (no driver installed here), see "Packaging".
+- Snowflake (driver 4.2.0, set up as in "Packaging", trial account), with
+  the fixed executable: connect, tree, umlauts, long VARCHAR, TIMESTAMP_TZ/LTZ
+  and grid UPDATE/INSERT/DELETE work. "Use own client time zone" gives
+  `TIMEZONE = Europe/Berlin` at SESSION level (`SHOW PARAMETERS`), so the
+  `/etc/localtime` symlink detection works on macOS. `NUMBER(38,0)` exact,
+  BINARY shown and edited via `x'...'` (also kept when only another column
+  of the row is edited), confirming the binary display change.
+- Oracle reconnect after a network interruption: no crash, grid editing
+  works afterwards.
 
 ## Crash pass before release (2026-11-23)
 
