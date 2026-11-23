@@ -55,6 +55,8 @@ function PrepareOracleClientEnvironment: String;
 // Load the ODBC driver manager before odbcconn does it. On Linux and macOS, FPC loads the
 // unversioned libodbc.so / libodbc.dylib, which only exists with the unixODBC -dev package.
 procedure LoadOdbcDriverManager;
+// True if LoadOdbcDriverManager succeeds, without raising
+function OdbcDriverManagerAvailable: Boolean;
 // SQLCancel on a statement running in another thread. Not declared by FPC's odbcsql.inc.
 function OdbcCancel(Stmt: SQLHSTMT): Boolean;
 
@@ -467,6 +469,18 @@ begin
     raise EInOutError.Create('Can not load the ODBC driver manager. Please install unixODBC (tried '
       + Tried + 'libodbc.' + SharedSuffix + ').');
   {$ENDIF}
+end;
+
+
+function OdbcDriverManagerAvailable: Boolean;
+begin
+  try
+    LoadOdbcDriverManager;
+    Result := True;
+  except
+    on E:EInOutError do
+      Result := False;
+  end;
 end;
 
 

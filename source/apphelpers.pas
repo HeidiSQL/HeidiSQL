@@ -2409,10 +2409,12 @@ var
   Dialog: TTaskDialog;
   Btn: TTaskDialogButtonItem;
   MsgButton: TMsgDlgBtn;
-  rx: TRegExpr;
   KeepAskingValue: Boolean;
   Hotkeys: String;
+  {$IFDEF WINDOWS}
+  rx: TRegExpr;
   WebSearchUrl, WebSearchHost: String;
+  {$ENDIF}
 
   procedure AddButton(BtnCaption: String; BtnResult: TModalResult; ResourceId: Integer=0);
   var
@@ -2472,6 +2474,7 @@ begin
     Dialog.Title := Title;
   if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) and (MainForm.ActiveConnection.Parameters <> nil) then
     Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
+  {$IFDEF WINDOWS}
   rx := TRegExpr.Create;
   rx.Expression := 'https?://[^\s"]+';
   if ThemeIsDark then
@@ -2479,6 +2482,10 @@ begin
   else // See issue #2036
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
   rx.Free;
+  {$ELSE}
+  // LCL's emulated task dialog shows plain labels, HTML links would appear as raw markup
+  Dialog.Text := Msg;
+  {$ENDIF}
 
   // Main icon, and footer link
   case DlgType of
@@ -2486,8 +2493,9 @@ begin
       Dialog.MainIcon := tdiWarning;
     mtError: begin
       Dialog.MainIcon := tdiError;
+      {$IFDEF WINDOWS}
       WebSearchUrl := AppSettings.ReadString(asWebSearchBaseUrl);
-      WebSearchUrl := StringReplace(WebSearchUrl, '%q', EncodeURLParam(Copy(Msg, 1, 1000)), []);
+      WebSearchUrl := StringReplace(WebSearchUrl, '%query', EncodeURLParam(Copy(Msg, 1, 1000)), []);
       rx := TRegExpr.Create;
       rx.Expression := 'https?://(www\.)?([^/]+)/';
       if rx.Exec(WebSearchUrl) then
@@ -2497,7 +2505,12 @@ begin
       rx.Free;
       Dialog.FooterText := IfThen(FooterText.IsEmpty, '', FooterText + sLineBreak + sLineBreak) +
         '<a href="'+WebSearchUrl+'">'+_('Find some help on this error')+' (=> '+WebSearchHost+')</a>';
-      Dialog.FooterIcon := tdiInformation;
+      {$ELSE}
+      // No clickable links in LCL's emulated task dialog, see above
+      Dialog.FooterText := FooterText;
+      {$ENDIF}
+      if Dialog.FooterText <> '' then
+        Dialog.FooterIcon := tdiInformation;
     end;
     mtInformation:
       Dialog.MainIcon := tdiInformation;

@@ -3612,13 +3612,16 @@ begin
         FActive := False;
         FConnectionStarted := 0;
         EndSSHTunnel;
-        // Session copied from another computer, or driver uninstalled
+        // Session copied from another computer, or driver uninstalled.
+        // Without a driver manager, the driver list is empty, and the error already says what is missing.
         ErrorHint := '';
-        InstalledDrivers := GetOdbcDriverNames('');
-        if InstalledDrivers.IndexOf(Parameters.LibraryOrProvider) = -1 then
-          ErrorHint := f_('The ODBC driver "%s" is not installed.', [Parameters.LibraryOrProvider])
-            + ' ' + Parameters.OdbcDriverHint;
-        InstalledDrivers.Free;
+        if OdbcDriverManagerAvailable then begin
+          InstalledDrivers := GetOdbcDriverNames('');
+          if InstalledDrivers.IndexOf(Parameters.LibraryOrProvider) = -1 then
+            ErrorHint := f_('The ODBC driver "%s" is not installed.', [Parameters.LibraryOrProvider])
+              + ' ' + Parameters.OdbcDriverHint;
+          InstalledDrivers.Free;
+        end;
         raise EDbError.Create(Error, LastErrorCode, ErrorHint);
       end;
     end;

@@ -540,10 +540,47 @@ views. Binary display after the `x'...'` change not yet confirmed.
   `connections.lfm` captions/hints (Warehouse, Role, connection parameters)
   are in `extra/locale/heidisql.po`, `heidisql.en.mo` rebuilt. Checked with a
   script comparing all literals against the msgids.
-- Tested: Windows clean build and start. Not testable locally: deb/rpm
-  install on Linux, the macOS bundle (both unchanged in this phase), and the
-  driver hints on a system without any Oracle/Snowflake driver (this machine
-  has both installed).
+- Tested: Windows clean build and start. Not testable locally: the macOS
+  bundle (unchanged in this phase). deb/rpm and the driver hints: see below.
+
+### Linux package test (2026-11-23)
+
+Qt6 build of this branch, `make deb-package rpm-package` (12.22), installed
+in fresh LXD containers without any ODBC or Oracle packages:
+
+| System | Install | unixODBC pulled in | Runtime |
+|---|---|---|---|
+| Debian 12 | `apt install ./heidisql_*.deb` ok | `libodbc2` 2.3.11 | ok |
+| Ubuntu 22.04 | ok | `libodbc2` 2.3.9 | ok |
+| Ubuntu 24.04 | ok | `libodbc2` 2.3.12 | ok |
+| Fedora 43 | `dnf install ./heidisql-*.rpm` ok | `unixODBC` 2.3.14 | ok |
+
+- Runtime check: started under Xvfb with
+  `heidisql --nettype=19 --host=localhost --port=1521 --user=system
+  --password=xx --library=NoSuchDriver`. All four show unixODBC's own error
+  "Can't open lib 'NoSuchDriver' : file not found", so `libodbc.so.2` from
+  the package was loaded, plus the hint "The ODBC driver ... is not
+  installed".
+- Without `libodbc2` (removed with `--force-depends` on Ubuntu 24.04): "Can
+  not load the ODBC driver manager. Please install unixODBC (tried
+  libodbc.so.2, ...)" as intended.
+- Debian 11 not tested (no LXD image anymore, and no Qt6 there anyway), so
+  the `libodbc1` alternative is untested.
+- Not ODBC related, found on the way:
+  - `libqt6pas6` is in none of these distributions' repositories (installed
+    here from a manually downloaded .deb), so neither package installs on a
+    stock system without it. For the test it was repackaged from the host.
+  - The rpm has no Firebird dependency, the deb has `libfbclient2`.
+  - Fixed: the hint said "The ODBC driver ... is not installed" also when
+    the driver manager itself was missing. Now only added when
+    `OdbcDriverManagerAvailable`, the error already says "Please install
+    unixODBC".
+  - Fixed: LCL's emulated task dialog (Linux, macOS) showed the "Find some
+    help on this error" link and URLs in the text as raw `<a href=...>`
+    HTML. `MessageDialog` adds links on Windows only now.
+  - Fixed: the search URL ended in `...founduery`, because the
+    `WebSearchBaseUrl` presets contain `%query`, but `%q` was replaced
+    (also on Windows). Windows build not retested.
 
 ## Crash pass before release (2026-11-23)
 
