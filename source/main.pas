@@ -11001,6 +11001,15 @@ begin
           CellText := CellText + ' [...]';
       end;
     end;
+    // Painting huge text or binary values makes the grid unresponsive. Shorten them for display only,
+    // callers of Grid.Text[] outside of painting (copy, filter, editors) still get the full value.
+    if (tsPainting in Sender.TreeStates) and (Length(CellText) > GRIDMAXDISPLAY) then begin
+      // Do not split a surrogate pair
+      if (CellText[GRIDMAXDISPLAY] >= #$D800) and (CellText[GRIDMAXDISPLAY] <= #$DBFF) then
+        CellText := Copy(CellText, 1, GRIDMAXDISPLAY-1) + ' [...]'
+      else
+        CellText := Copy(CellText, 1, GRIDMAXDISPLAY) + ' [...]';
+    end;
   end;
 end;
 
