@@ -1078,6 +1078,11 @@ begin
     AddNotes(DBObj, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' cannot be maintained.', '');
     Exit;
   end;
+  if DBObj.Connection.Parameters.IsAnyOdbc then begin
+    // CHECK/ANALYZE/OPTIMIZE/REPAIR TABLE are MySQL commands
+    AddNotes(DBObj, STRSKIPPED + f_('Table maintenance is not supported on %s.', [DBObj.Connection.Parameters.NetTypeName(False)]), '');
+    Exit;
+  end;
   SQL := UpperCase(comboOperation.Text) + ' TABLE ' + DBObj.QuotedDatabase + '.' + DBObj.QuotedName;
   if chkQuick.Enabled and chkQuick.Checked then SQL := SQL + ' QUICK';
   if chkFast.Enabled and chkFast.Checked then SQL := SQL + ' FAST';
@@ -1232,7 +1237,13 @@ begin
           Column := DBObj.Connection.QuoteIdent(Col.Name);
           if (comboDatatypes.ItemIndex = 0) or (Integer(Col.DataType.Category) = comboDatatypes.ItemIndex-1) then begin
 
-            if tabsTextType.ActivePage = tabSQL then begin
+            if DBObj.Connection.Parameters.IsAnyOracle
+              and (Col.DataType.Category in [dtcBinary, dtcSpatial])
+              and (tabsTextType.ActivePage <> tabSQL) then begin
+              // LIKE and LOWER() fail on BLOB and SDO_GEOMETRY with ORA-00932
+              Continue;
+
+            end else if tabsTextType.ActivePage = tabSQL then begin
               SQL := SQL + Column + ' ' + SynMemoFindText.Text + ' OR ';
 
             end else if (Col.DataType.Category in [dtcInteger, dtcReal]) and (comboMatchType.ItemIndex=1) then begin
@@ -1262,6 +1273,20 @@ begin
                   else
                     SQL := SQL + Column + ' LIKE ' + esc(FindTextJokers) + ' OR ';
                 end;
+                ngOracle: begin
+                  // LIKE is case sensitive, numbers and dates are converted implicitly
+                  if IsRegExp then
+                    SQL := SQL + 'REGEXP_LIKE(' + Column + ', ' + esc(FindText) + ', ''c'') OR '
+                  else
+                    SQL := SQL + Column + ' LIKE ' + esc(FindTextJokers) + ' OR ';
+                end;
+                ngSnowflake: begin
+                  // REGEXP_LIKE matches the whole value, REGEXP_INSTR a part of it
+                  if IsRegExp then
+                    SQL := SQL + 'REGEXP_INSTR(TO_VARCHAR(' + Column + '), ' + esc(FindText) + ', 1, 1, 0, ''c'') > 0 OR '
+                  else
+                    SQL := SQL + 'TO_VARCHAR(' + Column + ') LIKE ' + esc(FindTextJokers) + ' OR ';
+                end;
               end;
 
             end else begin
@@ -1288,6 +1313,18 @@ begin
                   else
                     SQL := SQL + Column + ' LIKE ' + esc(FindTextJokers) + ' OR ';
                 end;
+                ngOracle: begin
+                  if IsRegExp then
+                    SQL := SQL + 'REGEXP_LIKE(' + Column + ', ' + esc(FindText) + ', ''i'') OR '
+                  else
+                    SQL := SQL + 'LOWER(' + Column + ') LIKE ' + esc(FindTextJokers) + ' OR ';
+                end;
+                ngSnowflake: begin
+                  if IsRegExp then
+                    SQL := SQL + 'REGEXP_INSTR(TO_VARCHAR(' + Column + '), ' + esc(FindText) + ', 1, 1, 0, ''i'') > 0 OR '
+                  else
+                    SQL := SQL + 'TO_VARCHAR(' + Column + ') ILIKE ' + esc(FindTextJokers) + ' OR ';
+                end;
               end;
             end;
 
@@ -1310,6 +1347,10 @@ begin
               SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
                 + '(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1) || ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
                 + SQL;
+            ngOracle, ngSnowflake:
+              SQL := 'SELECT '+esc(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', '+esc(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
+                + 'TO_CHAR(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1)) || ''%'' AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
+                + SQL;
           end;
           AddResults(SQL, DBObj.Connection);
         end else begin
@@ -1320,7 +1361,10 @@ begin
       end;
     end;
 
-    lntProcedure, lntFunction: begin
+    lntProcedure, lntFunction: if DBObj.Connection.Parameters.IsAnyOdbc then begin
+      // No information_schema.routines on Oracle and Snowflake
+      AddNotes(DBObj, STRSKIPPED + f_('Searching in routines is not supported on %s.', [DBObj.Connection.Parameters.NetTypeName(False)]), '');
+    end else begin
       SQL := 'SELECT '+
         esc(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', '+
         esc(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', '+
@@ -1840,7 +1884,8 @@ begin
   AddResults('SELECT '+DBObj.Connection.EscapeString(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', ' +
     DBObj.Connection.EscapeString(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', ' +
     IntToStr(DBObj.Rows)+' AS '+DBObj.Connection.QuoteIdent('Rows')+', '+
-    '0 AS '+DBObj.Connection.QuoteIdent('Duration')
+    '0 AS '+DBObj.Connection.QuoteIdent('Duration')+
+    IfThen(DBObj.Connection.Parameters.IsAnyOracle, ' FROM dual', '')
     , DBObj.Connection
     );
   ToFile := (comboExportOutputType.Text = OUTPUT_FILE) or (comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED);
@@ -2252,6 +2297,11 @@ var
   HasCharsetClause: Boolean;
   SelectedCharset: String;
 begin
+  if DBObj.Connection.Parameters.IsAnyOdbc then begin
+    // Engine, charset, collation and auto increment options are MySQL specific
+    AddNotes(DBObj, STRSKIPPED + f_('Bulk table editing is not supported on %s.', [DBObj.Connection.Parameters.NetTypeName(False)]), '');
+    Exit;
+  end;
   AddResults('SELECT '+DBObj.Connection.EscapeString(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', ' +
     DBObj.Connection.EscapeString(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', ' +
     DBObj.Connection.EscapeString('Updating...')+' AS '+DBObj.Connection.QuoteIdent('Operation')+', '+
@@ -2360,6 +2410,7 @@ var
   TextVal: String;
   BinVal: String;
   NumRows, NullsAmount: Int64;
+  IsSnowflake: Boolean;
 
   function RS: String;
   begin
@@ -2393,7 +2444,12 @@ begin
 
     ColumnNamesQuoted.Add(Col.Connection.QuoteIdent(Col.Name));
   end;
-  InsertSqlBase := InsertSqlBase + '(' + Implode(', ', ColumnNamesQuoted) + ') VALUES ';
+  // Snowflake allows only constants in VALUES, no PARSE_JSON() for VARIANT/OBJECT/ARRAY
+  IsSnowflake := DBObj.Connection.Parameters.IsAnySnowflake;
+  if IsSnowflake then
+    InsertSqlBase := InsertSqlBase + '(' + Implode(', ', ColumnNamesQuoted) + ') SELECT '
+  else
+    InsertSqlBase := InsertSqlBase + '(' + Implode(', ', ColumnNamesQuoted) + ') VALUES ';
 
   Randomize;
 
@@ -2473,7 +2529,16 @@ begin
             TextVal := JsonText.AsJSON;
             JsonText.Free;
           end;
-          Values.Add(Col.Connection.EscapeString(TextVal));
+          if IsSnowflake and (Col.DataType.Index = dbdtJson) then begin
+            // Semi-structured types: VARIANT takes any JSON, OBJECT and ARRAY need their own
+            if Col.DataType.Name = 'OBJECT' then
+              Values.Add('TO_OBJECT(PARSE_JSON(' + Col.Connection.EscapeString('{"text": '+TextVal+'}') + '))')
+            else if Col.DataType.Name = 'ARRAY' then
+              Values.Add('TO_ARRAY(PARSE_JSON(' + Col.Connection.EscapeString('['+TextVal+']') + '))')
+            else
+              Values.Add('PARSE_JSON(' + Col.Connection.EscapeString(TextVal) + ')');
+          end else
+            Values.Add(Col.Connection.EscapeString(TextVal));
         end;
 
         dtcBinary: begin
@@ -2505,7 +2570,13 @@ begin
               TextVal := FormatDateTime(Col.DataType.Format, FloatVal, MainForm.FormatSettings);
             end;
 
-            dbdtDatetimeOffset: ;
+            dbdtDatetimeOffset: begin
+              // MSSQL datetimeoffset, Snowflake TIMESTAMP_TZ/LTZ, Oracle TIMESTAMP WITH TIME ZONE
+              MinLen := Trunc(VarToDateTime('1971-01-01'));
+              MaxLen := Trunc(VarToDateTime('2035-01-01'));
+              FloatVal := RandomRange(MinLen, MaxLen) + Random;
+              TextVal := FormatDateTime('yyyy-mm-dd hh:nn:ss', FloatVal, MainForm.FormatSettings) + ' +00:00';
+            end;
             dbdtSmalldatetime: ;
           end;
           Values.Add(Col.Connection.EscapeString(TextVal));
@@ -2546,7 +2617,10 @@ begin
         end;
       end;
     end;
-    InsertSql := InsertSqlBase + '(' + Implode(', ', Values) + ')';
+    if IsSnowflake then
+      InsertSql := InsertSqlBase + Implode(', ', Values)
+    else
+      InsertSql := InsertSqlBase + '(' + Implode(', ', Values) + ')';
     DBObj.Connection.Query(InsertSql, False, lcScript);
   end;
 

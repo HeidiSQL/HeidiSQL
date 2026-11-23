@@ -545,6 +545,40 @@ views. Binary display after the `x'...'` change not yet confirmed.
   driver hints on a system without any Oracle/Snowflake driver (this machine
   has both installed).
 
+## Crash pass before release (2026-11-23)
+
+All menus, dialogs and tabs tested with Oracle 21c XE and Snowflake. No crash
+except the reconnect below; fixed:
+- Reconnect after a network failure crashed: freeing the old
+  `TSQLTransaction` rolled back on the dead connection (ORA-03114).
+  `TOdbcConnection.FreeHandles` rolls back in try/except and marks the
+  transaction inactive (`CloseTrans`).
+- Cancelling a query: `CancelQuery` calls `SQLCancel` (not declared by FPC,
+  loaded in `OdbcCancel`) on the running statement handle, which `Query`
+  publishes via `SetRunningStmt` under a critical section. Oracle answers
+  ORA-01013, Snowflake "Operation was cancelled". No helper connection.
+- `Query` skips comment-only statements, e.g. `/*!40101 ... */` from the SQL
+  export, which Oracle and Snowflake reject as empty statements. The export's
+  status SELECT gets `FROM dual` on Oracle.
+- Find text: Oracle (`LIKE`, `LOWER`, `REGEXP_LIKE`, BLOB/spatial columns
+  skipped) and Snowflake (`TO_VARCHAR() LIKE/ILIKE`, `REGEXP_INSTR`). Routines
+  skipped with a note.
+- Maintenance and bulk table edit: skipped with a note per object (MySQL
+  commands only).
+- Generate data on Snowflake: `INSERT ... SELECT` instead of `VALUES` (only
+  constants allowed there), `PARSE_JSON` / `TO_OBJECT` / `TO_ARRAY` for
+  VARIANT/OBJECT/ARRAY, values for TIMESTAMP_TZ/LTZ (`dbdtDatetimeOffset`,
+  before an empty string, also on MSSQL).
+
+Left as is: empty host tabs (variables, status, processes), user manager and
+create/alter/drop database disabled or "not supported", virtual columns not
+in grid export INSERTs (as on MySQL).
+
+Later: test "Generate data" with all data types on Oracle and Snowflake.
+Text values must fit the column length, and generated rows must not violate
+foreign keys or unique keys. On Oracle, date strings rely on implicit
+conversion via `NLS_DATE_FORMAT`.
+
 ## Help page: Oracle setup for users
 
 How to explain it, learned from testing on macOS:

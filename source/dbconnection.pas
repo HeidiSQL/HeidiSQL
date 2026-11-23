@@ -823,10 +823,15 @@ type
       FLastError: String;
       FLastErrorCode: Integer;
       FLastRawResults: TOdbcRawResults;
+      // Statement handle of the running query, for SQLCancel from the main thread
+      FRunningStmt: TOdbcStmt;
+      FRunningStmtLock: TRTLCriticalSection;
       procedure SetActive(Value: Boolean); override;
       function GetLastErrorCode: Cardinal; override;
       function GetLastErrorMsg: String; override;
       procedure SetLastError(E: Exception);
+      procedure SetRunningStmt(Stmt: TOdbcStmt);
+      procedure FreeHandles;
     protected
       // Set driver specific connection string parameters
       procedure PrepareHandle(FinalHost: String; FinalPort: Integer); virtual; abstract;
@@ -837,6 +842,7 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
+      function CancelQuery: Boolean; override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
       function GetLastResults: TDBQueryList; override;
@@ -2365,6 +2371,8 @@ begin
   inherited;
   FLastRawResults := TOdbcRawResults.Create(False);
   FLastErrorCode := 0;
+  FRunningStmt := OdbcNullStmt;
+  InitCriticalSection(FRunningStmtLock);
 end;
 
 
@@ -2465,9 +2473,75 @@ destructor TOdbcConnection.Destroy;
 begin
   if Active then Active := False;
   FreeAndNil(FLastRawResults);
-  FreeAndNil(FTransaction);
-  FreeAndNil(FHandle);
+  FreeHandles;
+  DoneCriticalSection(FRunningStmtLock);
   inherited;
+end;
+
+
+type
+  // Grants access to the protected CloseTrans
+  TDBTransactionAccess = class(TDBTransaction);
+
+procedure TOdbcConnection.FreeHandles;
+var
+  Obj: TObject;
+begin
+  // After a network failure, the transaction is still active, and its destructor fails on
+  // the rollback with "ORA-03114: not connected". Nothing left to roll back on the server.
+  if Assigned(FTransaction) and FTransaction.Active then try
+    FTransaction.Rollback;
+  except
+    on E:Exception do begin
+      Log(lcDebug, 'Rollback on dead connection: '+E.Message);
+      // Mark as inactive, so the destructor does not try again
+      TDBTransactionAccess(FTransaction).CloseTrans;
+    end;
+  end;
+  Obj := FTransaction;
+  FTransaction := nil;
+  try
+    Obj.Free;
+  except
+    on E:Exception do
+      Log(lcDebug, 'Freeing transaction: '+E.Message);
+  end;
+  Obj := FHandle;
+  FHandle := nil;
+  try
+    Obj.Free;
+  except
+    on E:Exception do
+      Log(lcDebug, 'Freeing ODBC handle: '+E.Message);
+  end;
+end;
+
+
+procedure TOdbcConnection.SetRunningStmt(Stmt: TOdbcStmt);
+begin
+  // Must be reset before the statement handle gets freed
+  EnterCriticalSection(FRunningStmtLock);
+  try
+    FRunningStmt := Stmt;
+  finally
+    LeaveCriticalSection(FRunningStmtLock);
+  end;
+end;
+
+
+function TOdbcConnection.CancelQuery: Boolean;
+begin
+  // Called from the main thread while Query() runs in a query tab's thread. SQLCancel is
+  // the ODBC way of stopping a statement on another thread, no helper connection needed.
+  // Always True: there is no KILL fallback via a helper connection on ODBC.
+  Result := True;
+  EnterCriticalSection(FRunningStmtLock);
+  try
+    if (FRunningStmt <> OdbcNullStmt) and (not OdbcCancel(FRunningStmt)) then
+      Log(lcError, _('The ODBC driver could not cancel the running query.'));
+  finally
+    LeaveCriticalSection(FRunningStmtLock);
+  end;
 end;
 
 
@@ -3493,8 +3567,7 @@ begin
 
     // Results of a previous connection are owned by their TDBQuery objects, see TOdbcQuery.Destroy
     FLastRawResults.Clear;
-    FreeAndNil(FTransaction);
-    FreeAndNil(FHandle);
+    FreeHandles;
     FHandle := TFixedODBCConnection.Create(nil);
     FTransaction := TSQLTransaction.Create(nil);
     FTransaction.Database := FHandle;
@@ -4532,6 +4605,10 @@ begin
   for i:=0 to FLastRawResults.Count-1 do
     FLastRawResults[i].Free;
   FLastRawResults.Clear;
+  // Comment-only statements, e.g. MySQL's /*!40101 SET ... */ sent by the SQL export:
+  // Oracle and Snowflake reject them as empty statements, other servers ignore them.
+  if TSQLBatch.GetSQLWithoutComments(SQL).Trim.IsEmpty then
+    Exit;
   QueryResult := nil;
   try
     // No owner: the TDBQuery taking over this result frees it, also after a reconnect
@@ -4547,13 +4624,16 @@ begin
     QueryResult.Prepare;
     // Ask the driver for result columns, so a SELECT is executed only once, by Open
     ColCount := OdbcPreparedColumnCount(TSQLQueryAccess(QueryResult).Cursor);
+    SetRunningStmt(OdbcCursorStmt(TSQLQueryAccess(QueryResult).Cursor));
     if ColCount > 0 then begin
       try
         QueryResult.Open;
+        SetRunningStmt(OdbcNullStmt);
         HasRows := True;
         Inc(FRowsFound, QueryResult.RecordCount);
       except
         on E:EDatabaseError do begin
+          SetRunningStmt(OdbcNullStmt);
           // Snowflake describes USE and other commands with a status column on SQLPrepare, but
           // returns no result set after SQLExecute. SQLDB then raises "Cannot open a non-select
           // statement", after the statement was executed successfully.
@@ -4568,12 +4648,14 @@ begin
     end else if ColCount = 0 then begin
       // Execute without SQLPrepare, which takes :NEW in trigger bodies for a bind variable
       HasRows := False;
+      SetRunningStmt(OdbcNullStmt);
       QueryResult.UnPrepare;
-      Inc(FRowsAffected, Max(OdbcExecDirect(FHandle, SQL), 0));
+      Inc(FRowsAffected, Max(OdbcExecDirect(FHandle, SQL, SetRunningStmt), 0));
       if FTransaction.Active then
         FTransaction.Commit;
     end else begin
       QueryResult.ExecSQL;
+      SetRunningStmt(OdbcNullStmt);
       Inc(FRowsAffected, Max(QueryResult.RowsAffected, 0));
       HasRows := (ColCount < 0) and TSQLQueryAccess(QueryResult).Cursor.FSelectable;
       QueryResult.UnPrepare;
@@ -4593,6 +4675,7 @@ begin
     DetectUSEQuery(SQL);
   except
     on E:Exception do begin
+      SetRunningStmt(OdbcNullStmt);
       SetLastError(E);
       QueryResult.Free;
       Log(lcError, GetLastErrorMsg);

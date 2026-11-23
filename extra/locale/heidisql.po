@@ -7631,3 +7631,19 @@ msgstr "Install the Snowflake ODBC driver from %s."
 #: dbconnection.pas
 msgid "The ODBC driver \"%s\" is not installed."
 msgstr "The ODBC driver \"%s\" is not installed."
+
+#: tabletools.pas
+msgid "Searching in routines is not supported on %s."
+msgstr "Searching in routines is not supported on %s."
+
+#: tabletools.pas
+msgid "Table maintenance is not supported on %s."
+msgstr "Table maintenance is not supported on %s."
+
+#: tabletools.pas
+msgid "Bulk table editing is not supported on %s."
+msgstr "Bulk table editing is not supported on %s."
+
+#: dbconnection.pas
+msgid "The ODBC driver could not cancel the running query."
+msgstr "The ODBC driver could not cancel the running query."
