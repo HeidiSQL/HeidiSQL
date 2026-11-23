@@ -570,7 +570,13 @@ in fresh LXD containers without any ODBC or Oracle packages:
   - `libqt6pas6` is in none of these distributions' repositories (installed
     here from a manually downloaded .deb), so neither package installs on a
     stock system without it. For the test it was repackaged from the host.
-  - The rpm has no Firebird dependency, the deb has `libfbclient2`.
+  - Fixed: the rpm had no Firebird dependency, the deb has `libfbclient2`.
+    Now `libfbclient.so.2()(64bit)`, Fedora package `libfbclient2`
+    (Firebird 4). Tested on Fedora 43: fbclient's own network error
+    appears.
+  - Command line connect with `--nettype` but without `--library` uses the
+    MySQL default library (`libmariadb.so.3` for Firebird), not checked
+    further.
   - Fixed: the hint said "The ODBC driver ... is not installed" also when
     the driver manager itself was missing. Now only added when
     `OdbcDriverManagerAvailable`, the error already says "Please install
