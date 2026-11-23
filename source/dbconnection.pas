@@ -6646,8 +6646,8 @@ begin
 
     DefText := ColQuery.Col('COLUMN_DEFAULT');
     Col.OnUpdateType := cdtNothing;
-    if DefText.StartsWith('nextval(', True) then begin
-      // PG auto increment
+    if FParameters.IsAnyPostgreSQL and DefText.StartsWith('nextval(', True) then begin
+      // PG auto increment. MariaDB also has nextval(), which is a normal default expression there.
       Col.DefaultType := cdtAutoInc;
       Col.DefaultText := DefText;
     end
