@@ -11083,6 +11083,12 @@ begin
           CellText := CellText + ' [...]';
       end;
     end;
+    // Painting huge text or binary values makes the grid unresponsive. Shorten them for display only,
+    // callers of Grid.Text[] outside of painting (copy, filter, editors) still get the full value.
+    if (tsPainting in Sender.TreeStates)
+      and (Length(CellText) > GRIDMAXDISPLAY)
+      and (UTF8Length(CellText) > GRIDMAXDISPLAY) then
+      CellText := UTF8Copy(CellText, 1, GRIDMAXDISPLAY) + ' [...]';
   end;
 end;
 

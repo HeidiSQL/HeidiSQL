@@ -84,6 +84,8 @@ const
 
   // Data grid: How many bytes to fetch from data fields that are potentially large.
   GRIDMAXDATA: Int64 = 256;
+  // Grids: Maximum number of characters painted in a cell
+  GRIDMAXDISPLAY = 1000;
 
   BACKUP_MAXFILESIZE = 10 * SIZE_MB;
   BACKUP_FILEPATTERN: String = 'query-tab-%s.sql';
