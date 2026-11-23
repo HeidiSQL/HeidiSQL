@@ -341,7 +341,7 @@ the experimental InterBase support (`dbstructures.interbase.pas` ~300 lines,
 4. Packaging (deb `libodbc2`, macOS unixODBC bundle), new strings in
    `heidisql.po`. Done, see "Implementation status (phase 4)".
 
-Later: grid editing, table editor, generic read-only "ODBC" net type.
+Later: generic read-only "ODBC" net type. Grid editing and table editor: done.
 
 ## Implementation status (phases 1 and 2)
 
@@ -358,7 +358,7 @@ Code:
   (`ORACLE_MAINTAINED = 'N'` plus SYS and SYSTEM) are the tree's databases.
   Library dropdown = installed drivers matching `oracle`, label "ODBC driver:".
   SSH tunnel allowed, SSL tab disabled, "Use own client time zone" enabled.
-- Grid editing is blocked with a message (`TDBQuery.CheckEditable`).
+- Grid editing: see "Grid editing" below.
 - Icon: `server-oracle.png` (commit "feat: add Oracle connection icon").
 
 Learned while implementing:
@@ -490,7 +490,7 @@ Code:
   splitter.
 - Grid: `TIMESTAMP_TZ`/`_LTZ` via `TO_VARCHAR(col, 'YYYY-MM-DD
   HH24:MI:SS.FFn TZH:TZM')`, `TIMESTAMP_NTZ` and `TIME` via `TO_VARCHAR`
-  with fractional seconds. Grid editing is blocked as on Oracle.
+  with fractional seconds. Grid editing: see "Grid editing" below.
 - "Use own client time zone": `ALTER SESSION SET TIMEZONE = '<IANA name>'`
   after connect. `GetLocalIanaTimeZone` in `apphelpers.pas`: Windows maps the
   time zone key name via `ucal_getTimeZoneIDForWindowsID` from `icu.dll`
@@ -578,6 +578,25 @@ Later: test "Generate data" with all data types on Oracle and Snowflake.
 Text values must fit the column length, and generated rows must not violate
 foreign keys or unique keys. On Oracle, date strings rely on implicit
 conversion via `NLS_DATE_FORMAT`.
+
+## Grid editing
+
+Uses the generic `TDBQuery` code (`SaveModifications`, `DeleteRow`,
+`GetWhereClause`), with these ODBC specifics:
+- Only tables with a primary key, or a unique key on NOT NULL columns
+  (`CheckEditable`). No fallback to matching all columns: Oracle cannot compare
+  CLOB/BLOB in WHERE, Snowflake has no `UPDATE ... LIMIT 1`. Oracle ROWID as
+  a key for tables without one: later, it needs an extra column in the grid
+  SELECT.
+- WHERE uses the plain key columns, without `CastAsText` (Snowflake's
+  `TO_VARCHAR`).
+- Oracle: `ALTER SESSION SET NLS_DATE_FORMAT`, `NLS_TIMESTAMP_FORMAT` and
+  `NLS_TIMESTAMP_TZ_FORMAT` to ISO formats after connect, so date strings in
+  UPDATE/INSERT convert implicitly. Text longer than 1000 bytes is sent as
+  concatenated `TO_CLOB('...')` chunks (string literals hold 4000 bytes).
+  Binary via `HEXTORAW('...')`, limited to RAW's 2000 bytes.
+- Snowflake: VARIANT/OBJECT/ARRAY via `PARSE_JSON` / `TO_OBJECT` / `TO_ARRAY`.
+  INSERT uses `INSERT ... SELECT`, as `VALUES` takes only constants.
 
 ## Help page: Oracle setup for users
 

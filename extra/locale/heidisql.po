@@ -7647,3 +7647,7 @@ msgstr "Bulk table editing is not supported on %s."
 #: dbconnection.pas
 msgid "The ODBC driver could not cancel the running query."
 msgstr "The ODBC driver could not cancel the running query."
+
+#: dbconnection.pas
+msgid "Grid editing on %s needs a primary key or a unique key on NOT NULL columns."
+msgstr "Grid editing on %s needs a primary key or a unique key on NOT NULL columns."

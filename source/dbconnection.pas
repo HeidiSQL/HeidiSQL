@@ -2480,8 +2480,8 @@ end;
 
 
 type
-  // Grants access to the protected CloseTrans
-  TDBTransactionAccess = class(TDBTransaction);
+  // Grants access to the protected CloseTrans of TDBTransaction
+  TSQLTransactionAccess = class(TSQLTransaction);
 
 procedure TOdbcConnection.FreeHandles;
 var
@@ -2495,7 +2495,7 @@ begin
     on E:Exception do begin
       Log(lcDebug, 'Rollback on dead connection: '+E.Message);
       // Mark as inactive, so the destructor does not try again
-      TDBTransactionAccess(FTransaction).CloseTrans;
+      TSQLTransactionAccess(FTransaction).CloseTrans;
     end;
   end;
   Obj := FTransaction;
@@ -3832,6 +3832,12 @@ begin
     on E:EDbError do
       FServerVersionUntouched := 'Oracle ' + FHandle.GetConnectionInfo(citServerVersionString);
   end;
+  // ISO formats for implicit conversion of strings in grid editing and generated data,
+  // matching the TO_CHAR format of time zone columns in GetGridColumnExpression.
+  // The default NLS_DATE_FORMAT depends on the client's territory, e.g. DD-MON-RR.
+  Query('ALTER SESSION SET NLS_DATE_FORMAT = ''YYYY-MM-DD HH24:MI:SS'''
+    + ' NLS_TIMESTAMP_FORMAT = ''YYYY-MM-DD HH24:MI:SS.FF'''
+    + ' NLS_TIMESTAMP_TZ_FORMAT = ''YYYY-MM-DD HH24:MI:SS.FF TZH:TZM''');
   FServerDateTimeOnStartup := GetVar('SELECT ' + FSqlProvider.GetSql(qFuncNow));
 end;
 
@@ -4624,6 +4630,10 @@ begin
     QueryResult.Prepare;
     // Ask the driver for result columns, so a SELECT is executed only once, by Open
     ColCount := OdbcPreparedColumnCount(TSQLQueryAccess(QueryResult).Cursor);
+    // Snowflake describes DML with a result column like "number of rows updated", which
+    // would take the SELECT path and lose the affected rows from SQLRowCount
+    if (ColCount > 0) and ExecRegExprI('^\s*(INSERT|UPDATE|DELETE|MERGE)\b', TSQLBatch.GetSQLWithoutComments(SQL)) then
+      ColCount := 0;
     SetRunningStmt(OdbcCursorStmt(TSQLQueryAccess(QueryResult).Cursor));
     if ColCount > 0 then begin
       try
@@ -12227,6 +12237,67 @@ var
   sqlUpdate, sqlInsertColumns, sqlInsertValues, Val: String;
   RowModified: Boolean;
   ColAttr: TTableColumn;
+const
+  // Oracle string literals hold 4000 bytes, i.e. 1000 characters in AL32UTF8
+  OracleMaxLiteral = 1000;
+
+  function SnowflakeJsonValue(const Text, TypeName: String): String;
+  begin
+    // Semi-structured types take JSON text, which must be parsed
+    Result := 'PARSE_JSON(' + Connection.EscapeString(Text) + ')';
+    if TypeName = 'OBJECT' then
+      Result := 'TO_OBJECT(' + Result + ')'
+    else if TypeName = 'ARRAY' then
+      Result := 'TO_ARRAY(' + Result + ')';
+  end;
+
+  function OracleClobValue(const Text: String): String;
+  var
+    p, ChunkLen: Integer;
+  begin
+    // Longer text for CLOB columns: concatenated TO_CLOB() chunks, avoids ORA-01704
+    Result := '';
+    p := 1;
+    while p <= Length(Text) do begin
+      ChunkLen := Min(OracleMaxLiteral, Length(Text) - p + 1);
+      // Do not split UTF-8 sequences: move back before continuation bytes
+      while (p + ChunkLen <= Length(Text)) and (ChunkLen > 1)
+        and ((Ord(Text[p + ChunkLen]) and $C0) = $80) do
+        Dec(ChunkLen);
+      if Result <> '' then
+        Result := Result + ' || ';
+      Result := Result + 'TO_CLOB(' + Connection.EscapeString(Copy(Text, p, ChunkLen)) + ')';
+      Inc(p, ChunkLen);
+    end;
+  end;
+
+  function OracleIdentityValue(const ColName: String): String;
+  var
+    Owner, Table, SeqName: String;
+  begin
+    Result := '';
+    if Assigned(FDBObject) then begin
+      Owner := FDBObject.Database;
+      Table := FDBObject.Name;
+    end else begin
+      Owner := DatabaseName;
+      Table := TableName;
+    end;
+    try
+      SeqName := Connection.GetVar('SELECT SEQUENCE_NAME FROM ALL_TAB_IDENTITY_COLS'
+        + ' WHERE OWNER=' + Connection.EscapeString(Owner)
+        + ' AND TABLE_NAME=' + Connection.EscapeString(Table)
+        + ' AND COLUMN_NAME=' + Connection.EscapeString(ColName));
+      if not SeqName.IsEmpty then
+        Result := Connection.GetVar('SELECT ' + Connection.QuoteIdent(Owner) + '.'
+          + Connection.QuoteIdent(SeqName) + '.CURRVAL FROM dual');
+    except
+      // No identity column, but e.g. a trigger filling the value
+      on E:EDbError do
+        Result := '';
+    end;
+  end;
+
 begin
   Result := True;
   if not FEditingPrepared then
@@ -12260,8 +12331,14 @@ begin
           Val := FConnection.EscapeBin(Cell.NewText);
         dtcTemporal:
           Val := Connection.EscapeString(Connection.GetDateTimeValue(Cell.NewText, Datatype(i).Index))
-        else
-          Val := Connection.EscapeString(Cell.NewText, Datatype(i));
+        else begin
+          if Connection.Parameters.IsAnySnowflake and (Datatype(i).Index = dbdtJson) then
+            Val := SnowflakeJsonValue(Cell.NewText, Datatype(i).Name)
+          else if Connection.Parameters.IsAnyOracle and (Length(Cell.NewText) > OracleMaxLiteral) then
+            Val := OracleClobValue(Cell.NewText)
+          else
+            Val := Connection.EscapeString(Cell.NewText, Datatype(i));
+        end;
       end;
       sqlUpdate := sqlUpdate + Connection.QuoteIdent(FColumnOrgNames[i]) + '=' + Val;
       sqlInsertColumns := sqlInsertColumns + Connection.QuoteIdent(FColumnOrgNames[i]);
@@ -12271,14 +12348,32 @@ begin
     // Post query and fetch just inserted auto-increment id if applicable
     if RowModified then try
       if Row.Inserted then begin
-        Connection.Query('INSERT INTO '+QuotedDbAndTableName+' ('+sqlInsertColumns+') VALUES ('+sqlInsertValues+')');
+        if Connection.Parameters.IsAnySnowflake then
+          // VALUES accepts only constants on Snowflake, no PARSE_JSON()
+          Connection.Query('INSERT INTO '+QuotedDbAndTableName+' ('+sqlInsertColumns+') SELECT '+sqlInsertValues)
+        else
+          Connection.Query('INSERT INTO '+QuotedDbAndTableName+' ('+sqlInsertColumns+') VALUES ('+sqlInsertValues+')');
         Connection.ShowWarnings;
         for i:=0 to ColumnCount-1 do begin
           ColAttr := ColAttributes(i);
           if Assigned(ColAttr) and (ColAttr.DefaultType = cdtAutoInc) then begin
             Row[i].NewText := UnformatNumber(Row[i].NewText);
-            if Row[i].NewText = '0' then
-              Row[i].NewText := Connection.GetVar('SELECT ' + Connection.SqlProvider.GetSql(qFuncLastAutoIncNumber));
+            if Row[i].NewText = '0' then begin
+              if Connection.SqlProvider.Has(qFuncLastAutoIncNumber) then
+                Row[i].NewText := Connection.GetVar('SELECT ' + Connection.SqlProvider.GetSql(qFuncLastAutoIncNumber))
+              else if Connection.Parameters.IsAnyOracle then begin
+                // Identity column: CURRVAL of its sequence holds the value generated in this session
+                Row[i].NewText := OracleIdentityValue(ColAttr.Name);
+                Row[i].NewIsNull := Row[i].NewText.IsEmpty;
+                break;
+              end else begin
+                // Snowflake has no session function for the generated value.
+                // The row shows NULL there until the grid is refreshed.
+                Row[i].NewText := '';
+                Row[i].NewIsNull := True;
+                break;
+              end;
+            end;
             Row[i].NewIsNull := False;
             break;
           end;
@@ -12912,8 +13007,15 @@ var
   i: Integer;
   KeyCols: TTableColumnList;
 begin
-  if FConnection.Parameters.IsAnyOdbc then
-    raise EDbError.Create(f_('Grid editing is not yet supported on %s.', [FConnection.Parameters.NetTypeName(False)]));
+  // No row matching on all columns: CLOB/BLOB cannot be compared on Oracle, Snowflake has no
+  // UPDATE ... LIMIT 1
+  if FConnection.Parameters.IsAnyOdbc then begin
+    PrepareEditing;
+    // Owning list of the cached table columns, like in GridQuery: must not be freed
+    KeyCols := Connection.GetKeyColumns(FColumns, FKeys);
+    if KeyCols.Count = 0 then
+      raise EDbError.Create(f_('Grid editing on %s needs a primary key or a unique key on NOT NULL columns.', [FConnection.Parameters.NetTypeName(False)]));
+  end;
   KeyCols := GetKeyColumns;
   if KeyCols.Count = 0 then
     raise EDbError.Create(_(MSG_NOGRIDEDITING));
@@ -12959,8 +13061,12 @@ begin
       raise EDbError.CreateFmt(_('Cannot compose WHERE clause - column missing: %s'), [NeededCols[i].Name]);
     if Result <> '' then
       Result := Result + ' AND';
-    // See issue #769 and #2031 for why we need CastAsText
-    Result := Result + ' ' + NeededCols[i].CastAsText;
+    // See issue #769 and #2031 for why we need CastAsText.
+    // Not on ODBC, where only key columns are used: Snowflake's TO_VARCHAR(id)=5 compares texts.
+    if Connection.Parameters.IsAnyOdbc then
+      Result := Result + ' ' + Connection.QuoteIdent(NeededCols[i].Name)
+    else
+      Result := Result + ' ' + NeededCols[i].CastAsText;
 
     if Modified(j) then begin
       ColVal := FCurrentUpdateRow[j].OldText;
