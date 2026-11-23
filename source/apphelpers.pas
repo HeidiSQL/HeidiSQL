@@ -88,6 +88,7 @@ type
       FSQL: String;
       FQuotes: THashedStringList;
       FEscape: Char;
+      FHashComment: Char;
       procedure SetSQL(Value: String);
       function GetSize: Integer;
       function GetSQLWithoutComments: String; overload;
@@ -3642,10 +3643,13 @@ begin
   FQuotes.Add('''');
   // No escape char in string literals by default. A doubled quote closes and reopens the string.
   FEscape := #0;
+  // "#" starts a one-line comment on MySQL only, elsewhere it is part of an identifier, e.g. #temptable on MSSQL
+  FHashComment := #0;
   case NetTypeGroup of
     ngMySQL: begin
       FQuotes.Add('`'); // MySQL/MariaDB only
       FEscape := '\';
+      FHashComment := '#';
     end;
     ngPgSQL: FQuotes.Add('$$'); // PostgreSQL only ($abc$ unsupported)
     ngSnowflake: begin
@@ -3714,7 +3718,7 @@ begin
     cn := c + n;
 
     // Check for comment syntax, so a query delimiter can be ignored
-    if (not InComment) and (not InBigComment) and (not InString) and ((c + n = '--') or (c = '#')) then
+    if (not InComment) and (not InBigComment) and (not InString) and ((c + n = '--') or (c = FHashComment)) then
       InComment := True;
     if (not InComment) and (not InBigComment) and (not InString) and (c + n = '/*') then
       InBigComment := True;
