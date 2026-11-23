@@ -7615,3 +7615,19 @@ msgstr "If you change a file name extension, the file might become unusable. Do 
 #: extfiledialog.pas
 msgid "Could not rename \"%s\" to \"%s\": %s"
 msgstr "Could not rename \"%s\" to \"%s\": %s"
+
+#: connections.pas
+msgid "No ODBC driver found"
+msgstr "No ODBC driver found"
+
+#: dbconnection.pas
+msgid "Install the Oracle Instant Client packages \"Basic\" and \"ODBC\" from %s, and register the ODBC driver as described in its installation notes."
+msgstr "Install the Oracle Instant Client packages \"Basic\" and \"ODBC\" from %s, and register the ODBC driver as described in its installation notes."
+
+#: dbconnection.pas
+msgid "Install the Snowflake ODBC driver from %s."
+msgstr "Install the Snowflake ODBC driver from %s."
+
+#: dbconnection.pas
+msgid "The ODBC driver \"%s\" is not installed."
+msgstr "The ODBC driver \"%s\" is not installed."

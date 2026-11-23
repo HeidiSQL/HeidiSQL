@@ -340,6 +340,7 @@ type
       function IsAnySnowflake: Boolean;
       // Connected through an ODBC driver, see TOdbcConnection
       function IsAnyOdbc: Boolean;
+      function OdbcDriverHint: String;
       function IsMariaDB: Boolean;
       function IsMySQL(StrictDetect: Boolean): Boolean;
       function IsPercona: Boolean;
@@ -1790,6 +1791,22 @@ end;
 function TConnectionParameters.IsAnyOdbc: Boolean;
 begin
   Result := NetTypeGroup in [ngOracle, ngSnowflake];
+end;
+
+
+function TConnectionParameters.OdbcDriverHint: String;
+begin
+  // Where to get the ODBC driver, which is installed by the user, not shipped with HeidiSQL
+  case NetTypeGroup of
+    ngOracle:
+      Result := f_('Install the Oracle Instant Client packages "Basic" and "ODBC" from %s, and register the ODBC driver as described in its installation notes.',
+        ['https://www.oracle.com/database/technologies/instant-client/downloads.html']);
+    ngSnowflake:
+      Result := f_('Install the Snowflake ODBC driver from %s.',
+        ['https://developers.snowflake.com/odbc/']);
+    else
+      Result := '';
+  end;
 end;
 
 
@@ -3457,7 +3474,8 @@ end;
 
 procedure TOdbcConnection.SetActive(Value: Boolean);
 var
-  Error: String;
+  Error, ErrorHint: String;
+  InstalledDrivers: TStringList;
   FinalHost: String;
   FinalPort, i: Integer;
   AdditionalParams: TStringList;
@@ -3466,7 +3484,8 @@ begin
     DoBeforeConnect;
 
     if Parameters.LibraryOrProvider.Trim.IsEmpty then
-      raise EDbError.Create(_('No ODBC driver selected. Please install the ODBC driver for your database server, and select it in your session settings.'));
+      raise EDbError.Create(_('No ODBC driver selected. Please install the ODBC driver for your database server, and select it in your session settings.'),
+        0, Parameters.OdbcDriverHint);
 
     FinalHost := Parameters.Hostname;
     FinalPort := Parameters.Port;
@@ -3520,7 +3539,14 @@ begin
         FActive := False;
         FConnectionStarted := 0;
         EndSSHTunnel;
-        raise EDbError.Create(Error, LastErrorCode);
+        // Session copied from another computer, or driver uninstalled
+        ErrorHint := '';
+        InstalledDrivers := GetOdbcDriverNames('');
+        if InstalledDrivers.IndexOf(Parameters.LibraryOrProvider) = -1 then
+          ErrorHint := f_('The ODBC driver "%s" is not installed.', [Parameters.LibraryOrProvider])
+            + ' ' + Parameters.OdbcDriverHint;
+        InstalledDrivers.Free;
+        raise EDbError.Create(Error, LastErrorCode, ErrorHint);
       end;
     end;
   end else begin

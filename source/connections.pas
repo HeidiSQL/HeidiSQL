@@ -1729,6 +1729,15 @@ begin
         lblLibrary.Caption := _('ODBC driver:')
       else
         lblLibrary.Caption := _('Library:');
+      // Hint on where to get the driver, if none is installed
+      if Params.IsAnyOdbc and (comboLibrary.Items.Count = 0) then begin
+        comboLibrary.TextHint := _('No ODBC driver found');
+        comboLibrary.Hint := Params.OdbcDriverHint;
+        comboLibrary.ShowHint := True;
+      end else begin
+        comboLibrary.TextHint := '';
+        comboLibrary.Hint := '';
+      end;
       case Params.NetType of
         ntMySQL_NamedPipe: begin
           lblHost.Caption := _('Socket name:');

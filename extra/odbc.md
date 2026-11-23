@@ -196,19 +196,36 @@ hardcoded in FPC's `odbcsql.inc`), and the drivers are installed by the user
   "Oracle in instantclient_23" or "SnowflakeDSIIDriver".
 - `GetLibraries` fills the list by enumerating `SQLDrivers` instead of
   scanning the lib dir, filtered by regex `oracle` / `snowflake`.
+- No matching driver installed (empty list): the session manager shows the
+  text hint "No ODBC driver found" in the dropdown, its tooltip says where to
+  get the driver (`TConnectionParameters.OdbcDriverHint`: Oracle Instant
+  Client "Basic" + "ODBC" download page, Snowflake ODBC download page).
+  Connecting with an empty driver name raises "No ODBC driver selected" with
+  that hint. If connecting fails and the selected driver is not among the
+  installed ones (session copied from another computer, driver uninstalled),
+  the error gets the hint "The ODBC driver "…" is not installed." plus the
+  download hint.
 
 ## Packaging
 
-- Windows: nothing to add.
+- Windows (checked): nothing to add. `odbc32.dll` is part of Windows. The
+  installer copies `extra\ini\functions-*.ini` by wildcard, which includes
+  `functions-oracle.ini`. There is no `functions-snowflake.ini` yet; once
+  added, the wildcard covers it, as do the Makefile (`extra/ini/*.ini` for
+  deb, rpm, tar) and `create-macos-app.sh`. The server icons
+  (`res/icons/server-oracle.png`, `server-snowflake.png`) are compiled into
+  the exe, no files to ship.
 - Linux (done):
   - deb: `libodbc2 | libodbc1` in `Depends` (`deb-control.txt`). `libodbc2`
     since unixODBC 2.3.7 (Debian 12, Ubuntu 22.04+), `libodbc1` before
     (Debian 11, Ubuntu 20.04).
   - rpm: `--depends "libodbc.so.2()(64bit)"` in the Makefile (Fedora/RHEL
     package `unixODBC`).
-  - snap: `libodbc2` in `stage-packages`. Strict confinement hides
-    `/opt/oracle` and the host's `/etc/odbcinst.ini`, so Oracle will most
-    likely not work in the snap (not tested).
+  - tar packages: no dependency metadata; users install unixODBC themselves.
+  - No snap, AppImage or Flatpak definition in this repository (checked
+    2026-11-23). A snap would need `libodbc2` in `stage-packages`; strict
+    confinement hides `/opt/oracle` and the host's `/etc/odbcinst.ini`, so
+    Oracle would most likely not work there anyway.
   - FPC loads `libodbc.so`, which only exists with the `-dev` package.
     `LoadOdbcDriverManager` in `odbcfixed.pas` calls `InitialiseODBC` with
     `libodbc.so.2`, `libodbc.so.1`, `libodbc.2.dylib` and finally the FPC
@@ -322,7 +339,7 @@ the experimental InterBase support (`dbstructures.interbase.pas` ~300 lines,
    database, `GET_DDL`, `TO_VARCHAR()` wrapping of TZ/LTZ, time zone checkbox
    with IANA name.
 4. Packaging (deb `libodbc2`, macOS unixODBC bundle), new strings in
-   `heidisql.po`.
+   `heidisql.po`. Done, see "Implementation status (phase 4)".
 
 Later: grid editing, table editor, generic read-only "ODBC" net type.
 
@@ -511,6 +528,22 @@ NUMBER(38,0) exact, VARIANT, TIMESTAMP_TZ with offset, TIMESTAMP_LTZ in the
 session time zone (Europe/Berlin with the option, -08:00 without), column
 changes incl. NOT NULL in the table editor, view editing, renaming tables and
 views. Binary display after the `x'...'` change not yet confirmed.
+
+## Implementation status (phase 4, packaging and localization)
+
+- Packaging: Linux (deb, rpm) and macOS were done with phase 2, see
+  "Packaging". Windows installer checked, nothing missing. No snap,
+  AppImage or Flatpak in the repository.
+- Missing driver: text hint, tooltip and connect error hints, see
+  "Library field".
+- Localization: all `_()`/`f_()` literals in `source/*.pas` and the new
+  `connections.lfm` captions/hints (Warehouse, Role, connection parameters)
+  are in `extra/locale/heidisql.po`, `heidisql.en.mo` rebuilt. Checked with a
+  script comparing all literals against the msgids.
+- Tested: Windows clean build and start. Not testable locally: deb/rpm
+  install on Linux, the macOS bundle (both unchanged in this phase), and the
+  driver hints on a system without any Oracle/Snowflake driver (this machine
+  has both installed).
 
 ## Help page: Oracle setup for users
 
