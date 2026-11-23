@@ -579,6 +579,26 @@ Text values must fit the column length, and generated rows must not violate
 foreign keys or unique keys. On Oracle, date strings rely on implicit
 conversion via `NLS_DATE_FORMAT`.
 
+## Oracle: slow dictionary queries
+
+Measured 2026-11-23 on 21c XE (LAN, idle server): the key, index and foreign
+key queries on `ALL_CONSTRAINTS`/`ALL_INDEXES`/`ALL_CONS_COLUMNS` took 1-3 s
+each, together 4.6-6.2 s per newly selected table. Nearly all of it is the hard
+parse, as the table name is a literal: the same text again took 0.01-0.9 s.
+`DBMS_METADATA.GET_DDL` itself takes about 0.2 s per table (13 s for the first
+call on a cold server).
+
+Fix: `ALTER SESSION SET CURSOR_SHARING = FORCE` after connect. Then only the
+first table pays the parse, the next ones took 0.02 s for all three queries.
+Side effects on user queries: literals become binds, so plans for skewed data
+may be worse, and literals in the select list get bind-sized types.
+Alternative for later: real bind variables in the internal dictionary
+queries (needs `SQLBindParameter` support in `TOdbcConnection.Query`).
+
+Server side, `DBMS_STATS.GATHER_DICTIONARY_STATS` and
+`GATHER_FIXED_OBJECTS_STATS` (as SYS) brought `GET_DDL` over 18 tables from
+15.5 s to 2.6 s.
+
 ## Grid editing
 
 Uses the generic `TDBQuery` code (`SaveModifications`, `DeleteRow`,

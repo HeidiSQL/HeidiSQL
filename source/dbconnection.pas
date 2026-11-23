@@ -3835,9 +3835,13 @@ begin
   // ISO formats for implicit conversion of strings in grid editing and generated data,
   // matching the TO_CHAR format of time zone columns in GetGridColumnExpression.
   // The default NLS_DATE_FORMAT depends on the client's territory, e.g. DD-MON-RR.
+  // CURSOR_SHARING=FORCE: dictionary queries on ALL_* views contain the table name as a
+  // literal, and their hard parse takes 1-3 seconds each on XE. With FORCE, Oracle replaces
+  // literals by binds, so the parsed cursors are shared between tables.
   Query('ALTER SESSION SET NLS_DATE_FORMAT = ''YYYY-MM-DD HH24:MI:SS'''
     + ' NLS_TIMESTAMP_FORMAT = ''YYYY-MM-DD HH24:MI:SS.FF'''
-    + ' NLS_TIMESTAMP_TZ_FORMAT = ''YYYY-MM-DD HH24:MI:SS.FF TZH:TZM''');
+    + ' NLS_TIMESTAMP_TZ_FORMAT = ''YYYY-MM-DD HH24:MI:SS.FF TZH:TZM'''
+    + ' CURSOR_SHARING = FORCE');
   FServerDateTimeOnStartup := GetVar('SELECT ' + FSqlProvider.GetSql(qFuncNow));
 end;
 
