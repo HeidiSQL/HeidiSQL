@@ -613,7 +613,9 @@ in the LAN, Instant Client 23.26 registered in `~/.odbcinst.ini`:
   `TFixedODBCConnection.Create` removes both options (by name via RTTI, so
   it compiles with 3.2.2). Affects the macOS build (FPC 3.2.4) and probably
   Linux ARM64 (3.2.3), not Windows (3.2.2). Tested with a locally built
-  executable in the CI bundle: UPDATE, INSERT and DELETE work.
+  executable in the CI bundle: UPDATE, INSERT and DELETE work. Windows: to
+  retest grid editing with the new constructor (should be a no-op there),
+  together with the error dialog and search URL fixes above.
 - Snowflake (driver 4.2.0, set up as in "Packaging", trial account), with
   the fixed executable: connect, tree, umlauts, long VARCHAR, TIMESTAMP_TZ/LTZ
   and grid UPDATE/INSERT/DELETE work. "Use own client time zone" gives
@@ -710,8 +712,12 @@ How to explain it, learned from testing on macOS:
 - Then one section for the session settings, which are the same everywhere.
 - End with a troubleshooting table: error text as the user sees it, cause,
   fix. Users search for the error text.
-- Mark the whole thing experimental, and list what does not work yet (grid
-  editing, routine editor, copy table, SQL export), see "Not done / open".
+- Mark the whole thing experimental, and list what does not work yet
+  (routine editor, copy table), see "Not done / open". Grid editing works
+  since 2026-11-23.
+- Snowflake needs its own section: macOS setup (driver `.pkg`, `sf.odbc.ini`
+  with UTF-16, `~/.odbcinst.ini` entry) is in "Packaging"; Windows uses the
+  official `.msi`, which registers the driver.
 
 Draft:
 
