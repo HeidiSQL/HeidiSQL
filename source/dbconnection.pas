@@ -530,6 +530,7 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); overload; virtual;
+      function CancelQuery: Boolean; virtual;
       procedure Query(QueryId: TQueryId); overload;
       procedure Query(QueryId: TQueryId; const Args: array of const); overload;
       procedure Log(Category: TDBLogCategory; Msg: String);
@@ -4144,6 +4145,13 @@ begin
   FRowsFound := 0;
   FRowsAffected := 0;
   FWarningCount := 0;
+end;
+
+
+function TDBConnection.CancelQuery: Boolean;
+begin
+  // False: caller has to fire a KILL query from a helper connection
+  Result := False;
 end;
 
 

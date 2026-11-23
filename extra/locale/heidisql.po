@@ -5801,6 +5801,9 @@ msgstr "Second"
 msgid "Cannot close tab with running query. Please wait until query has finished."
 msgstr "Cannot close tab with running query. Please wait until query has finished."
 
+msgid "Cannot disconnect session with running query. Please wait until query has finished."
+msgstr "Cannot disconnect session with running query. Please wait until query has finished."
+
 #. Tree context menu
 msgid "Tree style options"
 msgstr "Tree style options"
