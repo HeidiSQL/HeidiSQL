@@ -593,7 +593,7 @@ in fresh LXD containers without any ODBC or Oracle packages:
     HTML. `MessageDialog` adds links on Windows only now.
   - Fixed: the search URL ended in `...founduery`, because the
     `WebSearchBaseUrl` presets contain `%query`, but `%q` was replaced
-    (also on Windows). Windows build not retested.
+    (also on Windows). Windows retested 2026-11-23, see "macOS test".
 
 ### macOS test (2026-11-23)
 
@@ -613,9 +613,10 @@ in the LAN, Instant Client 23.26 registered in `~/.odbcinst.ini`:
   `TFixedODBCConnection.Create` removes both options (by name via RTTI, so
   it compiles with 3.2.2). Affects the macOS build (FPC 3.2.4) and probably
   Linux ARM64 (3.2.3), not Windows (3.2.2). Tested with a locally built
-  executable in the CI bundle: UPDATE, INSERT and DELETE work. Windows: to
-  retest grid editing with the new constructor (should be a no-op there),
-  together with the error dialog and search URL fixes above.
+  executable in the CI bundle: UPDATE, INSERT and DELETE work. Windows
+  retested 2026-11-23 (clean build, FPC 3.2.2): grid UPDATE/INSERT/DELETE
+  on Oracle and Snowflake, Snowflake BINARY, error dialog link and search
+  URL work.
 - Snowflake (driver 4.2.0, set up as in "Packaging", trial account), with
   the fixed executable: connect, tree, umlauts, long VARCHAR, TIMESTAMP_TZ/LTZ
   and grid UPDATE/INSERT/DELETE work. "Use own client time zone" gives
