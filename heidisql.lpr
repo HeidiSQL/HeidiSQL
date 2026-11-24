@@ -7,7 +7,7 @@ uses
   {$IFDEF DARWIN} iosxlocale, {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   {$IFDEF WINDOWS} uMetaDarkStyle, uDarkStyleParams, uDarkStyleSchemes, {$ENDIF}
-  SysUtils, Dialogs,
+  SysUtils, Classes, Dialogs,
   Forms, printer4lazarus, datetimectrls, LCLTranslator, Translations,
   { you can add units after this }
   main, apphelpers, dbconnection, generic_types, crashdialog, FileInfo, loginform
@@ -45,7 +45,7 @@ begin
   end;
   VI.Free;
 
-  PostponedLogItems := TDBLogItems.Create(True);
+  PostponedLogLines := TStringList.Create;
   Application.{%H-}MainFormOnTaskBar := True; // hide warning: Symbol "MainFormOnTaskBar" is not portable
 
   // Use MySQL standard format for date/time variables: YYYY-MM-DD HH:MM:SS

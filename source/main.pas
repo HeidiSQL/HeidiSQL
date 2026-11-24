@@ -1273,6 +1273,7 @@ type
   private
     FDelimiter: String;
     FLogToFile: Boolean;
+    FLogLineNumberOffset: Integer;
     FFileNameSessionLog: String;
     FFileHandleSessionLog: Textfile;
     FLastMouseUpOnPageControl: Cardinal;
@@ -1369,6 +1370,9 @@ type
     function RunQueryFile(Filename: String; Encoding: TEncoding; Conn: TDBConnection;
       ProgressDialog: TfrmProgress; FilesizeSum: Int64; var CurrentPosition: Int64): Boolean;
     procedure SetLogToFile(Value: Boolean);
+    procedure AddLogLine(Line, SessionPath: String);
+    procedure SynMemoSQLLogFormatLineNumber(Sender: TSynGutterLineNumber; ALine: Integer; out AText: String;
+      const ALineInfo: TSynEditGutterLineInfo);
     procedure StoreLastSessions;
     function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
     function InitTabsIniFile: TIniFile;
@@ -1467,7 +1471,8 @@ var
   SysLanguage: String;
   MainFormCreated: Boolean = False;
   MainFormAfterCreateDone: Boolean = False;
-  PostponedLogItems: TDBLogItems;
+  // Log lines from before the main form was created, shown at the end of FormCreate
+  PostponedLogLines: TStringList;
 
 const
   CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
@@ -2257,6 +2262,9 @@ begin
 
   // Now we are free to use certain methods, which are otherwise fired too early
   MainFormCreated := True;
+  for i:=0 to PostponedLogLines.Count-1 do
+    AddLogLine(PostponedLogLines[i], '');
+  FreeAndNil(PostponedLogLines);
 
   // Log some application details - useful when analyzing session logs
   LogSQL(f_('App path: "%s"', [Application.ExeName]), lcDebug);
@@ -2988,7 +2996,7 @@ begin
     m := QueryTabs.ActiveMemo
   end else if Sender = actClearQueryLog then begin
     m := SynMemoSQLLog;
-    //m.Gutter.LineNumberStart := m.Gutter.LineNumberStart + m.Lines.Count;
+    Inc(FLogLineNumberOffset, m.Lines.Count);
   end else begin
     m := SynMemoFilter;
     editFilterSearch.Clear;
@@ -5894,98 +5902,97 @@ end;
 
 {**
   Add a SQL-command or comment to SynMemoSQLLog
+  Caution: may be called with Self=nil, before the main form is created
 }
 procedure TMainForm.LogSQL(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil);
 var
-  snip, IsSQL: Boolean;
-  Len, i, MaxLineWidth: Integer;
+  LogIt, IsSQL: Boolean;
+  MaxLineWidth: Integer;
   Sess, OldSettingsPath: String;
-  LogIt: Boolean;
-  LogItem: TDBLogItem;
 begin
   OldSettingsPath := AppSettings.SessionPath;
-  LogItem := TDBLogItem.Create;
-  LogItem.Category := Category;
-  if AppSettings.ReadBool(asLogTimestamp) then
-    LogItem.LineText := '['+FormatDateTime('hh:nn:ss.zzz', Now)+'] '+ Msg
-  else
-    LogItem.LineText := Msg;
-  LogItem.Connection := Connection;
-  PostponedLogItems.Add(LogItem);
 
-  if not MainFormCreated then
-    Exit;
-  if csDestroying in ComponentState then
-    Exit;
+  // Log only wanted events
+  case Category of
+    lcError: LogIt := AppSettings.ReadBool(asLogErrors);
+    lcUserFiredSQL: LogIt := AppSettings.ReadBool(asLogUserSQL);
+    lcSQL: LogIt := AppSettings.ReadBool(asLogSQL);
+    lcScript: LogIt := AppSettings.ReadBool(asLogScript);
+    lcInfo: LogIt := AppSettings.ReadBool(asLogInfos);
+    lcDebug: LogIt := AppSettings.ReadBool(asLogDebug);
+    else LogIt := False;
+  end;
 
-  for LogItem in PostponedLogItems do begin
+  if LogIt then begin
+    if AppSettings.ReadBool(asLogTimestamp) then
+      Msg := '['+FormatDateTime('hh:nn:ss.zzz', Now)+'] ' + Msg;
+    // Shorten very long messages
+    IsSQL := Category in [lcSQL, lcUserFiredSQL];
+    MaxLineWidth := AppSettings.ReadInt(asLogsqlwidth);
+    if (MaxLineWidth > 0) and (Length(Msg) > MaxLineWidth) then
+      Msg := Copy(Msg, 1, MaxLineWidth) + '...'
+    else if IsSQL then
+      Msg := Msg + Delimiter;
+    if not IsSQL then
+      Msg := '/* ' + Msg + ' */';
 
-    // Log only wanted events
-    case LogItem.Category of
-      lcError: LogIt := AppSettings.ReadBool(asLogErrors);
-      lcUserFiredSQL: LogIt := AppSettings.ReadBool(asLogUserSQL);
-      lcSQL: LogIt := AppSettings.ReadBool(asLogSQL);
-      lcScript: LogIt := AppSettings.ReadBool(asLogScript);
-      lcInfo: LogIt := AppSettings.ReadBool(asLogInfos);
-      lcDebug: LogIt := AppSettings.ReadBool(asLogDebug);
-      else LogIt := False;
-    end;
-
-    if LogIt then begin
-      // Shorten very long messages
-      Msg := LogItem.LineText;
-      Len := Length(Msg);
-      MaxLineWidth := AppSettings.ReadInt(asLogsqlwidth);
-      snip := (MaxLineWidth > 0) and (Len > MaxLineWidth);
-      IsSQL := LogItem.Category in [lcSQL, lcUserFiredSQL];
-      if snip then begin
-        Msg := Copy(Msg, 1, MaxLineWidth) + '...';
-      end else if (not snip) and IsSQL then
-        Msg := Msg + Delimiter;
-      if not IsSQL then
-        Msg := '/* ' + Msg + ' */';
-
-      SynMemoSQLLog.Lines.Add(Msg);
-
-      // Delete first line(s) in SQL log and adjust LineNumberStart in gutter
-      i := 0;
-      while SynMemoSQLLog.Lines.Count > AppSettings.ReadInt(asLogsqlnum) do begin
-        SynMemoSQLLog.Lines.Delete(0);
-        Inc(i);
-      end;
-      // Increase first displayed number in gutter so it doesn't lie about the log entries
-      // Lazarus Synedit has no LineNumberStart
-      //if i > 0 then
-      //  SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + i;
-
-      // Scroll to last line and repaint
-      SynMemoSQLLog.CaretY := SynMemoSQLLog.Lines.Count;
-      // Causes access violations on a reconnected session firing a user-query:
-      // SynMemoSQLLog.Repaint;
-      SynMemoSQLLog.Update; // Experimental: immediately shows new lines on heavy operations, enhancing user experience. Disable when crashes happen again!
-      // See TDBConnection.Log and TQueryThread.LogFromThread
-      // See https://github.com/HeidiSQL/HeidiSQL/issues/57
-
-      // Log to file?
-      if FLogToFile then
-      try
-        Sess := '';
-        if LogItem.Connection <> nil then
-          Sess := LogItem.Connection.Parameters.SessionPath;
-        WriteLn(FFileHandleSessionLog, Format('/* %s [%s] */ %s', [DateTimeToStr(Now), Sess, msg]));
-      except
-        on E:Exception do begin
-          LogToFile := False;
-          AppSettings.WriteBool(asLogToFile, False);
-          ErrorDialog(_('Error writing to session log file.'), E.Message+CRLF+_('Filename')+': '+FFileNameSessionLog+CRLF+CRLF+_('Logging is disabled now.'));
-        end;
-      end;
+    if not MainFormCreated then
+      PostponedLogLines.Add(Msg)
+    else if not (csDestroying in ComponentState) then begin
+      Sess := '';
+      if Connection <> nil then
+        Sess := Connection.Parameters.SessionPath;
+      AddLogLine(Msg, Sess);
     end;
   end;
-  PostponedLogItems.Clear;
 
   // Restore possibly overwritten session path
   AppSettings.SessionPath := OldSettingsPath;
+end;
+
+
+procedure TMainForm.AddLogLine(Line, SessionPath: String);
+var
+  LineNumberPart: TSynGutterLineNumber;
+begin
+  SynMemoSQLLog.Lines.Add(Line);
+
+  // Delete first line(s) in SQL log, and let the gutter continue counting
+  while SynMemoSQLLog.Lines.Count > AppSettings.ReadInt(asLogsqlnum) do begin
+    SynMemoSQLLog.Lines.Delete(0);
+    Inc(FLogLineNumberOffset);
+  end;
+  LineNumberPart := SynMemoSQLLog.Gutter.LineNumberPart;
+  if (FLogLineNumberOffset > 0) and Assigned(LineNumberPart) then
+    LineNumberPart.DigitCount := Length(IntToStr(FLogLineNumberOffset + SynMemoSQLLog.Lines.Count));
+
+  // Scroll to last line and repaint
+  SynMemoSQLLog.CaretY := SynMemoSQLLog.Lines.Count;
+  // Causes access violations on a reconnected session firing a user-query:
+  // SynMemoSQLLog.Repaint;
+  SynMemoSQLLog.Update; // Experimental: immediately shows new lines on heavy operations, enhancing user experience. Disable when crashes happen again!
+  // See TDBConnection.Log and TQueryThread.LogFromThread
+  // See https://github.com/HeidiSQL/HeidiSQL/issues/57
+
+  // Log to file?
+  if FLogToFile then
+  try
+    WriteLn(FFileHandleSessionLog, Format('/* %s [%s] */ %s', [DateTimeToStr(Now), SessionPath, Line]));
+  except
+    on E:Exception do begin
+      LogToFile := False;
+      AppSettings.WriteBool(asLogToFile, False);
+      ErrorDialog(_('Error writing to session log file.'), E.Message+CRLF+_('Filename')+': '+FFileNameSessionLog+CRLF+CRLF+_('Logging is disabled now.'));
+    end;
+  end;
+end;
+
+
+procedure TMainForm.SynMemoSQLLogFormatLineNumber(Sender: TSynGutterLineNumber; ALine: Integer; out AText: String;
+  const ALineInfo: TSynEditGutterLineInfo);
+begin
+  // Count log lines including those deleted from the top, so line numbers don't lie about the log entries
+  AText := Sender.FormatLineNumber(ALine + FLogLineNumberOffset, ALineInfo.ShowDot);
 end;
 
 
@@ -14074,6 +14081,8 @@ begin
   if Assigned(LineNumberPart) then begin
     LineNumberPart.LeftOffset := 2;
     LineNumberPart.MarkupInfo.Foreground := clGrayText;
+    if Editor = SynMemoSQLLog then
+      LineNumberPart.OnFormatLineNumber := SynMemoSQLLogFormatLineNumber;
   end;
   Editor.BorderStyle := BaseEditor.BorderStyle;
   Editor.BookMarkOptions.BookmarkImages := ImageListSynBookMarks;
