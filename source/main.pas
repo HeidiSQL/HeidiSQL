@@ -3758,6 +3758,7 @@ var
   ContentStream: TMemoryStream;
   StrLen, ResultCol: Integer;
   Graphic: TGraphic;
+  BinData: TBytes;
 begin
   // Load BLOB contents into preview area
   Grid := ActiveGrid;
@@ -3777,13 +3778,26 @@ begin
     RowNum := Grid.GetNodeData(Grid.FocusedNode);
     Results.RecNo := RowNum^;
 
-    Content := AnsiString(Results.Col(ResultCol));
-    StrLen := Results.ColumnLengths(ResultCol);
+    // Prefer raw bytes. ColumnLengths() is the field's buffer size on some connections, see #846
+    Content := '';
+    BinData := nil;
+    try
+      if Results.GetColBinData(ResultCol, BinData) then begin
+        if Length(BinData) > 0 then
+          SetString(Content, PAnsiChar(@BinData[0]), Length(BinData));
+      end else
+        Content := AnsiString(Results.Col(ResultCol));
+    except
+      // Not implemented on this connection type
+      on E:EDbError do
+        Content := AnsiString(Results.Col(ResultCol));
+    end;
+    StrLen := Length(Content);
     ContentStream := TMemoryStream.Create;
-    ContentStream.Write(Content[1], StrLen);
+    if StrLen > 0 then
+      ContentStream.Write(Content[1], StrLen);
     ContentStream.Position := 0;
     Graphic := nil;
-    ContentStream.Position := 0;
     ImgType := 'UnknownType';
     Header := Copy(Content, 1, 50);
     if Copy(Header, 7, 4) = 'JFIF' then begin
@@ -3811,9 +3825,9 @@ begin
         on E:Exception do
           lblPreviewTitle.Caption := ImgType+': ' + E.Message + ' ('+E.ClassName+')';
       end;
-      FreeAndNil(ContentStream);
     end else
       lblPreviewTitle.Caption := f_('No image detected, %s', [FormatByteNumber(StrLen)]);
+    ContentStream.Free;
   finally
     lblPreviewTitle.Hint := lblPreviewTitle.Caption;
     ShowStatusMsg;
