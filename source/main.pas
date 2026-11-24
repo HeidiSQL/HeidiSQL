@@ -14402,8 +14402,6 @@ begin
     if Tab.QueryRunning then begin
       Tab.ExecutionThread.Aborted := True;
       Conn := Tab.ExecutionThread.Connection;
-      if Conn.CancelQuery then
-        Continue;
       Killer := Conn.Parameters.CreateConnection(Self);
       Killer.Parameters := Conn.Parameters;
       Killer.OwnsParameters := False;

@@ -531,7 +531,6 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); overload; virtual;
-      function CancelQuery: Boolean; virtual;
       procedure Query(QueryId: TQueryId); overload;
       procedure Query(QueryId: TQueryId; const Args: array of const); overload;
       procedure Log(Category: TDBLogCategory; Msg: String);
@@ -703,7 +702,6 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
-      function CancelQuery: Boolean; override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
       function GetLastResults: TDBQueryList; override;
@@ -1037,7 +1035,7 @@ var
 
 implementation
 
-uses apphelpers, loginform, change_password, Winapi.ADOInt;
+uses apphelpers, loginform, change_password;
 
 
 
@@ -3933,22 +3931,6 @@ begin
 end;
 
 
-function TDBConnection.CancelQuery: Boolean;
-begin
-  // False: caller has to fire a KILL query from a helper connection
-  Result := False;
-end;
-
-
-function TAdoDBConnection.CancelQuery: Boolean;
-begin
-  // Abort the running asynchronous Execute on the same connection, see issue #316.
-  // Requires no KILL permission, and keeps the session alive.
-  FAdoHandle.ConnectionObject.Cancel;
-  Result := True;
-end;
-
-
 procedure TDBConnection.Query(QueryId: TQueryId);
 begin
   Query(FSqlProvider.GetSql(QueryId));
@@ -4052,13 +4034,7 @@ begin
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
   try
-    // Execute asynchronously, so CancelQuery can abort it
-    QueryResult := FAdoHandle.ConnectionObject.Execute(SQL, VarRowsAffected, adCmdText or adAsyncExecute);
-    while (FAdoHandle.ConnectionObject.State and adStateExecuting) <> 0 do
-      Sleep(10);
-    // Asynchronous errors do not raise an exception. Number=0 means info message, e.g. from PRINT
-    if (FAdoHandle.Errors.Count > 0) and (FAdoHandle.Errors[FAdoHandle.Errors.Count-1].Number <> 0) then
-      raise EOleException.Create(FAdoHandle.Errors[FAdoHandle.Errors.Count-1].Description, 0, '', '', 0);
+    QueryResult := FAdoHandle.ConnectionObject.Execute(SQL, VarRowsAffected, 1);
     FLastQueryDuration := GetTickCount - TimerStart;
     FLastQueryNetworkDuration := 0;
 
