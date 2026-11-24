@@ -10216,7 +10216,6 @@ begin
   except
     Result := FConnection.EscapeBin(Col(Column, IgnoreErrors));
   end;
-    Result := FConnection.EscapeBin(Col(Column, IgnoreErrors));
 end;
 
 
