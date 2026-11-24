@@ -87,6 +87,7 @@ type
       procedure Change; override;
       procedure DropDown; override;
       procedure CloseUp; override;
+      procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     public
       procedure InitiateAction; override;
   end;
@@ -611,7 +612,7 @@ var
 begin
   inherited;
   P := Point(0,0);
-  if (ItemIndex > -1) and DroppedDown and GetCursorPos(P) then begin
+  if Assigned(FHintWindow) and (ItemIndex > -1) and DroppedDown and GetCursorPos(P) then begin
     HintText := Items[ItemIndex];
     HintWidth := Canvas.TextWidth(HintText);
     if HintWidth > Width then begin
@@ -630,8 +631,19 @@ end;
 procedure TExtComboBox.CloseUp;
 begin
   inherited;
-  FHintWindow.Hide;
+  // Qt delivers CloseUp also without a preceding DropDown, and also while the
+  // combo box and its hint window are being destroyed, e.g. when a grid cell
+  // editor is released. See issue #2663.
+  if Assigned(FHintWindow) and not (csDestroying in ComponentState) then
+    FHintWindow.Hide;
   ControlStyle := ControlStyle - [csActionClient];
+end;
+
+procedure TExtComboBox.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = FHintWindow) then
+    FHintWindow := nil;
 end;
 
 procedure TExtComboBox.DropDown;
