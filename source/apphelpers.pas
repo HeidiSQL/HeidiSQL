@@ -3098,6 +3098,7 @@ type
 function CreateToolhelp32Snapshot(dwFlags, th32ProcessID: DWORD): THandle; stdcall; external 'kernel32' name 'CreateToolhelp32Snapshot';
 function Process32FirstW(hSnapshot: THandle; var lppe: TProcessEntry32): BOOL; stdcall; external 'kernel32' name 'Process32FirstW';
 function Process32NextW(hSnapshot: THandle; var lppe: TProcessEntry32): BOOL; stdcall; external 'kernel32' name 'Process32NextW';
+function ProcessIdToSessionId(dwProcessId: DWORD; var pSessionId: DWORD): BOOL; stdcall; external 'kernel32' name 'ProcessIdToSessionId';
 {$ENDIF}
 
 
@@ -3107,10 +3108,27 @@ var
   Proc: TProcessEntry32;
   SnapShot: THandle;
   ContinueLoop: Boolean;
+  OwnSessionId, ProcSessionId: DWORD;
+
+  function IsOwnSession(ProcId: DWORD): Boolean;
+  begin
+    // A process whose session cannot be determined belongs to another user.
+    ProcSessionId := 0;
+    Result := ProcessIdToSessionId(ProcId, ProcSessionId) and (ProcSessionId = OwnSessionId);
+  end;
+
 begin
   // Walk through all processes with the help of a snapshot.
   // A pid of 0 means "any pid", an empty ExeNamePattern matches any process.
+  // Only processes in the current session are taken into account. The
+  // snapshot also lists processes of other users, e.g. on a terminal server
+  // or with fast user switching, which have their own settings and query tab
+  // backups, and must neither trigger the second instance check nor block
+  // restoring query tabs.
   Result := False;
+  OwnSessionId := 0;
+  if not ProcessIdToSessionId(GetCurrentProcessId, OwnSessionId) then
+    OwnSessionId := High(DWORD);
   SnapShot := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
   if SnapShot <> INVALID_HANDLE_VALUE then begin
     try
@@ -3119,7 +3137,8 @@ begin
       while ContinueLoop do begin
         if (Proc.th32ProcessID <> ExcludePid)
           and ((pid = 0) or (Proc.th32ProcessID = pid))
-          and (ExeNamePattern.IsEmpty or ContainsText(Proc.szExeFile, ExeNamePattern)) then begin
+          and (ExeNamePattern.IsEmpty or ContainsText(Proc.szExeFile, ExeNamePattern))
+          and IsOwnSession(Proc.th32ProcessID) then begin
           Result := True;
           Break;
         end;
@@ -3183,28 +3202,46 @@ begin
 end;
 {$ELSE}
 var
-  Buffer, Line, TrimmedLine, ProcName: String;
-  PidNumber: Cardinal;
-  i: Integer;
+  Buffer, Line, Rest, ProcName: String;
+  PidNumber, UidNumber, OwnUid: Cardinal;
+
+  function NextToken(var Text: String): String;
+  var
+    i: Integer;
+  begin
+    // ps right-aligns its numeric columns, so cut off leading spaces first
+    Text := TrimLeft(Text);
+    i := Pos(' ', Text);
+    if i = 0 then
+      i := Length(Text) + 1;
+    Result := Copy(Text, 1, i-1);
+    Text := Copy(Text, i+1, MaxInt);
+  end;
+
 begin
   // Other Unix platforms without a /proc filesystem, e.g. macOS: use "ps".
   // A pid of 0 means "any pid", an empty ExeNamePattern matches any process.
+  // Only processes of the current user are taken into account. ps also lists
+  // processes of other users, e.g. with fast user switching, which have their
+  // own settings and query tab backups, and must neither trigger the second
+  // instance check nor block restoring query tabs.
   Result := False;
-  if RunCommand('ps', ['-axo', 'pid=,comm='], Buffer) then begin
+  OwnUid := Cardinal(FpGetuid);
+  if RunCommand('ps', ['-axo', 'uid=,pid=,comm='], Buffer) then begin
     for Line in Buffer.Split([#10, #13], TStringSplitOptions.ExcludeEmpty) do begin
-      // ps right-aligns the pid column, so lines start with spaces. Without
-      // trimming, Pos(' ', ...) would be 1 and the pid would parse as 0,
-      // which never equals ExcludePid and so matches our own process.
-      TrimmedLine := Trim(Line);
-      i := Pos(' ', TrimmedLine);
-      if i > 0 then begin
-        PidNumber := Cardinal(StrToInt64Def(Copy(TrimmedLine, 1, i-1), 0));
-        if (PidNumber <> ExcludePid) and ((pid = 0) or (PidNumber = pid)) then begin
-          ProcName := Trim(Copy(TrimmedLine, i+1, MaxInt));
-          if ExeNamePattern.IsEmpty or ContainsText(ProcName, ExeNamePattern) then begin
-            Result := True;
-            Break;
-          end;
+      Rest := Line;
+      // An unparsable uid becomes High(Cardinal), which is never our own uid
+      UidNumber := Cardinal(StrToInt64Def(NextToken(Rest), High(Cardinal)));
+      // An unparsable pid becomes 0, which never equals ExcludePid, so it
+      // must not be taken as a match for "any pid"
+      PidNumber := Cardinal(StrToInt64Def(NextToken(Rest), 0));
+      if (UidNumber = OwnUid) and (PidNumber > 0)
+        and (PidNumber <> ExcludePid) and ((pid = 0) or (PidNumber = pid)) then begin
+        // The executable path may contain spaces, so take the whole rest
+        ProcName := Trim(Rest);
+        if ExeNamePattern.IsEmpty or ContainsText(ProcName, ExeNamePattern) then begin
+          Result := True;
+          Break;
         end;
       end;
     end;
