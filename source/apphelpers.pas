@@ -3137,16 +3137,25 @@ var
   Fs: TFileStream;
   Buffer, ProcName: String;
   FoundPid: Cardinal;
+  OwnUid: TUid;
+  ProcStat: Stat;
 begin
   // Linux: scan /proc/<pid>/comm, which contains the executable name.
   // A pid of 0 means "any pid", an empty ExeNamePattern matches any process.
+  // Only processes of the current user are taken into account. /proc also
+  // lists processes of other users and of containers (e.g. LXD, Docker),
+  // which have their own settings and query tab backups, and must neither
+  // trigger the second instance check nor block restoring query tabs.
   Result := False;
+  OwnUid := FpGetuid;
   if FindFirst('/proc/*', faDirectory, SR) = 0 then begin
     try
       repeat
         if (SR.Name <> '') and (SR.Name[1] in ['0'..'9']) then begin
           FoundPid := Cardinal(StrToInt64Def(SR.Name, 0));
-          if (FoundPid <> ExcludePid) and ((pid = 0) or (FoundPid = pid)) then begin
+          if (FoundPid <> ExcludePid) and ((pid = 0) or (FoundPid = pid))
+            and (FpStat('/proc/' + SR.Name, ProcStat) = 0)
+            and (ProcStat.st_uid = OwnUid) then begin
             ProcName := '';
             try
               Fs := TFileStream.Create('/proc/' + SR.Name + '/comm', fmOpenRead or fmShareDenyNone);
