@@ -6404,7 +6404,11 @@ begin
           and (not IsKeyColumn) // We need full length of any key column, so DataGridLoadFullRow() has the chance to fetch the right row
           and ((ColMaxLen > GRIDMAXDATA) or (ColMaxLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
           then begin
-            Select := Select + DBObj.Connection.SqlProvider.GetSql(qFuncLeft, [c.CastAsText, GRIDMAXDATA]) + ', ';
+            if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Category = dtcBinary) then
+              // LEFT() returns VARCHAR for binary input on MSSQL, SUBSTRING() keeps VARBINARY, see #938
+              Select := Select + 'SUBSTRING(' + DBObj.Connection.QuoteIdent(c.Name) + ', 1, ' + IntToStr(GRIDMAXDATA) + '), '
+            else
+              Select := Select + DBObj.Connection.SqlProvider.GetSql(qFuncLeft, [c.CastAsText, GRIDMAXDATA]) + ', ';
           end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dbdtTimestamp) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
           end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dbdtHierarchyid) then begin

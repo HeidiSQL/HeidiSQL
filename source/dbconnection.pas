@@ -11432,13 +11432,26 @@ end;
 function TSqlSrvQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 var
   Stream: TMemoryStream;
+  Field: TField;
+  RawText: AnsiString;
 begin
   Result := False;
-  if ColumnExists(Column) and (not IsNull(Column)) then begin
-    if FCurrentResults.Fields[Column] is TBlobField then begin
+  if not ColumnExists(Column) then
+    Exit;
+  if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
+    // Row was loaded fully or edited, values only valid in the update row. Col() returns raw bytes.
+    RawText := AnsiString(FCurrentUpdateRow[Column].NewText);
+    SetLength(baData, Length(RawText));
+    if Length(RawText) > 0 then
+      Move(RawText[1], baData[0], Length(RawText));
+    Result := True;
+  end
+  else if not IsNull(Column) then begin
+    Field := FCurrentResults.Fields[Column];
+    if Field is TBlobField then begin
       Stream := TMemoryStream.Create;
       try
-        TBlobField(FCurrentResults.Fields[Column]).SaveToStream(Stream);
+        TBlobField(Field).SaveToStream(Stream);
         SetLength(baData, Stream.Size);
         if Stream.Size > 0 then
           Move((Stream.Memory)^, baData[0], Stream.Size);
@@ -11446,12 +11459,20 @@ begin
       finally
         Stream.Free;
       end;
-    end else
+    end
+    else if Field.DataType in [ftBytes, ftVarBytes] then begin
+      // BINARY(n) and VARBINARY(n), see #938
+      baData := Field.AsBytes;
+      Result := True;
+    end
+    else
       Raise EDbError.Create(SNotImplemented);
   end;
 end;
 
 function TSqlSrvQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
+var
+  BinData: TBytes;
 begin
   if ColumnExists(Column) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
@@ -11463,6 +11484,13 @@ begin
             Result := FloatToStr(FCurrentResults.Fields[Column].AsFloat, FFormatSettings);
           dtcTemporal:
             Result := FormatDateTime(Datatype(Column).Format, FCurrentResults.Fields[Column].AsFloat);
+          dtcBinary, dtcSpatial: begin
+            // Raw bytes, without any codepage conversion, see GetColBinData and EscapeBin
+            Result := '';
+            BinData := nil;
+            if GetColBinData(Column, BinData) and (Length(BinData) > 0) then
+              SetString(Result, PAnsiChar(@BinData[0]), Length(BinData));
+          end;
           else
             Result := FCurrentResults.Fields[Column].AsString;
         end;
