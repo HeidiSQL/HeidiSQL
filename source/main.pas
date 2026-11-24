@@ -230,6 +230,14 @@ type
   end;
   {$ENDIF}
 
+  // Interposer for SynSQLSynUsed: lets each line in the given editor start with a reset highlighter
+  // state, so a snipped, unterminated string or comment does not spill over into the next log lines
+  TSynSQLSyn = class(SynHighlighterSQL.TSynSQLSyn)
+  public
+    SingleLineEditor: TSynEdit;
+    procedure SetRange(Value: Pointer); override;
+  end;
+
   { TMainForm }
 
   TMainForm = class(TExtForm)
@@ -1476,6 +1484,18 @@ uses
   selectdbobject;
 
 {$R *.lfm}
+
+type
+  TSynEditAccess = class(TSynEdit);
+
+procedure TSynSQLSyn.SetRange(Value: Pointer);
+begin
+  if Assigned(SingleLineEditor)
+    and ((CurrentLines = TSynEditAccess(SingleLineEditor).TextBuffer)
+      or (CurrentLines = TSynEditAccess(SingleLineEditor).ViewedTextBuffer)) then
+    Value := nil;
+  inherited SetRange(Value);
+end;
 
 { TMainForm }
 
@@ -14077,8 +14097,10 @@ begin
   Editor.LineHighlightColor.Background := AppColorSchemes.First.ActiveLineBackground;
   Editor.Options := BaseEditor.Options;
   Editor.Options2 := BaseEditor.Options2;
-  if Editor = SynMemoSQLLog then
+  if Editor = SynMemoSQLLog then begin
     Editor.Options := Editor.Options + [eoRightMouseMovesCursor];
+    SynSQLSynUsed.SingleLineEditor := SynMemoSQLLog;
+  end;
   Editor.TabWidth := AppSettings.ReadInt(asTabWidth);
   Editor.RightEdge := BaseEditor.RightEdge;
   //Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
