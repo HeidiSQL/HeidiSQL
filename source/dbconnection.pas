@@ -1497,7 +1497,14 @@ begin
     FCompressed := AppSettings.ReadBool(asCompressed);
     FAllDatabases := AppSettings.ReadString(asDatabases);
     FLibraryOrProvider := AppSettings.ReadString(asLibrary);
-    if not FileExists(GetLibDir + FLibraryOrProvider) then
+    if NetTypeGroup = ngMSSQL then begin
+      // ADO provider name, not a file: validate against installed providers
+      if FLibraryOrProvider.IsEmpty or (GetLibraries.IndexOf(FLibraryOrProvider) = -1) then
+        FLibraryOrProvider := DefaultLibrary;
+      // GetLibraries reads a global setting, which resets the session path
+      AppSettings.SessionPath := SessionRegPath;
+    end
+    else if not FileExists(GetLibDir + FLibraryOrProvider) then
       FLibraryOrProvider := DefaultLibrary; // Catches empty string and any non-existant file
     FComment := AppSettings.ReadString(asComment);
 
