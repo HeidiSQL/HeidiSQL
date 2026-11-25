@@ -1484,7 +1484,12 @@ begin
     FCompressed := AppSettings.ReadBool(asCompressed);
     FAllDatabases := AppSettings.ReadString(asDatabases);
     FLibraryOrProvider := AppSettings.ReadString(asLibrary);
-    if not FileExists(GetLibDir + FLibraryOrProvider) then
+    if NetTypeGroup in [ngOracle, ngSnowflake] then begin
+      // ODBC driver name, not a file: validate against installed drivers
+      if FLibraryOrProvider.IsEmpty or (GetLibraries.IndexOf(FLibraryOrProvider) = -1) then
+        FLibraryOrProvider := DefaultLibrary;
+    end
+    else if not FileExists(GetLibDir + FLibraryOrProvider) then
       FLibraryOrProvider := DefaultLibrary; // Catches empty string and any non-existant file
     FComment := AppSettings.ReadString(asComment);
 
