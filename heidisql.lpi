@@ -220,6 +220,10 @@ if TargetOS=&apos;win64&apos; then
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
+        <Filename Value="source\mssqlfixed.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
         <Filename Value="source\dbstructures.mssql.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
