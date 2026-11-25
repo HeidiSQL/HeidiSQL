@@ -94,6 +94,7 @@ object frmTableTools: TfrmTableTools
         Header.PopupMenu = MainForm.popupListHeader
         IncrementalSearch = isAll
         TabOrder = 0
+        TextMargin = 6
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
         TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
@@ -991,6 +992,7 @@ object frmTableTools: TfrmTableTools
         IncrementalSearch = isInitializedOnly
         PopupMenu = popupTree
         TabOrder = 1
+        TextMargin = 6
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]

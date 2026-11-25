@@ -1638,6 +1638,7 @@ object frmPreferences: TfrmPreferences
         Header.MainColumn = -1
         Images = MainForm.ImageListMain
         TabOrder = 0
+        TextMargin = 6
         OnFocusChanged = TreeShortcutItemsFocusChanged
         OnFocusChanging = TreeShortcutItemsFocusChanging
         OnGetText = TreeShortcutItemsGetText

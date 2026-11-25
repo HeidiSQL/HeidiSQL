@@ -116,6 +116,7 @@ object RoleManagerPgForm: TRoleManagerPgForm
       Header.SortColumn = 0
       Images = MainForm.ImageListMain
       TabOrder = 2
+      TextMargin = 6
       TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages]
       TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
       OnFocusChanged = treeRolesFocusChanged
@@ -374,6 +375,7 @@ object RoleManagerPgForm: TRoleManagerPgForm
         Header.Options = [hoColumnResize, hoDrag, hoVisible]
         Header.SortColumn = 0
         TabOrder = 1
+        TextMargin = 6
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
         TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages]
         TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]

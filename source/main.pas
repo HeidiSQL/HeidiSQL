@@ -16132,6 +16132,7 @@ begin
   Grid.TreeOptions := OrgGrid.TreeOptions;
   Grid.PopupMenu := OrgGrid.PopupMenu;
   Grid.LineStyle := OrgGrid.LineStyle;
+  Grid.TextMargin := OrgGrid.TextMargin;
   Grid.EditDelay := OrgGrid.EditDelay;
   Grid.Font.Assign(OrgGrid.Font);
   Grid.Header.Options := OrgGrid.Header.Options;

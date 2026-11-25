@@ -90,6 +90,7 @@ object frmSQLhelp: TfrmSQLhelp
         Header.MainColumn = -1
         Images = MainForm.ImageListMain
         TabOrder = 1
+        TextMargin = 6
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
         OnFocusChanged = treeTopicsFocusChanged
         OnFreeNode = treeTopicsFreeNode

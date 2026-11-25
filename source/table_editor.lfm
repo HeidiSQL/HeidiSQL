@@ -395,6 +395,7 @@ object frmTableEditor: TfrmTableEditor
         Images = MainForm.ImageListMain
         PopupMenu = popupProperties
         TabOrder = 1
+        TextMargin = 6
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toFullVertGridLines, toUseExplorerTheme, toHideTreeLinesIfThemed]
@@ -590,6 +591,7 @@ object frmTableEditor: TfrmTableEditor
         Images = MainForm.ImageListMain
         PopupMenu = popupProperties
         TabOrder = 1
+        TextMargin = 6
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toExtendedFocus]
@@ -723,6 +725,7 @@ object frmTableEditor: TfrmTableEditor
         Images = MainForm.ImageListMain
         PopupMenu = popupProperties
         TabOrder = 1
+        TextMargin = 6
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toExtendedFocus]
@@ -1188,6 +1191,7 @@ object frmTableEditor: TfrmTableEditor
     IncrementalSearch = isAll
     PopupMenu = popupColumns
     TabOrder = 2
+    TextMargin = 6
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toWheelPanning, toFullRowDrag, toEditOnClick]
     TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
