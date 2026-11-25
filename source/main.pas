@@ -2210,6 +2210,10 @@ begin
   SetupSynEditors;
 
   PageControlMain.MultiLine := AppSettings.ReadBool(asTabsInMultipleLines);
+  {$IFNDEF WINDOWS}
+  // MultiLine is only implemented in the Win32 widgetset
+  menuTabsInMultipleLines.Visible := False;
+  {$ENDIF}
   SetMainTab(tabHost);
 
   // Filter panel
