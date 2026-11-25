@@ -17,6 +17,11 @@
 set -euo pipefail
 
 cd "$(dirname "$0")"
+
+if [ $# -eq 0 ] || ! command -v "$1" >/dev/null 2>&1; then
+  echo "ERROR: lazbuild not found (got '${1:-}'). Put lazbuild into PATH or pass LAZBUILD=/path/to/lazbuild to make." >&2
+  exit 1
+fi
 LPI=heidisql.lpi
 BUILDNR="${BUILDNR:-$(git rev-list --count HEAD 2>/dev/null || echo 0)}"
 

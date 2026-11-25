@@ -1,5 +1,5 @@
 # This need and IFDEF WINDOWS !!
-LAZBUILD := $(shell command -v lazbuild)
+LAZBUILD ?= $(shell command -v lazbuild)
 OPTS := -B --bm=Release
 OPTSQT5 := --ws=qt5
 OPTSQT6 := --ws=qt6
