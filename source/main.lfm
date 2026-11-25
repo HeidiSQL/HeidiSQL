@@ -1097,7 +1097,6 @@ object MainForm: TMainForm
         TabOrder = 1
         OnChange = PageControlMainChange
         OnChanging = PageControlMainChanging
-        OnCloseTabClicked = PageControlMainCloseTabClicked
         OnContextPopup = PageControlMainContextPopup
         OnMouseUp = PageControlMainMouseUp
         object tabHost: TTabSheet

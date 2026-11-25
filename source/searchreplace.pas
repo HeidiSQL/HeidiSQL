@@ -131,7 +131,7 @@ begin
   end;
   if Assigned(UsedSynMemo) then begin
     if UsedSynMemo = QueryMemo then
-      ItemLabel := _('SQL editor') + ': ' + ActiveQueryTab.TabSheet.Caption
+      ItemLabel := _('SQL editor') + ': ' + Trim(ActiveQueryTab.TabSheet.Caption)
     else
       ItemLabel := GetParentForm(UsedSynMemo).Caption;
     comboSearchIn.Items.AddObject(ItemLabel, UsedSynMemo);
