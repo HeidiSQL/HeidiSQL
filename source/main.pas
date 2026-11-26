@@ -13816,7 +13816,7 @@ end;
 procedure TMainForm.UpdateTabCloseButton;
 var
   CursorPos, ClientPos, ParentPos: TPoint;
-  PageIndex, Size, Margin: Integer;
+  PageIndex, Size, Margin, MarginRight: Integer;
   TabR, BtnR, BtnScreenR: TRect;
   Tab: TQueryTab;
   HoverTab: TQueryTab;
@@ -13863,7 +13863,12 @@ begin
     end;
 
     if Assigned(HoverTab) and HoverTab.TabSheet.TabVisible then begin
+      // Cocoa's GetTabRect expects the page index, Win32 and others the visible tab index
+      {$IFDEF LCLCocoa}
+      TabR := PageControlMain.TabRect(HoverTab.TabSheet.PageIndex);
+      {$ELSE}
       TabR := PageControlMain.TabRect(PageControlMain.PageToTabIndex(HoverTab.TabSheet.PageIndex));
+      {$ENDIF}
       if TabR.IsEmpty then
         HoverTab := nil;
     end else
@@ -13880,9 +13885,11 @@ begin
   ParentPos := FTabCloseButton.Parent.ScreenToClient(PageControlMain.ClientToScreen(TabR.TopLeft));
   Types.OffsetRect(TabR, ParentPos.X - TabR.Left, ParentPos.Y - TabR.Top);
   Margin := Scale96ToForm(3);
+  // Cocoa tabs end with a wider gap after the padded caption, so the button moves a bit inwards
+  MarginRight := {$IFDEF LCLCocoa}Scale96ToForm(8){$ELSE}Margin{$ENDIF};
   // Even size, for a centered "x"
   Size := Min(TabR.Height - 2*Margin, Scale96ToForm(12)) and not 1;
-  BtnR.Left := TabR.Right - Size - Margin;
+  BtnR.Left := TabR.Right - Size - MarginRight;
   BtnR.Top := TabR.Top + (TabR.Height - Size) div 2;
   BtnR.Right := BtnR.Left + Size;
   BtnR.Bottom := BtnR.Top + Size;
