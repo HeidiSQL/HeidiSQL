@@ -425,6 +425,7 @@ type
   // Returns the maximum possible height of text on a canvas
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
+  function BlendColors(Color1, Color2: TColor; Percent2: Integer): TColor;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   function FindNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
   function SelectNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
@@ -1702,6 +1703,14 @@ begin
     {$ENDIF}
   {$ENDIF}
 
+  {$IFDEF DARWIN}
+  // Default unfocused selection color is clBtnFace, which is nearly identical
+  // to the window background on macOS, so the selection becomes invisible.
+  // Use a pale tint of the highlight color instead.
+  VT.Colors.UnfocusedSelectionColor := BlendColors(clWindow, clHighlight, 45);
+  VT.Colors.UnfocusedSelectionBorderColor := VT.Colors.UnfocusedSelectionColor;
+  {$ENDIF}
+
   VT.OnGetHint := MainForm.AnyGridGetHint;
   VT.OnScroll := MainForm.AnyGridScroll;
   VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
@@ -1759,6 +1768,21 @@ begin
     Bmp.Free;
   end;
 end;
+
+
+function BlendColors(Color1, Color2: TColor; Percent2: Integer): TColor;
+var
+  c1, c2: TColor;
+begin
+  c1 := ColorToRGB(Color1);
+  c2 := ColorToRGB(Color2);
+  Result := RGBToColor(
+    (Red(c1) * (100-Percent2) + Red(c2) * Percent2) div 100,
+    (Green(c1) * (100-Percent2) + Green(c2) * Percent2) div 100,
+    (Blue(c1) * (100-Percent2) + Blue(c2) * Percent2) div 100
+    );
+end;
+
 
 
 function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;

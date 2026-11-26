@@ -295,20 +295,6 @@ begin
 end;
 
 
-function BlendColors(Color1, Color2: TColor; Percent2: Integer): TColor;
-var
-  c1, c2: TColor;
-begin
-  c1 := ColorToRGB(Color1);
-  c2 := ColorToRGB(Color2);
-  Result := RGBToColor(
-    (Red(c1) * (100-Percent2) + Red(c2) * Percent2) div 100,
-    (Green(c1) * (100-Percent2) + Green(c2) * Percent2) div 100,
-    (Blue(c1) * (100-Percent2) + Blue(c2) * Percent2) div 100
-    );
-end;
-
-
 procedure TfrmProgress.paintSpeedPaint(Sender: TObject);
 var
   Cnv: TCanvas;
