@@ -7134,7 +7134,13 @@ begin
       Tab.Memo.Gutter.Color := Conn.Parameters.SessionColor;
     end
     else begin
+      {$IFDEF DARWIN}
+      // clBtnFace maps to controlBackgroundColor on Cocoa, which is identical
+      // to the editor background. Derive a slightly shifted shade instead.
+      Tab.Memo.Gutter.Color := ColorAdjustBrightness(clWindow, 12);
+      {$ELSE}
       Tab.Memo.Gutter.Color := clBtnFace;
+      {$ENDIF}
     end;
   end;
 
