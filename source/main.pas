@@ -72,29 +72,6 @@ type
       const AnRtlInfo: TLazSynDisplayRtlInfo): TSynSelectedColor; override;
   end;
 
-  // Subtle close button, shown on the query tab below the mouse cursor
-  TTabCloseButton = class(TCustomControl)
-    private
-      FHot: Boolean;
-      FPressed: Boolean;
-      FTabSelected: Boolean;
-      FTabRect: TRect;
-      FTabUid: String;
-      FOnCloseClick: TNotifyEvent;
-    protected
-      procedure Paint; override;
-      procedure MouseEnter; override;
-      procedure MouseLeave; override;
-      procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
-      procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
-    public
-      constructor Create(AOwner: TComponent); override;
-      procedure SetTab(const Uid: String; const ATabRect: TRect; Selected: Boolean);
-      procedure HideButton;
-      property TabUid: String read FTabUid;
-      property OnCloseClick: TNotifyEvent read FOnCloseClick write FOnCloseClick;
-  end;
-
   // Query tabs and contained components
   TQueryTab = class;
   TResultTab = class(TObject)
@@ -854,7 +831,6 @@ type
     popupDataTop: TPopupMenu;
     menuQueryExactRowCount: TMenuItem;
     menuCloseTabOnMiddleClick: TMenuItem;
-    TimerCloseTabByButton: TTimer;
     menuTabsInMultipleLines: TMenuItem;
     btnDonate: TToolButton;
     ToolButton2: TToolButton;
@@ -1097,10 +1073,9 @@ type
     procedure actCloseQueryTabExecute(Sender: TObject);
     procedure menuCloseQueryTabClick(Sender: TObject);
     procedure CloseQueryTab(PageIndex: Integer);
-    procedure TabCloseButtonClick(Sender: TObject);
-    procedure TabCloseHoverTimerTimer(Sender: TObject);
+    function TabCloseButtonIsClosable(Sender: TObject; Page: TTabSheet): Boolean;
+    procedure TabCloseButtonCloseTab(Sender: TObject; Page: TTabSheet);
     function GetMainTabAt(X, Y: Integer): Integer;
-    procedure UpdateTabCloseButton;
     function GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
     function ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynEdit;
     function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
@@ -1281,7 +1256,6 @@ type
       var Special: Boolean; Markup: TSynSelectedColor);
     procedure menuQueryExactRowCountClick(Sender: TObject);
     procedure menuCloseTabOnMiddleClickClick(Sender: TObject);
-    procedure TimerCloseTabByButtonTimer(Sender: TObject);
     procedure menuTabsInMultipleLinesClick(Sender: TObject);
     procedure actResetPanelDimensionsExecute(Sender: TObject);
     procedure menuAlwaysGenerateFilterClick(Sender: TObject);
@@ -1300,7 +1274,6 @@ type
     FLastMouseUpOnPageControl: Cardinal;
     FLastTabNumberOnMouseUp: Integer;
     FTabCloseButton: TTabCloseButton;
-    FTabCloseHoverTimer: TTimer;
     FLastMouseButtonUpOnGrid: TMouseButton;
     //FJumpList: TJumpList;
     // Filter text per tab for filter panel
@@ -1508,7 +1481,7 @@ uses
   About, data_sorting, column_selection, loaddata, editvar,
   copytable, csv_detector, exportgrid, usermanager, rolemanagerpg, rolemanagermssql, reformatter, connections, sqlhelp, updatecheck,
   insertfiles, texteditor, preferences, table_editor, view, routine_editor, trigger_editor, event_editor, grideditlinks,
-  selectdbobject, Themes;
+  selectdbobject;
 
 {$R *.lfm}
 
@@ -2300,15 +2273,10 @@ begin
   LogSQL(f_('Timezone offset: %d', [FTimeZoneOffset]), lcDebug);
 
   // Close button on query tabs, shown only while the mouse hovers a closable tab
-  FTabCloseButton := TTabCloseButton.Create(Self);
-  FTabCloseButton.Visible := False;
-  FTabCloseButton.Parent := PageControlMain.Parent;
+  FTabCloseButton := TTabCloseButton.Create(Self, PageControlMain);
   FTabCloseButton.Hint := actCloseQueryTab.Caption;
-  FTabCloseButton.ShowHint := True;
-  FTabCloseButton.OnCloseClick := TabCloseButtonClick;
-  FTabCloseHoverTimer := TTimer.Create(Self);
-  FTabCloseHoverTimer.Interval := 100;
-  FTabCloseHoverTimer.OnTimer := TabCloseHoverTimerTimer;
+  FTabCloseButton.OnIsClosable := TabCloseButtonIsClosable;
+  FTabCloseButton.OnCloseTab := TabCloseButtonCloseTab;
 end;
 
 
@@ -2908,7 +2876,6 @@ begin
     StatusBar.Panels[5].Width, ProgressBarStatus.Height);
 
   //lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
-  UpdateTabCloseButton;
 
   // Right aligned button
   // Do not set ToolBar.Align to alRight. See issue #1967
@@ -6821,7 +6788,9 @@ begin
 
   // Ensure controls are in a valid state
   ValidateControls(Sender);
-  UpdateTabCloseButton;
+  // Background of the close button follows the active tab
+  if Assigned(FTabCloseButton) then
+    FTabCloseButton.UpdateHover;
 end;
 
 
@@ -10431,7 +10400,6 @@ begin
   FTreeClickHistory[Length(FTreeClickHistory)-1] := Node;
 
   DBTree.InvalidateColumn(0);
-  UpdateTabCloseButton;
   SetWindowCaption;
 end;
 
@@ -13351,7 +13319,9 @@ begin
   PageControlMain.Pages[PageIndex].Free;
   QueryTabs.Delete(PageIndex-tabQuery.PageIndex);
   PageControlMain.ActivePageIndex := NewPageIndex;
-  UpdateTabCloseButton;
+  // Neighbour tab may now be below the mouse cursor
+  if Assigned(FTabCloseButton) then
+    FTabCloseButton.UpdateHover;
   //LockWindowUpdate(0);
   PageControlMain.OnChange(PageControlMain);
 end;
@@ -13555,173 +13525,18 @@ begin
 end;
 
 
-{ TTabCloseButton }
-
-constructor TTabCloseButton.Create(AOwner: TComponent);
+function TMainForm.TabCloseButtonIsClosable(Sender: TObject; Page: TTabSheet): Boolean;
 begin
-  inherited Create(AOwner);
-  ControlStyle := ControlStyle + [csCaptureMouse, csOpaque] - [csSetCaption];
-  FTabUid := '';
+  // Close button only on query tabs, except the first fixed one
+  Result := IsQueryTab(Page.PageIndex, False);
 end;
 
 
-procedure TTabCloseButton.SetTab(const Uid: String; const ATabRect: TRect; Selected: Boolean);
+procedure TMainForm.TabCloseButtonCloseTab(Sender: TObject; Page: TTabSheet);
 begin
-  // ATabRect: bounds of the underlying tab, in our own client coordinates
-  if (Uid <> FTabUid) or (not EqualRect(ATabRect, FTabRect)) or (Selected <> FTabSelected) then begin
-    FTabUid := Uid;
-    FTabRect := ATabRect;
-    FTabSelected := Selected;
-    Invalidate;
-  end;
+  CloseQueryTab(Page.PageIndex);
 end;
 
-
-procedure TTabCloseButton.HideButton;
-begin
-  // MouseLeave is not fired when hiding while hovered
-  FHot := False;
-  FPressed := False;
-  Visible := False;
-end;
-
-
-procedure TTabCloseButton.Paint;
-var
-  R: TRect;
-  CrossSize, Thickness, L, T, i: Integer;
-  {$IFDEF WINDOWS}
-  Details: TThemedElementDetails;
-  {$ENDIF}
-
-  procedure FillRoundedGradient(TopColor, BottomColor: TColor);
-  var
-    y, dy, Inset, Radius, Percent: Integer;
-    C1, C2: TColor;
-  begin
-    // Vertical gradient, row by row, with rounded corners. Avoids RoundRect, which
-    // paints the right and bottom edge differently depending on pen style and widgetset.
-    C1 := ColorToRGB(TopColor);
-    C2 := ColorToRGB(BottomColor);
-    Radius := Scale96ToForm(2);
-    Canvas.Pen.Style := psSolid;
-    Canvas.Pen.Width := 1;
-    for y:=0 to Height-1 do begin
-      Percent := IfThen(Height > 1, y * 100 div (Height-1), 0);
-      Canvas.Pen.Color := RGBToColor(
-        Red(C1) + (Red(C2) - Red(C1)) * Percent div 100,
-        Green(C1) + (Green(C2) - Green(C1)) * Percent div 100,
-        Blue(C1) + (Blue(C2) - Blue(C1)) * Percent div 100
-        );
-      dy := 0;
-      if y < Radius then
-        dy := Radius - y
-      else if y >= Height - Radius then
-        dy := y - (Height - Radius - 1);
-      Inset := 0;
-      if dy > 0 then
-        Inset := Radius - Round(Sqrt(Sqr(Radius) - Sqr(dy - 0.5)));
-      Canvas.Line(Inset, y, Width - Inset, y);
-    end;
-  end;
-
-begin
-  R := ClientRect;
-  // Background: paint the part of the tab we are covering, so the button blends in
-  {$IFDEF WINDOWS}
-  if ThemeServices.ThemesEnabled then begin
-    if FTabSelected then
-      Details := ThemeServices.GetElementDetails(ttTabItemSelected)
-    else
-      Details := ThemeServices.GetElementDetails(ttTabItemHot);
-    ThemeServices.DrawElement(Canvas.Handle, Details, FTabRect, @R);
-  end else
-  {$ENDIF}
-  begin
-    Canvas.Brush.Color := clBtnFace;
-    Canvas.FillRect(R);
-  end;
-
-  // Gray background, red gradient like a window close button when hovered, darker red when pressed
-  if FPressed then
-    FillRoundedGradient($1C0EC0, $140A90)
-  else if FHot then
-    FillRoundedGradient($5C52F2, $1E0FC8)
-  else
-    FillRoundedGradient(clBtnShadow, clBtnShadow);
-
-  // The "x", painted pixel by pixel instead of using LineTo, which places thicker
-  // pens asymmetrically. Button size and cross size are both even, so the margins
-  // between cross and button edges are equal on all sides.
-  CrossSize := Max(4, (Min(Width, Height) * 3 div 5) and not 1);
-  Thickness := Max(1, Scale96ToForm(1));
-  L := (Width - CrossSize) div 2;
-  T := (Height - CrossSize) div 2;
-  Canvas.Brush.Color := clWhite;
-  for i:=0 to CrossSize - Thickness do begin
-    // Top left to bottom right
-    Canvas.FillRect(Rect(L+i, T+i, L+i+Thickness, T+i+Thickness));
-    // Top right to bottom left
-    Canvas.FillRect(Rect(L+CrossSize-Thickness-i, T+i, L+CrossSize-i, T+i+Thickness));
-  end;
-end;
-
-
-procedure TTabCloseButton.MouseEnter;
-begin
-  inherited;
-  FHot := True;
-  Invalidate;
-end;
-
-
-procedure TTabCloseButton.MouseLeave;
-begin
-  inherited;
-  FHot := False;
-  FPressed := False;
-  Invalidate;
-end;
-
-
-procedure TTabCloseButton.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  inherited;
-  if Button = mbLeft then begin
-    FPressed := True;
-    Invalidate;
-  end;
-end;
-
-
-procedure TTabCloseButton.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var
-  WasPressed: Boolean;
-begin
-  inherited;
-  if Button <> mbLeft then
-    Exit;
-  WasPressed := FPressed;
-  FPressed := False;
-  Invalidate;
-  if WasPressed and PtInRect(ClientRect, Point(X, Y)) and Assigned(FOnCloseClick) then
-    FOnCloseClick(Self);
-end;
-
-
-procedure TMainForm.TabCloseButtonClick(Sender: TObject);
-begin
-  // Close the tab asynchronously, as the button itself gets hidden.
-  // Also prevents EAccessViolation in TControl.GetClientWidth, see issue #1640
-  FTabCloseButton.HideButton;
-  TimerCloseTabByButton.Enabled := True;
-end;
-
-
-procedure TMainForm.TabCloseHoverTimerTimer(Sender: TObject);
-begin
-  UpdateTabCloseButton;
-end;
 
 procedure TMainForm.popupListHeaderPopup(Sender: TObject);
 var
@@ -13747,21 +13562,6 @@ begin
   Item := TMenuItem.Create(popupListHeader);
   Item.Caption := '-';
   popupListHeader.Items.Insert(3, Item);
-end;
-
-
-procedure TMainForm.TimerCloseTabByButtonTimer(Sender: TObject);
-var
-  i: Integer;
-begin
-  // Asynchronous timer for click event on query tab close button
-  TimerCloseTabByButton.Enabled := False;
-  for i:=0 to QueryTabs.Count-1 do begin
-    if (FTabCloseButton.TabUid <> '') and (QueryTabs[i].Uid = FTabCloseButton.TabUid) then begin
-      CloseQueryTab(QueryTabs[i].TabSheet.PageIndex);
-      Break;
-    end;
-  end;
 end;
 
 
@@ -13809,105 +13609,6 @@ begin
   for i:=0 to PageControlMain.PageCount-1 do begin
     if (i<=Result) and (not PageControlMain.Pages[i].TabVisible) then
       Inc(Result);
-  end;
-end;
-
-
-procedure TMainForm.UpdateTabCloseButton;
-var
-  CursorPos, ClientPos, ParentPos: TPoint;
-  PageIndex, Size, Margin, MarginRight: Integer;
-  TabR, BtnR, BtnScreenR: TRect;
-  Tab: TQueryTab;
-  HoverTab: TQueryTab;
-begin
-  // Show the close button on the closable query tab below the mouse cursor, hide it otherwise.
-  // Called periodically by FTabCloseHoverTimer, and after tab changes.
-  // Avoid AV on Startup, when Mainform.OnResize is called once or twice implicitely.
-  if not Assigned(FTabCloseButton) then
-    Exit;
-  HoverTab := nil;
-  TabR := Rect(0, 0, 0, 0);
-  if Visible
-    and (WindowState <> wsMinimized)
-    and (Screen.ActiveForm = Self)
-    and PageControlMain.HandleAllocated
-    and PageControlMain.IsVisible
-    and Assigned(QueryTabs)
-    then begin
-    CursorPos := Mouse.CursorPos;
-    BtnScreenR := Rect(0, 0, 0, 0);
-    if FTabCloseButton.Visible then begin
-      BtnScreenR.TopLeft := FTabCloseButton.ClientToScreen(Point(0, 0));
-      BtnScreenR.BottomRight := FTabCloseButton.ClientToScreen(Point(FTabCloseButton.Width, FTabCloseButton.Height));
-    end;
-    if PtInRect(BtnScreenR, CursorPos) then begin
-      // Mouse is over the button itself: keep the tab it belongs to
-      for Tab in QueryTabs do begin
-        if Tab.Uid = FTabCloseButton.TabUid then begin
-          HoverTab := Tab;
-          Break;
-        end;
-      end;
-    end else begin
-      ClientPos := PageControlMain.ScreenToClient(CursorPos);
-      PageIndex := PageControlMain.IndexOfPageAt(ClientPos);
-      // Qt's tab bar may still report a tab index of a just closed page
-      if (PageIndex > -1)
-        and (PageIndex < PageControlMain.PageCount)
-        and IsQueryTab(PageIndex, False) then begin
-        for Tab in QueryTabs do begin
-          if Tab.TabSheet = PageControlMain.Pages[PageIndex] then begin
-            HoverTab := Tab;
-            Break;
-          end;
-        end;
-      end;
-    end;
-
-    if Assigned(HoverTab) and HoverTab.TabSheet.TabVisible then begin
-      // Cocoa's GetTabRect expects the page index, Win32 and others the visible tab index
-      {$IFDEF LCLCocoa}
-      TabR := PageControlMain.TabRect(HoverTab.TabSheet.PageIndex);
-      {$ELSE}
-      TabR := PageControlMain.TabRect(PageControlMain.PageToTabIndex(HoverTab.TabSheet.PageIndex));
-      {$ENDIF}
-      if TabR.IsEmpty then
-        HoverTab := nil;
-    end else
-      HoverTab := nil;
-  end;
-
-  if not Assigned(HoverTab) then begin
-    if FTabCloseButton.Visible then
-      FTabCloseButton.HideButton;
-    Exit;
-  end;
-
-  // Translate tab rectangle from PageControl client coordinates to the button's parent
-  ParentPos := FTabCloseButton.Parent.ScreenToClient(PageControlMain.ClientToScreen(TabR.TopLeft));
-  Types.OffsetRect(TabR, ParentPos.X - TabR.Left, ParentPos.Y - TabR.Top);
-  Margin := Scale96ToForm(3);
-  // Cocoa tabs end with a wider gap after the padded caption, so the button moves a bit inwards.
-  // Gtk2's GetTabRect returns the allocation of the tab label only, without the tab's own padding,
-  // so the button moves outwards into that padding, otherwise it overlaps the caption.
-  // Qt tabs have a wider gap after the padded caption, the button would stick to the right edge.
-  MarginRight := {$IF DEFINED(LCLCocoa)}Scale96ToForm(8)
-    {$ELSEIF DEFINED(LCLGtk2)}-Scale96ToForm(4)
-    {$ELSEIF DEFINED(LCLQt5) or DEFINED(LCLQt6)}Scale96ToForm(6)
-    {$ELSE}Margin{$ENDIF};
-  // Even size, for a centered "x"
-  Size := Min(TabR.Height - 2*Margin, Scale96ToForm(12)) and not 1;
-  BtnR.Left := TabR.Right - Size - MarginRight;
-  BtnR.Top := TabR.Top + (TabR.Height - Size) div 2;
-  BtnR.Right := BtnR.Left + Size;
-  BtnR.Bottom := BtnR.Top + Size;
-  FTabCloseButton.BoundsRect := BtnR;
-  Types.OffsetRect(TabR, -BtnR.Left, -BtnR.Top);
-  FTabCloseButton.SetTab(HoverTab.Uid, TabR, HoverTab.TabSheet = PageControlMain.ActivePage);
-  if not FTabCloseButton.Visible then begin
-    FTabCloseButton.Visible := True;
-    FTabCloseButton.BringToFront;
   end;
 end;
 
@@ -14064,10 +13765,9 @@ begin
       end;
     end;
     // Leave space for the hover close button on closable query tabs
-    Text := Text + '     ';
+    Text := Text + TTabCloseButton.CaptionPadding;
   end;
   PageControlMain.Pages[PageIndex].Caption := Text;
-  UpdateTabCloseButton;
 end;
 
 

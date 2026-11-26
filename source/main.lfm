@@ -21369,13 +21369,6 @@ object MainForm: TMainForm
       OnClick = menuQueryExactRowCountClick
     end
   end
-  object TimerCloseTabByButton: TTimer
-    Enabled = False
-    Interval = 100
-    OnTimer = TimerCloseTabByButtonTimer
-    Left = 602
-    Top = 134
-  end
   object popupApplyFilter: TPopupMenu
     Images = ImageListMain
     Left = 398
