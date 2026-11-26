@@ -6134,7 +6134,22 @@ begin
   if DBObj = nil then
     Exit;
   Screen.Cursor := crHourglass;
-  DBObj.Connection.Ping(True);
+  // Reconnecting may fail on an unreachable server. Do not raise in this paint event, and
+  // mark the grid as loaded, so the next repaint does not try again. A click in the tree
+  // or a data refresh invalidates the grid and reconnects.
+  try
+    DBObj.Connection.Ping(True);
+  except
+    on E:EDbError do begin
+      LogSQL(E.Message, lcError);
+      vt.Header.Columns.Clear;
+      vt.Clear;
+      EnableDataTab(False);
+      vt.Tag := VTREE_LOADED;
+      Screen.Cursor := crDefault;
+      Exit;
+    end;
+  end;
 
   if SelectedTableColumns.Count = 0 then begin
     vt.Header.Columns.Clear;
@@ -6589,9 +6604,20 @@ begin
   vt.BeginUpdate;
   vt.Clear;
   Msg := '';
+  Objects := nil;
   if Conn <> nil then begin
     ShowStatusMsg(f_('Displaying objects from "%s" ...', [Conn.Database]));
-    Objects := Conn.GetDBObjects(Conn.Database, vt.Tag = VTREE_NOTLOADED_PURGECACHE, FActiveObjectGroup);
+    // Do not raise in this paint event, e.g. on an unreachable server
+    try
+      Objects := Conn.GetDBObjects(Conn.Database, vt.Tag = VTREE_NOTLOADED_PURGECACHE, FActiveObjectGroup);
+    except
+      on E:EDbError do begin
+        LogSQL(E.Message, lcError);
+        Msg := E.Message;
+      end;
+    end;
+  end;
+  if Objects <> nil then begin
     vt.RootNodeCount := Objects.Count;
 
     NumObjects := TStringList.Create;
@@ -11964,7 +11990,8 @@ begin
   Screen.Cursor := crHourglass;
   vt.Clear;
   if Conn <> nil then begin
-    if vt.Tag = VTREE_NOTLOADED_PURGECACHE then begin
+    // Do not raise in this paint event, e.g. on an unreachable server
+    if vt.Tag = VTREE_NOTLOADED_PURGECACHE then try
       for i:=0 to Conn.AllDatabases.Count-1 do begin
         if Conn.DbObjectsCached(Conn.AllDatabases[i]) then begin
           if Conn.AllDatabases[i] = ActiveDatabase then
@@ -11973,6 +12000,9 @@ begin
             Conn.GetDBObjects(Conn.AllDatabases[i], True);
         end;
       end;
+    except
+      on E:EDbError do
+        LogSQL(E.Message, lcError);
     end;
     vt.RootNodeCount := Conn.AllDatabases.Count;
   end;
