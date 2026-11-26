@@ -13852,7 +13852,10 @@ begin
     end else begin
       ClientPos := PageControlMain.ScreenToClient(CursorPos);
       PageIndex := PageControlMain.IndexOfPageAt(ClientPos);
-      if (PageIndex > -1) and IsQueryTab(PageIndex, False) then begin
+      // Qt's tab bar may still report a tab index of a just closed page
+      if (PageIndex > -1)
+        and (PageIndex < PageControlMain.PageCount)
+        and IsQueryTab(PageIndex, False) then begin
         for Tab in QueryTabs do begin
           if Tab.TabSheet = PageControlMain.Pages[PageIndex] then begin
             HoverTab := Tab;
@@ -13885,8 +13888,14 @@ begin
   ParentPos := FTabCloseButton.Parent.ScreenToClient(PageControlMain.ClientToScreen(TabR.TopLeft));
   Types.OffsetRect(TabR, ParentPos.X - TabR.Left, ParentPos.Y - TabR.Top);
   Margin := Scale96ToForm(3);
-  // Cocoa tabs end with a wider gap after the padded caption, so the button moves a bit inwards
-  MarginRight := {$IFDEF LCLCocoa}Scale96ToForm(8){$ELSE}Margin{$ENDIF};
+  // Cocoa tabs end with a wider gap after the padded caption, so the button moves a bit inwards.
+  // Gtk2's GetTabRect returns the allocation of the tab label only, without the tab's own padding,
+  // so the button moves outwards into that padding, otherwise it overlaps the caption.
+  // Qt tabs have a wider gap after the padded caption, the button would stick to the right edge.
+  MarginRight := {$IF DEFINED(LCLCocoa)}Scale96ToForm(8)
+    {$ELSEIF DEFINED(LCLGtk2)}-Scale96ToForm(4)
+    {$ELSEIF DEFINED(LCLQt5) or DEFINED(LCLQt6)}Scale96ToForm(6)
+    {$ELSE}Margin{$ENDIF};
   // Even size, for a centered "x"
   Size := Min(TabR.Height - 2*Margin, Scale96ToForm(12)) and not 1;
   BtnR.Left := TabR.Right - Size - MarginRight;
