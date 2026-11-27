@@ -889,7 +889,7 @@ object MainForm: TMainForm
           Spacing = 0
           TabOrder = 0
           TextHint = 'Database filter'
-          OnButtonClick = editDatabaseTableFilterLeftButtonClick
+          OnButtonClick = editFilterButtonClick
           OnChange = editDatabaseTableFilterChange
           OnExit = editDatabaseTableFilterExit
           OnKeyPress = editDatabaseTableFilterKeyPress
@@ -929,7 +929,7 @@ object MainForm: TMainForm
           Spacing = 0
           TabOrder = 1
           TextHint = 'Table filter'
-          OnButtonClick = editDatabaseTableFilterLeftButtonClick
+          OnButtonClick = editFilterButtonClick
           OnChange = editDatabaseTableFilterChange
           OnExit = editDatabaseTableFilterExit
           OnKeyPress = editDatabaseTableFilterKeyPress
@@ -1049,7 +1049,7 @@ object MainForm: TMainForm
           Spacing = 0
           TabOrder = 0
           TextHint = 'Regular expression'
-          OnButtonClick = editDatabaseTableFilterLeftButtonClick
+          OnButtonClick = editFilterButtonClick
           OnChange = editFilterVTChange
           OnExit = editDatabaseTableFilterExit
           OnKeyPress = editDatabaseTableFilterKeyPress

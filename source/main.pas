@@ -1171,7 +1171,7 @@ type
     procedure menuAutoExpandClick(Sender: TObject);
     procedure pnlLeftResize(Sender: TObject);
     procedure editDatabaseTableFilterChange(Sender: TObject);
-    procedure editDatabaseTableFilterLeftButtonClick(Sender: TObject);
+    procedure editFilterButtonClick(Sender: TObject);
     procedure editDatabaseTableFilterMenuClick(Sender: TObject);
     procedure editDatabaseTableFilterExit(Sender: TObject);
     procedure menuClearDataTabFilterClick(Sender: TObject);
@@ -1356,6 +1356,8 @@ type
     function ConfirmTabClose(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
     function ConfirmTabClear(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
     procedure UpdateFilterPanel(Sender: TObject);
+    procedure UpdateFilterEditButton(Edit: TEditButton);
+    procedure ShowFilterHistoryMenu(Edit: TEditButton);
     procedure ConnectionReady(Connection: TDBConnection; Database: String);
     procedure DatabaseChanged(Connection: TDBConnection; Database: String);
     procedure ObjectnamesChanged(Connection: TDBConnection; Database: String);
@@ -9562,7 +9564,7 @@ begin
   // Reset typing timer
   TimerFilterVT.Enabled := False;
   TimerFilterVT.Enabled := True;
-  //editFilterVT.RightButton.Visible := editFilterVT.Text <> '';
+  UpdateFilterEditButton(editFilterVT);
 end;
 
 
@@ -13452,22 +13454,43 @@ begin
   rxdb.Free;
   rxtable.Free;
 
-  //editDatabaseFilter.RightButton.Visible := editDatabaseFilter.Text <> '';
-  //editTableFilter.RightButton.Visible := editTableFilter.Text <> '';
+  UpdateFilterEditButton(editDatabaseFilter);
+  UpdateFilterEditButton(editTableFilter);
 end;
 
 
-procedure TMainForm.editDatabaseTableFilterLeftButtonClick(Sender: TObject);
+procedure TMainForm.UpdateFilterEditButton(Edit: TEditButton);
+begin
+  // Single button with two functions, as TEditButton has no second button:
+  // clear icon when text is entered, history icon when empty
+  if Edit.Text <> '' then
+    Edit.ImageIndex := 193
+  else if Edit = editDatabaseFilter then
+    Edit.ImageIndex := 191
+  else
+    Edit.ImageIndex := 192;
+end;
+
+
+procedure TMainForm.editFilterButtonClick(Sender: TObject);
+begin
+  // Clear filter if not empty, otherwise show filter history menu
+  if TEditButton(Sender).Text <> '' then
+    buttonedEditClear(Sender)
+  else
+    ShowFilterHistoryMenu(TEditButton(Sender));
+end;
+
+
+procedure TMainForm.ShowFilterHistoryMenu(Edit: TEditButton);
 var
   Menu: TPopupMenu;
   Item: TMenuItem;
-  Edit: TEditButton;
   History: TStringList;
   ItemText: String;
   Setting: TAppSettingIndex;
 begin
   // Create right menu with filter history
-  Edit := Sender as TEditButton;
   Menu := TPopupMenu.Create(Edit);
   //Menu.AutoHotkeys := maManual;
   Menu.Images := ImageListMain;
@@ -13479,7 +13502,7 @@ begin
   else if Edit = editFilterVT then
     Setting := asFilterVT
   else
-    raise Exception.CreateFmt(MsgUnhandledControl, ['editDatabaseTableFilterLeftButtonClick']);
+    raise Exception.CreateFmt(MsgUnhandledControl, ['ShowFilterHistoryMenu']);
   History := TStringList.Create;
   History.Text := AppSettings.ReadString(Setting);
   for ItemText in History do begin
