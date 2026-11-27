@@ -2769,7 +2769,6 @@ var
   i: Integer;
   Status: TDBQuery;
   PasswordChangeDialog: TfrmPasswordChange;
-  {UserNameSize: DWORD;}
 begin
   if Value and (FHandle = nil) then begin
 
@@ -2844,13 +2843,12 @@ begin
 
     // User/Password
     if FParameters.WindowsAuth then begin
-      // Send Windows system user name and blank password, see #991
-      {UserNameSize := 1024;
-      SetLength(FinalUsername, UserNameSize);
-      if GetUserName(PChar(FinalUsername), UserNameSize) then
-        SetLength(FinalUsername, UserNameSize-1)
-      else
-        RaiseLastOSError;}
+      // Send the OS user name and a blank password, see #991
+      {$IFDEF WINDOWS}
+      FinalUsername := GetEnvironmentVariable('USERNAME');
+      {$ELSE}
+      FinalUsername := GetEnvironmentVariable('USER');
+      {$ENDIF}
       FinalPassword := '';
     end else begin
       // Normal mode, send user specified user/password
