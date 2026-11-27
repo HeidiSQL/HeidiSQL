@@ -1275,6 +1275,9 @@ type
     FLastTabNumberOnMouseUp: Integer;
     FTabCloseButton: TTabCloseButton;
     FTabAddButton: TTabAddButton;
+    {$IFDEF LCLWin32}
+    FPageControlMainWndProc: TWndMethod;
+    {$ENDIF}
     FLastMouseButtonUpOnGrid: TMouseButton;
     //FJumpList: TJumpList;
     // Filter text per tab for filter panel
@@ -1377,6 +1380,9 @@ type
     procedure GlobalSynEditStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     procedure ColorSchemeMenuClick(Sender: TObject);
     procedure AsyncErrorDialog(Data: PtrInt);
+    {$IFDEF LCLWin32}
+    procedure PageControlMainWindowProc(var Message: TLMessage);
+    {$ENDIF}
   public
     QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
@@ -1829,6 +1835,10 @@ procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   // Discard a possibly queued AsyncRepaintGrid call
   Application.RemoveAsyncCalls(Self);
+  {$IFDEF LCLWin32}
+  if Assigned(FPageControlMainWndProc) then
+    PageControlMain.WindowProc := FPageControlMainWndProc;
+  {$ENDIF}
 
   {$IFDEF DARWIN}
   // Work around a SynEdit bug which crashes the app on every shutdown on Cocoa:
@@ -2281,7 +2291,35 @@ begin
   FTabAddButton := TTabAddButton.Create(Self, PageControlMain);
   FTabAddButton.Hint := actNewQueryTab.Hint;
   FTabAddButton.OnClick := actNewQueryTabExecute;
+  {$IFDEF LCLWin32}
+  FPageControlMainWndProc := PageControlMain.WindowProc;
+  PageControlMain.WindowProc := PageControlMainWindowProc;
+  {$ENDIF}
 end;
+
+
+{$IFDEF LCLWin32}
+procedure TMainForm.PageControlMainWindowProc(var Message: TLMessage);
+var
+  P: TPoint;
+  TabR: TRect;
+begin
+  FPageControlMainWndProc(Message);
+  // The native tab control returns HTTRANSPARENT for the empty area of the tab strip, so right
+  // clicks there reach the parent panel instead of the PageControl and its popup menu.
+  // Other widgetsets deliver these clicks to the PageControl natively.
+  if (Message.Msg = LM_NCHITTEST)
+    and (Message.Result = HTTRANSPARENT)
+    and Assigned(PageControlMain.ActivePage)
+    then begin
+    P := PageControlMain.ScreenToClient(Point(SmallInt(LoWord(Message.LParam)), SmallInt(HiWord(Message.LParam))));
+    // The row of the active tab is the bottom row, also with multiple tab rows
+    TabR := PageControlMain.TabRect(PageControlMain.PageToTabIndex(PageControlMain.ActivePageIndex));
+    if P.Y < TabR.Bottom then
+      Message.Result := HTCLIENT;
+  end;
+end;
+{$ENDIF}
 
 
 {**
