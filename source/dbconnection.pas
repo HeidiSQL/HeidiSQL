@@ -12635,8 +12635,16 @@ begin
     Exit;
   end;
   FOwner.Log(lcInfo, 'Reading function definitions from '+IniFilePath);
-  // Files are UTF-8 without BOM
-  Ini := TMemIniFile.Create(IniFilePath, TEncoding.UTF8);
+  // Files are UTF-8 without BOM. Older installations may still have ANSI or UTF-16 files, as the build
+  // updater replaces only the executable. Fall back to BOM detection or ANSI then.
+  try
+    Ini := TMemIniFile.Create(IniFilePath, TEncoding.UTF8);
+  except
+    on E:EEncodingError do begin
+      FOwner.Log(lcDebug, 'Function definitions are not valid UTF-8, reading with system encoding: '+E.Message);
+      Ini := TMemIniFile.Create(IniFilePath);
+    end;
+  end;
   Sections := TStringList.Create;
   Ini.ReadSections(Sections);
   for Section in Sections do begin
