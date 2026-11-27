@@ -308,6 +308,7 @@ type
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive, FSSLVerification: Integer;
       FSSHActive, FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus,
       FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled, FForceUnicode: Boolean;
+      FConvertedFromLegacyNetType: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
       FLogFileDdl: Boolean;
@@ -382,6 +383,9 @@ type
       property Password: String read FPassword write FPassword;
       property LoginPrompt: Boolean read FLoginPrompt write FLoginPrompt;
       property WindowsAuth: Boolean read FWindowsAuth write FWindowsAuth;
+      // MS SQL via named pipe, SPX, VINES or RPC from the Delphi version, now TCP/IP
+      procedure ConvertLegacyNetType;
+      property ConvertedFromLegacyNetType: Boolean read FConvertedFromLegacyNetType;
       property CleartextPluginEnabled: Boolean read FCleartextPluginEnabled write FCleartextPluginEnabled;
       property ForceUnicode: Boolean read FForceUnicode write FForceUnicode;
       property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
@@ -1483,6 +1487,7 @@ begin
     FCleartextPluginEnabled := AppSettings.ReadBool(asCleartextPluginEnabled);
     FForceUnicode := AppSettings.ReadBool(asForceUnicode);
     FPort := MakeInt(AppSettings.ReadString(asPort));
+    ConvertLegacyNetType;
     FCompressed := AppSettings.ReadBool(asCompressed);
     FAllDatabases := AppSettings.ReadString(asDatabases);
     FLibraryOrProvider := AppSettings.ReadString(asLibrary);
@@ -1999,6 +2004,38 @@ begin
   end;
 end;
 
+
+procedure TConnectionParameters.ConvertLegacyNetType;
+var
+  rx: TRegExpr;
+  PipeName: String;
+begin
+  // ADO in the Delphi version supported more protocols than FreeTDS, which only has TCP/IP
+  if not (FNetType in [ntMSSQL_NamedPipe, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC]) then
+    Exit;
+  FNetType := ntMSSQL_TCPIP;
+  FConvertedFromLegacyNetType := True;
+  FHostname := Trim(FHostname);
+  if FHostname.StartsWith('np:', True) then
+    Delete(FHostname, 1, 3);
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  // Pipe path: \\server\pipe\sql\query or \\server\pipe\MSSQL$instance\sql\query
+  rx.Expression := '^\\\\([^\\]+)\\pipe\\(.*)$';
+  if rx.Exec(FHostname) then begin
+    PipeName := rx.Match[2];
+    FHostname := rx.Match[1];
+    rx.Expression := '^MSSQL\$([^\\]+)\\';
+    if rx.Exec(PipeName) then
+      FHostname := FHostname + '\' + rx.Match[1];
+  end;
+  rx.Free;
+  if FHostname.IsEmpty then
+    FHostname := DefaultHost;
+  // The port was not used with these protocols and may hold anything. Without a port, FreeTDS
+  // connects to 1433, or finds a named instance through the SQL Server Browser.
+  FPort := DefaultPort;
+end;
 
 function TConnectionParameters.DefaultLibrary: String;
 var
@@ -3037,13 +3074,12 @@ var
   FinalPort, InstancePos: Integer;
 begin
   if Value then begin
-    if Parameters.NetType <> ntMSSQL_TCPIP then begin
-       raise EDbError.Create('No longer supported network type: '+Parameters.NetTypeName(True),
-           0,
-           'Please select the TCP/IP type for MS SQL instead');
-    end;
+    // Sessions from settings are converted when loaded, this catches command line parameters
+    Parameters.ConvertLegacyNetType;
 
     DoBeforeConnect;
+    if Parameters.ConvertedFromLegacyNetType then
+      Log(lcInfo, _('Named pipe and other legacy protocols are no longer supported, connecting via TCP/IP instead'));
     FinalHost := Parameters.Hostname;
     FinalPort := Parameters.Port;
     // "server\instance": FreeTDS resolves the instance's port through the SQL Server Browser,
@@ -3166,6 +3202,13 @@ begin
             ErrorHint := ErrorHint + sLineBreak + sLineBreak;
           ErrorHint := ErrorHint + f_('The instance name "%s" was ignored, as port %d is set. Set the port to 0 to find the instance through the SQL Server Browser service.',
             [IgnoredInstance, FinalPort]);
+        end;
+        if Parameters.ConvertedFromLegacyNetType then begin
+          if not ErrorHint.IsEmpty then
+            ErrorHint := ErrorHint + sLineBreak + sLineBreak;
+          ErrorHint := ErrorHint + _('This session was converted from named pipe or another legacy protocol to TCP/IP. '+
+            'Make sure TCP/IP is enabled for the server in the SQL Server Configuration Manager, under "Protocols for <instance>", and restart the server service. '+
+            'For a named instance without a fixed port, the SQL Server Browser service must be running.');
         end;
         raise EDbError.Create(Error, LastErrorCode, ErrorHint);
       end;

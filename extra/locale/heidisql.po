@@ -4889,6 +4889,12 @@ msgstr "The instance name \"%s\" was ignored, as port %d is set. Set the port to
 msgid "Query cancelled after the timeout of %d seconds. You can change the timeout in the session settings."
 msgstr "Query cancelled after the timeout of %d seconds. You can change the timeout in the session settings."
 
+msgid "Named pipe and other legacy protocols are no longer supported, connecting via TCP/IP instead"
+msgstr "Named pipe and other legacy protocols are no longer supported, connecting via TCP/IP instead"
+
+msgid "This session was converted from named pipe or another legacy protocol to TCP/IP. Make sure TCP/IP is enabled for the server in the SQL Server Configuration Manager, under \"Protocols for <instance>\", and restart the server service. For a named instance without a fixed port, the SQL Server Browser service must be running."
+msgstr "This session was converted from named pipe or another legacy protocol to TCP/IP. Make sure TCP/IP is enabled for the server in the SQL Server Configuration Manager, under \"Protocols for <instance>\", and restart the server service. For a named instance without a fixed port, the SQL Server Browser service must be running."
+
 msgid "This is a known issue with older libraries. Try a newer %s in the session settings."
 msgstr "This is a known issue with older libraries. Try a newer %s in the session settings."
 

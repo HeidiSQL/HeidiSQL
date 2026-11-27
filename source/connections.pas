@@ -309,6 +309,9 @@ begin
   Params := TConnectionParameters.Create;
   NetTypes := TStringList.Create;
   for nt:=Low(nt) to High(nt) do begin
+    // Converted to TCP/IP when loaded, see TConnectionParameters.ConvertLegacyNetType
+    if nt in [ntMSSQL_NamedPipe, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC] then
+      Continue;
     Params.NetType := nt;
     NetTypes.AddObject(Params.NetTypeName(True), TObject(NativeInt(Ord(nt))));
   end;
