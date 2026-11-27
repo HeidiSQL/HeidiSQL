@@ -2722,7 +2722,11 @@ begin
     end;
     if Host <> '' then ConnectionParams.Hostname := Host;
     if Lib <> '' then ConnectionParams.LibraryOrProvider := Lib;
-    if ConnectionParams.LibraryOrProvider.IsEmpty then ConnectionParams.LibraryOrProvider := ConnectionParams.DefaultLibrary;
+    // A new TConnectionParameters has the library of the default net type, e.g. libmariadb.dll,
+    // which crashes the MS SQL connection when -n changes the net type
+    if ConnectionParams.LibraryOrProvider.IsEmpty
+      or (Lib.IsEmpty and (ConnectionParams.GetLibraries.IndexOf(ConnectionParams.LibraryOrProvider) = -1)) then
+      ConnectionParams.LibraryOrProvider := ConnectionParams.DefaultLibrary;
     if User <> '' then ConnectionParams.Username := User;
     if Pass <> '' then ConnectionParams.Password := Pass;
     if CleartextPluginEnabled in [0,1] then
