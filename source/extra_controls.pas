@@ -95,44 +95,71 @@ type
   TTabClosableEvent = function(Sender: TObject; Page: TTabSheet): Boolean of object;
   TTabCloseEvent = procedure(Sender: TObject; Page: TTabSheet) of object;
 
-  // Subtle close button, shown on the closable tab of a TPageControl below the mouse cursor.
+  // Base for small buttons painted over the tab strip of a TPageControl.
   // Sits on the PageControl's parent, over the tab strip, as the widgetsets paint over
-  // child controls in the tab area. Polls the mouse position, as mouse events on the
-  // tab strip are not reliable across widgetsets.
-  TTabCloseButton = class(TCustomControl)
+  // child controls in the tab area. Polls the tab and mouse positions, as mouse events
+  // on the tab strip are not reliable across widgetsets, and changes of the tab layout
+  // are not notified.
+  TTabStripButton = class(TCustomControl)
     private
+      FTimer: TTimer;
+      procedure TimerTimer(Sender: TObject);
+    protected
       FPageControl: TPageControl;
-      FTabSheet: TTabSheet;
-      FCloseRequested: TTabSheet;
-      FTabRect: TRect;
-      FTabSelected: Boolean;
       FHot: Boolean;
       FPressed: Boolean;
-      FHoverTimer: TTimer;
-      FOnIsClosable: TTabClosableEvent;
-      FOnCloseTab: TTabCloseEvent;
-      procedure SetTabSheet(Value: TTabSheet);
-      procedure HideButton;
-      procedure HoverTimerTimer(Sender: TObject);
-      procedure AsyncCloseTab(Data: PtrInt);
-    protected
       procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-      procedure Paint; override;
+      function PageControlShowing: Boolean;
+      function GetTabRectInParent(Sheet: TTabSheet): TRect;
+      procedure PaintHotState;
+      function GlyphThickness: Integer;
+      procedure HideButton;
+      procedure DoButtonClick; virtual; abstract;
       procedure MouseEnter; override;
       procedure MouseLeave; override;
       procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
       procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
     public
+      constructor Create(AOwner: TComponent; APageControl: TPageControl); reintroduce; virtual;
+      procedure UpdatePosition; virtual; abstract;
+  end;
+
+  // Subtle close button, shown on the closable tab of a TPageControl below the mouse cursor.
+  TTabCloseButton = class(TTabStripButton)
+    private
+      FTabSheet: TTabSheet;
+      FCloseRequested: TTabSheet;
+      FTabRect: TRect;
+      FTabSelected: Boolean;
+      FOnIsClosable: TTabClosableEvent;
+      FOnCloseTab: TTabCloseEvent;
+      procedure SetTabSheet(Value: TTabSheet);
+      procedure AsyncCloseTab(Data: PtrInt);
+    protected
+      procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+      procedure Paint; override;
+      procedure DoButtonClick; override;
+    public
       const
         // Append to captions of closable tabs, leaves space for the button
         CaptionPadding = '     ';
-      constructor Create(AOwner: TComponent; APageControl: TPageControl); reintroduce;
       destructor Destroy; override;
-      procedure UpdateHover;
+      procedure UpdatePosition; override;
       // Ask whether the given tab gets a close button
       property OnIsClosable: TTabClosableEvent read FOnIsClosable write FOnIsClosable;
       // Fired asynchronously after a click on the button
       property OnCloseTab: TTabCloseEvent read FOnCloseTab write FOnCloseTab;
+  end;
+
+  // "+" button right after the last visible tab of a TPageControl, for adding a new tab.
+  // Hidden when the tab strip has no room left for it.
+  TTabAddButton = class(TTabStripButton)
+    protected
+      procedure Paint; override;
+      procedure DoButtonClick; override;
+    public
+      procedure UpdatePosition; override;
+      property OnClick;
   end;
 
 
@@ -712,22 +739,150 @@ end;
 
 
 
-{ TTabCloseButton }
+{ TTabStripButton }
 
-constructor TTabCloseButton.Create(AOwner: TComponent; APageControl: TPageControl);
+constructor TTabStripButton.Create(AOwner: TComponent; APageControl: TPageControl);
 begin
   inherited Create(AOwner);
-  ControlStyle := ControlStyle + [csCaptureMouse, csOpaque] - [csSetCaption];
+  // Clicks are handled in MouseUp, see DoButtonClick
+  ControlStyle := ControlStyle + [csCaptureMouse, csOpaque] - [csSetCaption, csClickEvents];
   Visible := False;
   ShowHint := True;
   FPageControl := APageControl;
   FPageControl.FreeNotification(Self);
   Parent := FPageControl.Parent;
-  FHoverTimer := TTimer.Create(Self);
-  FHoverTimer.Interval := 100;
-  FHoverTimer.OnTimer := HoverTimerTimer;
+  FTimer := TTimer.Create(Self);
+  FTimer.Interval := 100;
+  FTimer.OnTimer := TimerTimer;
 end;
 
+
+procedure TTabStripButton.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = FPageControl) then begin
+    FPageControl := nil;
+    FTimer.Enabled := False;
+  end;
+end;
+
+
+procedure TTabStripButton.TimerTimer(Sender: TObject);
+begin
+  UpdatePosition;
+end;
+
+
+function TTabStripButton.PageControlShowing: Boolean;
+var
+  Form: TCustomForm;
+begin
+  Result := False;
+  if not Assigned(FPageControl) then
+    Exit;
+  Form := GetParentForm(FPageControl);
+  Result := Assigned(Form)
+    and Form.Visible
+    and (Form.WindowState <> wsMinimized)
+    and FPageControl.HandleAllocated
+    and FPageControl.IsVisible;
+end;
+
+
+function TTabStripButton.GetTabRectInParent(Sheet: TTabSheet): TRect;
+var
+  ParentPos: TPoint;
+begin
+  // Tab rectangle in our parent's client coordinates, empty if the tab has none
+  // Cocoa's GetTabRect expects the page index, Win32 and others the visible tab index
+  {$IFDEF LCLCocoa}
+  Result := FPageControl.TabRect(Sheet.PageIndex);
+  {$ELSE}
+  Result := FPageControl.TabRect(FPageControl.PageToTabIndex(Sheet.PageIndex));
+  {$ENDIF}
+  if Result.IsEmpty then
+    Exit;
+  ParentPos := Parent.ScreenToClient(FPageControl.ClientToScreen(Result.TopLeft));
+  Types.OffsetRect(Result, ParentPos.X - Result.Left, ParentPos.Y - Result.Top);
+end;
+
+
+procedure TTabStripButton.PaintHotState;
+var
+  Details: TThemedElementDetails;
+begin
+  // Hovered and pressed state like a flat TToolButton. Nothing in normal state, so the
+  // background painted by the descendant shines through.
+  if FPressed then
+    Details := ThemeServices.GetElementDetails(ttbButtonPressed)
+  else if FHot then
+    Details := ThemeServices.GetElementDetails(ttbButtonHot)
+  else
+    Exit;
+  ThemeServices.DrawElement(Canvas.Handle, Details, ClientRect);
+end;
+
+
+function TTabStripButton.GlyphThickness: Integer;
+begin
+  // Line thickness of the painted "x" and "+". Even, so lines are centered on even glyph sizes.
+  Result := Max(2, Scale96ToForm(2)) and not 1;
+end;
+
+
+procedure TTabStripButton.HideButton;
+begin
+  // MouseLeave is not fired when hiding while hovered
+  FHot := False;
+  FPressed := False;
+  Visible := False;
+end;
+
+
+procedure TTabStripButton.MouseEnter;
+begin
+  inherited;
+  FHot := True;
+  Invalidate;
+end;
+
+
+procedure TTabStripButton.MouseLeave;
+begin
+  inherited;
+  FHot := False;
+  FPressed := False;
+  Invalidate;
+end;
+
+
+procedure TTabStripButton.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  inherited;
+  if Button = mbLeft then begin
+    FPressed := True;
+    Invalidate;
+  end;
+end;
+
+
+procedure TTabStripButton.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  WasPressed: Boolean;
+begin
+  inherited;
+  if Button <> mbLeft then
+    Exit;
+  WasPressed := FPressed;
+  FPressed := False;
+  Invalidate;
+  if WasPressed and PtInRect(ClientRect, Point(X, Y)) then
+    DoButtonClick;
+end;
+
+
+
+{ TTabCloseButton }
 
 destructor TTabCloseButton.Destroy;
 begin
@@ -740,10 +895,6 @@ procedure TTabCloseButton.Notification(AComponent: TComponent; Operation: TOpera
 begin
   inherited;
   if Operation = opRemove then begin
-    if AComponent = FPageControl then begin
-      FPageControl := nil;
-      FHoverTimer.Enabled := False;
-    end;
     if AComponent = FTabSheet then
       FTabSheet := nil;
     if AComponent = FCloseRequested then
@@ -764,25 +915,9 @@ begin
 end;
 
 
-procedure TTabCloseButton.HideButton;
-begin
-  // MouseLeave is not fired when hiding while hovered
-  FHot := False;
-  FPressed := False;
-  Visible := False;
-end;
-
-
-procedure TTabCloseButton.HoverTimerTimer(Sender: TObject);
-begin
-  UpdateHover;
-end;
-
-
-procedure TTabCloseButton.UpdateHover;
+procedure TTabCloseButton.UpdatePosition;
 var
-  Form: TCustomForm;
-  CursorPos, ClientPos, ParentPos: TPoint;
+  CursorPos, ClientPos: TPoint;
   PageIndex, Size, Margin, MarginRight: Integer;
   TabR, BtnR, BtnScreenR: TRect;
   HoverSheet: TTabSheet;
@@ -790,17 +925,7 @@ begin
   // Show the button on the closable tab below the mouse cursor, hide it otherwise
   HoverSheet := nil;
   TabR := Rect(0, 0, 0, 0);
-  if Assigned(FPageControl) then
-    Form := GetParentForm(FPageControl)
-  else
-    Form := nil;
-  if Assigned(Form)
-    and Form.Visible
-    and (Form.WindowState <> wsMinimized)
-    and (Screen.ActiveForm = Form)
-    and FPageControl.HandleAllocated
-    and FPageControl.IsVisible
-    then begin
+  if PageControlShowing and (Screen.ActiveForm = GetParentForm(FPageControl)) then begin
     CursorPos := Mouse.CursorPos;
     BtnScreenR := Rect(0, 0, 0, 0);
     if Visible then begin
@@ -822,12 +947,7 @@ begin
     end;
 
     if Assigned(HoverSheet) and HoverSheet.TabVisible then begin
-      // Cocoa's GetTabRect expects the page index, Win32 and others the visible tab index
-      {$IFDEF LCLCocoa}
-      TabR := FPageControl.TabRect(HoverSheet.PageIndex);
-      {$ELSE}
-      TabR := FPageControl.TabRect(FPageControl.PageToTabIndex(HoverSheet.PageIndex));
-      {$ENDIF}
+      TabR := GetTabRectInParent(HoverSheet);
       if TabR.IsEmpty then
         HoverSheet := nil;
     end else
@@ -840,9 +960,6 @@ begin
     Exit;
   end;
 
-  // Translate tab rectangle from PageControl client coordinates to our parent
-  ParentPos := Parent.ScreenToClient(FPageControl.ClientToScreen(TabR.TopLeft));
-  Types.OffsetRect(TabR, ParentPos.X - TabR.Left, ParentPos.Y - TabR.Top);
   Margin := Scale96ToForm(3);
   // Cocoa tabs end with a wider gap after the padded caption, so the button moves a bit inwards.
   // Gtk2's GetTabRect returns the allocation of the tab label only, without the tab's own padding,
@@ -896,38 +1013,6 @@ var
   {$IFDEF WINDOWS}
   Details: TThemedElementDetails;
   {$ENDIF}
-
-  procedure FillRoundedGradient(TopColor, BottomColor: TColor);
-  var
-    y, dy, Inset, Radius, Percent: Integer;
-    C1, C2: TColor;
-  begin
-    // Vertical gradient, row by row, with rounded corners. Avoids RoundRect, which
-    // paints the right and bottom edge differently depending on pen style and widgetset.
-    C1 := ColorToRGB(TopColor);
-    C2 := ColorToRGB(BottomColor);
-    Radius := Scale96ToForm(2);
-    Canvas.Pen.Style := psSolid;
-    Canvas.Pen.Width := 1;
-    for y:=0 to Height-1 do begin
-      Percent := IfThen(Height > 1, y * 100 div (Height-1), 0);
-      Canvas.Pen.Color := RGBToColor(
-        Red(C1) + (Red(C2) - Red(C1)) * Percent div 100,
-        Green(C1) + (Green(C2) - Green(C1)) * Percent div 100,
-        Blue(C1) + (Blue(C2) - Blue(C1)) * Percent div 100
-        );
-      dy := 0;
-      if y < Radius then
-        dy := Radius - y
-      else if y >= Height - Radius then
-        dy := y - (Height - Radius - 1);
-      Inset := 0;
-      if dy > 0 then
-        Inset := Radius - Round(Sqrt(Sqr(Radius) - Sqr(dy - 0.5)));
-      Canvas.Line(Inset, y, Width - Inset, y);
-    end;
-  end;
-
 begin
   R := ClientRect;
   // Background: paint the part of the tab we are covering, so the button blends in
@@ -945,22 +1030,16 @@ begin
     Canvas.FillRect(R);
   end;
 
-  // Gray background, red gradient like a window close button when hovered, darker red when pressed
-  if FPressed then
-    FillRoundedGradient($1C0EC0, $140A90)
-  else if FHot then
-    FillRoundedGradient($5C52F2, $1E0FC8)
-  else
-    FillRoundedGradient(clBtnShadow, clBtnShadow);
+  PaintHotState;
 
   // The "x", painted pixel by pixel instead of using LineTo, which places thicker
   // pens asymmetrically. Button size and cross size are both even, so the margins
   // between cross and button edges are equal on all sides.
   CrossSize := Max(4, (Min(Width, Height) * 3 div 5) and not 1);
-  Thickness := Max(1, Scale96ToForm(1));
+  Thickness := GlyphThickness;
   L := (Width - CrossSize) div 2;
   T := (Height - CrossSize) div 2;
-  Canvas.Brush.Color := clWhite;
+  Canvas.Brush.Color := clBtnText;
   for i:=0 to CrossSize - Thickness do begin
     // Top left to bottom right
     Canvas.FillRect(Rect(L+i, T+i, L+i+Thickness, T+i+Thickness));
@@ -970,51 +1049,86 @@ begin
 end;
 
 
-procedure TTabCloseButton.MouseEnter;
+procedure TTabCloseButton.DoButtonClick;
 begin
-  inherited;
-  FHot := True;
-  Invalidate;
-end;
-
-
-procedure TTabCloseButton.MouseLeave;
-begin
-  inherited;
-  FHot := False;
-  FPressed := False;
-  Invalidate;
-end;
-
-
-procedure TTabCloseButton.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  inherited;
-  if Button = mbLeft then begin
-    FPressed := True;
-    Invalidate;
-  end;
-end;
-
-
-procedure TTabCloseButton.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var
-  WasPressed: Boolean;
-begin
-  inherited;
-  if Button <> mbLeft then
+  if not Assigned(FTabSheet) then
     Exit;
-  WasPressed := FPressed;
-  FPressed := False;
-  Invalidate;
-  if WasPressed and PtInRect(ClientRect, Point(X, Y)) and Assigned(FTabSheet) then begin
-    // Close the tab asynchronously, as the button itself gets hidden.
-    // Also prevents EAccessViolation in TControl.GetClientWidth, see issue #1640
-    FCloseRequested := FTabSheet;
-    FCloseRequested.FreeNotification(Self);
-    HideButton;
-    Application.QueueAsyncCall(AsyncCloseTab, 0);
+  // Close the tab asynchronously, as the button itself gets hidden.
+  // Also prevents EAccessViolation in TControl.GetClientWidth, see issue #1640
+  FCloseRequested := FTabSheet;
+  FCloseRequested.FreeNotification(Self);
+  HideButton;
+  Application.QueueAsyncCall(AsyncCloseTab, 0);
+end;
+
+
+
+{ TTabAddButton }
+
+procedure TTabAddButton.UpdatePosition;
+var
+  i, Size, Margin: Integer;
+  TabR, BtnR: TRect;
+begin
+  // Place the button right after the last visible tab
+  TabR := Rect(0, 0, 0, 0);
+  if PageControlShowing then begin
+    for i:=FPageControl.PageCount-1 downto 0 do begin
+      if FPageControl.Pages[i].TabVisible then begin
+        TabR := GetTabRectInParent(FPageControl.Pages[i]);
+        Break;
+      end;
+    end;
   end;
+  Margin := Scale96ToForm(3);
+  // Even size, for a centered "+"
+  Size := Min(TabR.Height - 2*Margin, Scale96ToForm(18)) and not 1;
+  BtnR.Left := TabR.Right + Margin;
+  BtnR.Top := TabR.Top + (TabR.Height - Size) div 2;
+  BtnR.Right := BtnR.Left + Size;
+  BtnR.Bottom := BtnR.Top + Size;
+  // No tab, or no room left in the tab strip, e.g. with scroll arrows on a single tab row
+  if TabR.IsEmpty or (Size <= 0) or (BtnR.Right > FPageControl.BoundsRect.Right - Margin) then begin
+    if Visible then
+      HideButton;
+    Exit;
+  end;
+  if not EqualRect(BoundsRect, BtnR) then
+    BoundsRect := BtnR;
+  if not Visible then begin
+    Visible := True;
+    BringToFront;
+  end;
+end;
+
+
+procedure TTabAddButton.Paint;
+var
+  PlusSize, Thickness, L, T: Integer;
+begin
+  // Background of the empty tab strip area
+  Canvas.Brush.Color := clBtnFace;
+  Canvas.FillRect(ClientRect);
+  PaintHotState;
+
+  // The "+", same size logic as the "x" of TTabCloseButton. Button size and plus size
+  // are both even, as is GlyphThickness, so the bars are centered.
+  PlusSize := Max(4, (Min(Width, Height) * 3 div 5) and not 1);
+  Thickness := GlyphThickness;
+  L := (Width - PlusSize) div 2;
+  T := (Height - PlusSize) div 2;
+  Canvas.Brush.Color := clBtnText;
+  // Horizontal bar
+  Canvas.FillRect(Rect(L, T + (PlusSize - Thickness) div 2, L + PlusSize, T + (PlusSize + Thickness) div 2));
+  // Vertical bar
+  Canvas.FillRect(Rect(L + (PlusSize - Thickness) div 2, T, L + (PlusSize + Thickness) div 2, T + PlusSize));
+end;
+
+
+procedure TTabAddButton.DoButtonClick;
+begin
+  if Assigned(OnClick) then
+    OnClick(Self);
 end;
 
 end.

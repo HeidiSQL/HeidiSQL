@@ -1274,6 +1274,7 @@ type
     FLastMouseUpOnPageControl: Cardinal;
     FLastTabNumberOnMouseUp: Integer;
     FTabCloseButton: TTabCloseButton;
+    FTabAddButton: TTabAddButton;
     FLastMouseButtonUpOnGrid: TMouseButton;
     //FJumpList: TJumpList;
     // Filter text per tab for filter panel
@@ -1298,7 +1299,6 @@ type
     FOperatingGrid: TBaseVirtualTree;
     FActiveDbObj: TDBObject;
     FActiveObjectGroup: TListNodeType;
-    //FBtnAddTab: TSpeedButton;
     FDBObjectsMaxSize: Int64;
     FDBObjectsMaxRows: Int64;
     FSearchReplaceDialog: TfrmSearchReplace;
@@ -2277,6 +2277,10 @@ begin
   FTabCloseButton.Hint := actCloseQueryTab.Caption;
   FTabCloseButton.OnIsClosable := TabCloseButtonIsClosable;
   FTabCloseButton.OnCloseTab := TabCloseButtonCloseTab;
+  // "+" button after the last tab
+  FTabAddButton := TTabAddButton.Create(Self, PageControlMain);
+  FTabAddButton.Hint := actNewQueryTab.Hint;
+  FTabAddButton.OnClick := actNewQueryTabExecute;
 end;
 
 
@@ -6790,7 +6794,7 @@ begin
   ValidateControls(Sender);
   // Background of the close button follows the active tab
   if Assigned(FTabCloseButton) then
-    FTabCloseButton.UpdateHover;
+    FTabCloseButton.UpdatePosition;
 end;
 
 
@@ -13327,7 +13331,7 @@ begin
   PageControlMain.ActivePageIndex := NewPageIndex;
   // Neighbour tab may now be below the mouse cursor
   if Assigned(FTabCloseButton) then
-    FTabCloseButton.UpdateHover;
+    FTabCloseButton.UpdatePosition;
   //LockWindowUpdate(0);
   PageControlMain.OnChange(PageControlMain);
 end;
