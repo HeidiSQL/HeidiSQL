@@ -7650,6 +7650,14 @@ msgid "Install the Snowflake ODBC driver from %s."
 msgstr "Install the Snowflake ODBC driver from %s."
 
 #: dbconnection.pas
+msgid "Install the \"Microsoft ODBC Driver for SQL Server\" from %s."
+msgstr "Install the \"Microsoft ODBC Driver for SQL Server\" from %s."
+
+#: dbconnection.pas
+msgid "Install the server certificate as a trusted certificate on this computer, or activate SSL with \"No verification\" in your session settings (insecure)."
+msgstr "Install the server certificate as a trusted certificate on this computer, or activate SSL with \"No verification\" in your session settings (insecure)."
+
+#: dbconnection.pas
 msgid "The ODBC driver \"%s\" is not installed."
 msgstr "The ODBC driver \"%s\" is not installed."
 

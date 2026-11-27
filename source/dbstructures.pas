@@ -31,7 +31,8 @@ type
     ntSQLiteEncrypted,
     ntMySQL_ClickHouse,
     ntOracle_ODBC,
-    ntSnowflake_ODBC
+    ntSnowflake_ODBC,
+    ntMSSQL_ODBC
     );
   // Ordinals of TNetType are stored in session settings: append new items at the end only
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase, ngOracle, ngSnowflake);

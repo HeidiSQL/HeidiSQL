@@ -20,7 +20,18 @@ type
   TFixedODBCConnection = class(TODBCConnection)
   private
     FFloat38AsDecimal: Boolean;
+    FExecDirect: Boolean;
+    FAutoCommit: Boolean;
+    // Affected rows of the last statement executed via SQLExecDirect, see Execute
+    FDirectCursor: TSQLCursor;
+    FDirectRowsAffected: TRowsCount;
   protected
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    procedure PrepareStatement(cursor: TSQLCursor; ATransaction: TSQLTransaction; buf: string;
+      AParams: TParams); override;
+    procedure Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams); override;
+    function StartDBTransaction(trans: TSQLHandle; AParams: string): boolean; override;
+    procedure AddFieldDefsForAllTypes(cursor: TSQLCursor; FieldDefs: TFieldDefs);
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs); override;
     function LoadField(cursor: TSQLCursor; FieldDef: TFieldDef; buffer: pointer;
       out CreateBlob: boolean): boolean; override;
@@ -30,6 +41,13 @@ type
     constructor Create(AOwner: TComponent); override;
     // Oracle: unconstrained NUMBER and FLOAT(n) are reported as SQL_FLOAT with 38 digits
     property Float38AsDecimal: Boolean read FFloat38AsDecimal write FFloat38AsDecimal;
+    // Execute statements without parameters via SQLExecDirect, not SQLPrepare + SQLExecute.
+    // MS SQL runs prepared statements in their own scope, so a #temp table created there is
+    // gone afterwards. SQLNumResultCols is unknown before execution then.
+    property ExecDirect: Boolean read FExecDirect write FExecDirect;
+    // SQL_AUTOCOMMIT_ON instead of a transaction. Same as odbcconn's "AUTOCOMMIT" parameter,
+    // which also ends up in the connection string, where the driver reports it as invalid.
+    property AutoCommit: Boolean read FAutoCommit write FAutoCommit;
   end;
 
 const
@@ -60,11 +78,13 @@ procedure LoadOdbcDriverManager;
 function OdbcDriverManagerAvailable: Boolean;
 // SQLCancel on a statement running in another thread. Not declared by FPC's odbcsql.inc.
 function OdbcCancel(Stmt: SQLHSTMT): Boolean;
+// SQL_ATTR_QUERY_TIMEOUT on a statement before its execution. Expiry raises SQLSTATE HYT00.
+function OdbcSetQueryTimeout(Stmt: SQLHSTMT; Seconds: Integer): Boolean;
 
 implementation
 
 uses
-  {$IFDEF WINDOWS}Windows,{$ENDIF} RegExpr, dynlibs, TypInfo;
+  {$IFDEF WINDOWS}Windows,{$ENDIF} RegExpr, dynlibs, TypInfo, Math, LazUTF8;
 
 {$IFNDEF WINDOWS}
 function libc_setenv(name, value: PChar; overwrite: LongInt): LongInt; cdecl; external 'c' name 'setenv';
@@ -79,6 +99,24 @@ type
 var
   ODBCFormatSettings: TFormatSettings;
   OdbcDriverManagerLoaded: Boolean = False;
+
+procedure CheckOdbcResult(Res: SQLRETURN; HandleType: SQLSMALLINT; AHandle: SQLHANDLE; const ErrorMsg: String); forward;
+
+type
+  TSQLMoreResults = function(StatementHandle: SQLHSTMT): SQLRETURN; {$IFDEF WINDOWS}stdcall{$ELSE}cdecl{$ENDIF};
+
+// SQLMoreResults, not declared by FPC's odbcsql.inc
+function OdbcMoreResults(Stmt: SQLHSTMT): SQLRETURN;
+var
+  MoreResultsFunc: TSQLMoreResults;
+begin
+  Result := SQL_NO_DATA;
+  if ODBCLibraryHandle = NilHandle then
+    Exit;
+  MoreResultsFunc := TSQLMoreResults(GetProcedureAddress(ODBCLibraryHandle, 'SQLMoreResults'));
+  if Assigned(MoreResultsFunc) then
+    Result := MoreResultsFunc(Stmt);
+end;
 
 
 constructor TFixedODBCConnection.Create(AOwner: TComponent);
@@ -100,6 +138,185 @@ begin
 end;
 
 
+procedure TFixedODBCConnection.PrepareStatement(cursor: TSQLCursor; ATransaction: TSQLTransaction;
+  buf: string; AParams: TParams);
+var
+  ODBCCursor: TODBCCursorAccess;
+begin
+  if (not FExecDirect) or (Assigned(AParams) and (AParams.Count > 0))
+    or (TODBCCursorAccess(cursor).FSchemaType <> stNoSchema) then begin
+    inherited;
+    Exit;
+  end;
+  // Statement handle only, the SQL is passed to SQLExecDirect in Execute
+  ODBCCursor := TODBCCursorAccess(cursor);
+  CheckOdbcResult(SQLAllocHandle(SQL_HANDLE_STMT, SQLHDBC(Handle), ODBCCursor.FSTMTHandle),
+    SQL_HANDLE_DBC, SQLHDBC(Handle), 'Could not allocate ODBC Statement handle.');
+  ODBCCursor.FPrepared := True;
+  ODBCCursor.FQuery := buf;
+end;
+
+
+procedure TFixedODBCConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
+var
+  ODBCCursor: TODBCCursorAccess;
+  Res: SQLRETURN;
+  ColumnCount: SQLSMALLINT;
+  RowCount: SQLLEN;
+  WSQL: UnicodeString;
+begin
+  ODBCCursor := TODBCCursorAccess(cursor);
+  if (not FExecDirect) or (Assigned(AParams) and (AParams.Count > 0))
+    or (ODBCCursor.FSchemaType <> stNoSchema) then begin
+    inherited;
+    Exit;
+  end;
+  WSQL := UnicodeString(ODBCCursor.FQuery);
+  Res := SQLExecDirectW(ODBCCursor.FSTMTHandle, PWideChar(WSQL), Length(WSQL));
+  // SQL_NO_DATA: searched UPDATE or DELETE without affected rows
+  if Res <> SQL_NO_DATA then
+    CheckOdbcResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.');
+  // Skip row counts before the first result set with columns, e.g. from an INSERT in a
+  // procedure without SET NOCOUNT ON. SQLRowCount is gone after SQLMoreResults, so the
+  // counts are summed up here, see RowsAffected.
+  FDirectCursor := cursor;
+  FDirectRowsAffected := -1;
+  while True do begin
+    ColumnCount := 0;
+    if not (SQLNumResultCols(ODBCCursor.FSTMTHandle, ColumnCount) in [SQL_SUCCESS, SQL_SUCCESS_WITH_INFO]) then
+      ColumnCount := 0;
+    if ColumnCount > 0 then
+      Break;
+    RowCount := -1;
+    if Res = SQL_NO_DATA then
+      FDirectRowsAffected := Max(FDirectRowsAffected, 0)
+    else if (SQLRowCount(ODBCCursor.FSTMTHandle, RowCount) in [SQL_SUCCESS, SQL_SUCCESS_WITH_INFO])
+      and (RowCount >= 0) then
+      FDirectRowsAffected := Max(FDirectRowsAffected, 0) + RowCount;
+    Res := OdbcMoreResults(ODBCCursor.FSTMTHandle);
+    if Res = SQL_NO_DATA then
+      Break;
+    CheckOdbcResult(Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.');
+  end;
+  ODBCCursor.FSelectable := ColumnCount > 0;
+end;
+
+
+function TFixedODBCConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+begin
+  if FExecDirect and (cursor = FDirectCursor) then
+    Result := FDirectRowsAffected
+  else
+    Result := inherited;
+end;
+
+
+function TFixedODBCConnection.StartDBTransaction(trans: TSQLHandle; AParams: string): boolean;
+begin
+  if not FAutoCommit then
+    Exit(inherited);
+  CheckOdbcResult(SQLSetConnectAttr(SQLHDBC(Handle), SQL_ATTR_AUTOCOMMIT, SQLPOINTER(SQL_AUTOCOMMIT_ON), SQL_IS_UINTEGER),
+    SQL_HANDLE_DBC, SQLHDBC(Handle), 'Could not switch on autocommit.');
+  // No transaction to commit or roll back
+  Result := False;
+end;
+
+
+const
+  // MS SQL specific types, rejected by odbcconn's AddFieldDefs, or (variant) not loadable there
+  SQL_SS_VARIANT_ = -150;
+  SQL_SS_UDT_ = -151;
+  SQL_SS_TIMESTAMPOFFSET_ = -155;
+
+function HasUnsupportedColumns(Stmt: SQLHSTMT): Boolean;
+var
+  ColCount, NameLen, DataType, Digits, Nullable: SQLSMALLINT;
+  ColSize: SQLULEN;
+  i: Integer;
+begin
+  Result := False;
+  ColCount := 0;
+  if not (SQLNumResultCols(Stmt, ColCount) in [SQL_SUCCESS, SQL_SUCCESS_WITH_INFO]) then
+    Exit;
+  NameLen := 0;
+  DataType := 0;
+  ColSize := 0;
+  Digits := 0;
+  Nullable := 0;
+  for i:=1 to ColCount do begin
+    if (SQLDescribeCol(Stmt, i, nil, 0, NameLen, DataType, ColSize, Digits, Nullable)
+      in [SQL_SUCCESS, SQL_SUCCESS_WITH_INFO])
+      and ((DataType = SQL_SS_VARIANT_) or (DataType = SQL_SS_UDT_) or (DataType = SQL_SS_TIMESTAMPOFFSET_)) then
+      Exit(True);
+  end;
+end;
+
+procedure TFixedODBCConnection.AddFieldDefsForAllTypes(cursor: TSQLCursor; FieldDefs: TFieldDefs);
+type
+  TNameBuffer = array[0..255] of WideChar;
+var
+  Stmt: SQLHSTMT;
+  ColCount, NameLen, DataType, Digits, Nullable: SQLSMALLINT;
+  ColSize: SQLULEN;
+  i, FieldSize: Integer;
+  ColName: TNameBuffer;
+  FieldType: TFieldType;
+begin
+  // Replacement for inherited AddFieldDefs, used when the result has MS SQL types which it
+  // rejects with "unknown or unsupported column type". These are fetched as text (datetimeoffset,
+  // sql_variant) or raw bytes (CLR types like geography). Other types as in odbcconn.
+  Stmt := TODBCCursorAccess(cursor).FSTMTHandle;
+  ColCount := 0;
+  CheckOdbcResult(SQLNumResultCols(Stmt, ColCount), SQL_HANDLE_STMT, Stmt,
+    'Could not determine number of columns in result set.');
+  for i:=1 to ColCount do begin
+    ColName := Default(TNameBuffer);
+    NameLen := 0;
+    DataType := 0;
+    ColSize := 0;
+    Digits := 0;
+    Nullable := 0;
+    CheckOdbcResult(SQLDescribeColW(Stmt, i, @ColName[0], Length(ColName), NameLen, DataType, ColSize, Digits, Nullable),
+      SQL_HANDLE_STMT, Stmt, Format('Could not get column properties for column %d.', [i]));
+    FieldSize := 0;
+    case DataType of
+      SQL_CHAR, SQL_WCHAR: begin FieldType := ftFixedWideChar; FieldSize := ColSize; end;
+      SQL_VARCHAR, SQL_WVARCHAR: begin FieldType := ftWideString; FieldSize := ColSize; end;
+      SQL_LONGVARCHAR, SQL_WLONGVARCHAR, SQL_SS_XML: FieldType := ftWideMemo;
+      SQL_DECIMAL, SQL_NUMERIC: FieldType := ftFloat; // see below
+      SQL_SMALLINT, SQL_TINYINT: FieldType := ftSmallint;
+      SQL_INTEGER: FieldType := ftInteger;
+      SQL_BIGINT: FieldType := ftLargeint;
+      SQL_REAL, SQL_FLOAT, SQL_DOUBLE: FieldType := ftFloat;
+      SQL_BIT: FieldType := ftBoolean;
+      SQL_BINARY: begin FieldType := ftBytes; FieldSize := ColSize; end;
+      SQL_VARBINARY: begin FieldType := ftVarBytes; FieldSize := ColSize; end;
+      SQL_LONGVARBINARY, SQL_SS_UDT_: FieldType := ftBlob;
+      SQL_TYPE_DATE: FieldType := ftDate;
+      SQL_SS_TIME2, SQL_TYPE_TIME: FieldType := ftTime;
+      SQL_TYPE_TIMESTAMP: FieldType := ftDateTime;
+      SQL_GUID: begin FieldType := ftGuid; FieldSize := 38; end;
+      // "2026-11-27 16:03:37.5297149 +01:00"
+      SQL_SS_TIMESTAMPOFFSET_: begin FieldType := ftWideString; FieldSize := 34; end;
+      SQL_SS_VARIANT_: begin FieldType := ftWideString; FieldSize := 8000; end;
+      else begin FieldType := ftWideString; FieldSize := Max(ColSize, 1); end;
+    end;
+    if (FieldType in [ftWideString, ftFixedWideChar, ftVarBytes]) and ((FieldSize = 0) or (FieldSize > MaxSmallint)) then begin
+      // (max) types, handled as blobs. The fix-up loop in AddFieldDefs does the same for texts.
+      if FieldType = ftVarBytes then
+        FieldType := ftBlob
+      else
+        FieldType := ftWideMemo;
+      FieldSize := 0;
+    end;
+    if FieldType in [ftWideMemo, ftBlob] then
+      FieldSize := 0;
+    AddFieldDef(FieldDefs, i, String(UnicodeString(PWideChar(@ColName[0]))), FieldType, FieldSize, -1,
+      False, Nullable = SQL_NO_NULLS, False);
+  end;
+end;
+
+
 procedure TFixedODBCConnection.AddFieldDefs(cursor: TSQLCursor; FieldDefs: TFieldDefs);
 var
   Stmt: SQLHSTMT;
@@ -107,8 +324,11 @@ var
   NameLen, DataType, Digits, Nullable: SQLSMALLINT;
   ColSize: SQLULEN;
 begin
-  inherited AddFieldDefs(cursor, FieldDefs);
   Stmt := TODBCCursorAccess(cursor).FSTMTHandle;
+  if HasUnsupportedColumns(Stmt) then
+    AddFieldDefsForAllTypes(cursor, FieldDefs)
+  else
+    inherited AddFieldDefs(cursor, FieldDefs);
   NameLen := 0;
   DataType := 0;
   Digits := 0;
@@ -355,6 +575,12 @@ begin
     // Strip vendor prefixes like [Oracle][ODBC][Ora]
     rx.Expression := '^(\[[^\]]*\])+\s*';
     Rest := Msg;
+    {$IFDEF WINDOWS}
+    // Driver messages are fetched via the ANSI SQLGetDiagRec, in the Windows codepage,
+    // e.g. German umlauts from the SQL Server driver
+    if FindInvalidUTF8Codepoint(PChar(Rest), Length(Rest)) >= 0 then
+      Rest := WinCPToUTF8(Rest);
+    {$ENDIF}
     p := Pos(MsgMarker, Rest);
     while p > 0 do begin
       Rest := Copy(Rest, p + Length(MsgMarker), MaxInt);
@@ -517,6 +743,14 @@ begin
   CancelFunc := TSQLCancel(GetProcedureAddress(ODBCLibraryHandle, 'SQLCancel'));
   if Assigned(CancelFunc) then
     Result := CancelFunc(Stmt) in [SQL_SUCCESS, SQL_SUCCESS_WITH_INFO];
+end;
+
+
+function OdbcSetQueryTimeout(Stmt: SQLHSTMT; Seconds: Integer): Boolean;
+begin
+  // SQL_QUERY_TIMEOUT = SQL_ATTR_QUERY_TIMEOUT
+  Result := SQLSetStmtAttr(Stmt, SQL_QUERY_TIMEOUT, SQLPOINTER(PtrUInt(Seconds)), SQL_IS_UINTEGER)
+    in [SQL_SUCCESS, SQL_SUCCESS_WITH_INFO];
 end;
 
 

@@ -661,6 +661,77 @@ Text values must fit the column length, and generated rows must not violate
 foreign keys or unique keys. On Oracle, date strings rely on implicit
 conversion via `NLS_DATE_FORMAT`.
 
+## MS SQL via ODBC (2026-11-27)
+
+Second MS SQL net type besides FreeTDS (`ntMSSQL_TCPIP`), because FPC's dblib
+does not expose FreeTDS' encryption options. Goal: the SSL settings and
+additional connection parameters of the Delphi/ADO version (master commits
+8482daa9, 69f1603d).
+
+Code:
+- Net type `ntMSSQL_ODBC` (last `TNetType` item), "Microsoft SQL Server
+  (ODBC)", group `ngMSSQL`, so the MS SQL provider and all `ngMSSQL` code
+  apply. `TConnectionParameters.IsAnyOdbc` stays Oracle/Snowflake only, as it
+  is used for their dialect; `UsesOdbcDriver` includes the new type (library
+  label, driver hint, additional parameters).
+- `TMssqlOdbcConnection` on `TOdbcConnection`, `TOdbcQuery` for results. The
+  dictionary code of `TSqlSrvConnection` moved into `TDBConnection.Mssql*`
+  methods, which both classes call.
+- Library dropdown: installed drivers matching `SQL Server`, newest first
+  (`ODBC Driver 18 ...`, `17`, Native Client, the old `SQL Server`).
+- Connection string: `Server=host` or `host\instance`, `host,port` if a port is
+  set (the instance is then ignored, as on FreeTDS), `Database=master`,
+  `APP=HeidiSQL ...`, `Trusted_Connection=yes` for Windows authentication,
+  then the additional parameters.
+- SSL tab: `Encrypt=yes`, `TrustServerCertificate=yes` with "No
+  verification", else `no` (no CA-only mode). Without SSL, `Encrypt=no`
+  explicitly, as driver 18 encrypts and validates by default, which fails on
+  servers with a self-signed certificate. Key, certificate, CA and cipher
+  fields are disabled. "SSL Provider" in a connect error adds a hint.
+  `IsSSL` from `sys.dm_exec_connections.encrypt_option`.
+- Query timeout: `SQL_ATTR_QUERY_TIMEOUT` per statement, set in
+  `SetRunningStmt` (only for this type, `FStmtQueryTimeout`), after connecting
+  (a login timeout is also SQLSTATE HYT00). HYT00 gives the same message as
+  FreeTDS.
+
+Learned (ODBC Driver 17, SQL Server 2022 Express):
+- `SQLPrepare` + `SQLExecute` runs the statement in its own scope
+  (`sp_prepexec`): a `#temp` table created there is gone for the next
+  statement ("Invalid object name '#t'"). `TFixedODBCConnection.ExecDirect`
+  skips `SQLPrepare` and executes via `SQLExecDirectW`. The column count is
+  unknown before execution then, so `TOdbcConnection.Query` opens every
+  statement (`FOpenAllStatements`) and takes "Cannot open a non-select
+  statement" as "no result", reading the affected rows from `SQLRowCount`.
+  This also returns rows for `INSERT ... OUTPUT` and `EXEC`.
+- Row counts before the first result with columns (an INSERT in a procedure
+  without `SET NOCOUNT ON`) are skipped via `SQLMoreResults` (not declared by
+  FPC, loaded like `SQLCancel`) and summed up; `SQLRowCount` is gone after
+  `SQLMoreResults`, so `RowsAffected` returns the sum.
+- odbcconn's `AUTOCOMMIT` parameter ends up in the connection string, and the
+  driver complains "Invalid connection string attribute" in every error
+  message. `TFixedODBCConnection.AutoCommit` sets `SQL_AUTOCOMMIT_ON` instead.
+  Without autocommit, a SELECT leaves a transaction open, and `CREATE
+  DATABASE` fails in it.
+- odbcconn rejects `datetimeoffset` (-155) and CLR types like geography or
+  hierarchyid (`SQL_SS_UDT`, -151) with "unknown or unsupported column type",
+  and maps `sql_variant` to `ftVariant`, which it cannot load. If a result has
+  such columns, `TFixedODBCConnection.AddFieldDefsForAllTypes` replaces the
+  inherited `AddFieldDefs`: datetimeoffset and sql_variant as text
+  (`2026-11-27 16:03:37.5297149 +01:00`), CLR types as raw bytes. The grid
+  selects unknown types (geography, geometry) as `CAST(... AS NVARCHAR(MAX))`
+  (WKT text).
+- Driver messages come in the Windows codepage via the ANSI `SQLGetDiagRec`
+  (German "vertrauenswürdigen" broken). `OdbcErrorText` converts them to UTF-8
+  if they are not valid UTF-8 (all ODBC types).
+- BIT arrives as `ftBoolean`; `TOdbcQuery.Col` returns `0`/`1` on MS SQL, as
+  the grid sends the text back in UPDATE.
+
+Not done / open:
+- Only the first result set with columns of a batch or procedure is shown
+  (FreeTDS shows all).
+- Driver 18 not tested (not installed here), nor Linux/macOS (msodbcsql from
+  Microsoft's repositories, unixODBC).
+
 ## Oracle: slow dictionary queries
 
 Measured 2026-11-23 on 21c XE (LAN, idle server): the key, index and foreign
