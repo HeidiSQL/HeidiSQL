@@ -7658,6 +7658,10 @@ msgid "Install the server certificate as a trusted certificate on this computer,
 msgstr "Install the server certificate as a trusted certificate on this computer, or activate SSL with \"No verification\" in your session settings (insecure)."
 
 #: dbconnection.pas
+msgid "Windows authentication needs the server's host name, not its IP address. For a domain account, the server also needs a registered service principal name (SPN)."
+msgstr "Windows authentication needs the server's host name, not its IP address. For a domain account, the server also needs a registered service principal name (SPN)."
+
+#: dbconnection.pas
 msgid "The ODBC driver \"%s\" is not installed."
 msgstr "The ODBC driver \"%s\" is not installed."
 

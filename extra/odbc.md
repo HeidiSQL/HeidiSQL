@@ -723,6 +723,13 @@ Learned (ODBC Driver 17, SQL Server 2022 Express):
 - Driver messages come in the Windows codepage via the ANSI `SQLGetDiagRec`
   (German "vertrauenswürdigen" broken). `OdbcErrorText` converts them to UTF-8
   if they are not valid UTF-8 (all ODBC types).
+- Windows authentication to `127.0.0.1` fails in the driver with "Cannot
+  generate SSPI context" / "Die zu überprüfende Nachricht ist nicht in Folge"
+  (also with sqlcmd -E), `localhost` works (NTLM). A loopback IP is replaced
+  by `localhost` with Windows authentication; an SSPI error adds a hint.
+- Grid INSERT into a table with IDENTITY sent `SELECT LAST_INSERT_ID()`, the
+  MySQL function in the MS SQL provider (also FreeTDS, and in master). Now
+  `@@IDENTITY`: `SCOPE_IDENTITY()` is NULL in the separate batch.
 - BIT arrives as `ftBoolean`; `TOdbcQuery.Col` returns `0`/`1` on MS SQL, as
   the grid sends the text back in UPDATE.
 

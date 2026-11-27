@@ -10359,11 +10359,21 @@ begin
     Server := Copy(Server, 1, InstancePos-1);
     Log(lcInfo, f_('Ignoring instance name "%s", connecting to port %d', [FIgnoredInstance, FinalPort]));
   end;
+  // Windows authentication to a loopback IP fails in the driver with "Cannot generate SSPI
+  // context" (also in sqlcmd), "localhost" works via NTLM
+  InstancePos := Pos('\', Server);
+  if InstancePos > 0 then
+    LocalAlias := Copy(Server, 1, InstancePos-1)
+  else
+    LocalAlias := Server;
+  if Parameters.WindowsAuth and ((LocalAlias = '127.0.0.1') or (LocalAlias = '::1') or (LocalAlias = '[::1]')) then begin
+    Server := 'localhost' + Copy(Server, Length(LocalAlias)+1, MaxInt);
+    LocalAlias := 'localhost';
+  end;
   if FinalPort > 0 then begin
     // "." and "(local)" are the local machine, but connect via shared memory, without a port
-    LocalAlias := Server;
     if (LocalAlias = '.') or SameText(LocalAlias, '(local)') then
-      Server := '127.0.0.1';
+      Server := 'localhost';
     Server := Server + ',' + FinalPort.ToString;
   end;
   FHandle.Params.Values['Server'] := Server;
@@ -10422,6 +10432,12 @@ begin
   if ContainsText(Error, 'SSL Provider') and not (Parameters.WantSSL and (Parameters.SSLVerification = 0)) then begin
     // Self-signed or otherwise unverifiable server certificate
     Result := _('Install the server certificate as a trusted certificate on this computer, or activate SSL with "No verification" in your session settings (insecure).');
+  end;
+  if ContainsText(Error, 'SSPI') and Parameters.WindowsAuth then begin
+    // Kerberos needs the server's host name, not an IP address
+    if not Result.IsEmpty then
+      Result := Result + sLineBreak + sLineBreak;
+    Result := Result + _('Windows authentication needs the server''s host name, not its IP address. For a domain account, the server also needs a registered service principal name (SPN).');
   end;
   if FIgnoredInstance <> '' then begin
     if not Result.IsEmpty then

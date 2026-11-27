@@ -757,7 +757,8 @@ begin
     qFuncCeil: Result := 'CEILING';
     qFuncLeft: Result := 'LEFT(%s, %d)';
     qFuncNow: Result := 'GETDATE()';
-    qFuncLastAutoIncNumber: Result := 'LAST_INSERT_ID()';
+    // Session wide, as the grid's SELECT runs in its own batch, where SCOPE_IDENTITY() is NULL
+    qFuncLastAutoIncNumber: Result := '@@IDENTITY';
     qLockedTables: Result := '';
     qDisableForeignKeyChecks: Result := '';
     qEnableForeignKeyChecks: Result := '';
