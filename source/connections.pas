@@ -241,6 +241,7 @@ type
     procedure RefreshSessions(ParentNode: PVirtualNode);
     procedure UpdateV12ImportControls;
     procedure ShowImportStatus(Status: String);
+    procedure OfferV12Import(Data: PtrInt);
     function SelectedSessionPath: String;
     function CurrentParams: TConnectionParameters;
     procedure FinalizeModifications(var CanProceed: Boolean);
@@ -451,6 +452,10 @@ begin
   // Init sessions tree
   RefreshSessions(nil);
 
+  // First start after an upgrade: no sessions yet, but some in the previous version
+  if btnImportV12.Visible and (ListSessions.RootNodeCount = 0) then
+    Application.QueueAsyncCall(OfferV12Import, 0);
+
   // Focus last session
   SelectNode(ListSessions, nil);
   LastSessions := Explode(DELIM, AppSettings.ReadString(asLastSessions));
@@ -654,6 +659,17 @@ begin
   // Live feedback from the import routines, see TAppSettings.OnImportStatus
   lblImportStatus.Caption := Status;
   lblImportStatus.Repaint;
+end;
+
+procedure Tconnform.OfferV12Import(Data: PtrInt);
+begin
+  // Asked once per show of an empty session manager. Declining keeps the import button.
+  if not btnImportV12.Visible then
+    Exit;
+  if MessageDialog(_('Import settings from previous version?'),
+    _('A previous version of HeidiSQL stored settings and sessions on this computer. Do you want to import them now?'),
+    mtConfirmation, [mbYes, mbNo]) = mrYes then
+    btnImportV12.Click;
 end;
 
 procedure Tconnform.btnImportV12Click(Sender: TObject);

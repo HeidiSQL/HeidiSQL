@@ -5871,6 +5871,12 @@ msgstr "Importing file: %s"
 msgid "Imported settings, sessions and files from a previous version."
 msgstr "Imported settings, sessions and files from a previous version."
 
+msgid "Import settings from previous version?"
+msgstr "Import settings from previous version?"
+
+msgid "A previous version of HeidiSQL stored settings and sessions on this computer. Do you want to import them now?"
+msgstr "A previous version of HeidiSQL stored settings and sessions on this computer. Do you want to import them now?"
+
 #. MessageDialog()
 msgid "Missing \"No\" button in %() call"
 msgstr "Missing \"No\" button in %() call"
