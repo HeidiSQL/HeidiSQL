@@ -44,6 +44,12 @@ type
     // the generic DB-Library message "General SQL Server error". Empty if none.
     function ServerErrorNo: Integer;
     function ServerErrorText: String;
+    // Query timeout in seconds, 0 waits forever. DB-Library has one global timeout for all
+    // connections, so call this before each batch. Also resets TimedOut.
+    // A timed out statement gets cancelled, the connection remains usable.
+    procedure SetQueryTimeout(Seconds: Integer);
+    // True if a statement since the last SetQueryTimeout was cancelled by the timeout
+    function TimedOut: Boolean;
   end;
 
 implementation
@@ -57,9 +63,23 @@ var
   // Server messages with error severity
   LastServerErrorStr: String;
   LastServerErrorNo: Integer;
+  // Statement cancelled by the query timeout
+  LastTimedOut: Boolean;
+
+const
+  // Not declared in FPC's dblib unit
+  SYBETIME = 20003;
+  INT_TIMEOUT = 3;
 
 function ChainedErrHandler(dbproc: PDBPROCESS; severity, dberr, oserr: INT; dberrstr, oserrstr: PAnsiChar): INT; cdecl;
 begin
+  if (dberr = SYBETIME) and (dbproc <> nil) then begin
+    // The inherited handler returns INT_CANCEL, which kills the connection on a timeout.
+    // Cancel the statement instead, and keep waiting for the server to confirm it.
+    LastTimedOut := True;
+    dbcancel(dbproc);
+    Exit(INT_TIMEOUT);
+  end;
   LastErrorStr := LastErrorStr + sLineBreak + dberrstr;
   LastErrorNo := dberr;
   Result := PrevErrHandler(dbproc, severity, dberr, oserr, dberrstr, oserrstr);
@@ -250,6 +270,19 @@ end;
 function TFixedMSSQLConnection.ServerErrorText: String;
 begin
   Result := LastServerErrorStr;
+end;
+
+procedure TFixedMSSQLConnection.SetQueryTimeout(Seconds: Integer);
+begin
+  if Seconds < 0 then
+    Seconds := 0;
+  LastTimedOut := False;
+  dbsettime(Seconds);
+end;
+
+function TFixedMSSQLConnection.TimedOut: Boolean;
+begin
+  Result := LastTimedOut;
 end;
 
 end.

@@ -4880,6 +4880,15 @@ msgstr "unknown"
 msgid "You could try the default library %s in your session settings. (Current: %s)"
 msgstr "You could try the default library %s in your session settings. (Current: %s)"
 
+msgid "Ignoring instance name \"%s\", connecting to port %d"
+msgstr "Ignoring instance name \"%s\", connecting to port %d"
+
+msgid "The instance name \"%s\" was ignored, as port %d is set. Set the port to 0 to find the instance through the SQL Server Browser service."
+msgstr "The instance name \"%s\" was ignored, as port %d is set. Set the port to 0 to find the instance through the SQL Server Browser service."
+
+msgid "Query cancelled after the timeout of %d seconds. You can change the timeout in the session settings."
+msgstr "Query cancelled after the timeout of %d seconds. You can change the timeout in the session settings."
+
 msgid "This is a known issue with older libraries. Try a newer %s in the session settings."
 msgstr "This is a known issue with older libraries. Try a newer %s in the session settings."
 

@@ -3032,9 +3032,9 @@ end;
 procedure TSqlSrvConnection.SetActive(Value: Boolean);
 var
   Error, ServerVersion, ErrorHint: String;
-  FinalHost: String;
+  FinalHost, IgnoredInstance, LocalAlias: String;
   rx: TRegExpr;
-  FinalPort: Integer;
+  FinalPort, InstancePos: Integer;
 begin
   if Value then begin
     if Parameters.NetType <> ntMSSQL_TCPIP then begin
@@ -3046,6 +3046,24 @@ begin
     DoBeforeConnect;
     FinalHost := Parameters.Hostname;
     FinalPort := Parameters.Port;
+    // "server\instance": FreeTDS resolves the instance's port through the SQL Server Browser,
+    // but fails with an "unknown host" on "server\instance:port". As with ADO in the Delphi
+    // version, a given port takes precedence over the instance name.
+    InstancePos := Pos('\', FinalHost);
+    // ADO accepts "." and "(local)" for the local machine, FreeTDS reports an unknown host
+    LocalAlias := FinalHost;
+    if InstancePos > 0 then
+      LocalAlias := Copy(FinalHost, 1, InstancePos-1);
+    if (LocalAlias = '.') or SameText(LocalAlias, '(local)') then begin
+      FinalHost := '127.0.0.1' + Copy(FinalHost, Length(LocalAlias)+1, MaxInt);
+      InstancePos := Pos('\', FinalHost);
+    end;
+    IgnoredInstance := '';
+    if (InstancePos > 0) and (FinalPort > 0) then begin
+      IgnoredInstance := Copy(FinalHost, InstancePos+1, MaxInt);
+      FinalHost := Copy(FinalHost, 1, InstancePos-1);
+      Log(lcInfo, f_('Ignoring instance name "%s", connecting to port %d', [IgnoredInstance, FinalPort]));
+    end;
     StartSSHTunnel(FinalHost, FinalPort);
 
     FHandle := TFixedMSSQLConnection.Create(nil);
@@ -3059,10 +3077,19 @@ begin
     FTransaction.Database := FHandle;
 
     FHandle.Transaction := FTransaction;
-    FHandle.HostName := FinalHost + ':' + FinalPort.ToString;
-    //FHandle.Params.Values['Port'] := FinalPort;
-    FHandle.UserName := Parameters.Username;
-    FHandle.Password := Parameters.Password;
+    if FinalPort > 0 then
+      FHandle.HostName := FinalHost + ':' + FinalPort.ToString
+    else
+      FHandle.HostName := FinalHost;
+    if Parameters.WindowsAuth then begin
+      // An empty user name makes TMSSQLConnection call dbsetlsecure, so FreeTDS logs in
+      // with the current Windows account through SSPI
+      FHandle.UserName := '';
+      FHandle.Password := '';
+    end else begin
+      FHandle.UserName := Parameters.Username;
+      FHandle.Password := Parameters.Password;
+    end;
     FHandle.DatabaseName := 'master';
     FHandle.Params.Values['AutoCommit'] := 'true';
     FHandle.Params.Values['ApplicationName'] := AppClientName;
@@ -3133,6 +3160,12 @@ begin
             );
         end else begin
           ErrorHint := '';
+        end;
+        if IgnoredInstance <> '' then begin
+          if not ErrorHint.IsEmpty then
+            ErrorHint := ErrorHint + sLineBreak + sLineBreak;
+          ErrorHint := ErrorHint + f_('The instance name "%s" was ignored, as port %d is set. Set the port to 0 to find the instance through the SQL Server Browser service.',
+            [IgnoredInstance, FinalPort]);
         end;
         raise EDbError.Create(Error, LastErrorCode, ErrorHint);
       end;
@@ -4379,6 +4412,7 @@ begin
   TimerStart := GetTickCount64;
   FLastRawResults.Clear;
   QueryResult := nil;
+  FHandle.SetQueryTimeout(Parameters.QueryTimeout);
   FHandle.BeginResults;
   try
     try
@@ -4420,6 +4454,9 @@ begin
     finally
       FHandle.EndResults;
     end;
+    // A timeout while fetching rows may end the result set early without an error
+    if FHandle.TimedOut then
+      raise EDatabaseError.Create('');
     FLastQueryDuration := GetTickCount64 - TimerStart;
     FLastQueryNetworkDuration := 0;
 
@@ -5905,7 +5942,11 @@ procedure TSqlSrvConnection.SetLastError(E: Exception);
 begin
   // Prefer the server's error number and text over DB-Library's generic
   // "Error 20018 : General SQL Server error: Check messages from the SQL Server"
-  if Assigned(FHandle) and (FHandle.ServerErrorText <> '') then begin
+  if Assigned(FHandle) and FHandle.TimedOut then begin
+    FLastError := f_('Query cancelled after the timeout of %d seconds. You can change the timeout in the session settings.',
+      [Parameters.QueryTimeout]);
+    FLastErrorCode := 0;
+  end else if Assigned(FHandle) and (FHandle.ServerErrorText <> '') then begin
     FLastError := FHandle.ServerErrorText;
     FLastErrorCode := FHandle.ServerErrorNo;
   end else begin
