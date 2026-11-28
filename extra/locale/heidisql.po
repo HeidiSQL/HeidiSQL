@@ -7598,12 +7598,8 @@ msgid "Ignoring invalid option name \"%s\" in connection parameters"
 msgstr "Ignoring invalid option name \"%s\" in connection parameters"
 
 #: connections.lfm
-msgid "Warehouse:"
-msgstr "Warehouse:"
-
-#: connections.lfm
-msgid "Role:"
-msgstr "Role:"
+msgid "Warehouse, role:"
+msgstr "Warehouse, role:"
 
 #: connections.lfm
 msgid "Optional, default role of the user"

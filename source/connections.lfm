@@ -212,46 +212,35 @@ object connform: Tconnform
         Left = 5
         Height = 15
         Top = 273
-        Width = 62
+        Width = 92
         BorderSpacing.Around = 5
-        Caption = 'Warehouse:'
+        Caption = 'Warehouse, role:'
         FocusControl = editSnowflakeWarehouse
-      end
-      object lblSnowflakeRole: TLabel
-        AnchorSideTop.Control = editSnowflakeWarehouse
-        AnchorSideTop.Side = asrBottom
-        Left = 5
-        Height = 15
-        Top = 301
-        Width = 26
-        BorderSpacing.Around = 5
-        Caption = 'Role:'
-        FocusControl = editSnowflakeRole
       end
       object editSnowflakeWarehouse: TEdit
         AnchorSideTop.Control = editDatabases
         AnchorSideTop.Side = asrBottom
-        AnchorSideRight.Control = tabSettings
-        AnchorSideRight.Side = asrBottom
         Left = 194
         Height = 23
         Top = 273
-        Width = 314
-        Anchors = [akTop, akLeft, akRight]
+        Width = 150
+        Anchors = [akTop, akLeft]
         BorderSpacing.Around = 5
         TabOrder = 10
         OnChange = Modification
         OnExit = editTrim
       end
       object editSnowflakeRole: TEdit
-        AnchorSideTop.Control = editSnowflakeWarehouse
+        AnchorSideLeft.Control = editSnowflakeWarehouse
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = editDatabases
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabSettings
         AnchorSideRight.Side = asrBottom
-        Left = 194
+        Left = 354
         Height = 23
-        Top = 301
-        Width = 314
+        Top = 273
+        Width = 154
         Anchors = [akTop, akLeft, akRight]
         BorderSpacing.Around = 5
         TabOrder = 11
@@ -260,11 +249,11 @@ object connform: Tconnform
         OnExit = editTrim
       end
       object lblComment: TLabel
-        AnchorSideTop.Control = editSnowflakeRole
+        AnchorSideTop.Control = editSnowflakeWarehouse
         AnchorSideTop.Side = asrBottom
         Left = 5
         Height = 15
-        Top = 329
+        Top = 301
         Width = 57
         BorderSpacing.Around = 5
         Caption = 'Comment:'
@@ -416,13 +405,13 @@ object connform: Tconnform
         OnClick = chkLoginPromptClick
       end
       object memoComment: TMemo
-        AnchorSideTop.Control = editSnowflakeRole
+        AnchorSideTop.Control = editSnowflakeWarehouse
         AnchorSideTop.Side = asrBottom
         AnchorSideRight.Control = tabSettings
         AnchorSideRight.Side = asrBottom
         Left = 194
-        Height = 86
-        Top = 329
+        Height = 114
+        Top = 301
         Width = 314
         Anchors = [akTop, akLeft, akRight, akBottom]
         BorderSpacing.Around = 5

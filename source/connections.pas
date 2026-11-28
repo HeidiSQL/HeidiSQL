@@ -106,7 +106,6 @@ type
     memoComment: TMemo;
     lblSnowflakeWarehouse: TLabel;
     editSnowflakeWarehouse: TEdit;
-    lblSnowflakeRole: TLabel;
     editSnowflakeRole: TEdit;
     lblQueryTimeout: TLabel;
     spinQueryTimeout: TSpinEditEx;
@@ -1808,8 +1807,7 @@ begin
       lblSnowflakeWarehouse.Enabled := Params.IsAnySnowflake;
       editSnowflakeWarehouse.Enabled := lblSnowflakeWarehouse.Enabled;
       editSnowflakeWarehouse.TextHint := _('Example:') + ' COMPUTE_WH';
-      lblSnowflakeRole.Enabled := Params.IsAnySnowflake;
-      editSnowflakeRole.Enabled := lblSnowflakeRole.Enabled;
+      editSnowflakeRole.Enabled := lblSnowflakeWarehouse.Enabled;
       // SSH tunnel tab:
       chkSSHActive.Enabled := Params.SshSupport;
       lblSSHExe.Enabled := Params.SSHActive;
