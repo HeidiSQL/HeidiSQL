@@ -970,7 +970,7 @@ begin
     {$ELSEIF DEFINED(LCLQt5) or DEFINED(LCLQt6)}Scale96ToForm(6)
     {$ELSE}Margin{$ENDIF};
   // Even size, for a centered "x"
-  Size := Min(TabR.Height - 2*Margin, Scale96ToForm(12)) and not 1;
+  Size := Min(TabR.Height - 2*Margin, Scale96ToForm(14)) and not 1;
   BtnR.Left := TabR.Right - Size - MarginRight;
   BtnR.Top := TabR.Top + (TabR.Height - Size) div 2;
   BtnR.Right := BtnR.Left + Size;
@@ -1081,8 +1081,9 @@ begin
     end;
   end;
   Margin := Scale96ToForm(3);
-  // Even size, for a centered "+"
-  Size := Min(TabR.Height - 2*Margin, Scale96ToForm(18)) and not 1;
+  // Even size, for a centered "+". Smaller vertical margin than the close button, which sits
+  // inside a tab, while this one sits next to the tabs.
+  Size := Min(TabR.Height - 2*Scale96ToForm(2), Scale96ToForm(20)) and not 1;
   BtnR.Left := TabR.Right + Margin;
   BtnR.Top := TabR.Top + (TabR.Height - Size) div 2;
   BtnR.Right := BtnR.Left + Size;
